@@ -2050,3 +2050,7 @@ select:focus,
 
 @media (max-width:1060px) { .admin-histogram { padding-left:24px; }.admin-histogram-bars { gap:18px; } }
 @media (max-width:760px) { .admin-metrics { grid-template-columns:repeat(3,1fr); grid-template-rows:1fr; gap:12px; }.admin-histogram { min-height:280px; padding-left:0; border-left:0; }.admin-histogram-bars { min-height:205px; padding-inline:8px; gap:12px; }.admin-histogram-bars article > div { min-height:125px; }.admin-histogram-bars article > span { font-size:.64rem; }.admin-cert-inbox-list article { grid-template-columns:42px minmax(0,1fr) auto; gap:11px; padding:14px; }.admin-cert-inbox-list time,.admin-cert-inbox-list .admin-state { grid-column:2; }.admin-cert-inbox-list .admin-state { justify-self:start; }.admin-cert-inbox-list .admin-quiet-button { grid-column:3; grid-row:1/4; } }
+
+/* Navegación contextual y solicitud de sostenibilidad. */
+.admin-cert-inbox-icon.tree { background:rgba(124,221,101,.18); color:var(--entity-accent); box-shadow:0 0 0 6px rgba(124,221,101,.06); }.admin-detail-actions { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:9px; }
+@media (max-width:760px) { .admin-detail-actions { width:100%; justify-content:flex-start; } }
