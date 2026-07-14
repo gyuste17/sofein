@@ -203,6 +203,15 @@
       </div>
     </footer>
 
+    <aside class="sofein-chat" aria-label="Asistente SOFEIN">
+      <section class="sofein-chat-panel" id="chatPanel" aria-hidden="true">
+        <header><span class="sofein-chat-avatar" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="14" rx="3"/><path d="M8 8h.01M16 8h.01M7 17l-2 4M17 17l2 4M5 13h14"/></svg></span><div><strong>Asistente SOFEIN</strong><small>En línea</small></div><button id="chatClose" type="button" aria-label="Cerrar asistente">×</button></header>
+        <div class="sofein-chat-messages" id="chatMessages" aria-live="polite"><p class="sofein-chat-message bot">Hola, soy el asistente de SOFEIN Digital. ¿En qué puedo ayudarte?</p></div>
+        <form class="sofein-chat-form" id="chatForm"><input id="chatInput" aria-label="Escribe tu mensaje" placeholder="Escribe tu consulta…" autocomplete="off" /><button type="submit" aria-label="Enviar mensaje">↑</button></form>
+      </section>
+      <button class="sofein-chat-toggle" id="chatToggle" type="button" aria-label="Abrir asistente SOFEIN" aria-expanded="false"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 20h14M7 20V7h10v13M5 11h14"/><path d="M9 3h6v4H9z"/><circle cx="9" cy="15" r="1"/><circle cx="15" cy="15" r="1"/></svg><span>Habla con SOFEIN</span></button>
+    </aside>
+
     <script>
       const t = document.getElementById("topbar");
       document.getElementById("navToggle").addEventListener("click", function () {
@@ -211,6 +220,26 @@
       });
       t.querySelectorAll(".main-nav a").forEach(function (a) {
         a.addEventListener("click", function () { t.classList.remove("nav-open"); });
+      });
+
+      const chatToggle = document.getElementById("chatToggle");
+      const chatPanel = document.getElementById("chatPanel");
+      const setChatOpen = function (open) {
+        chatPanel.classList.toggle("is-open", open);
+        chatPanel.setAttribute("aria-hidden", String(!open));
+        chatToggle.setAttribute("aria-expanded", String(open));
+      };
+      chatToggle.addEventListener("click", function () { setChatOpen(!chatPanel.classList.contains("is-open")); });
+      document.getElementById("chatClose").addEventListener("click", function () { setChatOpen(false); });
+      document.getElementById("chatForm").addEventListener("submit", function (event) {
+        event.preventDefault();
+        const input = document.getElementById("chatInput");
+        const message = input.value.trim();
+        if (!message) return;
+        const messages = document.getElementById("chatMessages");
+        messages.insertAdjacentHTML("beforeend", `<p class="sofein-chat-message user">${message.replace(/[&<>]/g, function (char) { return {"&":"&amp;","<":"&lt;",">":"&gt;"}[char]; })}</p><p class="sofein-chat-message bot">Gracias. Puedo orientarte sobre SOFEIN Digital, Consulting y el acceso a la plataforma.</p>`);
+        input.value = "";
+        messages.scrollTop = messages.scrollHeight;
       });
     </script>
   </body>
