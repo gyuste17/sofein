@@ -2061,3 +2061,7 @@ select:focus,
 
 /* Burbuja de acceso compacta, conversación con mayor espacio. */
 .sofein-chat-toggle { width:62px; min-height:62px; padding:0; justify-content:center; border-radius:50%; }.sofein-chat-toggle span { display:none; }.sofein-chat-panel { bottom:78px; width:min(440px,calc(100vw - 40px)); min-height:460px; grid-template-rows:auto minmax(275px,1fr) auto; }.sofein-chat-messages { padding:20px; }.sofein-chat-message { font-size:.79rem; }
+
+/* Certificaciones: el sello flota sobre un contexto ferroviario de baja presencia. */
+.entity-certificate-art { position:relative; isolation:isolate; background:linear-gradient(rgba(5,14,9,.66),rgba(5,14,9,.66)),url("assets/premium-rail-bg.png") center/cover; }
+.entity-certificate-art img { position:relative; z-index:1; width:112%; height:auto; max-width:none; aspect-ratio:1; object-fit:cover; clip-path:circle(43% at 50% 50%); filter:drop-shadow(0 12px 16px rgba(0,0,0,.5)); }
