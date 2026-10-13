@@ -1,0 +1,694 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SOFEIN Procurement | Mapa Visual de Pantallas & Pizarra</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --panel: #ffffff;
+      --panel-alt: #f1f5f9;
+      --border: #e2e8f0;
+      --border-strong: #cbd5e1;
+      --text: #0f172a;
+      --muted: #475569;
+      --faint: #94a3b8;
+      --green-brand: #008751;
+      --green-bg: #ecfdf5;
+      --green-border: #a7f3d0;
+      --yellow-brand: #d97706;
+      --yellow-bg: #fffbeb;
+      --yellow-border: #fde68a;
+      --blue-brand: #2563eb;
+      --blue-bg: #eff6ff;
+      --blue-border: #bfdbfe;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding: 32px 24px 80px;
+    }
+    .container { max-width: 1240px; margin: 0 auto; }
+    
+    /* Top Toolbar */
+    .top-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 32px;
+    }
+    .brand-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--green-brand);
+      background: var(--green-bg);
+      border: 1px solid var(--green-border);
+      padding: 4px 12px;
+      border-radius: 999px;
+    }
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      border: 1px solid var(--border-strong);
+      background: var(--panel);
+      color: var(--text);
+      transition: all 0.15s;
+    }
+    .btn:hover { background: var(--panel-alt); }
+    .btn-primary {
+      background: var(--green-brand);
+      color: #fff;
+      border-color: var(--green-brand);
+    }
+    .btn-primary:hover { filter: brightness(1.08); }
+
+    /* Legend Box */
+    .legend-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-bottom: 36px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .legend-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .legend-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    .legend-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 14px;
+      border-radius: 8px;
+      border: 1px solid transparent;
+    }
+    .legend-item.green { background: var(--green-bg); border-color: var(--green-border); }
+    .legend-item.yellow { background: var(--yellow-bg); border-color: var(--yellow-border); }
+    .legend-item.blue { background: var(--blue-bg); border-color: var(--blue-border); }
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin-top: 4px;
+    }
+    .dot.green { background: var(--green-brand); }
+    .dot.yellow { background: var(--yellow-brand); }
+    .dot.blue { background: var(--blue-brand); }
+    .legend-item strong { display: block; font-size: 0.86rem; color: var(--text); margin-bottom: 2px; }
+    .legend-item p { font-size: 0.76rem; color: var(--muted); line-height: 1.4; }
+
+    /* Section Headings */
+    .section-head {
+      margin-bottom: 20px;
+    }
+    .section-head h2 {
+      font-size: 1.4rem;
+      letter-spacing: -0.03em;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .section-head p {
+      font-size: 0.86rem;
+      color: var(--muted);
+    }
+
+    /* Screen Flow Canvas */
+    .flow-canvas {
+      display: grid;
+      gap: 28px;
+      margin-bottom: 56px;
+    }
+    .flow-row {
+      display: grid;
+      grid-template-columns: 80px 1fr;
+      gap: 20px;
+      align-items: stretch;
+    }
+    .phase-badge-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: var(--panel-alt);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 6px;
+      text-align: center;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--muted);
+    }
+    .phase-badge-col span.num {
+      font-size: 1.3rem;
+      color: var(--text);
+      display: block;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+    .screen-cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 16px;
+    }
+
+    /* Individual Screen Card */
+    .screen-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+      position: relative;
+      transition: transform 0.15s, border-color 0.15s;
+    }
+    .screen-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.06);
+    }
+    .screen-card.status-green { border-top: 4px solid var(--green-brand); }
+    .screen-card.status-yellow { border-top: 4px solid var(--yellow-brand); }
+    .screen-card.status-blue { border-top: 4px solid var(--blue-brand); }
+
+    .card-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .screen-code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.74rem;
+      font-weight: 600;
+      color: var(--faint);
+    }
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 999px;
+    }
+    .status-pill.green { background: var(--green-bg); color: var(--green-brand); border: 1px solid var(--green-border); }
+    .status-pill.yellow { background: var(--yellow-bg); color: var(--yellow-brand); border: 1px solid var(--yellow-border); }
+    .status-pill.blue { background: var(--blue-bg); color: var(--blue-brand); border: 1px solid var(--blue-border); }
+
+    .screen-name {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.02em;
+      margin-bottom: 6px;
+    }
+    .screen-role-tag {
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-bottom: 14px;
+      display: block;
+    }
+    .screen-desc {
+      font-size: 0.8rem;
+      color: var(--muted);
+      line-height: 1.45;
+      margin-bottom: 16px;
+      flex-grow: 1;
+    }
+    .card-blocks {
+      background: var(--panel-alt);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 0.74rem;
+      margin-bottom: 14px;
+    }
+    .card-blocks strong { display: block; color: var(--text); margin-bottom: 5px; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; }
+    .card-blocks ul { list-style: none; display: grid; gap: 4px; }
+    .card-blocks li { display: flex; align-items: center; gap: 6px; color: var(--muted); }
+    .card-blocks li::before { content: "•"; color: var(--green-brand); font-weight: bold; }
+
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid var(--border);
+      padding-top: 12px;
+      font-size: 0.74rem;
+    }
+    .card-link {
+      color: var(--green-brand);
+      font-weight: 600;
+      text-decoration: none;
+    }
+    .card-link:hover { text-decoration: underline; }
+
+    /* Notion-ready Code Section */
+    .notion-export-box {
+      background: #1e293b;
+      color: #f8fafc;
+      border-radius: 12px;
+      padding: 24px;
+      margin-top: 40px;
+    }
+    .notion-export-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .notion-export-head h3 {
+      font-size: 1rem;
+      color: #f8fafc;
+    }
+    pre {
+      background: #0f172a;
+      padding: 16px;
+      border-radius: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      overflow-x: auto;
+      line-height: 1.45;
+      color: #93c5fd;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .copy-btn {
+      background: #334155;
+      color: #fff;
+      border: 0;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .copy-btn:hover { background: #475569; }
+
+    @media (max-width: 768px) {
+      .flow-row { grid-template-columns: 1fr; }
+      .phase-badge-col { flex-direction: row; gap: 10px; padding: 8px; }
+      .phase-badge-col span.num { margin: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    
+    <!-- Top Bar -->
+    <header class="top-bar">
+      <div>
+        <span class="brand-tag">SOFEIN Digital · Procurement</span>
+        <h1 style="font-size: 1.7rem; letter-spacing: -0.04em; margin-top: 6px;">Pizarra de Pantallas & Estados de Desarrollo</h1>
+      </div>
+      <div class="header-actions">
+        <a class="btn" href="app.html#admin" target="_blank">Abrir App Local ↗</a>
+        <a class="btn" href="https://sofein-procurement.vercel.app/app.html#admin" target="_blank">Ver Subdominio Vercel ↗</a>
+        <button class="btn btn-primary" onclick="window.print()">Imprimir / Guardar PDF</button>
+      </div>
+    </header>
+
+    <!-- Leyenda de Estados -->
+    <section class="legend-card">
+      <div class="legend-title">
+        <span>Leyenda de Estados del Desarrollo para la Reunión</span>
+      </div>
+      <div class="legend-grid">
+        <div class="legend-item green">
+          <span class="dot green"></span>
+          <div>
+            <strong>🟢 Construida & Navegable (Hoy)</strong>
+            <p>Ya maquetada e interactiva en el subdominio. Se puede probar en directo en la reunión con datos reales.</p>
+          </div>
+        </div>
+        <div class="legend-item yellow">
+          <span class="dot yellow"></span>
+          <div>
+            <strong>🟡 Nueva Construcción (Sprint Inmediato)</strong>
+            <p>Siguiente prioridad acordada con Ángel y Flor: conexión a storage real, firma electrónica y matching avanzado.</p>
+          </div>
+        </div>
+        <div class="legend-item blue">
+          <span class="dot blue"></span>
+          <div>
+            <strong>🔵 Por Construir a Futuro (Roadmap)</strong>
+            <p>Fases 2 y 3: Módulos ad-hoc de SOFEIN Consulting, analítica predictiva ESG/CO2 y portal de licitaciones.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Flujo de Pantallas -->
+    <section class="section-head">
+      <h2>Mapa de Navegación por Pantallas (Wire-Flow)</h2>
+      <p>Secuencia visual desde que entra el cliente hasta que se cierra el expediente y se emite el Pasaporte Digital.</p>
+    </section>
+
+    <div class="flow-canvas">
+
+      <!-- FASE 1: ENTRADA Y ALTA -->
+      <div class="flow-row">
+        <div class="phase-badge-col">
+          <span class="num">01</span>
+          <span>ALTA</span>
+        </div>
+        <div class="screen-cards-grid">
+          
+          <article class="screen-card status-green">
+            <div class="card-top">
+              <span class="screen-code">SCR-01</span>
+              <span class="status-pill green">🟢 Construida</span>
+            </div>
+            <h3 class="screen-name">Bandeja Maestra de Expedientes</h3>
+            <span class="screen-role-tag">Roles: SOFEIN Admin & Cliente Constructor</span>
+            <p class="screen-desc">Panel general con tarjetas de KPIs (activos, incidencias, plazos), filtros por destino (VW, Adif) y tabla de expedientes estancos.</p>
+            <div class="card-blocks">
+              <strong>Bloques visuales:</strong>
+              <ul>
+                <li>KPIs: Activos, En revisión, Alertas demora</li>
+                <li>Filtros multicriterio por material y obra</li>
+                <li>Tabla de expedientes con badge de fase</li>
+              </ul>
+            </div>
+            <div class="card-footer">
+              <span style="color:var(--faint)">Ruta: #admin / #cliente</span>
+              <a class="card-link" href="app.html#admin" target="_blank">Probar en app →</a>
+            </div>
+          </article>
+
+          <article class="screen-card status-green">
+            <div class="card-top">
+              <span class="screen-code">SCR-02</span>
+              <span class="status-pill green">🟢 Construida</span>
+            </div>
+            <h3 class="screen-name">Asistente Nuevo Expediente</h3>
+            <span class="screen-role-tag">Roles: Cliente Constructor & SOFEIN Admin</span>
+            <p class="screen-desc">Formulario guiado con selector del Catálogo MVP (traviesas hormigón/madera/polímero, carril, fijaciones), destino y subida de planos.</p>
+            <div class="card-blocks">
+              <strong>Bloques visuales:</strong>
+              <ul>
+                <li>Selector de producto ferroviario acotado</li>
+                <li>Volumen, fechas objetivo y destino de vía</li>
+                <li>Caja de subida para pliegos y planos DWG/PDF</li>
+              </ul>
+            </div>
+            <div class="card-footer">
+              <span style="color:var(--faint)">Ruta: #cliente/nuevo</span>
+              <a class="card-link" href="app.html#cliente/nuevo" target="_blank">Probar en app →</a>
+            </div>
+          </article>
+
+          <article class="screen-card status-yellow">
+            <div class="card-top">
+              <span class="screen-code">SCR-03</span>
+              <span class="status-pill yellow">🟡 Nueva Construcción</span>
+            </div>
+            <h3 class="screen-name">Matching & Comparador Proveedores</h3>
+            <span class="screen-role-tag">Roles: SOFEIN Admin (modera) & Cliente</span>
+            <p class="screen-desc">Cumple la regla legal de mostrar al menos 3 proveedores homologados. Muestra comparativa técnica vs económica en Fase 1 y Fase 2.</p>
+            <div class="card-blocks">
+              <strong>Objetivo Sprint Inmediato:</strong>
+              <ul>
+                <li>Algoritmo de scoring por capacidad y zona</li>
+                <li>Muro de aprobación previa por SOFEIN</li>
+                <li>Matriz comparativa de cotizaciones</li>
+              </ul>
+            </div>
+            <div class="card-footer">
+              <span style="color:var(--yellow-brand); font-weight:600">Prioridad Reunión</span>
+              <span style="color:var(--muted)">Siguiente entrega</span>
+            </div>
+          </article>
+
+        </div>
+      </div>
+
+      <!-- FASE 2: EL NÚCLEO OPERATIVO (CONSTRUCTOR DE EXPEDIENTES) -->
+      <div class="flow-row">
+        <div class="phase-badge-col">
+          <span class="num">02</span>
+          <span>NÚCLEO</span>
+        </div>
+        <div class="screen-cards-grid">
+
+          <article class="screen-card status-green" style="grid-column: span 2;">
+            <div class="card-top">
+              <span class="screen-code">SCR-04 · LA PANTALLA REINA</span>
+              <span class="status-pill green">🟢 Construida</span>
+            </div>
+            <h3 class="screen-name">El Constructor de Expedientes Estancos (Moodle B2B)</h3>
+            <span class="screen-role-tag">Roles: SOFEIN Admin, Cliente Constructor, Proveedor</span>
+            <p class="screen-desc">La pieza central donde vive el pedido. Cabecera con blindaje de responsabilidad, stepper de 7 fases secuenciales y pestañas internas para ranuras documentales, incidencias y pasaporte digital.</p>
+            <div class="card-blocks">
+              <strong>Bloques visuales integrados:</strong>
+              <ul>
+                <li>Cabecera de Metadatos: Material, cliente, destino de vía, proveedor y desviación de plazos (+6d)</li>
+                <li>Stepper de 7 Fases Clickable: Desde Alcance hasta Cierre oficial</li>
+                <li>Ranuras Documentales (Deliverable Slots): Con dropzone drag & drop y semáforo de estado</li>
+                <li>Validación Administrativa: Botones para "Aprobar" o "Rechazar con Nota Formal"</li>
+              </ul>
+            </div>
+            <div class="card-footer">
+              <span style="color:var(--faint)">Ruta: #admin/expedientes/:id</span>
+              <a class="card-link" href="app.html#admin/expedientes/RFQ-2026-014" target="_blank">Probar en app →</a>
+            </div>
+          </article>
+
+          <article class="screen-card status-green">
+            <div class="card-top">
+              <span class="screen-code">SCR-05</span>
+              <span class="status-pill green">🟢 Construida</span>
+            </div>
+            <h3 class="screen-name">Muro de Incidencias & Mediación</h3>
+            <span class="screen-role-tag">Roles: SOFEIN Admin, Constructor, Proveedor</span>
+            <p class="screen-desc">Registro inmutable de retrasos de taller o variaciones de obra. Incluye la caja de mediación proactiva de SOFEIN y doble firma digital.</p>
+            <div class="card-blocks">
+              <strong>Bloques visuales:</strong>
+              <ul>
+                <li>Historial cronológico de desvíos detectados</li>
+                <li>Propuesta de mediación (desdoble de lotes)</li>
+                <li>Firmas cruzadas digitales para adenda</li>
+              </ul>
+            </div>
+            <div class="card-footer">
+              <span style="color:var(--faint)">Pestaña dentro de SCR-04</span>
+              <a class="card-link" href="app.html#admin/expedientes/RFQ-2026-014" target="_blank">Ver pestaña →</a>
+            </div>
+          </article>
+
+        </div>
+      </div>
+
+      <!-- FASE 3: ENTREGA Y ROLES ESPECIALIZADOS -->
+      <div class="flow-row">
+        <div class="phase-badge-col">
+          <span class="num">03</span>
+          <span>ENTREGA</span>
+        </div>
+        <div class="screen-cards-grid">
+
+          <article class="screen-card status-green">
+            <div class="card-top">
+              <span class="screen-code">SCR-06</span>
+              <span class="status-pill green">🟢 Construida</span>
+            </div>
+            <h3 class="screen-name">Destinatario Final (Auditoría VW / Adif)</h3>
+            <span class="screen-role-tag">Rol: Propietario de Infraestructura (Espectador)</span>
+            <p class="screen-desc">Vista limpia de trazabilidad, homologación Adif y descarga de certificaciones EN 13230, manteniendo precios y márgenes estrictamente ocultos.</p>
+            <div class="card-blocks">
+              <strong>Bloques visuales:</strong>
+              <ul>
+                <li>Resumen del tramo ferroviario adjudicado</li>
+                <li>Verificación 100% de normativas y ensayos</li>
+                <li>Aviso legal de confidencialidad comercial</li>
+              </ul>
+            </div>
+            <div class="card-footer">
+              <span style="color:var(--faint)">Ruta: #destinatario</span>
+              <a class="card-link" href="app.html#destinatario" target="_blank">Probar en app →</a>
+            </div>
+          </article>
+
+          <article class="screen-card status-green">
+            <div class="card-top">
+              <span class="screen-code">SCR-07</span>
+              <span class="status-pill green">🟢 Construida</span>
+            </div>
+            <h3 class="screen-name">SOFEIN Data (Lead Times Live)</h3>
+            <span class="screen-role-tag">Rol: SOFEIN Dirección (Analítica)</span>
+            <p class="screen-desc">Panel de captura sistemática de tiempos reales: desviación de plazos prometidos vs reales, velocidad documental y fiabilidad de talleres.</p>
+            <div class="card-blocks">
+              <strong>Bloques visuales:</strong>
+              <ul>
+                <li>Lead time medio real (44,2 días vs 40,4 pactados)</li>
+                <li>Tiempo medio de respuesta documental (3,1d)</li>
+                <li>Tabla comparativa de talleres por material</li>
+              </ul>
+            </div>
+            <div class="card-footer">
+              <span style="color:var(--faint)">Ruta: #admin/sofein_data</span>
+              <a class="card-link" href="app.html#admin/sofein_data" target="_blank">Probar en app →</a>
+            </div>
+          </article>
+
+          <article class="screen-card status-yellow">
+            <div class="card-top">
+              <span class="screen-code">SCR-08</span>
+              <span class="status-pill yellow">🟡 Nueva Construcción</span>
+            </div>
+            <h3 class="screen-name">Generador Automático Pasaporte Digital</h3>
+            <span class="screen-role-tag">Roles: SOFEIN Admin & Cliente</span>
+            <p class="screen-desc">Consolidación en 1 clic de todo el expediente en un PDF certificado con sellos oficiales, marcas temporales y compendio de ensayos.</p>
+            <div class="card-blocks">
+              <strong>Objetivo Sprint Inmediato:</strong>
+              <ul>
+                <li>Motor de compilación PDF multipágina</li>
+                <li>Empaquetado en archivo ZIP con ensayos de lab</li>
+                <li>Hash inmutable de verificación de integridad</li>
+              </ul>
+            </div>
+            <div class="card-footer">
+              <span style="color:var(--yellow-brand); font-weight:600">Prioridad Reunión</span>
+              <span style="color:var(--muted)">Siguiente entrega</span>
+            </div>
+          </article>
+
+        </div>
+      </div>
+
+      <!-- FASE 4: EXTENSIONES A FUTURO -->
+      <div class="flow-row">
+        <div class="phase-badge-col">
+          <span class="num">04</span>
+          <span>FUTURO</span>
+        </div>
+        <div class="screen-cards-grid">
+
+          <article class="screen-card status-blue">
+            <div class="card-top">
+              <span class="screen-code">EXT-01</span>
+              <span class="status-pill blue">🔵 Por Construir a Futuro</span>
+            </div>
+            <h3 class="screen-name">Módulo SOFEIN Consulting</h3>
+            <span class="screen-role-tag">Roles: SOFEIN & Colaboradores Especialistas</span>
+            <p class="screen-desc">Gestión de proyectos ad-hoc no vinculados a material: implantación normas ISO 9001/14001, formación técnica y prevención de riesgos en obra.</p>
+            <div class="card-footer">
+              <span style="color:var(--blue-brand); font-weight:600">Fase 2 de Desarrollo</span>
+            </div>
+          </article>
+
+          <article class="screen-card status-blue">
+            <div class="card-top">
+              <span class="screen-code">EXT-02</span>
+              <span class="status-pill blue">🔵 Por Construir a Futuro</span>
+            </div>
+            <h3 class="screen-name">Ecommerce de Repuestos Ferroviarios</h3>
+            <span class="screen-role-tag">Roles: Clientes & Compradores Abiertos</span>
+            <p class="screen-desc">Catálogo público para adquisición directa de pequeños lotes y componentes descatalogados con pasaporte digital integrado.</p>
+            <div class="card-footer">
+              <span style="color:var(--blue-brand); font-weight:600">Fase 3 de Desarrollo</span>
+            </div>
+          </article>
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Bloque para Notion -->
+    <section class="notion-export-box">
+      <div class="notion-export-head">
+        <div>
+          <h3>Código Mermaid Compacto (Optimizado para Notion)</h3>
+          <p style="font-size: 0.78rem; color: #94a3b8; margin-top: 3px;">
+            En Notion, escribe <code>/code</code>, elige lenguaje <b>Mermaid</b> y pega este bloque vertical. Al ser vertical (TD), no se cortará nunca.
+          </p>
+        </div>
+        <button class="copy-btn" onclick="navigator.clipboard.writeText(document.getElementById('notionMermaid').innerText); alert('Copiado al portapapeles');">Copiar para Notion</button>
+      </div>
+      <pre id="notionMermaid">flowchart TD
+    %% LEYENDA DE ESTADOS
+    %% 🟢 Construida y Navegable (Verde)
+    %% 🟡 Nueva Construcción Inmediata (Amarillo)
+    %% 🔵 Futuro / Roadmap (Azul)
+
+    classDef construida fill:#ecfdf5,stroke:#008751,stroke-width:2px,color:#0f172a;
+    classDef nueva fill:#fffbeb,stroke:#d97706,stroke-width:2px,color:#0f172a;
+    classDef futuro fill:#eff6ff,stroke:#2563eb,stroke-width:2px,color:#0f172a;
+
+    subgraph F1["1. ENTRADA Y PEDIDO"]
+        SCR01["🟢 SCR-01: Bandeja de Expedientes<br/><i>(Admin & Constructor)</i>"]:::construida
+        SCR02["🟢 SCR-02: Asistente Nuevo Pedido<br/><i>(Catálogo MVP de Vía)</i>"]:::construida
+        SCR03["🟡 SCR-03: Matching Proveedores<br/><i>(Mín. 3 opciones - Fase 1/2)</i>"]:::nueva
+    end
+
+    subgraph F2["2. EL NÚCLEO (EXPEDIENTE ESTANCO)"]
+        SCR04["🟢 SCR-04: Constructor de Expedientes<br/><i>(Stepper 7 Fases + Drag & Drop)</i>"]:::construida
+        SCR05["🟢 SCR-05: Muro de Incidencias<br/><i>(Mediación SOFEIN + Firmas)</i>"]:::construida
+    end
+
+    subgraph F3["3. SALIDAS Y AUDITORÍA"]
+        SCR06["🟢 SCR-06: Destinatario Final<br/><i>(Auditoría VW / Adif - Sin Precios)</i>"]:::construida
+        SCR07["🟢 SCR-07: SOFEIN Data Live<br/><i>(Captura de Lead Times Reales)</i>"]:::construida
+        SCR08["🟡 SCR-08: Pasaporte Digital PDF<br/><i>(Compilador automático)</i>"]:::nueva
+    end
+
+    subgraph F4["4. ROADMAP A FUTURO"]
+        EXT01["🔵 EXT-01: SOFEIN Consulting<br/><i>(Proyectos ISO / Ad-hoc)</i>"]:::futuro
+        EXT02["🔵 EXT-02: Ecommerce de Vía<br/><i>(Venta directa componentes)</i>"]:::futuro
+    end
+
+    SCR01 --> SCR02
+    SCR02 --> SCR03
+    SCR03 --> SCR04
+    SCR04 <--> SCR05
+    SCR04 --> SCR06
+    SCR04 --> SCR07
+    SCR04 --> SCR08
+    SCR07 -.-> EXT01
+</pre>
+    </section>
+
+  </div>
+</body>
+</html>
