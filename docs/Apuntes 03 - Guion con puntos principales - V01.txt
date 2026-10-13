@@ -1,0 +1,38 @@
+SOFEIN Procurement
+Objetivo
+Actores/usuarios de la plataforma
+Requisitos de la plataforma
+Proceso a través de la plataforma
+Proceso convencional (fuera de la plataforma)
+Cómo trasladar a los clientes convencionales a la plataforma (en caso de que se decida hacerlo)
+Listado de productos de vía: tipos y subtipos, información que debe aparecer de cada uno, posibles especificaciones técnicas, requisitos/normativa que deben cumplir, documentación asociada y proceso que debe seguir cada producto hasta su entrega al cliente
+Listado de proveedores: nombre, tipos de materiales/servicios que suministran, plazos estimados de entrega, condiciones de pago habituales y requisitos que son capaces de cumplir
+Listado de clientes (constructores de vías): nombre, tipo/tamaño de cliente, materiales que suelen necesitar, plazos habituales y requisitos que suelen exigir
+Listado de destinatarios finales de los proyectos: propietarios o gestores de infraestructuras ferroviarias públicas y privadas, y requisitos que exige cada uno
+Listado de requisitos legales, normativos, medioambientales y ESG
+Listado de documentación necesaria a lo largo de todo el proceso: qué documentos se necesitan, en qué fase del proceso aparecen, quién los genera, quién debe recibirlos y cuál es su finalidad
+Gestión de incidencias proveedores y cambios del cliente: qué cambios pueden producirse durante un proceso de procurement, cómo se gestionan actualmente y cómo deberían gestionarse a través de la plataforma
+Dashboard de gestión (SOFEIN): qué información y funcionalidades debería incluir para visualizar y gestionar todos los expedientes
+Dashboard de expediente (cliente y SOFEIN): qué información y funcionalidades debería incluir para visualizar y gestionar un expediente concreto
+Dashboard de proveedor (proveedor y SOFEIN): qué información y funcionalidades debería incluir
+Mensajes, avisos, comunicaciones y chat: cómo deberían funcionar y qué información/comunicaciones deberían quedar registradas
+Tipos de acceso a la plataforma y vistas asociadas a cada perfil: qué puede visualizar y qué acciones puede realizar cada tipo de usuario
+SOFEIN Consulting (a futuro)
+Objetivo
+Actores/usuarios de la plataforma
+Requisitos de la plataforma
+Proceso a través de la plataforma
+Proceso convencional (fuera de la plataforma)
+Listado de tipos de proyectos/servicios: en qué consiste cada uno, procesos que implica, documentación necesaria, requisitos que deben cumplirse, etc.
+Listado de colaboradores: nombre y servicios que prestan.
+Dashboard de gestión (SOFEIN): qué información y funcionalidades debería incluir para visualizar y gestionar todos los proyectos
+Dashboard de colaborador (colaborador): qué información y funcionalidades debería incluir para visualizar y gestionar los proyectos y tareas que le correspondan
+Dashboard de proyecto (cliente, SOFEIN y colaborador): qué información y funcionalidades debería incluir para visualizar y gestionar un proyecto concreto
+Mensajes, avisos, comunicaciones y chat: cómo deberían funcionar y qué información/comunicaciones deberían quedar registradas
+Tipos de acceso a la plataforma y vistas asociadas a cada perfil: qué puede visualizar y qué acciones puede realizar cada tipo de usuario
+SOFEIN Data (a futuro)
+Objetivo
+Datos que se deben registrar
+Necesidades futuras
+Posibles funcionalidades, servicios o módulos que se quieran incorporar a la plataforma en fases posteriores
+Otras necesidades de SOFEIN en las que pueda requerir apoyo más allá del desarrollo de la plataforma

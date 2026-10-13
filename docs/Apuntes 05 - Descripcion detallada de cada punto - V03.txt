@@ -1,0 +1,263 @@
+SOFEIN Procurement
+Objetivo: Gestionar el proceso de procurement de material
+Actores/usuarios de la plataforma
+SOFEIN: gestiona el proceso de procurement de material
+Cliente: solicita el material
+Proveedor: suministra el material
+Destinatario final del proyecto (propietario de la vía): VISITANTE. Podrá tener acceso a una visión general del proyecto, si el cliente lo autoriza, o a una visión general de la plataforma, si SOFEIN lo considera conveniente.
+Requisitos de la plataforma
+Gestión del proceso: selección de proveedores y gestión/seguimiento del pedido
+Repositorio de documentación entre SOFEIN, cliente y proveedores. SOFEIN tiene acceso a toda la documentación; clientes y proveedores solo a la documentación que les corresponda. En principio, el cliente tendría acceso a toda o casi toda la documentación.
+Avisos/mensajes/comunicaciones, con posibilidad de chat. Las comunicaciones deben quedar registradas en la plataforma
+Dashboard de cliente para visualizar el estado del expediente y los avisos/mensajes/comunicaciones y acciones pendientes
+Dashboard global de SOFEIN para visualizar el estado de todos los expedientes
+Dashboard de proveedor para visualizar los suministros que debe proporcionar en los diferentes expedientes que tenga asignados
+Proceso a través de la plataforma
+La plataforma debe tener dos objetivos principales: facilitar la gestión de expedientes y reducir/delimitar la responsabilidad de SOFEIN sobre el pedido.
+¿Disponen las constructoras de sus propias plataformas de gestión de pedidos/procurement? En caso afirmativo, ¿prefieren o exigen que el proceso se gestione a través de dichas plataformas?
+Captación de leads (FUERA de la pataforma)
+El cliente llega a SOFEIN.
+Indicaciones generales y valoración previa (FUERA de la plataforma)
+El cliente indica qué necesita y dónde se va a instalar.
+SOFEIN valora si quiere trabajar con ese cliente.
+Acceso a la plataforma
+Se da acceso al cliente a la plataforma.
+Firma de cliente (ya en la plataforma)
+El cliente firma con SOFEIN un acuerdo marco para elección de proveedores y/o gestión de pedidos a través de la plataforma.
+Creación de un pedido (pedido = expediente)
+El cliente crea un expediente donde indica los diferentes suministros que necesita. Para cada suministro, selecciona el tipo de material y detalla dónde irá instalado y las especificaciones necesarias.
+¿Cómo se detallan las especificaciones de los suministros habitualmente? ¿Mediante planos o cómo? ¿Qué se puedan adjuntar los documentos en cada suministro de la plataforma?
+Elección de proveedor
+El cliente debe elegir un proveedor para cada una de las fases del proceso que seguirá cada suministro dentro de la cadena de valor hasta su recepción (producción, transporte intermedio, postratamiento, transporte final).
+Determinar si los proveedores de transporte serán elegidos por el cliente o directamente por SOFEIN.
+Determinar si el cliente podrá elegir entre recibir todos los suministros conjuntamente o por separado.
+Elección de proveedores - Fase 1: Antes de pedir cotizaciones a proveedores
+La plataforma muestra información genérica sobre cada proveedor: requisitos que puede cumplir, plazo de entrega estimado, precio estimado y condiciones de pago habituales.
+Por ley/normativa, debe mostrar al menos 3 proveedores para cada tipo de servicio, si los hay.
+La plataforma muestra proveedores automáticamente, pero SOFEIN puede modificar qué proveedores se muestran al cliente antes de que este pueda visualizarlos.
+El cliente elige varios proveedores a los que SOFEIN (o la plataforma) solicitará cotización.
+Cotizaciones
+SOFEIN solicita a través de la plataforma cotización a los proveedores seleccionados por el cliente: precios, plazos de entrega, condiciones de pago y confirmación de los requisitos que pueden cumplir.
+Elección de proveedores - Fase 2: Después de haber pedido cotización
+La plataforma vuelve a mostrar los proveedores de los que se ha recibido una cotización, incorporando las condiciones reales ofrecidas.
+El cliente elige con qué proveedor quiere trabajar e indica qué requisitos quiere exigir de entre los que el proveedor puede cumplir.
+Es posible que, tras una primera revisión de las propuestas, el cliente quiera exigir condiciones adicionales, como plazos de entrega menores. En ese caso, SOFEIN (o la plataforma) deberá volver a comunicarse con los proveedores para solicitar una adaptación de sus propuestas. A partir de las nuevas condiciones, el cliente tomará la decisión final.
+Una vez seleccionado el proveedor, la plataforma le registra el pedido junto con los requisitos acordados y el plazo de entrega aceptado por el cliente.
+Las condiciones acordadas quedan registradas en la plataforma, mediante la documentación correspondiente y/o mediante datos registrados directamente en el expediente.
+¿Conviene diferenciar entre oferta técnica y oferta económica? ¿Qué información debería incluir cada una y cómo debería visualizarse o compararse en la plataforma?
+Formalización del pedido
+Cliente y proveedor formalizan el pedido mediante la firma de un contrato de pedido o una hoja de pedido. El contrato incluye un mayor nivel de detalle y cláusulas, mientras que la hoja de pedido es un documento más sencillo, aunque ambos cumplen una función similar.
+El contrato o la hoja de pedido puede formalizarse directamente entre cliente y proveedor, dejando constancia de la participación de SOFEIN en la gestión, intermediación o seguimiento del proceso, así como de que SOFEIN no asume responsabilidad sobre la calidad del material suministrado ni sobre el cumplimiento de sus requisitos, certificaciones o documentación asociada, cuya responsabilidad corresponderá al proveedor conforme a lo acordado entre cliente y proveedor.
+Tradicionalmente, estos documentos han sido aportados por clientes o proveedores. Valorar la creación de un modelo estándar generado a través de la plataforma.
+Además, tanto el cliente como el proveedor deberán haber firmado previamente un acuerdo marco con SOFEIN para la gestión del proceso a través de la plataforma. La plataforma deberá permitir comprobar que dicho acuerdo ha sido firmado.
+Una vez formalizados todos los acuerdos necesarios, podrá continuar el proceso.
+Pago del pedido
+Determinar cómo se estructurarán los pagos. Convencionalmente, SOFEIN paga a los proveedores a 60 días y recibe el pago del cliente cuando el material se entrega en obra. En el nuevo modelo deberá definirse cómo se articularán los pagos entre cliente, proveedor y SOFEIN.
+Determinar si existen adelantos o anticipos. En caso afirmativo, la plataforma podría registrar su realización y establecer su confirmación como requisito para avanzar a las siguientes fases del proceso.
+Valorar si SOFEIN debe actuar como garante del pago y/o custodiar el depósito o anticipo realizado por el cliente, ya que este papel podría aportar valor tanto al proveedor, al ofrecer mayor seguridad de cobro, como al cliente, al proporcionar mayor confianza y control sobre el proceso de pago.
+Gestión del pedido hasta su entrega al cliente
+Tras formalizarse el pedido, comienza el proceso de fabricación + postproducción (tratamientos y acabados) + almacenamiento + transportes. Estas fases deben ser gestionadas por SOFEIN y su trazabilidad (fechas, estados, incidencias, etc.) debe quedar registrada en la plataforma.
+Cada material/pieza puede seguir un proceso diferente, con más o menos fases.
+El cliente puede consultar en la plataforma el estado/fase en el que se encuentra el pedido y recibir las correspondientes actualizaciones/avisos.
+Durante este proceso pueden surgir dos tipos principales de alteraciones sobre lo acordado, que SOFEIN deberá gestionar y que deben quedar registradas en la plataforma:
+Incidencias con los proveedores: un proveedor puede tardar más de lo acordado en producir, tratar o transportar el material, o incluso puede llegar un momento en el que no pueda ofrecer el servicio/producto acordado. SOFEIN deberá mediar para buscar una solución y que cliente y proveedor lleguen a un nuevo acuerdo. Posibles soluciones serían, por ejemplo, que el cliente acepte el retraso o que se busque un nuevo proveedor capaz de suministrar el material.
+Cambios de cantidades/requisitos del cliente: puede darse el caso de que, a mitad del proceso, el cliente necesite más o menos material o requiera documentación adicional que implique nuevos requisitos para el proveedor. SOFEIN propondrá una solución al cliente y este deberá aceptarla. Los proveedores también deberán aceptar los cambios que les afecten para que estos sean válidos.
+Elaboración y entrega de la documentación necesaria — PASAPORTE DIGITAL de SOFEIN (el “pasaporte SOFEIN” estaba fuera de lo presupuestado inicialmente)
+Acuerdo de suministro entre cliente y proveedores: cantidades, especificaciones, precios, plazos de entrega, condiciones de pago y requisitos acordados.
+Trazabilidad del proceso: fechas y estados de cada fase.
+Listado de incidencias y cambios producidos durante el pedido.
+Documentos/certificados necesarios que se hayan acordado y generado a lo largo del proceso.
+Proceso convencional (fuera de la plataforma)
+El cliente llega a SOFEIN.
+SOFEIN le pregunta qué productos necesita y dónde van a ir instalados, para entender qué normativa y requisitos deben cumplir.
+El cliente firma un contrato con SOFEIN.
+SOFEIN busca proveedores, solicita cotizaciones (precios, condiciones de pago, plazos, requisitos, etc.) y compara las diferentes opciones.
+SOFEIN prepara una oferta para el cliente en función de los presupuestos y condiciones recibidos de los proveedores. También traslada al cliente la información relativa a requisitos, normativa y plazos de entrega.
+Puede ocurrir que el cliente decida no exigir algún requisito para acelerar el proceso. En este modelo, la responsabilidad frente al cliente recae en mayor medida sobre SOFEIN, lo que puede generar problemas posteriores.
+El cliente formaliza el pedido con SOFEIN. El cliente paga cuando recibe los productos.
+SOFEIN formaliza los correspondientes pedidos con los proveedores. SOFEIN paga a cada proveedor a 60 días de que este haya finalizado su parte del proceso.
+SOFEIN gestiona el pedido y la documentación necesaria, de forma similar a lo explicado anteriormente para el proceso a través de la plataforma.
+Cómo trasladar a los clientes convencionales a la plataforma (en caso de que se decida hacerlo)
+En principio, SOFEIN indica que algunos clientes convencionales seguirían gestionándose fuera de la plataforma por varios motivos:
+SOFEIN quiere mantener la relación comercial con el cliente y evitar que este tenga contacto directo con los proveedores.
+Algunos clientes solicitan productos que no estarían incluidos en una primera versión de la plataforma.
+Si estos clientes se integrasen en la plataforma, tendría sentido hacerlo únicamente para la gestión y seguimiento del expediente, una vez seleccionados los proveedores y formalizado el pedido.
+El cliente no debería visualizar los proveedores, ya que, en este modelo, SOFEIN actuaría como comercializadora y, desde el punto de vista del cliente, sería SOFEIN quien suministra el material.
+Determinar si los proveedores también deberían tener acceso a la plataforma para gestionar las partes del proceso que les correspondan, sin tener visibilidad sobre el cliente final.
+Toda la documentación y acuerdos previos entre SOFEIN-cliente y SOFEIN-proveedores deberán incorporarse al expediente para poder continuar la gestión del pedido desde la plataforma, dando acceso a los documentos a las partes correspondientes.
+Listado de productos de vía: tipos y subtipos, información que debe aparecer de cada uno, posibles especificaciones técnicas, requisitos/normativa que deben cumplir, documentación asociada y proceso que debe seguir cada producto hasta su entrega al cliente
+SOFEIN  indica que el MVP debe incluir:
+Tipo: Traviesas – superestructura
+Subtipos: madera (con tres subsubtipos de madera), hormigón y polimerizada
+Especificaciones: material, tratamientos, medidas, cargas mecánicas
+Proceso de fabricación hasta entrega:
+Normativa/requisitos a cumplir y documentación asociada:
+Tipo: Placas – superestructura
+Subtipos:
+Especificaciones: material, tratamientos, medidas, cargas mecánicas
+Proceso de fabricación hasta entrega:
+Normativa/requisitos a cumplir y documentación asociada:
+Tipo: Tirafondos – superestructura
+Subtipos:
+Especificaciones: material, tratamientos, medidas, cargas mecánicas
+Proceso de fabricación hasta entrega:
+Normativa/requisitos a cumplir y documentación asociada:
+Tipo: Clips – superestructura
+Subtipos:
+Especificaciones: material, tratamientos, medidas, cargas mecánicas
+Proceso de fabricación hasta entrega:
+Normativa/requisitos a cumplir y documentación asociada:
+Tipo: Balasto – superestructura Determinar si se incluye en el MVP
+Subtipos:
+Especificaciones: material, tratamientos, medidas, cargas mecánicas
+Proceso de fabricación hasta entrega:
+Normativa/requisitos a cumplir y documentación asociada:
+Tipo: Otros elementos- superestructura
+Determinar qué otros elementos deberían incluirse en el MVP
+SOFEIN indica que, si un nuevo cliente solicita un producto que no está incluido en la plataforma, en principio descartaría el pedido. Gestionar nuevos productos requiere un esfuerzo adicional (mapeo de proveedores, desarrollo de relaciones comerciales, etc.) que SOFEIN no quiere asumir actualmente.
+En el futuro se podrán incorporar nuevos productos.
+Valorar que la plataforma permita a SOFEIN crear y configurar nuevos tipos/subtipos de productos sin necesidad de desarrollos adicionales.
+Algunos clientes actuales solicitan productos que, en principio, quedarían fuera del alcance inicial de la plataforma (por ejemplo, tacos solicitados por Siemens o paredes y suelos de madera para vagones solicitados por Renfe).
+Valorar la creación de un tipo de producto “Otros” o libre para productos no incluidos en el catálogo.
+Estos pedidos podrían incorporarse a la plataforma una vez formalizados, utilizándola únicamente para su gestión y seguimiento e incorporando al expediente toda la documentación previa.
+Listado de proveedores: nombre, tipos de materiales/servicios que suministran, plazos estimados de entrega, condiciones de pago habituales y requisitos que son capaces de cumplir
+Proveedor 1:
+Materiales/servicios que provee
+Plazos de entrega estimados
+Precio estimado
+Condiciones de pago habituales
+Requisitos que puede cumplir
+Proveedor 2:
+Materiales/servicios que provee
+Plazos de entrega estimados
+Precio estimado
+Condiciones de pago habituales
+Requisitos que puede cumplir
+Listado de clientes (constructores de vías): nombre, tipo/tamaño de cliente, materiales que suelen necesitar, plazos habituales y requisitos que suelen exigir
+Cliente genérico:
+Tipo/tamaño de cliente
+Materiales: Todos
+Plazos: siempre lo antes posible cuando el material es necesario para obra; si es para un estudio de licitación, el plazo puede ser indefinido
+Requisitos: dependen principalmente de dónde se vaya a instalar el material y de los condicionantes del proyecto
+Precios: Depende más de los proveedores
+Listado de destinatarios finales de los proyectos: propietarios o gestores de infraestructuras ferroviarias públicas y privadas, y requisitos que exige cada uno
+Vías de tren públicas
+ADIF
+% de las vías: 90%
+Km de vía en operación
+Regiones donde opera:
+Requisitos que exigen
+Otras: Identificar otros propietarios/gestores de infraestructuras ferroviarias públicas relevantes
+% de las vías:
+Km de vía en operación
+Regiones donde opera:
+Requisitos que exigen
+Vías de tren privadas
+Empresas/instalaciones privadas
+Ferrocarriles privados
+Ejemplo: Fábrica Volkswagen
+Región donde opera:
+Requisitos que exigen
+Identificar los principales tipos de propietarios/gestores de infraestructuras privadas
+Listado de requisitos legales, normativos, medioambientales y ESG
+Listado de documentación necesaria a lo largo de todo el proceso: qué documentos se necesitan, en qué fase del proceso aparecen, quién los genera, quién debe recibirlos y cuál es su finalidad
+Gestión de incidencias proveedores y cambios del cliente (fuera de lo presupuestado inicialmente): qué incidencias/cambios pueden producirse durante un proceso de procurement, cómo se gestionan actualmente y cómo deberían gestionarse a través de la plataforma
+Ya explicado más arriba, en la parte de descripción del proceso a través de la plataforma
+Dashboard de gestión (SOFEIN): qué información y funcionalidades debería incluir
+Hacerle una propuesta a SOFEIN
+Dashboard de expediente (cliente y SOFEIN): qué información y funcionalidades debería incluir
+Hacerle una propuesta a SOFEIN
+Dashboard de proveedor (proveedor y SOFEIN): qué información y funcionalidades debería incluir
+Hacerle una propuesta a SOFEIN
+Mensajes, avisos, comunicaciones y chat: cómo deberían funcionar y qué información/comunicaciones deberían quedar registradas
+Hacerle una propuesta a SOFEIN
+Tipos de acceso a la plataforma y vistas asociadas a cada perfil: qué puede visualizar y qué acciones puede realizar cada tipo de usuario
+Hacerle una propuesta a SOFEIN
+SOFEIN Consulting (a futuro)
+Objetivo: Gestión de proyectos ad hoc que no sean procesos de procurement de material. Por ejemplo: implantación de normas ISO, formaciones, transformación digital, proyecto fábrica Volkswagen, etc.
+Actores/usuarios de la plataforma
+SOFEIN: gestiona el proyecto, directamente o a través de colaboradores.
+Cliente: es para quien se realiza el proyecto
+Colaborador/es: prestan los servicios del proyecto que SOFEIN decida externalizar (aunque en representación de SOFEIN)
+Requisitos de la plataforma
+Gestión del proyecto
+Repositorio de documentación entre SOFEIN, cliente y colaborador/es, con permisos de acceso según el perfil
+Avisos/mensajes/comunicaciones, con posibilidad de chat y registro de las comunicaciones
+Dashboard de cliente para visualizar el estado del proyecto, las acciones pendientes y los avisos/mensajes/comunicaciones
+Determinar si es necesario un dashboard específico para colaboradores
+Dashboard global de SOFEIN para visualizar el estado de todos los proyectos y las acciones pendientes de SOFEIN y colaborador/es
+Proceso a través de la plataforma
+Captación de leads
+El cliente llega a SOFEIN.
+Indicaciones generales y valoración previa
+El cliente indica qué necesita.
+SOFEIN valora si puede acometer el proyecto, directamente o a través de colaboradores.
+Búsqueda de colaboradores
+Si el proyecto requiere apoyo externo, SOFEIN busca uno o varios colaboradores para llevar a cabo parte o la totalidad de los servicios y formaliza el acuerdo con ellos.
+Firma de cliente
+El cliente firma con SOFEIN.
+Acceso a la plataforma
+Se da acceso al cliente a la plataforma.
+Creación del proyecto
+SOFEIN crea un proyecto específico para el caso concreto e incorpora a los colaboradores que participarán en él.
+Gestión del proyecto
+SOFEIN gestiona y coordina el proyecto a través de la plataforma.
+Los colaboradores prestan los servicios que les hayan sido asignados y gestionan a través de la plataforma las partes del proyecto que les correspondan.
+Proceso convencional (fuera de la plataforma)
+Similar al proceso a través de la plataforma, pero sin un espacio centralizado para gestionar el proyecto, compartir documentación y mantener las comunicaciones entre SOFEIN, colaboradores y cliente.
+Listado de tipos de proyectos/servicios: en qué consiste cada uno, procesos que implica, documentación necesaria, requisitos que deben cumplirse, etc.
+Implantación de ISO
+Ejemplo: 9001, 14001, 53001, otras
+Descripción
+Proceso
+Documentos/requisitos
+Formaciones
+Ejemplo
+Descripción
+Proceso
+Documentos/requisitos
+Riesgos laborales en obra
+Ejemplo
+Descripción
+Proceso
+Documentos/requisitos
+Tranformación digital empresas del sector
+Ejemplo
+Descripción
+Proceso
+Documentos/requisitos
+Proyectos ad-hoc
+Ejemplo: Proyecto fábrica Volkswagen
+Descripción
+Proceso
+Documentos/requisitos
+Otros? Determinar si existen otros tipos de proyectos/servicios que deban incluirse.
+Listado de colaboradores: nombre y servicios que prestan
+Colaborador 1:
+Servicio que provee:
+Colaborador 2:
+Servicio que provee:
+Dashboard de gestión (SOFEIN): qué información y funcionalidades debería incluir para visualizar y gestionar todos los proyectos
+Dashboard de colaborador (colaborador): qué información y funcionalidades debería incluir para visualizar y gestionar los proyectos y tareas que le correspondan
+Determinar si es necesario un dashboard específico de colaborador y qué información/funcionalidades debería incluir.
+Dashboard de proyecto (cliente, SOFEIN y colaborador): qué información y funcionalidades debería incluir para visualizar y gestionar un proyecto concreto
+Mensajes, avisos, comunicaciones y chat: cómo deberían funcionar y qué información/comunicaciones deberían quedar registradas
+Tipos de acceso a la plataforma y vistas asociadas a cada perfil: qué puede visualizar y qué acciones puede realizar cada tipo de usuario
+SOFEIN Data (a futuro)
+Objetivo:
+Datos que registrar
+Determinar qué datos interesa recoger de cada proyecto de Procurement y Consulting.
+Determinar qué información, indicadores o análisis le gustaría obtener a SOFEIN a partir de esos datos.
+Determinar qué funcionalidades debería incluir esta parte de la plataforma en futuras fases.
+Futuros necesidades de SOFEIN
+Determinar qué necesidades prevé SOFEIN en el futuro
+Posibles funcionalidades, servicios o módulos que se quieran incorporar a la plataforma en fases posteriores
+Quiere poner algo en la web de SOFEIN Digital desde ya para que aparezca “en construcción”
+Actualización (productos, funcionalidades, etc.) y mantenimiento de la plataforma
+Desarrollo de SOFEIN Consulting dentro de la plataforma de SOFEIN Digital
+Desarrollo de SOFEIN Data dentro de la plataforma de SOFEIN Digital
+Desarrollo de la plataforma para incluir formaciones, webinars, etc.
+Otras necesidades de SOFEIN en las que pueda requerir apoyo más allá del desarrollo de la plataforma
+Web SOFEIN
+Plataforma paralela para implantación de normas ISO en otros sectores
+Creación de un ecommerce para vender productos ferroviarios

@@ -2065,3 +2065,767 @@ select:focus,
 /* Certificaciones: el sello flota sobre un contexto ferroviario de baja presencia. */
 .entity-certificate-art { position:relative; isolation:isolate; background:linear-gradient(rgba(5,14,9,.66),rgba(5,14,9,.66)),url("assets/premium-rail-bg.png") center/cover; }
 .entity-certificate-art img { position:relative; z-index:1; width:112%; height:auto; max-width:none; aspect-ratio:1; object-fit:cover; clip-path:circle(43% at 50% 50%); filter:drop-shadow(0 12px 16px rgba(0,0,0,.5)); }
+
+/* ============================================================
+   SOFEIN Procurement — Sistema Visual B2B SaaS (Ramp / Holded / Stripe)
+   Constructor de Expedientes Estancos, 4 Players, Incidencias y SOFEIN Data
+   ============================================================ */
+
+/* Barra Superior del Ecosistema SOFEIN Digital */
+.procurement-umbrella {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 48px;
+  padding: 0 clamp(16px, 3vw, 36px);
+  background: var(--entity-sidebar);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  color: #e2e8f0;
+  font-size: 0.78rem;
+  z-index: 100;
+}
+
+.procurement-umbrella-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.procurement-umbrella-brand span.sub {
+  color: #86efac;
+  font-weight: 500;
+}
+
+.procurement-role-selector {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0, 0, 0, 0.25);
+  padding: 3px 6px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.procurement-role-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 0;
+  background: transparent;
+  color: #94a3b8;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.16s ease;
+}
+
+.procurement-role-btn:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.procurement-role-btn.is-active {
+  background: var(--entity-accent);
+  color: var(--entity-accent-ink);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.procurement-ecosystem-links {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.procurement-eco-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.7rem;
+  color: #cbd5e1;
+  text-decoration: none;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: all 0.15s ease;
+}
+
+.procurement-eco-badge:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
+.procurement-eco-badge b {
+  font-size: 0.62rem;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: rgba(134, 239, 172, 0.2);
+  color: #86efac;
+  font-weight: 700;
+}
+
+/* Constructor de Expedientes (Dossier Builder) */
+.dossier-builder {
+  display: grid;
+  gap: 24px;
+}
+
+.dossier-meta-card {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 20px;
+  padding: 24px 28px;
+  background: var(--entity-panel);
+  border: 1px solid var(--entity-line);
+  border-radius: 12px;
+  box-shadow: var(--entity-shadow);
+}
+
+.dossier-title-area h2 {
+  margin: 0 0 6px;
+  font-size: 1.35rem;
+  letter-spacing: -0.03em;
+  color: var(--entity-text);
+}
+
+.dossier-title-area p {
+  margin: 0 0 16px;
+  color: var(--entity-muted);
+  font-size: 0.85rem;
+}
+
+.dossier-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.dossier-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: var(--entity-panel-2);
+  border: 1px solid var(--entity-line);
+  font-size: 0.74rem;
+  color: var(--entity-text);
+  font-weight: 550;
+}
+
+.dossier-chip strong {
+  color: var(--entity-muted);
+  font-weight: 500;
+  margin-right: 3px;
+}
+
+.dossier-quick-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  text-align: right;
+  align-self: center;
+}
+
+.dossier-quick-stat {
+  display: grid;
+  gap: 3px;
+}
+
+.dossier-quick-stat span {
+  font-size: 0.68rem;
+  color: var(--entity-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+}
+
+.dossier-quick-stat strong {
+  font-size: 1.15rem;
+  color: var(--entity-text);
+  font-weight: 650;
+}
+
+.dossier-quick-stat strong.warning {
+  color: var(--entity-warning);
+}
+
+.dossier-quick-stat strong.accent {
+  color: var(--entity-accent);
+}
+
+/* Stepper de Fases */
+.dossier-stepper {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 0 12px;
+}
+
+.dossier-step {
+  display: grid;
+  gap: 6px;
+  padding: 12px 14px;
+  background: var(--entity-panel);
+  border: 1px solid var(--entity-line);
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.18s ease;
+}
+
+.dossier-step:hover {
+  border-color: var(--entity-accent);
+  transform: translateY(-2px);
+}
+
+.dossier-step.is-current {
+  border-color: var(--entity-accent);
+  background: var(--entity-panel-2);
+  box-shadow: 0 0 0 2px var(--entity-accent-soft);
+}
+
+.dossier-step.is-done {
+  border-color: var(--entity-line);
+  background: var(--entity-panel);
+}
+
+.dossier-step-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dossier-step-num {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--entity-muted);
+}
+
+.dossier-step.is-current .dossier-step-num {
+  color: var(--entity-accent);
+}
+
+.dossier-step-title {
+  font-size: 0.78rem;
+  font-weight: 650;
+  color: var(--entity-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dossier-step-meta {
+  font-size: 0.68rem;
+  color: var(--entity-muted);
+}
+
+/* Pestañas de Vista */
+.dossier-tabs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid var(--entity-line);
+  padding-bottom: 8px;
+  margin-top: 4px;
+}
+
+.dossier-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 16px;
+  border-radius: 7px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--entity-muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.dossier-tab-btn:hover {
+  color: var(--entity-text);
+  background: var(--entity-panel-2);
+}
+
+.dossier-tab-btn.is-active {
+  color: var(--entity-accent);
+  background: var(--entity-accent-soft);
+  border-color: var(--entity-accent-soft);
+}
+
+.dossier-tab-btn b.badge {
+  display: inline-grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 99px;
+  background: var(--entity-warning-bg);
+  color: var(--entity-warning);
+  font-size: 0.65rem;
+  font-weight: 700;
+}
+
+/* Ranuras Documentales (Deliverable Slots) */
+.deliverable-slot-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.deliverable-slot {
+  display: grid;
+  gap: 14px;
+  padding: 18px 22px;
+  background: var(--entity-panel);
+  border: 1px solid var(--entity-line);
+  border-radius: 10px;
+  box-shadow: var(--entity-shadow);
+  transition: border-color 0.16s ease;
+}
+
+.deliverable-slot:hover {
+  border-color: var(--entity-line-strong);
+}
+
+.slot-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.slot-identity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.slot-icon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: var(--entity-panel-2);
+  color: var(--entity-accent);
+  border: 1px solid var(--entity-line);
+}
+
+.slot-title h3 {
+  margin: 0 0 3px;
+  font-size: 0.94rem;
+  font-weight: 650;
+  color: var(--entity-text);
+}
+
+.slot-title p {
+  margin: 0;
+  font-size: 0.74rem;
+  color: var(--entity-muted);
+}
+
+.slot-badges {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.slot-party-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: var(--entity-panel-2);
+  border: 1px solid var(--entity-line);
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--entity-muted);
+}
+
+.slot-dropzone {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 20px;
+  border: 2px dashed var(--entity-line-strong);
+  border-radius: 8px;
+  background: var(--entity-panel-2);
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.slot-dropzone:hover,
+.slot-dropzone.dragover {
+  border-color: var(--entity-accent);
+  background: var(--entity-accent-soft);
+}
+
+.slot-dropzone-copy {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.8rem;
+  color: var(--entity-text);
+}
+
+.slot-dropzone-copy span.sub {
+  color: var(--entity-muted);
+  font-size: 0.72rem;
+}
+
+.slot-upload-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  background: var(--entity-accent);
+  color: var(--entity-accent-ink);
+  font-size: 0.74rem;
+  font-weight: 650;
+  border: 0;
+  cursor: pointer;
+}
+
+.slot-file-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 10px 14px;
+  border-radius: 6px;
+  background: var(--entity-panel-2);
+  border: 1px solid var(--entity-line);
+}
+
+.slot-file-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.8rem;
+  color: var(--entity-text);
+}
+
+.slot-file-meta small {
+  color: var(--entity-muted);
+  font-size: 0.72rem;
+}
+
+.slot-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.slot-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid var(--entity-line-strong);
+  background: var(--entity-panel);
+  color: var(--entity-text);
+}
+
+.slot-action-btn:hover {
+  background: var(--entity-panel-2);
+}
+
+.slot-action-btn.approve {
+  border-color: var(--entity-accent);
+  color: var(--entity-accent);
+}
+
+.slot-action-btn.approve:hover {
+  background: var(--entity-accent-soft);
+}
+
+.slot-action-btn.reject {
+  border-color: var(--st-rejected);
+  color: var(--st-rejected);
+}
+
+.slot-action-btn.reject:hover {
+  background: var(--st-rejected-bg);
+}
+
+/* Muro de Incidencias y Modificaciones */
+.incident-container {
+  display: grid;
+  gap: 20px;
+}
+
+.incident-head-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.incident-card {
+  display: grid;
+  gap: 14px;
+  padding: 20px 24px;
+  border-radius: 10px;
+  background: var(--entity-panel);
+  border: 1px solid var(--entity-line);
+  box-shadow: var(--entity-shadow);
+}
+
+.incident-card.is-open {
+  border-left: 4px solid var(--entity-warning);
+}
+
+.incident-card.is-mediated {
+  border-left: 4px solid var(--entity-blue);
+}
+
+.incident-card.is-resolved {
+  border-left: 4px solid var(--entity-accent);
+}
+
+.incident-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.incident-card-title h3 {
+  margin: 0 0 4px;
+  font-size: 1rem;
+  color: var(--entity-text);
+}
+
+.incident-card-title p {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--entity-muted);
+}
+
+.incident-mediation-box {
+  display: grid;
+  gap: 10px;
+  padding: 14px 18px;
+  border-radius: 8px;
+  background: var(--entity-panel-2);
+  border: 1px solid var(--entity-line);
+}
+
+.incident-mediation-box h4 {
+  margin: 0;
+  font-size: 0.84rem;
+  color: var(--entity-accent);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.incident-mediation-box p {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: var(--entity-text);
+}
+
+.incident-signoff-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--entity-line);
+}
+
+.incident-sign-status {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 0.76rem;
+  color: var(--entity-muted);
+}
+
+.incident-sign-status span.signed {
+  color: var(--entity-accent);
+  font-weight: 600;
+}
+
+.incident-sign-status span.pending {
+  color: var(--entity-warning);
+  font-weight: 600;
+}
+
+/* SOFEIN Data - Inteligencia Operativa */
+.sofein-data-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.sofein-data-card {
+  display: grid;
+  gap: 6px;
+  padding: 18px 20px;
+  background: var(--entity-panel);
+  border: 1px solid var(--entity-line);
+  border-radius: 10px;
+  box-shadow: var(--entity-shadow);
+}
+
+.sofein-data-card span.label {
+  font-size: 0.68rem;
+  color: var(--entity-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+}
+
+.sofein-data-card strong.value {
+  font-size: 1.6rem;
+  color: var(--entity-text);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+}
+
+.sofein-data-card small.sub {
+  font-size: 0.72rem;
+  color: var(--entity-muted);
+}
+
+.sofein-data-table-panel {
+  background: var(--entity-panel);
+  border: 1px solid var(--entity-line);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: var(--entity-shadow);
+}
+
+/* Destinatario Final (Espectador / Auditoría) */
+.destinatario-hero {
+  padding: 28px 32px;
+  border-radius: 12px;
+  background: var(--entity-panel);
+  border: 1px solid var(--entity-line);
+  box-shadow: var(--entity-shadow);
+  margin-bottom: 24px;
+}
+
+.destinatario-hero-badges {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.destinatario-confidential-notice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 18px;
+  border-radius: 8px;
+  background: var(--entity-panel-2);
+  border: 1px solid var(--entity-line);
+  color: var(--entity-muted);
+  font-size: 0.78rem;
+  margin-top: 20px;
+}
+
+/* Modal Simple para Demostraciones */
+.procurement-modal-backdrop {
+  position: fixed;
+  z-index: 120;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(2px);
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}
+
+.procurement-modal {
+  width: min(520px, 100%);
+  background: var(--entity-panel);
+  border: 1px solid var(--entity-line-strong);
+  border-radius: 12px;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+  animation: admin-slide 0.18s ease-out;
+}
+
+.procurement-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--entity-line);
+}
+
+.procurement-modal-head h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--entity-text);
+}
+
+.procurement-modal-head button {
+  background: transparent;
+  border: 0;
+  font-size: 1.4rem;
+  color: var(--entity-muted);
+  cursor: pointer;
+}
+
+.procurement-modal-body {
+  padding: 22px 24px;
+  display: grid;
+  gap: 16px;
+}
+
+.procurement-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 24px;
+  border-top: 1px solid var(--entity-line);
+  background: var(--entity-panel-2);
+}
+
+@media (max-width: 900px) {
+  .procurement-umbrella {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 12px 16px;
+    gap: 10px;
+  }
+  .procurement-role-selector {
+    flex-wrap: wrap;
+  }
+  .dossier-meta-card {
+    grid-template-columns: 1fr;
+  }
+  .dossier-quick-stats {
+    grid-template-columns: repeat(3, 1fr);
+    text-align: left;
+  }
+  .dossier-stepper {
+    grid-template-columns: repeat(7, 140px);
+  }
+  .sofein-data-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
