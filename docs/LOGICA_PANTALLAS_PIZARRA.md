@@ -39,21 +39,23 @@ flowchart TD
 
 ---
 
-## 🎯 2. Priorización de Desarrollo (Qué va en Fase 1 vs Fases Siguientes)
+## 🎯 2. La Foto Real del Desarrollo: Maqueta Visual (🟢) vs Motor a Construir (🟡)
 
-Para que el desarrollo sea ágil y no se disperse, dividimos las pantallas en 3 niveles de prioridad:
+Es clave ser transparentes en la reunión: **lo que está hoy construido es el esqueleto visual navegable** (la maqueta interactiva que enseña cómo se siente la interfaz), mientras que **el motor real del Constructor de Expedientes y su lógica de negocio es la nueva construcción central (amarillo)**:
 
-| Prioridad | Pantalla | Objetivo de Negocio | ¿Por qué es la primera? |
+| Estado | Pantalla / Módulo | Alcance Actual vs Por Desarrollar | Prioridad en la Reunión |
 | :--- | :--- | :--- | :--- |
-| **P1 (Core Inmediato)** | **Pantalla 1: El Constructor de Expedientes** | La pantalla central donde ocurre el 80% de la gestión del expediente. | Es la promesa central: ordenar el caos de correos en un contenedor estanco tipo Moodle con estética B2B. |
-| **P1 (Core Inmediato)** | **Pantalla 2: Bandeja de Expedientes** | Listado maestro de expedientes de SOFEIN Admin y del Constructor. | Da visibilidad de todos los proyectos activos, desviaciones de plazo y alertas de acción requerida. |
-| **P1 (Core Inmediato)** | **Pantalla 3: Ranura Documental & Drag & Drop** | Caja modular de entrega para cada documento técnico (EN 13230, Albaranes, Ensayos). | Es el mecanismo de interacción clave entre constructor, proveedor y validador de SOFEIN. |
-| **P1 (Core Inmediato)** | **Pantalla 4: Asistente Nuevo Pedido** | Formulario guiado de selección de material, pliegos y destino. | Permite arrancar un expediente formal desde el catálogo MVP (traviesas, carril, fijaciones, etc.). |
-| **P2 (Extensión Clave)** | **Pantalla 5: Muro de Incidencias & Mediación** | Registro inmutable de demoras, cambios de volumen y propuesta SOFEIN. | Protege a SOFEIN jurídicamente y resuelve la realidad diaria de las obras. |
-| **P2 (Extensión Clave)** | **Pantalla 6: Matching & Comparador de Ofertas** | Comparativa de proveedores previa a adjudicación (Fase 1 vs 2). | Da cumplimiento a la regla legal de mostrar 3 opciones antes de pedir cotización vinculante. |
-| **P3 (Completitud)** | **Pantalla 7: Portal Proveedor (Taller)** | Vista simplificada para que el taller solo vea sus lotes y suba certificados. | Evita que el proveedor acceda a información de otros talleres o márgenes. |
-| **P3 (Completitud)** | **Pantalla 8: Destinatario Final (VW / Adif)** | Vista espectador sin precios comerciales para auditar trazabilidad y sellos. | Nueva figura clave para que Volkswagen o Adif vean cumplimiento sin ver acuerdos privados. |
-| **P3 (Completitud)** | **Pantalla 9: Panel SOFEIN Data** | Cuadro de mando de lead times reales y benchmarking para consultoría. | Alimenta la futura línea de negocio aprovechando los datos registrados desde el día 1. |
+| 🟢 **Maqueta Construida** | **SCR-01: Bandeja Maestra** | Tabla y KPIs visuales operativos en el subdominio. | Para mostrar la visión general de la plataforma. |
+| 🟢 **Maqueta Construida** | **SCR-04A: Visor de Expediente Activo** | Esqueleto visual de un pedido en curso (`RFQ-2026-014`) con stepper y simulación de ranuras. | Para enseñar cómo verá el cliente un expediente terminado. |
+| 🟢 **Maqueta Construida** | **SCR-06: Destinatario Final** | Maqueta del modo espectador/auditoría sin precios comerciales (Adif / VW). | Para presentar la nueva figura de observador. |
+| 🟢 **Maqueta Construida** | **SCR-07: SOFEIN Data** | Cuadro de mando visual con métricas y comparativa de talleres. | Para validar el valor de los datos para consultoría. |
+| 🟡 **Nueva Construcción** | **SCR-04B: MOTOR CONSTRUCTOR DE EXPEDIENTES** | **EL RETO CENTRAL:** El motor que crea expedientes desde cero, configura qué fases aplican por material, genera las ranuras documentales y gestiona las dependencias. | **El 80% de la reunión del martes:** Definir esta lógica. |
+| 🟡 **Nueva Construcción** | **SCR-02: Motor de Creación de Pedido** | Lógica técnica para dar de alta un pedido validando pliegos y especificaciones de vía. | Sprint Inmediato. |
+| 🟡 **Nueva Construcción** | **SCR-03: Matching de Proveedores** | Algoritmo de scoring, regla legal de los 3 proveedores y comparativa de ofertas Fase 1 vs 2. | Sprint Inmediato. |
+| 🟡 **Nueva Construcción** | **SCR-05: Motor de Incidencias & Mediación** | Cálculo real de desviación de plazos, mediación de SOFEIN y firmas digitales vinculantes. | Sprint Inmediato. |
+| 🟡 **Nueva Construcción** | **SCR-08: Compilador Pasaporte Digital** | Generador de PDF oficial con sellos y archivo ZIP con ensayos de laboratorio. | Sprint Inmediato. |
+| 🔵 **Roadmap Futuro** | **EXT-01: SOFEIN Consulting** | Módulo de proyectos ad-hoc (ISO, PRL, transformación digital). | Fase 2. |
+| 🔵 **Roadmap Futuro** | **EXT-02: Ecommerce de Vía** | Catálogo transaccional de componentes y repuestos. | Fase 3. |
 
 ---
 

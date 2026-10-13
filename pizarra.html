@@ -357,22 +357,22 @@
         <div class="legend-item green">
           <span class="dot green"></span>
           <div>
-            <strong>🟢 Construida & Navegable (Hoy)</strong>
-            <p>Ya maquetada e interactiva en el subdominio. Se puede probar en directo en la reunión con datos reales.</p>
+            <strong>🟢 Maqueta Visual Construida (Navegable Hoy)</strong>
+            <p>Esqueleto visual interactivo en el subdominio. Permite ver el aspecto, la jerarquía y cómo se siente la interfaz.</p>
           </div>
         </div>
         <div class="legend-item yellow">
           <span class="dot yellow"></span>
           <div>
-            <strong>🟡 Nueva Construcción (Sprint Inmediato)</strong>
-            <p>Siguiente prioridad acordada con Ángel y Flor: conexión a storage real, firma electrónica y matching avanzado.</p>
+            <strong>🟡 Nueva Construcción (Sprint Inmediato / La Lógica a Definir)</strong>
+            <p><b>El plato fuerte a acordar el martes:</b> El motor real del Constructor de Expedientes, la definición de su lógica, reglas de ranuras documentales, matching y firmas.</p>
           </div>
         </div>
         <div class="legend-item blue">
           <span class="dot blue"></span>
           <div>
-            <strong>🔵 Por Construir a Futuro (Roadmap)</strong>
-            <p>Fases 2 y 3: Módulos ad-hoc de SOFEIN Consulting, analítica predictiva ESG/CO2 y portal de licitaciones.</p>
+            <strong>🔵 Por Construir a Futuro (Roadmap Extendido)</strong>
+            <p>Fases posteriores: Módulo ad-hoc SOFEIN Consulting, analítica predictiva ESG/CO2 y catálogo ecommerce.</p>
           </div>
         </div>
       </div>
@@ -381,7 +381,7 @@
     <!-- Flujo de Pantallas -->
     <section class="section-head">
       <h2>Mapa de Navegación por Pantallas (Wire-Flow)</h2>
-      <p>Secuencia visual desde que entra el cliente hasta que se cierra el expediente y se emite el Pasaporte Digital.</p>
+      <p>Secuencia visual distinguiendo los esqueletos ya navegables (🟢) del motor y lógica que vamos a construir (🟡).</p>
     </section>
 
     <div class="flow-canvas">
@@ -397,13 +397,13 @@
           <article class="screen-card status-green">
             <div class="card-top">
               <span class="screen-code">SCR-01</span>
-              <span class="status-pill green">🟢 Construida</span>
+              <span class="status-pill green">🟢 Maqueta Construida</span>
             </div>
             <h3 class="screen-name">Bandeja Maestra de Expedientes</h3>
             <span class="screen-role-tag">Roles: SOFEIN Admin & Cliente Constructor</span>
             <p class="screen-desc">Panel general con tarjetas de KPIs (activos, incidencias, plazos), filtros por destino (VW, Adif) y tabla de expedientes estancos.</p>
             <div class="card-blocks">
-              <strong>Bloques visuales:</strong>
+              <strong>Bloques visuales disponibles:</strong>
               <ul>
                 <li>KPIs: Activos, En revisión, Alertas demora</li>
                 <li>Filtros multicriterio por material y obra</li>
@@ -412,29 +412,29 @@
             </div>
             <div class="card-footer">
               <span style="color:var(--faint)">Ruta: #admin / #cliente</span>
-              <a class="card-link" href="app.html#admin" target="_blank">Probar en app →</a>
+              <a class="card-link" href="app.html#admin" target="_blank">Ver en app →</a>
             </div>
           </article>
 
-          <article class="screen-card status-green">
+          <article class="screen-card status-yellow">
             <div class="card-top">
               <span class="screen-code">SCR-02</span>
-              <span class="status-pill green">🟢 Construida</span>
+              <span class="status-pill yellow">🟡 Nueva Construcción</span>
             </div>
-            <h3 class="screen-name">Asistente Nuevo Expediente</h3>
+            <h3 class="screen-name">Motor de Creación de Expediente</h3>
             <span class="screen-role-tag">Roles: Cliente Constructor & SOFEIN Admin</span>
-            <p class="screen-desc">Formulario guiado con selector del Catálogo MVP (traviesas hormigón/madera/polímero, carril, fijaciones), destino y subida de planos.</p>
+            <p class="screen-desc">Hoy existe solo un formulario visual básico. <b>A construir:</b> La lógica de negocio real para configurar qué material se pide, parametrizar especificaciones técnicas y lanzar el expediente al sistema.</p>
             <div class="card-blocks">
-              <strong>Bloques visuales:</strong>
+              <strong>Lógica a definir el martes:</strong>
               <ul>
-                <li>Selector de producto ferroviario acotado</li>
-                <li>Volumen, fechas objetivo y destino de vía</li>
-                <li>Caja de subida para pliegos y planos DWG/PDF</li>
+                <li>Catálogo técnico acotado con subtipos de pliego</li>
+                <li>Validación de planos DWG/PDF y especificaciones</li>
+                <li>Disparo automático de la Fase 1 de cotizaciones</li>
               </ul>
             </div>
             <div class="card-footer">
-              <span style="color:var(--faint)">Ruta: #cliente/nuevo</span>
-              <a class="card-link" href="app.html#cliente/nuevo" target="_blank">Probar en app →</a>
+              <span style="color:var(--yellow-brand); font-weight:600">Sprint Inmediato</span>
+              <span style="color:var(--muted)">Lógica de alta</span>
             </div>
           </article>
 
@@ -445,18 +445,18 @@
             </div>
             <h3 class="screen-name">Matching & Comparador Proveedores</h3>
             <span class="screen-role-tag">Roles: SOFEIN Admin (modera) & Cliente</span>
-            <p class="screen-desc">Cumple la regla legal de mostrar al menos 3 proveedores homologados. Muestra comparativa técnica vs económica en Fase 1 y Fase 2.</p>
+            <p class="screen-desc">Cumple la regla legal de mostrar al menos 3 proveedores homologados. Muestra comparativa técnica vs económica en Fase 1 y Fase 2 antes de la adjudicación.</p>
             <div class="card-blocks">
-              <strong>Objetivo Sprint Inmediato:</strong>
+              <strong>Lógica a definir el martes:</strong>
               <ul>
                 <li>Algoritmo de scoring por capacidad y zona</li>
-                <li>Muro de aprobación previa por SOFEIN</li>
-                <li>Matriz comparativa de cotizaciones</li>
+                <li>Muro de moderación previa por SOFEIN</li>
+                <li>Matriz comparativa de ofertas técnicas y precios</li>
               </ul>
             </div>
             <div class="card-footer">
-              <span style="color:var(--yellow-brand); font-weight:600">Prioridad Reunión</span>
-              <span style="color:var(--muted)">Siguiente entrega</span>
+              <span style="color:var(--yellow-brand); font-weight:600">Sprint Inmediato</span>
+              <span style="color:var(--muted)">Adjudicación</span>
             </div>
           </article>
 
@@ -471,48 +471,73 @@
         </div>
         <div class="screen-cards-grid">
 
-          <article class="screen-card status-green" style="grid-column: span 2;">
+          <article class="screen-card status-yellow" style="grid-column: span 2; border-top: 4px solid var(--yellow-brand); background: #fffdf5;">
             <div class="card-top">
-              <span class="screen-code">SCR-04 · LA PANTALLA REINA</span>
-              <span class="status-pill green">🟢 Construida</span>
+              <span class="screen-code" style="color:var(--yellow-brand)">SCR-04 · EL CORAZÓN A CONSTRUIR</span>
+              <span class="status-pill yellow">🟡 En Construcción / Pleno Desarrollo</span>
             </div>
-            <h3 class="screen-name">El Constructor de Expedientes Estancos (Moodle B2B)</h3>
-            <span class="screen-role-tag">Roles: SOFEIN Admin, Cliente Constructor, Proveedor</span>
-            <p class="screen-desc">La pieza central donde vive el pedido. Cabecera con blindaje de responsabilidad, stepper de 7 fases secuenciales y pestañas internas para ranuras documentales, incidencias y pasaporte digital.</p>
-            <div class="card-blocks">
-              <strong>Bloques visuales integrados:</strong>
+            <h3 class="screen-name" style="font-size: 1.25rem;">El Constructor de Expedientes Estancos (El Motor Real tipo Moodle)</h3>
+            <span class="screen-role-tag">Roles: SOFEIN Admin (diseña y valida) · Constructor · Proveedor</span>
+            <p class="screen-desc">
+              <b>Hoy tenemos el esqueleto visual de cómo se ve un pedido</b> (ver SCR-04A).<br/>
+              <b>Lo que vamos a construir de verdad:</b> La arquitectura modular tipo Moodle que permite crear expedientes dinámicos, configurar sus 7 fases según el material, definir qué ranuras documentales son obligatorias y gestionar los permisos de cada actor.
+            </p>
+            <div class="card-blocks" style="background:#fff; border: 1px solid var(--yellow-border);">
+              <strong style="color:var(--yellow-brand)">La Lógica Central a Acordar el Martes con Ángel y Flor:</strong>
               <ul>
-                <li>Cabecera de Metadatos: Material, cliente, destino de vía, proveedor y desviación de plazos (+6d)</li>
-                <li>Stepper de 7 Fases Clickable: Desde Alcance hasta Cierre oficial</li>
-                <li>Ranuras Documentales (Deliverable Slots): Con dropzone drag & drop y semáforo de estado</li>
-                <li>Validación Administrativa: Botones para "Aprobar" o "Rechazar con Nota Formal"</li>
+                <li><b>Arquitectura de Fases Configurables:</b> Definir qué fases aplican a cada tipo de material (ej. traviesas llevan ensayos EN 13230; carril lleva laminación en caliente).</li>
+                <li><b>Generador de Ranuras Documentales (Deliverables):</b> Configurar para cada fase qué archivo se exige, quién es el responsable (proveedor/cliente/SOFEIN), fecha límite y dependencias.</li>
+                <li><b>Motor de Aprobación & Semáforo:</b> Flujo formal de validación por SOFEIN (Pendiente 🟡, En Revisión 🔵, Validado 🟢, Rechazado con Nota 🔴).</li>
+                <li><b>Blindaje Jurídico de Responsabilidad:</b> Registro inmutable de que la calidad técnica es del fabricante y la instalación del constructor.</li>
               </ul>
             </div>
             <div class="card-footer">
-              <span style="color:var(--faint)">Ruta: #admin/expedientes/:id</span>
-              <a class="card-link" href="app.html#admin/expedientes/RFQ-2026-014" target="_blank">Probar en app →</a>
+              <span style="color:var(--yellow-brand); font-weight:700">Objetivo Central de la Reunión</span>
+              <a class="card-link" href="app.html#admin/expedientes/RFQ-2026-014" target="_blank">Ver Maqueta del Esqueleto →</a>
             </div>
           </article>
 
           <article class="screen-card status-green">
             <div class="card-top">
-              <span class="screen-code">SCR-05</span>
-              <span class="status-pill green">🟢 Construida</span>
+              <span class="screen-code">SCR-04A</span>
+              <span class="status-pill green">🟢 Maqueta Navegable</span>
             </div>
-            <h3 class="screen-name">Muro de Incidencias & Mediación</h3>
-            <span class="screen-role-tag">Roles: SOFEIN Admin, Constructor, Proveedor</span>
-            <p class="screen-desc">Registro inmutable de retrasos de taller o variaciones de obra. Incluye la caja de mediación proactiva de SOFEIN y doble firma digital.</p>
+            <h3 class="screen-name">Visor de Expediente Activo (Esqueleto Visual)</h3>
+            <span class="screen-role-tag">Demostración con datos de RFQ-2026-014</span>
+            <p class="screen-desc">La maqueta interactiva que ya puedes enseñar en la reunión para ilustrar cómo verá el cliente un expediente una vez configurado por el constructor.</p>
             <div class="card-blocks">
-              <strong>Bloques visuales:</strong>
+              <strong>Elementos de la maqueta:</strong>
               <ul>
-                <li>Historial cronológico de desvíos detectados</li>
-                <li>Propuesta de mediación (desdoble de lotes)</li>
-                <li>Firmas cruzadas digitales para adenda</li>
+                <li>Cabecera de metadatos estancos con desvío (+6d)</li>
+                <li>Stepper interactivo de 7 fases</li>
+                <li>Ranuras con simulación de drag & drop</li>
               </ul>
             </div>
             <div class="card-footer">
-              <span style="color:var(--faint)">Pestaña dentro de SCR-04</span>
-              <a class="card-link" href="app.html#admin/expedientes/RFQ-2026-014" target="_blank">Ver pestaña →</a>
+              <span style="color:var(--faint)">Ruta: #admin/expedientes/:id</span>
+              <a class="card-link" href="app.html#admin/expedientes/RFQ-2026-014" target="_blank">Abrir visor →</a>
+            </div>
+          </article>
+
+          <article class="screen-card status-yellow">
+            <div class="card-top">
+              <span class="screen-code">SCR-05</span>
+              <span class="status-pill yellow">🟡 Nueva Construcción</span>
+            </div>
+            <h3 class="screen-name">Motor de Incidencias & Mediación</h3>
+            <span class="screen-role-tag">Roles: SOFEIN Admin, Constructor, Proveedor</span>
+            <p class="screen-desc">Hoy está maquetada la tarjeta visual. <b>A construir:</b> El motor que calcula la desviación de fechas, permite a SOFEIN redactar la propuesta de ajuste y gestiona la doble firma digital.</p>
+            <div class="card-blocks">
+              <strong>Lógica a definir el martes:</strong>
+              <ul>
+                <li>Tipología de incidencias (taller vs obra)</li>
+                <li>Cálculo de impacto en fecha objetivo</li>
+                <li>Firma digital vinculante de adenda de pedido</li>
+              </ul>
+            </div>
+            <div class="card-footer">
+              <span style="color:var(--yellow-brand); font-weight:600">Sprint Inmediato</span>
+              <span style="color:var(--muted)">Mediación legal</span>
             </div>
           </article>
 
@@ -530,11 +555,11 @@
           <article class="screen-card status-green">
             <div class="card-top">
               <span class="screen-code">SCR-06</span>
-              <span class="status-pill green">🟢 Construida</span>
+              <span class="status-pill green">🟢 Maqueta Construida</span>
             </div>
             <h3 class="screen-name">Destinatario Final (Auditoría VW / Adif)</h3>
             <span class="screen-role-tag">Rol: Propietario de Infraestructura (Espectador)</span>
-            <p class="screen-desc">Vista limpia de trazabilidad, homologación Adif y descarga de certificaciones EN 13230, manteniendo precios y márgenes estrictamente ocultos.</p>
+            <p class="screen-desc">Maqueta navegable del modo espectador: trazabilidad del tramo, certificados EN 13230 y homologaciones, con precios y márgenes confidenciales ocultos.</p>
             <div class="card-blocks">
               <strong>Bloques visuales:</strong>
               <ul>
@@ -545,18 +570,18 @@
             </div>
             <div class="card-footer">
               <span style="color:var(--faint)">Ruta: #destinatario</span>
-              <a class="card-link" href="app.html#destinatario" target="_blank">Probar en app →</a>
+              <a class="card-link" href="app.html#destinatario" target="_blank">Ver en app →</a>
             </div>
           </article>
 
           <article class="screen-card status-green">
             <div class="card-top">
               <span class="screen-code">SCR-07</span>
-              <span class="status-pill green">🟢 Construida</span>
+              <span class="status-pill green">🟢 Maqueta Construida</span>
             </div>
             <h3 class="screen-name">SOFEIN Data (Lead Times Live)</h3>
             <span class="screen-role-tag">Rol: SOFEIN Dirección (Analítica)</span>
-            <p class="screen-desc">Panel de captura sistemática de tiempos reales: desviación de plazos prometidos vs reales, velocidad documental y fiabilidad de talleres.</p>
+            <p class="screen-desc">Maqueta visual del panel de captura de tiempos: desviación de plazos prometidos vs reales, velocidad documental y ranking de fiabilidad de talleres.</p>
             <div class="card-blocks">
               <strong>Bloques visuales:</strong>
               <ul>
@@ -567,7 +592,7 @@
             </div>
             <div class="card-footer">
               <span style="color:var(--faint)">Ruta: #admin/sofein_data</span>
-              <a class="card-link" href="app.html#admin/sofein_data" target="_blank">Probar en app →</a>
+              <a class="card-link" href="app.html#admin/sofein_data" target="_blank">Ver en app →</a>
             </div>
           </article>
 
@@ -576,20 +601,20 @@
               <span class="screen-code">SCR-08</span>
               <span class="status-pill yellow">🟡 Nueva Construcción</span>
             </div>
-            <h3 class="screen-name">Generador Automático Pasaporte Digital</h3>
+            <h3 class="screen-name">Compilador del Pasaporte Digital PDF</h3>
             <span class="screen-role-tag">Roles: SOFEIN Admin & Cliente</span>
-            <p class="screen-desc">Consolidación en 1 clic de todo el expediente en un PDF certificado con sellos oficiales, marcas temporales y compendio de ensayos.</p>
+            <p class="screen-desc">Motor que empaqueta todo el expediente en 1 clic: genera el PDF oficial certificado con sellos, marcas temporales y archivo ZIP con ensayos de laboratorio.</p>
             <div class="card-blocks">
-              <strong>Objetivo Sprint Inmediato:</strong>
+              <strong>Lógica a definir el martes:</strong>
               <ul>
-                <li>Motor de compilación PDF multipágina</li>
-                <li>Empaquetado en archivo ZIP con ensayos de lab</li>
-                <li>Hash inmutable de verificación de integridad</li>
+                <li>Plantilla oficial del Pasaporte Digital SOFEIN</li>
+                <li>Generación automática de ZIP con ensayos</li>
+                <li>Hash inmutable de verificación</li>
               </ul>
             </div>
             <div class="card-footer">
-              <span style="color:var(--yellow-brand); font-weight:600">Prioridad Reunión</span>
-              <span style="color:var(--muted)">Siguiente entrega</span>
+              <span style="color:var(--yellow-brand); font-weight:600">Sprint Inmediato</span>
+              <span style="color:var(--muted)">Entregable final</span>
             </div>
           </article>
 
@@ -647,47 +672,49 @@
         <button class="copy-btn" onclick="navigator.clipboard.writeText(document.getElementById('notionMermaid').innerText); alert('Copiado al portapapeles');">Copiar para Notion</button>
       </div>
       <pre id="notionMermaid">flowchart TD
-    %% LEYENDA DE ESTADOS
-    %% 🟢 Construida y Navegable (Verde)
-    %% 🟡 Nueva Construcción Inmediata (Amarillo)
+    %% ==========================================
+    %% LEYENDA REALISTA DE ESTADOS
+    %% 🟢 Maqueta Visual Construida (Verde)
+    %% 🟡 Motor / Lógica en Construcción (Amarillo - El Reto Central)
     %% 🔵 Futuro / Roadmap (Azul)
+    %% ==========================================
 
-    classDef construida fill:#ecfdf5,stroke:#008751,stroke-width:2px,color:#0f172a;
-    classDef nueva fill:#fffbeb,stroke:#d97706,stroke-width:2px,color:#0f172a;
+    classDef maqueta fill:#ecfdf5,stroke:#008751,stroke-width:2px,color:#0f172a;
+    classDef motor fill:#fffbeb,stroke:#d97706,stroke-width:3px,color:#0f172a;
     classDef futuro fill:#eff6ff,stroke:#2563eb,stroke-width:2px,color:#0f172a;
 
-    subgraph F1["1. ENTRADA Y PEDIDO"]
-        SCR01["🟢 SCR-01: Bandeja de Expedientes<br/><i>(Admin & Constructor)</i>"]:::construida
-        SCR02["🟢 SCR-02: Asistente Nuevo Pedido<br/><i>(Catálogo MVP de Vía)</i>"]:::construida
-        SCR03["🟡 SCR-03: Matching Proveedores<br/><i>(Mín. 3 opciones - Fase 1/2)</i>"]:::nueva
+    subgraph F1["1. ENTRADA Y ALTA DEL PEDIDO"]
+        SCR01["🟢 SCR-01: Bandeja Maestra de Expedientes<br/><i>(Maqueta operativa)</i>"]:::maqueta
+        SCR02["🟡 SCR-02: Motor Creación de Expediente<br/><i>(Lógica técnica a construir)</i>"]:::motor
+        SCR03["🟡 SCR-03: Matching Proveedores<br/><i>(Comparador 3 ofertas a construir)</i>"]:::motor
     end
 
-    subgraph F2["2. EL NÚCLEO (EXPEDIENTE ESTANCO)"]
-        SCR04["🟢 SCR-04: Constructor de Expedientes<br/><i>(Stepper 7 Fases + Drag & Drop)</i>"]:::construida
-        SCR05["🟢 SCR-05: Muro de Incidencias<br/><i>(Mediación SOFEIN + Firmas)</i>"]:::construida
+    subgraph F2["2. EL NÚCLEO (EL CONSTRUCTOR TIPO MOODLE)"]
+        SCR04B["🟡 SCR-04: MOTOR CONSTRUCTOR DE EXPEDIENTES<br/><b>EL NÚCLEO A DEFINIR EL MARTES</b><br/><i>(Reglas de fases, ranuras y validaciones)</i>"]:::motor
+        SCR04A["🟢 SCR-04A: Visor de Expediente Activo<br/><i>(Esqueleto visual navegable demo)</i>"]:::maqueta
+        SCR05["🟡 SCR-05: Motor Incidencias & Mediación<br/><i>(Lógica de desvíos y firmas)</i>"]:::motor
     end
 
     subgraph F3["3. SALIDAS Y AUDITORÍA"]
-        SCR06["🟢 SCR-06: Destinatario Final<br/><i>(Auditoría VW / Adif - Sin Precios)</i>"]:::construida
-        SCR07["🟢 SCR-07: SOFEIN Data Live<br/><i>(Captura de Lead Times Reales)</i>"]:::construida
-        SCR08["🟡 SCR-08: Pasaporte Digital PDF<br/><i>(Compilador automático)</i>"]:::nueva
+        SCR06["🟢 SCR-06: Destinatario Final<br/><i>(Maqueta espectador VW / Adif)</i>"]:::maqueta
+        SCR07["🟢 SCR-07: SOFEIN Data Live<br/><i>(Maqueta panel lead times)</i>"]:::maqueta
+        SCR08["🟡 SCR-08: Compilador Pasaporte PDF<br/><i>(Generador ZIP/PDF a construir)</i>"]:::motor
     end
 
     subgraph F4["4. ROADMAP A FUTURO"]
-        EXT01["🔵 EXT-01: SOFEIN Consulting<br/><i>(Proyectos ISO / Ad-hoc)</i>"]:::futuro
-        EXT02["🔵 EXT-02: Ecommerce de Vía<br/><i>(Venta directa componentes)</i>"]:::futuro
+        EXT01["🔵 EXT-01: SOFEIN Consulting<br/><i>(Módulo proyectos ISO)</i>"]:::futuro
+        EXT02["🔵 EXT-02: Ecommerce de Vía<br/><i>(Venta directa repuestos)</i>"]:::futuro
     end
 
-    SCR01 --> SCR02
-    SCR02 --> SCR03
-    SCR03 --> SCR04
-    SCR04 <--> SCR05
-    SCR04 --> SCR06
-    SCR04 --> SCR07
-    SCR04 --> SCR08
+    SCR01 -->|"Crear nuevo"| SCR02
+    SCR02 -->|"Buscar ofertas"| SCR03
+    SCR03 -->|"Adjudicar"| SCR04B
+    SCR04B -.->|"Genera"| SCR04A
+    SCR04B <-->|"Desvíos de obra"| SCR05
+    SCR04B -->|"Vista auditor"| SCR06
+    SCR04B -->|"Métricas"| SCR07
+    SCR04B -->|"Cierre oficial"| SCR08
     SCR07 -.-> EXT01
-</pre>
-    </section>
 
   </div>
 </body>
