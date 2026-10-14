@@ -38,69 +38,57 @@
     moon: '<path d="M21 12.8A8.5 8.5 0 1 1 11.2 3 6.6 6.6 0 0 0 21 12.8Z"/>',
     chevron: '<path d="m9 18 6-6-6-6"/>',
     arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>',
-    award: '<circle cx="12" cy="8" r="5"/><path d="m8.5 12-1 9 4.5-2 4.5 2-1-9"/>'
+    award: '<circle cx="12" cy="8" r="5"/><path d="m8.5 12-1 9 4.5-2 4.5 2-1-9"/>',
+    chevronDown: '<path d="m6 9 6 6 6-6"/>'
   };
 
   const icon = (name, size = 18) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${I[name] || ""}</svg>`;
 
-  /* ---------- Definición de Roles (4 Players) ---------- */
+  /* ---------- Definición de Roles Oficiales (Apuntes 06 — Tabla 1) ---------- */
   const PLAYERS = {
     admin: {
       id: "admin",
+      shortLabel: "Admin (SOFEIN)",
       label: "SOFEIN Admin",
       badge: "Administración Central",
-      entity: "SOFEIN Digital Headquarters",
+      entity: "SOFEIN Digital HQ",
       avatar: "SF",
-      defaultNav: "expedientes",
+      defaultNav: "overview",
       nav: [
-        { id: "overview", label: "Visión Global", icon: "grid" },
-        { id: "expedientes", label: "Expedientes Estancos", icon: "folder", count: 4 },
-        { id: "incidencias", label: "Mediación Incidencias", icon: "alert", count: 1 },
-        { id: "matching", label: "Matching Proveedores", icon: "users" },
-        { id: "sofein_data", label: "SOFEIN Data (Tiempos)", icon: "activity", badge: "Live" },
-        { id: "documentos", label: "Bandeja Validación", icon: "file", count: 5 }
+        { id: "overview", label: "Visión global", icon: "grid" },
+        { id: "expedientes", label: "Expedientes", icon: "folder", count: 4 },
+        { id: "inbox", label: "Inbox", icon: "inbox", count: 2 },
+        { id: "directorio", label: "Clientes y Proveedores", icon: "users" },
+        { id: "configuracion", label: "Configuración", icon: "cog" }
       ]
     },
     cliente: {
       id: "cliente",
+      shortLabel: "Cliente (Constructor)",
       label: "Constructor (Cliente)",
       badge: "Constructor de Vía",
       entity: "Infraestructuras del Norte, S.A.",
       avatar: "IN",
       defaultNav: "expedientes",
       nav: [
-        { id: "expedientes", label: "Mis Expedientes", icon: "folder", count: 3 },
-        { id: "incidencias", label: "Incidencias & Cambios", icon: "alert" },
-        { id: "nuevo", label: "Nuevo Expediente", icon: "plus" },
-        { id: "inbox", label: "Inbox Requerimientos", icon: "inbox", count: 2 },
-        { id: "entidad", label: "Ficha Corporativa", icon: "building" }
+        { id: "expedientes", label: "Mis expedientes", icon: "folder", count: 3 },
+        { id: "inbox", label: "Inbox", icon: "inbox", count: 1 },
+        { id: "perfil", label: "Perfil", icon: "profile" }
       ]
     },
     proveedor: {
       id: "proveedor",
+      shortLabel: "Proveedor Homologado",
       label: "Proveedor Homologado",
       badge: "Taller & Suministrador",
       entity: "IberRail Components, S.L.",
       avatar: "IR",
-      defaultNav: "mis_suministros",
+      defaultNav: "expedientes",
       nav: [
-        { id: "mis_suministros", label: "Mis Suministros (Lotes)", icon: "folder", count: 2 },
-        { id: "solicitudes", label: "RFQs & Cotizaciones", icon: "file", count: 1 },
-        { id: "incidencias", label: "Notificar Incidencia", icon: "alert" },
-        { id: "perfil", label: "Capacidad Técnica", icon: "profile" }
-      ]
-    },
-    destinatario: {
-      id: "destinatario",
-      label: "Destinatario Final",
-      badge: "Auditor / Propietario Vía",
-      entity: "ADIF / Factoría Volkswagen (Acceso Ferroviario)",
-      avatar: "VW",
-      defaultNav: "auditoria",
-      nav: [
-        { id: "auditoria", label: "Visión del Tramo", icon: "eye" },
-        { id: "certificaciones", label: "Cumplimiento Normativo", icon: "shield" },
-        { id: "pasaporte", label: "Pasaporte Digital", icon: "award" }
+        { id: "expedientes", label: "Mis expedientes", icon: "folder", count: 2 },
+        { id: "cotizaciones", label: "Cotizaciones", icon: "file", count: 1 },
+        { id: "inbox", label: "Inbox", icon: "inbox", count: 1 },
+        { id: "perfil", label: "Perfil", icon: "profile" }
       ]
     }
   };
@@ -257,6 +245,118 @@
     }
   ];
 
+  /* ---------- Avisos Categorizados (Apuntes 06 — Inbox Central) ---------- */
+  const NOTICES = [
+    {
+      id: "AV-01",
+      expId: "RFQ-2026-014",
+      categoria: "Incidencia / Mediación",
+      tagClass: "warning",
+      titulo: "Propuesta de mediación de plazo pendiente de firma",
+      descripcion: "SOFEIN ha emitido la propuesta para desdoblar la entrega en dos sub-lotes tras la ola de calor. Requiere firma del constructor.",
+      fecha: "Hoy, 10:35",
+      roles: ["admin", "cliente"],
+      accion: "Ver Mediación",
+      enlace: "#cliente/expedientes/RFQ-2026-014"
+    },
+    {
+      id: "AV-02",
+      expId: "RFQ-2026-014",
+      categoria: "Documentación",
+      tagClass: "review",
+      titulo: "Nuevo ensayo mecánico EN 13230 recibido",
+      descripcion: "IberRail Components ha adjuntado los resultados de rotura dinámica en la ranura documental de Fase 4.",
+      fecha: "Hoy, 09:15",
+      roles: ["admin", "proveedor"],
+      accion: "Validar Documento",
+      enlace: "#admin/expedientes/RFQ-2026-014"
+    },
+    {
+      id: "AV-03",
+      expId: "RFQ-2026-011",
+      categoria: "Cotización",
+      tagClass: "complete",
+      titulo: "Preselección de 3 laminadores completada",
+      descripcion: "SOFEIN ha fijado los 3 proveedores de carril 54E1. El cliente debe seleccionar a quién solicitar oferta vinculante.",
+      fecha: "Ayer, 16:40",
+      roles: ["admin", "cliente"],
+      accion: "Revisar Proveedores",
+      enlace: "#admin/expedientes/RFQ-2026-011"
+    },
+    {
+      id: "AV-04",
+      expId: "RFQ-2026-009",
+      categoria: "Logística / Plazo",
+      tagClass: "info",
+      titulo: "Albarán de salida y despacho confirmado",
+      descripcion: "Salida de fábrica autorizada para 29.000 fijaciones SKL-14 con destino al tramo Terrassa-Sabadell (FGC).",
+      fecha: "18 jun, 11:00",
+      roles: ["admin", "cliente", "proveedor"],
+      accion: "Consultar Albarán",
+      enlace: "#admin/expedientes/RFQ-2026-009"
+    }
+  ];
+
+  /* ---------- Directorio: Proveedores y Clientes (Apuntes 06) ---------- */
+  const DIRECTORIO_PROVEEDORES = [
+    {
+      id: "PRV-01",
+      nombre: "IberRail Components, S.L.",
+      cif: "B-48192837",
+      sede: "Amurrio (Álava) / Bilbao",
+      materiales: "Traviesas de Hormigón Monobloque PR-22 · Sujeciones SKL-14",
+      homologado: true,
+      leadTimeMedio: "42 días",
+      score: "98% Conforme",
+      contacto: "carlos.m@iberrail.es"
+    },
+    {
+      id: "PRV-02",
+      nombre: "Norte Vía Industrial, S.A.",
+      cif: "A-33291845",
+      sede: "Gijón (Asturias)",
+      materiales: "Carril Laminado 54E1 / 60E1 · Aparatos de Vía",
+      homologado: true,
+      leadTimeMedio: "58 días",
+      score: "99% Conforme",
+      contacto: "ventas@nortevia.es"
+    },
+    {
+      id: "PRV-03",
+      nombre: "Madera Vía Ibérica, S.A.",
+      cif: "A-47102938",
+      sede: "Valladolid",
+      materiales: "Traviesas de Madera Tratada Creosotada (3 subtipos)",
+      homologado: true,
+      leadTimeMedio: "35 días",
+      score: "94% Conforme",
+      contacto: "pedidos@maderavia.es"
+    }
+  ];
+
+  const DIRECTORIO_CLIENTES = [
+    {
+      id: "CLI-01",
+      nombre: "Infraestructuras del Norte, S.A.",
+      cif: "A-48092311",
+      sede: "Madrid / Bilbao",
+      expedientesActivos: 3,
+      actividad: "Constructora Ferroviaria (Licitaciones Adif / Metro)",
+      homologado: true,
+      contacto: "proyectos@infraestructurasnorte.es"
+    },
+    {
+      id: "CLI-02",
+      nombre: "Ferrocarrils de la Generalitat de Catalunya",
+      cif: "Q-0801108J",
+      sede: "Barcelona",
+      expedientesActivos: 1,
+      actividad: "Operador y Gestor Ferroviario Autonómico",
+      homologado: true,
+      contacto: "infraestructures@fgc.cat"
+    }
+  ];
+
   /* ---------- Helpers de Estado ---------- */
   const STATUS_BADGES = {
     complete: { label: "Validado y conforme", class: "complete", icon: "check" },
@@ -276,8 +376,8 @@
 
   /* ---------- Enrutador y Estado de Vista ---------- */
   let activeRole = "admin";
-  let activeSection = "expedientes";
-  let activeParam = "RFQ-2026-014";
+  let activeSection = "overview";
+  let activeParam = null;
   let activeDossierPhase = 3;
   let activeDossierTab = "deliverables"; // deliverables | incidents | passport
 
@@ -285,58 +385,20 @@
     const raw = location.hash.replace(/^#\/?/, "");
     if (!raw) {
       activeRole = "admin";
-      activeSection = "expedientes";
-      activeParam = "RFQ-2026-014";
+      activeSection = "overview";
+      activeParam = null;
       return;
     }
     const [role, section, param] = raw.split("/");
     if (PLAYERS[role]) {
       activeRole = role;
       activeSection = section || PLAYERS[role].defaultNav;
-      activeParam = param || (role === "destinatario" ? "RFQ-2026-014" : (section === "expedientes" || section === "mis_suministros" ? "RFQ-2026-014" : null));
+      activeParam = param || null;
     } else {
       activeRole = "admin";
-      activeSection = "expedientes";
-      activeParam = "RFQ-2026-014";
+      activeSection = "overview";
+      activeParam = null;
     }
-  }
-
-  /* ---------- Componente: Barra Superior del Ecosistema ---------- */
-  function renderUmbrellaHeader() {
-    const player = PLAYERS[activeRole];
-    return `
-      <header class="procurement-umbrella">
-        <div class="procurement-umbrella-brand">
-          <span>SOFEIN Digital</span>
-          <span style="opacity:0.4">/</span>
-          <span class="sub">SOFEIN Procurement</span>
-          <span class="procurement-eco-badge" style="margin-left:6px"><b>v2.0 MVP</b></span>
-        </div>
-
-        <div class="procurement-role-selector" aria-label="Cambiar de Player / Actor">
-          ${Object.values(PLAYERS).map(p => `
-            <button class="procurement-role-btn ${p.id === activeRole ? "is-active" : ""}" type="button" data-switch-role="${p.id}">
-              ${icon(p.id === "admin" ? "building" : p.id === "cliente" ? "users" : p.id === "proveedor" ? "truck" : "eye", 14)}
-              <span>${p.label}</span>
-            </button>
-          `).join("")}
-        </div>
-
-        <div class="procurement-ecosystem-links">
-          <a class="procurement-eco-badge" href="consulting.html" title="Servicios de consultoría ad-hoc, ISO y transformación">
-            <span>SOFEIN Consulting</span>
-            <b style="background:rgba(59,130,246,0.2);color:#93c5fd">Ad-hoc</b>
-          </a>
-          <button class="procurement-eco-badge" type="button" data-go="#admin/sofein_data" title="Captura de tiempos reales para benchmarking">
-            <span>SOFEIN Data</span>
-            <b>Lead Times</b>
-          </button>
-          <button class="procurement-eco-badge" type="button" id="themeToggleBtn" aria-label="Cambiar tema">
-            ${icon(document.documentElement.dataset.theme === "dark" ? "sun" : "moon", 14)}
-          </button>
-        </div>
-      </header>
-    `;
   }
 
   /* ---------- Componente: Barra Lateral (Sidebar) ---------- */
@@ -354,7 +416,7 @@
       <aside class="admin-sidebar" id="appSidebar">
         <a class="admin-logo" href="index.html" aria-label="Volver a página principal">
           <span><img src="assets/sofein-logo.svg" alt="SOFEIN" /></span>
-          <small>${player.badge}</small>
+          <small>Procurement</small>
         </a>
         <nav>${navItems}</nav>
         <div class="admin-sidebar-foot">
@@ -370,10 +432,12 @@
     `;
   }
 
-  /* ---------- Componente: Topbar Interna ---------- */
+  /* ---------- Componente: Topbar Interna con Switcher Sutil ---------- */
   function renderTopbar() {
     const player = PLAYERS[activeRole];
     const sectionName = (player.nav.find(n => n.id === activeSection) || {}).label || activeSection;
+    const currentTheme = document.documentElement.dataset.theme || "dark";
+
     return `
       <header class="admin-topbar">
         <button class="admin-menu" id="menuToggleBtn" type="button" aria-label="Abrir menú">${icon("menu", 20)}</button>
@@ -383,9 +447,52 @@
           <b>${sectionName}</b>
           ${activeParam ? `<i>/</i><b style="color:var(--entity-accent)">${activeParam}</b>` : ""}
         </div>
-        <div style="margin-left:auto;display:flex;align-items:center;gap:12px">
-          <button class="admin-bell" type="button" data-toast="Tienes 1 notificación de actualización en RFQ-2026-014" aria-label="Notificaciones">
-            ${icon("bell", 18)}<i></i>
+
+        <div class="admin-topbar-actions">
+          <!-- Switcher Sutil de Rol (Discreto) -->
+          <div class="role-switcher-wrap" id="roleSwitcherWrap">
+            <button class="role-switcher-btn" id="roleDropdownBtn" type="button" aria-expanded="false" title="Cambiar actor de la plataforma">
+              <span class="role-dot ${activeRole}"></span>
+              <span class="role-trigger-label">${player.shortLabel}</span>
+              ${icon("chevronDown", 13)}
+            </button>
+            <div class="role-switcher-popover" id="roleDropdownMenu" hidden>
+              <div class="role-popover-title">CAMBIAR ACTOR B2B</div>
+              <button class="role-popover-item ${activeRole === "admin" ? "is-active" : ""}" type="button" data-switch-role="admin">
+                <span class="role-badge-dot admin"></span>
+                <div>
+                  <strong>SOFEIN Admin</strong>
+                  <small>Administración central y mediación</small>
+                </div>
+                ${activeRole === "admin" ? icon("check", 14) : ""}
+              </button>
+              <button class="role-popover-item ${activeRole === "cliente" ? "is-active" : ""}" type="button" data-switch-role="cliente">
+                <span class="role-badge-dot cliente"></span>
+                <div>
+                  <strong>Constructor (Cliente)</strong>
+                  <small>Infraestructuras del Norte</small>
+                </div>
+                ${activeRole === "cliente" ? icon("check", 14) : ""}
+              </button>
+              <button class="role-popover-item ${activeRole === "proveedor" ? "is-active" : ""}" type="button" data-switch-role="proveedor">
+                <span class="role-badge-dot proveedor"></span>
+                <div>
+                  <strong>Proveedor Homologado</strong>
+                  <small>IberRail Components</small>
+                </div>
+                ${activeRole === "proveedor" ? icon("check", 14) : ""}
+              </button>
+            </div>
+          </div>
+
+          <!-- Selector de Modo Claro / Oscuro -->
+          <button class="topbar-icon-btn" id="themeToggleBtn" type="button" aria-label="Cambiar tema" title="${currentTheme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}">
+            ${icon(currentTheme === "dark" ? "sun" : "moon", 16)}
+          </button>
+
+          <!-- Notificaciones Bell -->
+          <button class="topbar-icon-btn" type="button" data-toast="Tienes 1 notificación de actualización en RFQ-2026-014" aria-label="Notificaciones" title="Notificaciones de inbox">
+            ${icon("bell", 16)}<i class="bell-unread-dot"></i>
           </button>
         </div>
       </header>
@@ -641,201 +748,40 @@
      VISTAS: SOFEIN ADMIN
      ============================================================ */
   function renderAdminView(section, param) {
-    if (section === "expedientes") {
-      if (param) return renderDossierBuilder(param);
-      // Listado de expedientes
-      const cards = EXPEDIENTES.map(exp => `
-        <article class="admin-exp-card" data-go="#admin/expedientes/${exp.id}" style="cursor:pointer">
-          <div>
-            <span class="admin-exp-id">${exp.id}</span>
-            <h3>${exp.producto}</h3>
-            <span style="font-size:0.72rem;color:var(--entity-muted)">Destino: ${exp.destinatarioFinal}</span>
-          </div>
-          <div>
-            <span>Contratista / Proveedor</span>
-            <strong>${exp.cliente}</strong>
-            <small style="color:var(--entity-muted)">${exp.proveedor}</small>
-          </div>
-          <div>
-            <span>Fase & Plazo</span>
-            <strong>${PHASES[exp.faseActual].name}</strong>
-            <small class="${exp.desviacionDias.includes("+") ? "admin-due" : ""}">Plazo: ${exp.plazoRealEstimado} (${exp.desviacionDias})</small>
-          </div>
-          <div class="admin-exp-actions">
-            <button class="admin-quiet-button" type="button">Abrir Expediente ${icon("arrow", 14)}</button>
-          </div>
-        </article>
-      `).join("");
-
-      return `
-        <div class="admin-view-head">
-          <div>
-            <h1>Expedientes Estancos</h1>
-            <p>Bandeja operativa central. Supervisa el avance por fases, aprueba entregables técnicos y gestiona el suministro.</p>
-          </div>
-          <button class="admin-primary-button" type="button" data-open-new-exp-modal>
-            ${icon("plus", 16)} Crear Expediente Estanco
-          </button>
-        </div>
-        <div class="admin-exp-list">
-          ${cards}
-        </div>
-      `;
-    }
-
-    if (section === "sofein_data") {
-      // Panel SOFEIN Data: Captura de tiempos reales
-      return `
-        <div class="admin-view-head">
-          <div>
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-              <span class="procurement-eco-badge"><b>SOFEIN DATA</b></span>
-              <span style="font-size:0.76rem;color:var(--entity-accent);font-weight:600">Inteligencia Operativa Ferroviaria</span>
-            </div>
-            <h1>Captura de Tiempos & Benchmarking</h1>
-            <p>Datos reales recopilados de cada hito para auditoría y consultoría estratégica de plazos y fiabilidad.</p>
-          </div>
-          <button class="admin-quiet-button" type="button" data-toast="Exportando datos de tiempos en formato CSV para analítica">
-            ${icon("download", 16)} Exportar Histórico (CSV)
-          </button>
-        </div>
-
-        <section class="sofein-data-grid">
-          <div class="sofein-data-card">
-            <span class="label">Lead Time Medio</span>
-            <strong class="value">44,2 días</strong>
-            <small class="sub">+3,8 días vs estimación inicial de oferta</small>
-          </div>
-          <div class="sofein-data-card">
-            <span class="label">Respuesta Documental</span>
-            <strong class="value">3,1 días</strong>
-            <small class="sub">Tiempo medio de entrega de certificados requeridos</small>
-          </div>
-          <div class="sofein-data-card">
-            <span class="label">Tasa Aprobación 1ª Revisión</span>
-            <strong class="value" style="color:var(--entity-accent)">89,4%</strong>
-            <small class="sub">10,6% requirió subsanación o rechazo con nota</small>
-          </div>
-          <div class="sofein-data-card">
-            <span class="label">Tiempo Mediación SOFEIN</span>
-            <strong class="value">28 horas</strong>
-            <small class="sub">Resolución de discrepancias cliente-proveedor</small>
-          </div>
-        </section>
-
-        <section class="sofein-data-table-panel">
-          <div style="padding:18px 24px;border-bottom:1px solid var(--entity-line);display:flex;align-items:center;justify-content:space-between">
-            <h3 style="margin:0;font-size:1rem;color:var(--entity-text)">Registro Comparativo de Proveedores por Material</h3>
-            <span style="font-size:0.74rem;color:var(--entity-muted)">Base para recomendaciones en SOFEIN Consulting</span>
-          </div>
-          <div class="table-wrap">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>Proveedor</th>
-                  <th>Material Principal</th>
-                  <th>Plazo Medio Prometido</th>
-                  <th>Plazo Real de Entrega</th>
-                  <th>Desviación Media</th>
-                  <th>Fiabilidad Documental</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><b>IberRail Components</b></td>
-                  <td>Traviesas de Hormigón / Clips</td>
-                  <td>40 días</td>
-                  <td>43 días</td>
-                  <td style="color:var(--entity-warning)">+3 días</td>
-                  <td><span class="entity-status complete">94%</span></td>
-                </tr>
-                <tr>
-                  <td><b>Norte Vía Industrial</b></td>
-                  <td>Carril 54E1 / Aparatos de Vía</td>
-                  <td>60 días</td>
-                  <td>58 días</td>
-                  <td style="color:var(--entity-accent)">-2 días</td>
-                  <td><span class="entity-status complete">98%</span></td>
-                </tr>
-                <tr>
-                  <td><b>Madera Vía Ibérica</b></td>
-                  <td>Traviesas Creosotadas</td>
-                  <td>35 días</td>
-                  <td>36 días</td>
-                  <td style="color:var(--entity-warning)">+1 día</td>
-                  <td><span class="entity-status complete">91%</span></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
-      `;
-    }
-
-    if (section === "incidencias") {
-      return `
-        <div class="admin-view-head">
-          <div>
-            <h1>Mediación de Incidencias & Modificaciones</h1>
-            <p>Bandeja de arbitraje de SOFEIN. Intermediación en plazos, alternativas de suministro y delimitación de responsabilidad.</p>
-          </div>
-        </div>
-        <div class="incident-container">
-          <article class="incident-card is-mediated">
-            <div class="incident-card-top">
-              <div class="incident-card-title">
-                <h3>Demora en curado por ola de calor · RFQ-2026-014 (Traviesas PR-22)</h3>
-                <p>Afecta a <b>Infraestructuras del Norte</b> y <b>IberRail Components</b></p>
-              </div>
-              <span class="entity-status review"><i></i>En mediación SOFEIN</span>
-            </div>
-            <div class="incident-mediation-box">
-              <h4>${icon("shield", 16)} Propuesta de Mediación Oficial emitidada por SOFEIN</h4>
-              <p>Desdoblar la entrega en dos sub-lotes para mantener el montaje de vía del constructor sin penalización: Lote 1 (7.000 uds) en fecha original y Lote 2 (7.500 uds) 6 días después.</p>
-            </div>
-            <div class="incident-signoff-bar">
-              <div class="incident-sign-status">
-                <span>Firma Proveedor: <b class="signed">✓ Aceptada</b></span>
-                <span>Firma Constructor: <b class="pending">⏳ Pendiente de validación</b></span>
-              </div>
-              <button class="admin-quiet-button" type="button" data-toast="Recordatorio formal de firma enviado al cliente">
-                ${icon("bell", 14)} Recordar Firma a Cliente
-              </button>
-            </div>
-          </article>
-        </div>
-      `;
-    }
-
     if (section === "overview") {
       return `
         <div class="admin-view-head">
           <div>
-            <h1>Visión Global Operativa</h1>
+            <h1>Visión global</h1>
             <p>Control centralizado de expedientes de suministro ferroviario, documentación e incidencias activas.</p>
           </div>
           <button class="admin-primary-button" type="button" data-go="#admin/expedientes">
-            Ver Todos los Expedientes
+            Ver expedientes ${icon("arrow", 14)}
           </button>
         </div>
+
         <section class="admin-top-insight">
           <div class="admin-metrics">
             <div class="admin-metric">
-              <span>Expedientes en Curso</span>
+              <span>Expedientes en curso</span>
               <strong>4</strong>
             </div>
             <div class="admin-metric warning">
-              <span>Incidencias en Mediación</span>
+              <span>Incidencias en mediación</span>
               <strong>1</strong>
             </div>
             <div class="admin-metric">
-              <span>Entregables Validados</span>
+              <span>Entregables validados</span>
               <strong>18</strong>
+            </div>
+            <div class="admin-metric">
+              <span>Proveedores homologados</span>
+              <strong>6</strong>
             </div>
           </div>
           <div class="admin-histogram">
             <div class="admin-histogram-head">
-              <h2>Estado de Ranuras Documentales</h2>
+              <h2>Estado de ranuras documentales</h2>
               <span>18 validados · 5 en revisión · 8 pendientes</span>
             </div>
             <div class="admin-histogram-bars">
@@ -862,10 +808,249 @@
             </div>
           </div>
         </section>
+
+        <section class="admin-alerts">
+          <div class="admin-section-head">
+            <div>
+              <h2>Alertas operativas prioritarias</h2>
+              <p>Requerimientos y firmas pendientes ordenados por urgencia de obra.</p>
+            </div>
+            <span>3 activas</span>
+          </div>
+          <div class="admin-alert-list">
+            <div class="admin-alert-row is-critical">
+              <span class="admin-deadline">Urgente</span>
+              <strong>Propuesta de mediación (curado Lote B)</strong>
+              <span>RFQ-2026-014</span>
+              <span>Pendiente firma constructor</span>
+              <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-014">Revisar</button>
+            </div>
+            <div class="admin-alert-row is-urgent">
+              <span class="admin-deadline">En revisión</span>
+              <strong>Certificado de ensayos EN 13230</strong>
+              <span>RFQ-2026-014</span>
+              <span>IberRail Components</span>
+              <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-014">Validar</button>
+            </div>
+            <div class="admin-alert-row">
+              <span class="admin-deadline" style="color:var(--entity-accent)">En plazo</span>
+              <strong>Preselección de 3 laminadores</strong>
+              <span>RFQ-2026-011</span>
+              <span>Metro Bilbao</span>
+              <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-011">Ver ofertas</button>
+            </div>
+          </div>
+        </section>
       `;
     }
 
-    // Default: mostrar lista de expedientes
+    if (section === "expedientes") {
+      if (param) return renderDossierBuilder(param);
+      const cards = EXPEDIENTES.map(exp => `
+        <article class="admin-exp-card" data-go="#admin/expedientes/${exp.id}" style="cursor:pointer">
+          <div class="admin-exp-card-top">
+            <span class="admin-exp-id">${exp.id}</span>
+            <span class="admin-phase-mini">${icon("folder", 12)} Fase ${exp.faseActual + 1}: ${PHASES[exp.faseActual].name}</span>
+          </div>
+          <h3>${exp.producto}</h3>
+          <p>${exp.unidades} · Destino: <b>${exp.destinatarioFinal}</b></p>
+          <div class="admin-exp-card-meta">
+            <div>
+              <span>Constructor</span>
+              <strong>${exp.cliente}</strong>
+            </div>
+            <div>
+              <span>Proveedor</span>
+              <strong>${exp.proveedor}</strong>
+            </div>
+          </div>
+          <div class="admin-exp-actions" style="margin-top:14px;display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:0.72rem;color:${exp.desviacionDias.includes("+") ? "var(--entity-warning)" : "var(--entity-muted)"}">${exp.plazoRealEstimado} (${exp.desviacionDias})</span>
+            <button class="admin-quiet-button" type="button">Abrir expediente ${icon("arrow", 14)}</button>
+          </div>
+        </article>
+      `).join("");
+
+      return `
+        <div class="admin-view-head">
+          <div>
+            <h1>Expedientes</h1>
+            <p>Bandeja operativa central. Supervisa el avance por fases, aprueba entregables técnicos y gestiona el suministro.</p>
+          </div>
+          <button class="admin-primary-button" type="button" data-open-new-exp-modal>
+            ${icon("plus", 16)} Crear expediente estanco
+          </button>
+        </div>
+        <div class="admin-exp-list">
+          ${cards}
+        </div>
+      `;
+    }
+
+    if (section === "inbox") {
+      const noticeRows = NOTICES.map(n => `
+        <article class="admin-doc-row" style="grid-template-columns:36px minmax(180px,1.4fr) 140px 110px auto;gap:16px">
+          <span style="display:grid;place-items:center;width:34px;height:34px;border-radius:6px;background:var(--entity-panel-2)">
+            ${icon(n.tagClass === "warning" ? "alert" : n.tagClass === "review" ? "file" : "check", 16)}
+          </span>
+          <div>
+            <strong>${n.titulo}</strong>
+            <small style="color:var(--entity-muted)">${n.descripcion}</small>
+          </div>
+          <div>
+            <span class="dossier-chip">${n.expId}</span>
+          </div>
+          <div>
+            <span class="dossier-chip" style="font-size:0.68rem">${n.categoria}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <time style="font-size:0.72rem;color:var(--entity-faint)">${n.fecha}</time>
+            <button class="admin-quiet-button" type="button" data-go="${n.enlace}">${n.accion}</button>
+          </div>
+        </article>
+      `).join("");
+
+      return `
+        <div class="admin-view-head">
+          <div>
+            <h1>Inbox central</h1>
+            <p>Registro unificado de avisos, requerimientos de documentación e incidencias de todos los expedientes.</p>
+          </div>
+        </div>
+        <section class="admin-document-list">
+          <div class="admin-doc-table-head" style="grid-template-columns:36px minmax(180px,1.4fr) 140px 110px auto;gap:16px">
+            <span>Aviso / Actividad</span>
+            <span>Expediente</span>
+            <span>Categoría</span>
+            <span style="text-align:right">Fecha & Acción</span>
+          </div>
+          ${noticeRows}
+        </section>
+      `;
+    }
+
+    if (section === "directorio") {
+      const prvCards = DIRECTORIO_PROVEEDORES.map(p => `
+        <article class="admin-client-card">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span class="admin-client-initials">${p.nombre.slice(0, 2).toUpperCase()}</span>
+            <span class="admin-verified">${icon("shield", 14)} Homologado</span>
+          </div>
+          <h2 style="margin:16px 0 4px">${p.nombre}</h2>
+          <p style="margin:0 0 14px;color:var(--entity-muted);font-size:0.75rem">${p.sede} · CIF: ${p.cif}</p>
+          <dl>
+            <div>
+              <dt>Suministros</dt>
+              <dd style="font-size:0.72rem;text-align:right;max-width:140px;color:var(--entity-muted)">${p.materiales}</dd>
+            </div>
+            <div>
+              <dt>Lead Time medio</dt>
+              <dd>${p.leadTimeMedio}</dd>
+            </div>
+            <div>
+              <dt>Fiabilidad</dt>
+              <dd style="color:var(--entity-accent)">${p.score}</dd>
+            </div>
+          </dl>
+          <footer>
+            <small>${p.contacto}</small>
+          </footer>
+        </article>
+      `).join("");
+
+      const cliCards = DIRECTORIO_CLIENTES.map(c => `
+        <article class="admin-client-card">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span class="admin-client-initials" style="background:#1d426b">${c.nombre.slice(0, 2).toUpperCase()}</span>
+            <span class="admin-verified" style="color:#60a5fa">${icon("shield", 14)} Contratista Activo</span>
+          </div>
+          <h2 style="margin:16px 0 4px">${c.nombre}</h2>
+          <p style="margin:0 0 14px;color:var(--entity-muted);font-size:0.75rem">${c.sede} · CIF: ${c.cif}</p>
+          <dl>
+            <div>
+              <dt>Actividad</dt>
+              <dd style="font-size:0.72rem;text-align:right;max-width:140px;color:var(--entity-muted)">${c.actividad}</dd>
+            </div>
+            <div>
+              <dt>Expedientes en curso</dt>
+              <dd>${c.expedientesActivos} activos</dd>
+            </div>
+          </dl>
+          <footer>
+            <small>${c.contacto}</small>
+          </footer>
+        </article>
+      `).join("");
+
+      return `
+        <div class="admin-view-head">
+          <div>
+            <h1>Clientes y proveedores</h1>
+            <p>Directorio homologado de contratistas de vía y talleres industriales con trazabilidad acreditada.</p>
+          </div>
+        </div>
+
+        <div style="margin-bottom:28px">
+          <h3 style="margin:0 0 14px;font-size:0.95rem;color:var(--entity-text)">Proveedores homologados</h3>
+          <div class="admin-client-grid">${prvCards}</div>
+        </div>
+
+        <div>
+          <h3 style="margin:0 0 14px;font-size:0.95rem;color:var(--entity-text)">Clientes (Constructores de vía)</h3>
+          <div class="admin-client-grid" style="grid-template-columns:repeat(2,1fr)">${cliCards}</div>
+        </div>
+      `;
+    }
+
+    if (section === "configuracion") {
+      const currentTheme = document.documentElement.dataset.theme || "dark";
+      return `
+        <div class="admin-view-head">
+          <div>
+            <h1>Configuración</h1>
+            <p>Parámetros operativos de SOFEIN Procurement y personalización del entorno de trabajo.</p>
+          </div>
+        </div>
+
+        <div class="admin-config-panel">
+          <div>
+            <h2>Apariencia visual</h2>
+            <p>Selecciona el tema de contraste que prefieras. Optimizado para entornos de oficina técnica y obra.</p>
+          </div>
+          <div style="display:flex;gap:10px">
+            <button class="admin-quiet-button ${currentTheme === 'dark' ? 'admin-primary-button' : ''}" type="button" data-set-theme="dark">
+              ${icon("moon", 14)} Modo oscuro (Attio)
+            </button>
+            <button class="admin-quiet-button ${currentTheme === 'light' ? 'admin-primary-button' : ''}" type="button" data-set-theme="light">
+              ${icon("sun", 14)} Modo claro
+            </button>
+          </div>
+        </div>
+
+        <div class="admin-config-panel">
+          <div>
+            <h2>Reglas de mediación y plazos tácitos</h2>
+            <p>Configuración de plazos de aprobación automática en silencio administrativo para adendas de mediación (Apuntes 06).</p>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <span class="dossier-chip">Plazo límite: <b>5 días hábiles</b></span>
+            <button class="admin-quiet-button" type="button" data-toast="Parámetro guardado en configuración">Editar regla</button>
+          </div>
+        </div>
+
+        <div class="admin-config-panel">
+          <div>
+            <h2>Concurrencia mínima de proveedores</h2>
+            <p>Mínimo de 3 proveedores a preseleccionar en Fase 1 conforme a normativa y pliegos públicos.</p>
+          </div>
+          <div>
+            <span class="dossier-chip">Mínimo: <b>3 proveedores concurrentes</b></span>
+          </div>
+        </div>
+      `;
+    }
+
+    // Default
     return renderDossierBuilder("RFQ-2026-014");
   }
 
@@ -877,22 +1062,25 @@
       if (param) return renderDossierBuilder(param);
       const cards = EXPEDIENTES.map(exp => `
         <article class="admin-exp-card" data-go="#cliente/expedientes/${exp.id}" style="cursor:pointer">
-          <div>
+          <div class="admin-exp-card-top">
             <span class="admin-exp-id">${exp.id}</span>
-            <h3>${exp.producto}</h3>
-            <span style="font-size:0.72rem;color:var(--entity-muted)">Destino de vía: ${exp.destinatarioFinal}</span>
+            <span class="admin-phase-mini">${icon("folder", 12)} Fase ${exp.faseActual + 1}: ${PHASES[exp.faseActual].name}</span>
           </div>
-          <div>
-            <span>Proveedor Adjudicado</span>
-            <strong>${exp.proveedor}</strong>
+          <h3>${exp.producto}</h3>
+          <p>${exp.unidades} · Tramo: <b>${exp.destinatarioFinal}</b></p>
+          <div class="admin-exp-card-meta">
+            <div>
+              <span>Taller adjudicado</span>
+              <strong>${exp.proveedor}</strong>
+            </div>
+            <div>
+              <span>Plazo estimado</span>
+              <strong class="${exp.desviacionDias.includes("+") ? "admin-due" : ""}">${exp.plazoRealEstimado}</strong>
+            </div>
           </div>
-          <div>
-            <span>Fase y Estado</span>
-            <strong>${PHASES[exp.faseActual].name}</strong>
-            <small class="${exp.desviacionDias.includes("+") ? "admin-due" : ""}">${exp.desviacionDias}</small>
-          </div>
-          <div class="admin-exp-actions">
-            <button class="admin-quiet-button" type="button">Ver Expediente ${icon("arrow", 14)}</button>
+          <div class="admin-exp-actions" style="margin-top:14px;display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:0.72rem;color:var(--entity-muted)">${exp.presupuestoTotal}</span>
+            <button class="admin-quiet-button" type="button">Abrir expediente ${icon("arrow", 14)}</button>
           </div>
         </article>
       `).join("");
@@ -900,13 +1088,30 @@
       return `
         <div class="admin-view-head">
           <div>
-            <h1>Mis Expedientes de Suministro</h1>
+            <h1>Mis expedientes</h1>
             <p>Supervisa el ciclo de vida de los materiales pedidos para tus obras ferroviarias, sube requisitos y valida el cierre.</p>
           </div>
           <button class="admin-primary-button" type="button" data-go="#cliente/nuevo">
-            ${icon("plus", 16)} Nuevo Expediente
+            ${icon("plus", 16)} Nuevo expediente
           </button>
         </div>
+
+        <!-- Visión Global Integrada en Cabecera (Apuntes 06 - Tabla 1) -->
+        <div class="entity-scope-strip">
+          <div class="entity-scope-pill">
+            <span class="scope-dot active"></span>
+            <span><b>3</b> Expedientes activos</span>
+          </div>
+          <div class="entity-scope-pill">
+            <span class="scope-dot warning"></span>
+            <span><b>1</b> Mediación pendiente de firma digital</span>
+          </div>
+          <div class="entity-scope-pill">
+            <span class="scope-dot info"></span>
+            <span><b>1</b> Suministro en transporte a pie de vía</span>
+          </div>
+        </div>
+
         <div class="admin-exp-list">
           ${cards}
         </div>
@@ -914,22 +1119,20 @@
     }
 
     if (section === "nuevo") {
-      // Constructor de Nuevo Expediente
       return `
         <div class="admin-view-head">
           <div>
-            <h1>Configurar Nuevo Expediente</h1>
-            <p>Selecciona el tipo de material, subtipo, destino de la obra y planos para iniciar la cotización.</p>
+            <h1>Configurar nuevo expediente</h1>
+            <p>Indica los suministros ferroviarios que necesitas, dónde van a instalarse y las especificaciones técnicas.</p>
           </div>
         </div>
         <section class="admin-drawer" style="position:static;width:100%;max-width:760px;margin:0 auto;box-shadow:none;border:1px solid var(--entity-line);border-radius:12px;padding:32px">
           <form id="newExpedienteForm">
             <label>Tipo de Producto de Vía (Catálogo MVP)
               <select name="producto" required>
-                <option value="Traviesas de hormigón monobloque">Traviesas de Hormigón Monobloque (Superestructura)</option>
+                <option value="Traviesas de hormigón monobloque">Traviesas de Hormigón Monobloque PR-22 (Superestructura)</option>
                 <option value="Traviesas de madera tratada">Traviesas de Madera Tratada Creosotada (3 subtipos)</option>
-                <option value="Traviesas polimerizadas">Traviesas Polimerizadas Sintéticas</option>
-                <option value="Carril laminado 54E1 / 60E1">Carril Laminado 54E1 / 60E1</option>
+                <option value="Carril laminado 54E1 / 60E1">Carril Laminado 54E1 / 60E1 Grado R260</option>
                 <option value="Sujeciones y clips elásticos">Clips y Fijaciones Elásticas (SKL-14 / Pandrol)</option>
                 <option value="Placas de asiento">Placas de Asiento Metálicas / Elastómero</option>
                 <option value="Balasto silíceo">Balasto Silíceo Certificado Tipo 1</option>
@@ -938,20 +1141,20 @@
             </label>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
               <label>Volumen / Cantidad Requerida
-                <input name="unidades" placeholder="Ej: 12.000 traviesas o 800 t" required />
+                <input name="unidades" placeholder="Ej: 14.500 traviesas o 1.200 t" required />
               </label>
               <label>Fecha Objetivo de Llegada a Obra
                 <input type="date" name="fechaObjetivo" required />
               </label>
             </div>
-            <label>Destino de la Vía / Destinatario Final
-              <input name="destino" placeholder="Ej: Línea Adif Madrid-Sevilla o Factoría Volkswagen" required />
+            <label>Destino de la Vía / Tramo de Instalación
+              <input name="destino" placeholder="Ej: Tramo Medina del Campo o Variante Este" required />
             </label>
             <label>Pliego o Planos de Replanteo (.pdf, .dwg)
               <input type="file" name="archivo" />
             </label>
             <div style="margin-top:16px;display:flex;gap:12px">
-              <button class="admin-primary-button" type="submit">Iniciar Expediente & Solicitar Cotizaciones</button>
+              <button class="admin-primary-button" type="submit">Crear Expediente y Enviar a Validación SOFEIN</button>
               <button class="admin-quiet-button" type="button" data-go="#cliente/expedientes">Cancelar</button>
             </div>
           </form>
@@ -959,39 +1162,92 @@
       `;
     }
 
-    if (section === "incidencias") {
+    if (section === "inbox") {
+      const clientNotices = NOTICES.filter(n => n.roles.includes("cliente"));
+      const noticeRows = clientNotices.map(n => `
+        <article class="admin-doc-row" style="grid-template-columns:36px minmax(180px,1.4fr) 140px 110px auto;gap:16px">
+          <span style="display:grid;place-items:center;width:34px;height:34px;border-radius:6px;background:var(--entity-panel-2)">
+            ${icon(n.tagClass === "warning" ? "alert" : n.tagClass === "review" ? "file" : "check", 16)}
+          </span>
+          <div>
+            <strong>${n.titulo}</strong>
+            <small style="color:var(--entity-muted)">${n.descripcion}</small>
+          </div>
+          <div>
+            <span class="dossier-chip">${n.expId}</span>
+          </div>
+          <div>
+            <span class="dossier-chip" style="font-size:0.68rem">${n.categoria}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <time style="font-size:0.72rem;color:var(--entity-faint)">${n.fecha}</time>
+            <button class="admin-quiet-button" type="button" data-go="${n.enlace}">${n.accion}</button>
+          </div>
+        </article>
+      `).join("");
+
       return `
         <div class="admin-view-head">
           <div>
-            <h1>Incidencias & Modificaciones de Obra</h1>
-            <p>Revisa y acepta propuestas de mediación de SOFEIN ante retrasos de proveedores o cambios en obra.</p>
+            <h1>Inbox</h1>
+            <p>Avisos, requerimientos de documentación y acuerdos de mediación para tus obras.</p>
           </div>
         </div>
-        <div class="incident-container">
-          <article class="incident-card is-mediated">
-            <div class="incident-card-top">
-              <div class="incident-card-title">
-                <h3>Demora en curado por ola de calor · RFQ-2026-014</h3>
-                <p>Proveedor: <b>IberRail Components</b> · Desviación: +6 días en Lote B</p>
-              </div>
-              <span class="entity-status review"><i></i>Propuesta SOFEIN Disponible</span>
-            </div>
-            <div class="incident-mediation-box">
-              <h4>${icon("shield", 16)} Mediación Propuesta por SOFEIN:</h4>
-              <p>Desdoblar la entrega en dos sub-lotes sin sobrecoste. Recibirás Lote A (7.000 uds) en plazo para no parar la colocación de vía, y Lote B (7.500 uds) 6 días después.</p>
-            </div>
-            <div class="incident-signoff-bar">
-              <span style="font-size:0.75rem;color:var(--entity-muted)">Firma requerida para incorporar adenda al Pasaporte Digital</span>
-              <button class="admin-primary-button" type="button" data-sign-incident="INC-014-1">
-                ${icon("check", 14)} Aceptar y Firmar Adenda
-              </button>
-            </div>
-          </article>
-        </div>
+        <section class="admin-document-list">
+          <div class="admin-doc-table-head" style="grid-template-columns:36px minmax(180px,1.4fr) 140px 110px auto;gap:16px">
+            <span>Aviso</span>
+            <span>Expediente</span>
+            <span>Categoría</span>
+            <span style="text-align:right">Fecha & Acción</span>
+          </div>
+          ${noticeRows}
+        </section>
       `;
     }
 
-    // Default: mostrar detalle
+    if (section === "perfil") {
+      return `
+        <div class="admin-view-head">
+          <div>
+            <h1>Perfil de constructor</h1>
+            <p>Información corporativa y certificaciones registradas en la plataforma SOFEIN.</p>
+          </div>
+        </div>
+
+        <section class="admin-client-card" style="padding:28px">
+          <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px">
+            <span class="admin-client-initials" style="width:52px;height:52px;font-size:1.2rem">IN</span>
+            <div>
+              <h2 style="margin:0;font-size:1.3rem">Infraestructuras del Norte, S.A.</h2>
+              <span style="color:var(--entity-accent);font-size:0.75rem">${icon("shield", 14)} Entidad verificada y homologada</span>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;padding:20px 0;border-top:1px solid var(--entity-line);border-bottom:1px solid var(--entity-line)">
+            <div>
+              <span style="font-size:0.7rem;color:var(--entity-faint);text-transform:uppercase">CIF</span>
+              <strong style="display:block;margin-top:4px">A-48092311</strong>
+            </div>
+            <div>
+              <span style="font-size:0.7rem;color:var(--entity-faint);text-transform:uppercase">Representante Legal</span>
+              <strong style="display:block;margin-top:4px">María González López</strong>
+            </div>
+            <div>
+              <span style="font-size:0.7rem;color:var(--entity-faint);text-transform:uppercase">Contacto Técnico</span>
+              <strong style="display:block;margin-top:4px">proyectos@infraestructurasnorte.es</strong>
+            </div>
+          </div>
+
+          <div style="margin-top:20px;display:flex;gap:12px">
+            <span class="dossier-chip">${icon("shield", 14)} ISO 9001 Registrada</span>
+            <span class="dossier-chip">${icon("shield", 14)} ISO 14001 Registrada</span>
+            <span class="dossier-chip">${icon("check", 14)} Acuerdo Marco SOFEIN Firmado</span>
+          </div>
+        </section>
+      `;
+    }
+
+    // Default
     return renderDossierBuilder("RFQ-2026-014");
   }
 
@@ -999,48 +1255,71 @@
      VISTAS: PROVEEDOR HOMOLOGADO
      ============================================================ */
   function renderProveedorView(section, param) {
-    if (section === "mis_suministros") {
+    if (section === "expedientes") {
       if (param) return renderDossierBuilder(param);
       return `
         <div class="admin-view-head">
           <div>
-            <h1>Mis Suministros Adjudicados</h1>
+            <h1>Mis expedientes</h1>
             <p>Accede a tus lotes en curso, sube fichas técnicas y certificados con drag & drop, y reporta avances.</p>
           </div>
         </div>
+
+        <!-- Visión Global Integrada en Cabecera (Apuntes 06 - Tabla 1) -->
+        <div class="entity-scope-strip">
+          <div class="entity-scope-pill">
+            <span class="scope-dot active"></span>
+            <span><b>2</b> Suministros adjudicados</span>
+          </div>
+          <div class="entity-scope-pill">
+            <span class="scope-dot warning"></span>
+            <span><b>1</b> Solicitud de cotización (RFQ)</span>
+          </div>
+          <div class="entity-scope-pill">
+            <span class="scope-dot info"></span>
+            <span><b>1</b> Certificado de ensayo pendiente de carga</span>
+          </div>
+        </div>
+
         <div class="admin-exp-list">
-          <article class="admin-exp-card" data-go="#proveedor/mis_suministros/RFQ-2026-014" style="cursor:pointer">
-            <div>
-              <span class="admin-exp-id">RFQ-2026-014</span>
-              <h3>Traviesas de hormigón monobloque PR-22</h3>
-              <span style="font-size:0.72rem;color:var(--entity-muted)">Cliente: Infraestructuras del Norte, S.A.</span>
-            </div>
-            <div>
-              <span>Entregables Pendientes</span>
-              <strong style="color:var(--entity-warning)">Certificado de Ensayos EN 13230</strong>
-            </div>
-            <div>
-              <span>Plazo de Fabricación</span>
-              <strong>Día 22 de 42</strong>
-            </div>
-            <div class="admin-exp-actions">
-              <button class="admin-quiet-button" type="button">Abrir y Subir Archivos ${icon("arrow", 14)}</button>
-            </div>
-          </article>
+          ${EXPEDIENTES.filter(e => e.proveedor.includes("IberRail")).map(exp => `
+            <article class="admin-exp-card" data-go="#proveedor/expedientes/${exp.id}" style="cursor:pointer">
+              <div class="admin-exp-card-top">
+                <span class="admin-exp-id">${exp.id}</span>
+                <span class="admin-phase-mini">${icon("folder", 12)} Fase ${exp.faseActual + 1}: ${PHASES[exp.faseActual].name}</span>
+              </div>
+              <h3>${exp.producto}</h3>
+              <p>Cliente: <b>${exp.cliente}</b> · ${exp.unidades}</p>
+              <div class="admin-exp-card-meta">
+                <div>
+                  <span>Plazo acordado</span>
+                  <strong>${exp.plazoPactado}</strong>
+                </div>
+                <div>
+                  <span>Entrega estimada</span>
+                  <strong class="${exp.desviacionDias.includes("+") ? "admin-due" : ""}">${exp.plazoRealEstimado}</strong>
+                </div>
+              </div>
+              <div class="admin-exp-actions" style="margin-top:14px;display:flex;justify-content:space-between;align-items:center">
+                <span style="font-size:0.72rem;color:var(--entity-muted)">${exp.presupuestoTotal}</span>
+                <button class="admin-quiet-button" type="button">Abrir y subir entregables ${icon("arrow", 14)}</button>
+              </div>
+            </article>
+          `).join("")}
         </div>
       `;
     }
 
-    if (section === "solicitudes") {
+    if (section === "cotizaciones") {
       return `
         <div class="admin-view-head">
           <div>
-            <h1>Solicitudes de Cotización (RFQs)</h1>
+            <h1>Cotizaciones (RFQs)</h1>
             <p>Oportunidades de suministro remitidas por SOFEIN conforme a tus productos homologados.</p>
           </div>
         </div>
         <article class="deliverable-slot" style="padding:24px">
-          <div style="display:flex;justify-content:space-between;align-items:center">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px">
             <div>
               <span class="dossier-chip" style="margin-bottom:8px">Fase 2: Cotización Vinculante</span>
               <h3 style="margin:4px 0;font-size:1.15rem;color:var(--entity-text)">Carril laminado 54E1 Grado R260 · RFQ-2026-011</h3>
@@ -1048,7 +1327,7 @@
             </div>
             <div style="display:flex;gap:10px">
               <button class="admin-primary-button" type="button" data-toast="Oferta económica confirmada y trasladada a SOFEIN">
-                ${icon("check", 14)} Enviar Oferta Vinculante
+                ${icon("check", 14)} Enviar oferta vinculante
               </button>
             </div>
           </div>
@@ -1056,41 +1335,89 @@
       `;
     }
 
-    if (section === "incidencias") {
+    if (section === "inbox") {
+      const prvNotices = NOTICES.filter(n => n.roles.includes("proveedor"));
+      const noticeRows = prvNotices.map(n => `
+        <article class="admin-doc-row" style="grid-template-columns:36px minmax(180px,1.4fr) 140px 110px auto;gap:16px">
+          <span style="display:grid;place-items:center;width:34px;height:34px;border-radius:6px;background:var(--entity-panel-2)">
+            ${icon(n.tagClass === "warning" ? "alert" : n.tagClass === "review" ? "file" : "check", 16)}
+          </span>
+          <div>
+            <strong>${n.titulo}</strong>
+            <small style="color:var(--entity-muted)">${n.descripcion}</small>
+          </div>
+          <div>
+            <span class="dossier-chip">${n.expId}</span>
+          </div>
+          <div>
+            <span class="dossier-chip" style="font-size:0.68rem">${n.categoria}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <time style="font-size:0.72rem;color:var(--entity-faint)">${n.fecha}</time>
+            <button class="admin-quiet-button" type="button" data-go="${n.enlace}">${n.accion}</button>
+          </div>
+        </article>
+      `).join("");
+
       return `
         <div class="admin-view-head">
           <div>
-            <h1>Notificar Incidencia de Fábrica</h1>
-            <p>Informa de inmediato a SOFEIN de cualquier alteración en plazos o procesos para mediar con el contratista.</p>
+            <h1>Inbox</h1>
+            <p>Requerimientos documentales, avisos de adjudicación y solicitudes de cotización.</p>
           </div>
         </div>
-        <section class="admin-drawer" style="position:static;width:100%;max-width:760px;margin:0 auto;box-shadow:none;border:1px solid var(--entity-line);border-radius:12px;padding:32px">
-          <form id="notifyIncidentForm">
-            <label>Expediente Asociado
-              <select name="expId">
-                <option value="RFQ-2026-014">RFQ-2026-014 · Traviesas de hormigón monobloque PR-22</option>
-              </select>
-            </label>
-            <label>Tipo de Incidencia
-              <select name="tipo">
-                <option value="Demora de curado o producción">Demora imprevista en proceso productivo</option>
-                <option value="Rotura de stock materia prima">Retraso en recepción de acero pretensado / árido</option>
-                <option value="Fallo de transporte / logística">Incapacidad o huelga de transporte</option>
-                <option value="No conformidad en ensayo">Resultado anómalo en laboratorio (requiere repetición)</option>
-              </select>
-            </label>
-            <label>Desviación de Plazo Estimada
-              <input name="dias" placeholder="Ej: +5 días laborables" required />
-            </label>
-            <label>Explicación y Medidas Correctoras Propuestas
-              <textarea name="detalle" rows="4" style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit" placeholder="Detalla la causa y la solución que propones para que SOFEIN medie con el cliente..."></textarea>
-            </label>
-            <button class="admin-primary-button" type="submit" style="margin-top:16px">Transmitir a Mediación SOFEIN</button>
-          </form>
+        <section class="admin-document-list">
+          <div class="admin-doc-table-head" style="grid-template-columns:36px minmax(180px,1.4fr) 140px 110px auto;gap:16px">
+            <span>Aviso</span>
+            <span>Expediente</span>
+            <span>Categoría</span>
+            <span style="text-align:right">Fecha & Acción</span>
+          </div>
+          ${noticeRows}
         </section>
       `;
     }
 
+    if (section === "perfil") {
+      return `
+        <div class="admin-view-head">
+          <div>
+            <h1>Perfil de proveedor</h1>
+            <p>Capacidad industrial, homologaciones vigentes y acreditaciones de laboratorio.</p>
+          </div>
+        </div>
+        <section class="admin-client-card" style="padding:28px">
+          <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px">
+            <span class="admin-client-initials" style="width:52px;height:52px;font-size:1.2rem;background:#523d1d">IR</span>
+            <div>
+              <h2 style="margin:0;font-size:1.3rem">IberRail Components, S.L.</h2>
+              <span style="color:var(--entity-accent);font-size:0.75rem">${icon("shield", 14)} Proveedor Homologado por SOFEIN</span>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;padding:20px 0;border-top:1px solid var(--entity-line);border-bottom:1px solid var(--entity-line)">
+            <div>
+              <span style="font-size:0.7rem;color:var(--entity-faint);text-transform:uppercase">CIF</span>
+              <strong style="display:block;margin-top:4px">B-48192837</strong>
+            </div>
+            <div>
+              <span style="font-size:0.7rem;color:var(--entity-faint);text-transform:uppercase">Planta Principal</span>
+              <strong style="display:block;margin-top:4px">Amurrio (Álava)</strong>
+            </div>
+            <div>
+              <span style="font-size:0.7rem;color:var(--entity-faint);text-transform:uppercase">Contacto Comercial</span>
+              <strong style="display:block;margin-top:4px">carlos.m@iberrail.es</strong>
+            </div>
+          </div>
+          <div style="margin-top:20px;display:flex;gap:12px">
+            <span class="dossier-chip">${icon("shield", 14)} Homologación Adif NAV Vigente</span>
+            <span class="dossier-chip">${icon("shield", 14)} Laboratorio Acreditado ENAC</span>
+            <span class="dossier-chip">${icon("check", 14)} AENOR EN 13230</span>
+          </div>
+        </section>
+      `;
+    }
+
+    // Default
     return renderDossierBuilder("RFQ-2026-014");
   }
 
@@ -1195,9 +1522,6 @@
     if (!appRoot) return;
 
     appRoot.innerHTML = `
-      <div style="grid-column:1/-1;width:100%">
-        ${renderUmbrellaHeader()}
-      </div>
       ${renderSidebar()}
       <div class="admin-main">
         ${renderTopbar()}
@@ -1224,21 +1548,56 @@
 
   /* ---------- Asignación de Eventos Interactivos ---------- */
   function bindEvents() {
-    // Cambio de Player / Rol desde la barra superior
+    // Popover del Selector de Rol Sutil
+    const roleBtn = document.getElementById("roleDropdownBtn");
+    const roleMenu = document.getElementById("roleDropdownMenu");
+    roleBtn?.addEventListener("click", e => {
+      e.stopPropagation();
+      const isHidden = roleMenu.hasAttribute("hidden");
+      if (isHidden) {
+        roleMenu.removeAttribute("hidden");
+        roleBtn.setAttribute("aria-expanded", "true");
+      } else {
+        roleMenu.setAttribute("hidden", "");
+        roleBtn.setAttribute("aria-expanded", "false");
+      }
+    });
+
+    document.addEventListener("click", e => {
+      if (!e.target.closest("#roleSwitcherWrap")) {
+        document.getElementById("roleDropdownMenu")?.setAttribute("hidden", "");
+        document.getElementById("roleDropdownBtn")?.setAttribute("aria-expanded", "false");
+      }
+    });
+
+    // Cambio de Player / Rol
     document.querySelectorAll("[data-switch-role]").forEach(btn => {
       btn.addEventListener("click", () => {
         const targetRole = btn.dataset.switchRole;
+        document.getElementById("roleDropdownMenu")?.setAttribute("hidden", "");
+        document.getElementById("roleDropdownBtn")?.setAttribute("aria-expanded", "false");
         location.hash = `#${targetRole}`;
       });
     });
 
-    // Toggle de Tema (Claro / Oscuro)
+    // Cambio de tema desde la configuración
+    document.querySelectorAll("[data-set-theme]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const theme = btn.dataset.setTheme;
+        document.documentElement.dataset.theme = theme;
+        localStorage.setItem("sofein-theme", theme);
+        renderApp();
+        showToast(`Modo ${theme === "dark" ? "oscuro (Attio)" : "claro"} activado`);
+      });
+    });
+
+    // Toggle de Tema (Claro / Oscuro) en Topbar
     document.getElementById("themeToggleBtn")?.addEventListener("click", () => {
       const nextTheme = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
       document.documentElement.dataset.theme = nextTheme;
       localStorage.setItem("sofein-theme", nextTheme);
       renderApp();
-      showToast(`Modo ${nextTheme === "dark" ? "oscuro" : "claro (SaaS B2B)"} activado`);
+      showToast(`Modo ${nextTheme === "dark" ? "oscuro (Attio)" : "claro"} activado`);
     });
 
     // Menú móvil
@@ -1486,7 +1845,7 @@
 
   // Inicializar al cargar
   if (!location.hash) {
-    location.hash = "#admin/expedientes/RFQ-2026-014";
+    location.hash = "#admin/overview";
   }
   renderApp();
 })();

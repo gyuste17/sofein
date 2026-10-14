@@ -1,0 +1,53 @@
+Estructura de diseño
+Usuarios
+SOFEIN
+Cliente
+Proveedor
+Vision de cada usuario
+Proceso de un expediente
+Lógica de las fases del proceso
+Nombre fase
+En qué consiste
+Quién la hace
+En qué pantalla se hace
+Quién o qué valida el paso a la siguiente fase
+Acciones que resultan
+Notas de diseño:
+En el MVP, las incidencias y cambios podrán ser registrados únicamente por SOFEIN, a partir de la información que le comuniquen clientes y proveedores. En fases posteriores, se podrá permitir que clientes y proveedores registren directamente incidencias o solicitudes de cambio
+La gestión de una incidencia o cambio podrá seguir el siguiente flujo: registro de la incidencia/cambio > descripción de la solución o nuevo acuerdo > validación por las partes afectadas (cliente y/o proveedor), con una fecha límite para responder o aprobación automática en caso de silencio
+El Inbox general agregará los avisos correspondientes a todos los expedientes en los que participe el usuario
+En la pantalla de expedientes se podrá alternar entre vista de cuadrícula y vista de listado
+La plataforma permitirá crear, adjuntar y/o requerir documentación, en función de las necesidades de cada expediente y fase del proceso
+Los avisos podrán generarse tanto automáticamente por la plataforma como manualmente por SOFEIN
+En la pantalla de avisos, cada aviso deberá identificar claramente el expediente al que hace referencia y su tipo o categoría (por ejemplo: incidencia/cambio, documentación, acción pendiente, plazo, etc.)
+
+--- TABLA 1 ---
+Usuario | Pantallas
+SOFEIN | Vision global Expedientes Inbox Administrador de proveedores y de clientes Configuración
+Cliente | (Visión global no aparte sino arriba dentro de cada pantalla) Mis expedientes Inbox Perfil
+Proveedor | (Vision global no aparte sino arriba dentro de cada pantalla) Mis expedientes Cotizaciones Inbox Perfil
+
+--- TABLA 2 ---
+Pantalla | Descripción | Quien tiene acceso
+Creación de expediente |  | SOFEIN Cliente
+Selector de proveedores |  | SOFEIN (validación) Cliente (selección) Proveedor (cotización)
+Gestión del expediente |  | SOFEIN Cliente Proveedores
+Registro de incidencias y cambios |  | SOFEIN Cliente Proveedores
+Gestión de la documentación |  | SOFEIN Cliente Proveedor
+Comunicaciones/avisos/mensajes/chat/inbox |  | SOFEIN Cliente Proveedor
+Pasaporte SOFEIN digital |  | SOFEIN Cliente Proveedor
+
+--- TABLA 3 ---
+Nombre | Descripción | Quién | Pantalla | Validación | Acciones
+Creación del expediente |  | SOFEIN/Cliente | Creador de expediente | SI lo crea SOFEIN, ya queda validado. Si el expediente lo crea el cliente, SOFEIN debe validarlo. | 
+Preselección de proveedores | SOFEIN elige qué proveedores mostrar para cada suministro del expediente | SOFEIN | Selector de proveedores | Se valida automáticamente cuando SOFEIN termina de hacerlo | 
+El cliente selecciona a quien pedir cotización | El cliente elige a qué proveedores SOFEIN debe pedirles cotización | Cliente | Selector de proveedores | Una vez el cliente elige a qué proveedores SOFEIN debe pedir cotización, SOFEIN lo revisa y pasa a la siguiente fase | 
+Pedir primera cotización a los proveedores | SOFEIN pide primera cotización | SOFEIN | Selector de proveedores | Al hacerlo SOFEIN ya queda validado | Que le llegue una notificación al proveedor de SOFEIN de que le está pidiendo cotización para un expediente
+El proveedor da una primera cotización |  | Proveedor | Selector de proveedores | SOFEIN revisa las cotizaciones y las hace públicas para el cliente | 
+Revisión de cotizaciones | El cliente revisa las cotizaciones y decide si quiere exigir alguna cuestión adicional (plazos/precios/documentación,…) o si decide directamente cerrar con algún proveedor | Cliente | Selector de proveedores | SOFEIN revisa estas acciones y vuelve a pedir actualización de las cotizaciones si es necesario | 
+Actualizaciones de las cotizaciones (si fuese necesario) |  | Proveedor | Selector de proveedores | SOFEIN las revisa y publica para el cliente | 
+Selección final de proveedor | EL cliente elige con qué proveedor trabajar y aquí debe quedar registrado qué requisitos quiere que cumpla el proveedor de los que pueda llegar a cumplir el proveedor | Cliente | Selector de proveedores | SOFEIN valida el pedido | Marcación/desmarcación de requisitos que debe cumplir el proveedor
+Formalización del acuerdo | La plataforma le pasa la hoja de pedido/contrato al cliente y al proveedor para que la firmen | SOFEIN | Selector de proveedor | Una vez quede firmado, SOFEIN lo valida y pasamos a lo siguiente | 
+Gestión del expediente | SOFEIN gestiona el pedido (probablemente fuera de la plataforma) y va actualizando el estado en la plataforma en función de lo que le dicen los proveedores. También la plataforma tiene que requerir documentación a los proveedores cuando sea necesaria | SOFEIN | Gestión del expediente |  | El proceso termina cuando se entrega el material al cliente en la obra
+Cambios/incidencias | Un cliente o proveedor le comunica por fuera o por dentro de la plataforma a SOFEIN un cambio o incidencia. SOFEIN registra la incidencia en la plataforma y luego SOFEIN busca una solución para conseguir el acuerdo entre cliente y proveedor. SOFEIN sube este acuerdo y pide la aprobación de cliente y proveedor en la plataforma para que quede registrado | SOFEIN |  | Tiene que ser aprobado por cliente y proveedor | 
+Pasaporte SOFEIN |  | SOFEIN | 
