@@ -39,7 +39,11 @@
     chevron: '<path d="m9 18 6-6-6-6"/>',
     arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>',
     award: '<circle cx="12" cy="8" r="5"/><path d="m8.5 12-1 9 4.5-2 4.5 2-1-9"/>',
-    chevronDown: '<path d="m6 9 6 6 6-6"/>'
+    chevronDown: '<path d="m6 9 6 6 6-6"/>',
+    x: '<path d="M18 6 6 18M6 6l12 12"/>',
+    table: '<path d="M12 3v18M3 9h18M3 15h18M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/>',
+    calendar: '<rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/>',
+    archive: '<rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/>'
   };
 
   const icon = (name, size = 18) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${I[name] || ""}</svg>`;
@@ -57,9 +61,9 @@
       nav: [
         { id: "overview", label: "Visión global", icon: "grid" },
         { id: "expedientes", label: "Expedientes", icon: "folder", count: 4 },
-        { id: "inbox", label: "Inbox", icon: "inbox", count: 2 },
         { id: "directorio", label: "Clientes y Proveedores", icon: "users" },
-        { id: "configuracion", label: "Configuración", icon: "cog" }
+        { id: "configuracion", label: "Configuración", icon: "cog" },
+        { id: "avisos", label: "Avisos", icon: "inbox", count: 2 }
       ]
     },
     cliente: {
@@ -72,8 +76,8 @@
       defaultNav: "expedientes",
       nav: [
         { id: "expedientes", label: "Mis expedientes", icon: "folder", count: 3 },
-        { id: "inbox", label: "Inbox", icon: "inbox", count: 1 },
-        { id: "perfil", label: "Perfil", icon: "profile" }
+        { id: "perfil", label: "Perfil", icon: "profile" },
+        { id: "avisos", label: "Avisos", icon: "inbox", count: 1 }
       ]
     },
     proveedor: {
@@ -87,8 +91,8 @@
       nav: [
         { id: "expedientes", label: "Mis expedientes", icon: "folder", count: 2 },
         { id: "cotizaciones", label: "Cotizaciones", icon: "file", count: 1 },
-        { id: "inbox", label: "Inbox", icon: "inbox", count: 1 },
-        { id: "perfil", label: "Perfil", icon: "profile" }
+        { id: "perfil", label: "Perfil", icon: "profile" },
+        { id: "avisos", label: "Avisos", icon: "inbox", count: 1 }
       ]
     }
   };
@@ -294,6 +298,30 @@
       roles: ["admin", "cliente", "proveedor"],
       accion: "Consultar Albarán",
       enlace: "#admin/expedientes/RFQ-2026-009"
+    },
+    {
+      id: "AV-05",
+      expId: "RFQ-2026-022",
+      categoria: "Formalización",
+      tagClass: "review",
+      titulo: "Póliza de suministro y hoja de pedido emitida",
+      descripcion: "SOFEIN ha emitido el documento de formalización para las 3.200 traviesas de madera creosotada.",
+      fecha: "Hoy, 08:30",
+      roles: ["admin", "cliente"],
+      accion: "Revisar Póliza",
+      enlace: "#admin/expedientes/RFQ-2026-022"
+    },
+    {
+      id: "AV-06",
+      expId: "RFQ-2026-014",
+      categoria: "Calidad / Ensayo",
+      tagClass: "complete",
+      titulo: "Ficha de lote y análisis de material aprobados",
+      descripcion: "SOFEIN ha acreditado la conformidad de la ficha técnica de lote 44 remitida por IberRail.",
+      fecha: "Ayer, 12:10",
+      roles: ["admin", "proveedor"],
+      accion: "Ver Ficha",
+      enlace: "#admin/expedientes/RFQ-2026-014"
     }
   ];
 
@@ -381,6 +409,14 @@
   let activeDossierPhase = 3;
   let activeDossierTab = "deliverables"; // deliverables | incidents | passport
 
+  // Nuevos Estados Interactivos
+  let overviewFilter = null; // "validados" | "review" | "pending" | "futuras" | "expedientes" | "incidencias" | "proveedores"
+  let expSearchQuery = "";
+  let avisosGroup = "none"; // "none" | "expediente" | "categoria" | "fecha"
+  let discardedNotices = new Set();
+  let showDiscardedAvisos = false;
+  let directorioViewMode = "table"; // "table" | "grid"
+
   function parseHash() {
     const raw = location.hash.replace(/^#\/?/, "");
     if (!raw) {
@@ -389,7 +425,9 @@
       activeParam = null;
       return;
     }
-    const [role, section, param] = raw.split("/");
+    const [role, rawSection, param] = raw.split("/");
+    let section = rawSection;
+    if (section === "inbox") section = "avisos"; // Alias retrocompatible
     if (PLAYERS[role]) {
       activeRole = role;
       activeSection = section || PLAYERS[role].defaultNav;
@@ -745,71 +783,353 @@
   }
 
   /* ============================================================
+     SECCIÓN REUTILIZABLE: AVISOS (CENTRALIZADO, ALINEADO Y AGRUPABLE)
+     ============================================================ */
+  function renderAvisosSection(role) {
+    const roleNotices = NOTICES.filter(n => n.roles.includes(role));
+    const activeNotices = roleNotices.filter(n => !discardedNotices.has(n.id));
+    const discardedList = roleNotices.filter(n => discardedNotices.has(n.id));
+
+    const renderNoticeRow = (n, isDiscarded = false) => `
+      <article class="admin-doc-row avisos-grid">
+        <span style="display:grid;place-items:center;width:34px;height:34px;border-radius:6px;background:var(--entity-panel-2)">
+          ${icon(n.tagClass === "warning" ? "alert" : n.tagClass === "review" ? "file" : "check", 16)}
+        </span>
+        <div>
+          <strong>${n.titulo}</strong>
+          <small style="color:var(--entity-muted)">${n.descripcion}</small>
+        </div>
+        <div>
+          <span class="dossier-chip">${n.expId}</span>
+        </div>
+        <div>
+          <span class="dossier-chip" style="font-size:0.68rem">${n.categoria}</span>
+        </div>
+        <div>
+          <time style="font-size:0.72rem;color:var(--entity-faint)">${n.fecha}</time>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:flex-end;gap:8px">
+          ${!isDiscarded ? `
+            <button class="admin-quiet-button" type="button" data-go="${n.enlace}">${n.accion}</button>
+            <button class="admin-quiet-button" type="button" data-dismiss-notice="${n.id}" title="Descartar aviso">${icon("x", 12)} Descartar</button>
+          ` : `
+            <button class="admin-quiet-button" type="button" data-restore-notice="${n.id}" style="color:var(--entity-accent)">${icon("check", 12)} Restaurar</button>
+          `}
+        </div>
+      </article>
+    `;
+
+    let bodyContent = "";
+    if (activeNotices.length === 0) {
+      bodyContent = `<div style="padding:40px;text-align:center;color:var(--entity-muted);background:var(--entity-panel);border-radius:8px;border:1px solid var(--entity-line)">No hay avisos pendientes en esta bandeja.</div>`;
+    } else if (avisosGroup === "none") {
+      bodyContent = activeNotices.map(n => renderNoticeRow(n)).join("");
+    } else if (avisosGroup === "expediente") {
+      const groups = {};
+      activeNotices.forEach(n => {
+        if (!groups[n.expId]) groups[n.expId] = [];
+        groups[n.expId].push(n);
+      });
+      bodyContent = Object.keys(groups).map(expId => {
+        const exp = getActiveExpediente(expId);
+        return `
+          <div class="avisos-group-header">
+            <span>${icon("folder", 14)} ${expId} · ${exp.producto}</span>
+            <small style="color:var(--entity-muted);font-weight:normal">${groups[expId].length} aviso(s)</small>
+          </div>
+          ${groups[expId].map(n => renderNoticeRow(n)).join("")}
+        `;
+      }).join("");
+    } else if (avisosGroup === "categoria") {
+      const groups = {};
+      activeNotices.forEach(n => {
+        if (!groups[n.categoria]) groups[n.categoria] = [];
+        groups[n.categoria].push(n);
+      });
+      bodyContent = Object.keys(groups).map(cat => `
+        <div class="avisos-group-header">
+          <span>${icon("file", 14)} Categoría: ${cat}</span>
+          <small style="color:var(--entity-muted);font-weight:normal">${groups[cat].length} aviso(s)</small>
+        </div>
+        ${groups[cat].map(n => renderNoticeRow(n)).join("")}
+      `).join("");
+    } else if (avisosGroup === "fecha") {
+      const groups = {};
+      activeNotices.forEach(n => {
+        const dateKey = n.fecha.includes("Hoy") ? "Hoy" : n.fecha.includes("Ayer") ? "Ayer" : "Anteriores";
+        if (!groups[dateKey]) groups[dateKey] = [];
+        groups[dateKey].push(n);
+      });
+      bodyContent = Object.keys(groups).map(dateKey => `
+        <div class="avisos-group-header">
+          <span>${icon("calendar", 14)} ${dateKey}</span>
+          <small style="color:var(--entity-muted);font-weight:normal">${groups[dateKey].length} aviso(s)</small>
+        </div>
+        ${groups[dateKey].map(n => renderNoticeRow(n)).join("")}
+      `).join("");
+    }
+
+    return `
+      <div class="admin-view-head">
+        <div>
+          <h1>Avisos</h1>
+          <p>Registro unificado de avisos, requerimientos de documentación e incidencias de los expedientes.</p>
+        </div>
+      </div>
+
+      <div class="avisos-controls">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <span style="font-size:0.75rem;color:var(--entity-muted);font-weight:600">Agrupar por:</span>
+          <div class="avisos-group-buttons">
+            <button class="avisos-group-btn ${avisosGroup === 'none' ? 'is-active' : ''}" type="button" data-group-avisos="none">Sin agrupar</button>
+            <button class="avisos-group-btn ${avisosGroup === 'expediente' ? 'is-active' : ''}" type="button" data-group-avisos="expediente">Expediente</button>
+            <button class="avisos-group-btn ${avisosGroup === 'categoria' ? 'is-active' : ''}" type="button" data-group-avisos="categoria">Categoría</button>
+            <button class="avisos-group-btn ${avisosGroup === 'fecha' ? 'is-active' : ''}" type="button" data-group-avisos="fecha">Fecha</button>
+          </div>
+        </div>
+        <span style="font-size:0.74rem;color:var(--entity-muted)">${activeNotices.length} aviso(s) activo(s)</span>
+      </div>
+
+      <section class="admin-document-list" style="border:1px solid var(--entity-line);border-radius:10px;overflow:hidden">
+        <div class="admin-doc-table-head avisos-grid">
+          <span>Tipo</span>
+          <span>Aviso / Actividad</span>
+          <span>Expediente</span>
+          <span>Categoría</span>
+          <span>Fecha</span>
+          <span style="text-align:right">Acciones</span>
+        </div>
+        ${bodyContent}
+      </section>
+
+      <details class="admin-discarded-details" ${showDiscardedAvisos ? "open" : ""}>
+        <summary id="toggleDiscardedSummary">
+          <span>${icon("archive", 14)} Ver descartados (${discardedList.length})</span>
+          <span style="font-size:0.72rem;color:var(--entity-faint)">${showDiscardedAvisos ? "Ocultar descartados" : "Desplegar para restaurar"}</span>
+        </summary>
+        <div class="admin-discarded-list">
+          ${discardedList.length ? discardedList.map(n => renderNoticeRow(n, true)).join("") : `
+            <div style="padding:24px;text-align:center;font-size:0.8rem;color:var(--entity-muted)">No hay avisos descartados en esta sesión.</div>
+          `}
+        </div>
+      </details>
+    `;
+  }
+
+  /* ============================================================
      VISTAS: SOFEIN ADMIN
      ============================================================ */
   function renderAdminView(section, param) {
     if (section === "overview") {
-      return `
-        <div class="admin-view-head">
-          <div>
-            <h1>Visión global</h1>
-            <p>Control centralizado de expedientes de suministro ferroviario, documentación e incidencias activas.</p>
-          </div>
-          <button class="admin-primary-button" type="button" data-go="#admin/expedientes">
-            Ver expedientes ${icon("arrow", 14)}
-          </button>
-        </div>
+      const isFiltered = !!overviewFilter;
+      const filterLabels = {
+        validados: "Entregables técnicos validados y conformes (18)",
+        review: "Entregables en revisión por SOFEIN (5)",
+        pending: "Entregables pendientes de carga por taller o cliente (8)",
+        futuras: "Ranuras de fases futuras (12)",
+        expedientes: "Expedientes ferroviarios activos (4)",
+        incidencias: "Incidencias y mediaciones en curso (1)",
+        proveedores: "Talleres y proveedores homologados (6)"
+      };
 
-        <section class="admin-top-insight">
-          <div class="admin-metrics">
-            <div class="admin-metric">
-              <span>Expedientes en curso</span>
-              <strong>4</strong>
-            </div>
-            <div class="admin-metric warning">
-              <span>Incidencias en mediación</span>
-              <strong>1</strong>
-            </div>
-            <div class="admin-metric">
-              <span>Entregables validados</span>
-              <strong>18</strong>
-            </div>
-            <div class="admin-metric">
-              <span>Proveedores homologados</span>
-              <strong>6</strong>
+      let filterResultsHTML = "";
+      if (overviewFilter === "review") {
+        filterResultsHTML = `
+          <div class="admin-section-head">
+            <div>
+              <h2>Documentación en Revisión por SOFEIN (5)</h2>
+              <p>Entregables subidos que requieren verificación técnica y firma de conformidad.</p>
             </div>
           </div>
-          <div class="admin-histogram">
-            <div class="admin-histogram-head">
-              <h2>Estado de ranuras documentales</h2>
-              <span>18 validados · 5 en revisión · 8 pendientes</span>
+          <div class="admin-alert-list">
+            <div class="admin-alert-row is-urgent">
+              <span class="admin-deadline">En revisión</span>
+              <strong>Certificado de ensayos mecánicos EN 13230</strong>
+              <span>RFQ-2026-014</span>
+              <span>IberRail Components</span>
+              <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-014">Validar</button>
             </div>
-            <div class="admin-histogram-bars">
-              <article>
-                <strong>18</strong>
-                <div><i style="--bar-height:75%"></i></div>
-                <span>Validados</span>
-              </article>
-              <article class="review">
-                <strong>5</strong>
-                <div><i style="--bar-height:30%"></i></div>
-                <span>En revisión</span>
-              </article>
-              <article class="pending">
-                <strong>8</strong>
-                <div><i style="--bar-height:45%"></i></div>
-                <span>Pendientes</span>
-              </article>
-              <article class="not-required">
-                <strong>12</strong>
-                <div><i style="--bar-height:60%"></i></div>
-                <span>Fases futuras</span>
-              </article>
+            <div class="admin-alert-row is-urgent">
+              <span class="admin-deadline">En revisión</span>
+              <strong>Oferta económica vinculante Norte Vía (54E1)</strong>
+              <span>RFQ-2026-011</span>
+              <span>Norte Vía Industrial</span>
+              <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-011">Validar</button>
+            </div>
+            <div class="admin-alert-row is-urgent">
+              <span class="admin-deadline">En revisión</span>
+              <strong>Acta de descarga y pesaje a pie de vía</strong>
+              <span>RFQ-2026-009</span>
+              <span>FGC Terrassa - Sabadell</span>
+              <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-009">Validar</button>
+            </div>
+            <div class="admin-alert-row is-urgent">
+              <span class="admin-deadline">En revisión</span>
+              <strong>Póliza de suministro y hoja de pedido formalizada</strong>
+              <span>RFQ-2026-022</span>
+              <span>Madera Vía Ibérica</span>
+              <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-022">Validar</button>
+            </div>
+            <div class="admin-alert-row is-urgent">
+              <span class="admin-deadline">En revisión</span>
+              <strong>Conformidad técnica de lote de traviesas</strong>
+              <span>RFQ-2026-014</span>
+              <span>Infraestructuras del Norte</span>
+              <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-014">Validar</button>
             </div>
           </div>
-        </section>
-
-        <section class="admin-alerts">
+        `;
+      } else if (overviewFilter === "pending") {
+        filterResultsHTML = `
+          <div class="admin-section-head">
+            <div>
+              <h2>Entregables Pendientes de Entrega (8)</h2>
+              <p>Ranuras documentales de fases activas con entrega requerida.</p>
+            </div>
+          </div>
+          <div class="admin-alert-list">
+            <div class="admin-alert-row">
+              <span class="admin-deadline" style="color:var(--entity-warning)">Pendiente taller</span>
+              <strong>Certificado de lote homologado (Fase 4)</strong>
+              <span>RFQ-2026-014</span>
+              <span>IberRail Components</span>
+              <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-014">Requerir</button>
+            </div>
+            <div class="admin-alert-row">
+              <span class="admin-deadline" style="color:var(--entity-warning)">Pendiente taller</span>
+              <strong>Plan logístico y transporte ferroviario especial</strong>
+              <span>RFQ-2026-014</span>
+              <span>IberRail Components</span>
+              <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-014">Requerir</button>
+            </div>
+            <div class="admin-alert-row">
+              <span class="admin-deadline" style="color:var(--entity-warning)">Pendiente cliente</span>
+              <strong>Selección de proveedor para cotización vinculante</strong>
+              <span>RFQ-2026-011</span>
+              <span>Metro de Bilbao</span>
+              <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-011">Avisar</button>
+            </div>
+          </div>
+        `;
+      } else if (overviewFilter === "validados") {
+        filterResultsHTML = `
+          <div class="admin-section-head">
+            <div>
+              <h2>Documentos Técnicos Validados y Conformes (18)</h2>
+              <p>Pliegos, planos y certificados con visto bueno y firma de trazabilidad SOFEIN.</p>
+            </div>
+          </div>
+          <div class="admin-alert-list">
+            <div class="admin-alert-row">
+              <span class="admin-deadline" style="color:var(--entity-accent)">✓ Conforme</span>
+              <strong>Especificación técnica y trazabilidad Adif 03.360.501</strong>
+              <span>RFQ-2026-011</span>
+              <span>SOFEIN Verificado</span>
+              <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-011">Ver</button>
+            </div>
+            <div class="admin-alert-row">
+              <span class="admin-deadline" style="color:var(--entity-accent)">✓ Conforme</span>
+              <strong>Ensayo dinámico y fatiga EN 13481 (Sujeciones SKL-14)</strong>
+              <span>RFQ-2026-009</span>
+              <span>Laboratorio Homologado</span>
+              <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-009">Ver</button>
+            </div>
+            <div class="admin-alert-row">
+              <span class="admin-deadline" style="color:var(--entity-accent)">✓ Conforme</span>
+              <strong>Ficha técnica de lote y análisis de material (PR-22)</strong>
+              <span>RFQ-2026-014</span>
+              <span>IberRail Components</span>
+              <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-014">Ver</button>
+            </div>
+          </div>
+        `;
+      } else if (overviewFilter === "futuras") {
+        filterResultsHTML = `
+          <div class="admin-section-head">
+            <div>
+              <h2>Ranuras de Fases Futuras (12)</h2>
+              <p>Requisitos de recepción en obra, liquidación y emisión de Pasaporte Digital SOFEIN.</p>
+            </div>
+          </div>
+          <div class="admin-alert-list">
+            <div class="admin-alert-row">
+              <span class="admin-deadline">Fase 6: Recepción</span>
+              <strong>Acta de Descarga a Pie de Vía (Medina del Campo)</strong>
+              <span>RFQ-2026-022</span>
+              <span>Programada</span>
+              <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-022">Ver</button>
+            </div>
+            <div class="admin-alert-row">
+              <span class="admin-deadline">Fase 7: Cierre</span>
+              <strong>Pasaporte Digital SOFEIN (Factoría Volkswagen)</strong>
+              <span>RFQ-2026-014</span>
+              <span>Generación final</span>
+              <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-014">Ver</button>
+            </div>
+          </div>
+        `;
+      } else if (overviewFilter === "expedientes") {
+        filterResultsHTML = `
+          <div class="admin-section-head">
+            <div>
+              <h2>Expedientes Ferroviarios Activos (4)</h2>
+              <p>Lotes de superestructura y componentes bajo supervisión SOFEIN.</p>
+            </div>
+            <button class="admin-quiet-button" type="button" data-go="#admin/expedientes">Ver todos en bandeja ${icon("arrow", 14)}</button>
+          </div>
+          <div class="admin-alert-list">
+            ${EXPEDIENTES.map(e => `
+              <div class="admin-alert-row">
+                <span class="admin-deadline" style="color:var(--entity-accent)">${e.id}</span>
+                <strong>${e.producto}</strong>
+                <span>${e.cliente}</span>
+                <span>${e.plazoRealEstimado}</span>
+                <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/${e.id}">Abrir</button>
+              </div>
+            `).join("")}
+          </div>
+        `;
+      } else if (overviewFilter === "incidencias") {
+        filterResultsHTML = `
+          <div class="admin-section-head">
+            <div>
+              <h2>Incidencias en Mediación Activa (1)</h2>
+              <p>Alteraciones de fabricación o plazos sometidas al procedimiento de mediación SOFEIN (Apuntes 06).</p>
+            </div>
+          </div>
+          <div class="admin-alert-list">
+            <div class="admin-alert-row is-critical">
+              <span class="admin-deadline">Mediación</span>
+              <strong>Propuesta de mediación (curado Lote B por ola de calor)</strong>
+              <span>RFQ-2026-014</span>
+              <span>Pendiente de firma del constructor</span>
+              <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-014">Gestionar Mediación</button>
+            </div>
+          </div>
+        `;
+      } else if (overviewFilter === "proveedores") {
+        filterResultsHTML = `
+          <div class="admin-section-head">
+            <div>
+              <h2>Proveedores y Talleres Homologados</h2>
+              <p>Talleres acreditados con índice de fiabilidad de entrega superior al 94%.</p>
+            </div>
+            <button class="admin-quiet-button" type="button" data-go="#admin/directorio">Ir al directorio ${icon("arrow", 14)}</button>
+          </div>
+          <div class="admin-alert-list">
+            ${DIRECTORIO_PROVEEDORES.map(p => `
+              <div class="admin-alert-row">
+                <span class="admin-deadline" style="color:var(--entity-accent)">${p.id}</span>
+                <strong>${p.nombre}</strong>
+                <span>${p.sede}</span>
+                <span>Score: ${p.score}</span>
+                <button class="admin-quiet-button" type="button" data-go="#admin/directorio">Ficha</button>
+              </div>
+            `).join("")}
+          </div>
+        `;
+      } else {
+        filterResultsHTML = `
           <div class="admin-section-head">
             <div>
               <h2>Alertas operativas prioritarias</h2>
@@ -840,13 +1160,99 @@
               <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-011">Ver ofertas</button>
             </div>
           </div>
+        `;
+      }
+
+      return `
+        <div class="admin-view-head">
+          <div>
+            <h1>Visión global</h1>
+            <p>Control centralizado de expedientes de suministro ferroviario, documentación e incidencias activas.</p>
+          </div>
+          <button class="admin-primary-button" type="button" data-go="#admin/expedientes">
+            Ver expedientes ${icon("arrow", 14)}
+          </button>
+        </div>
+
+        <section class="admin-top-insight">
+          <div class="admin-metrics">
+            <div class="admin-metric ${overviewFilter === 'expedientes' ? 'is-active-filter' : ''}" data-overview-filter="expedientes">
+              <span>Expedientes en curso</span>
+              <strong>4</strong>
+            </div>
+            <div class="admin-metric warning ${overviewFilter === 'incidencias' ? 'is-active-filter' : ''}" data-overview-filter="incidencias">
+              <span>Incidencias en mediación</span>
+              <strong>1</strong>
+            </div>
+            <div class="admin-metric ${overviewFilter === 'validados' ? 'is-active-filter' : ''}" data-overview-filter="validados">
+              <span>Entregables validados</span>
+              <strong>18</strong>
+            </div>
+            <div class="admin-metric ${overviewFilter === 'proveedores' ? 'is-active-filter' : ''}" data-overview-filter="proveedores">
+              <span>Proveedores homologados</span>
+              <strong>6</strong>
+            </div>
+          </div>
+          <div class="admin-histogram">
+            <div class="admin-histogram-head">
+              <h2>Estado de ranuras documentales</h2>
+              <span>Haz clic en una barra para filtrar</span>
+            </div>
+            <div class="admin-histogram-bars">
+              <article class="${overviewFilter === 'validados' ? 'is-active-filter' : ''}" data-overview-filter="validados" title="Filtrar por Validados">
+                <strong>18</strong>
+                <div><i style="--bar-height:75%"></i></div>
+                <span>Validados</span>
+              </article>
+              <article class="review ${overviewFilter === 'review' ? 'is-active-filter' : ''}" data-overview-filter="review" title="Filtrar por En revisión">
+                <strong>5</strong>
+                <div><i style="--bar-height:30%"></i></div>
+                <span>En revisión</span>
+              </article>
+              <article class="pending ${overviewFilter === 'pending' ? 'is-active-filter' : ''}" data-overview-filter="pending" title="Filtrar por Pendientes">
+                <strong>8</strong>
+                <div><i style="--bar-height:45%"></i></div>
+                <span>Pendientes</span>
+              </article>
+              <article class="not-required ${overviewFilter === 'futuras' ? 'is-active-filter' : ''}" data-overview-filter="futuras" title="Filtrar por Fases futuras">
+                <strong>12</strong>
+                <div><i style="--bar-height:60%"></i></div>
+                <span>Fases futuras</span>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        ${isFiltered ? `
+          <div class="overview-filter-bar">
+            <span>Filtrando vista por: <b>${filterLabels[overviewFilter]}</b></span>
+            <button class="admin-quiet-button" type="button" data-clear-overview-filter style="color:var(--entity-accent)">
+              ${icon("x", 12)} Restablecer filtro (Ver alertas)
+            </button>
+          </div>
+        ` : ""}
+
+        <section class="admin-alerts">
+          ${filterResultsHTML}
         </section>
       `;
     }
 
     if (section === "expedientes") {
       if (param) return renderDossierBuilder(param);
-      const cards = EXPEDIENTES.map(exp => `
+
+      const q = expSearchQuery.trim().toLowerCase();
+      const filteredExp = EXPEDIENTES.filter(exp => {
+        if (!q) return true;
+        return exp.id.toLowerCase().includes(q) ||
+               exp.producto.toLowerCase().includes(q) ||
+               exp.cliente.toLowerCase().includes(q) ||
+               exp.proveedor.toLowerCase().includes(q) ||
+               exp.destinatarioFinal.toLowerCase().includes(q) ||
+               (PHASES[exp.faseActual] && PHASES[exp.faseActual].name.toLowerCase().includes(q));
+      });
+
+      const cards = filteredExp.length ? filteredExp.map(exp => `
         <article class="admin-exp-card" data-go="#admin/expedientes/${exp.id}" style="cursor:pointer">
           <div class="admin-exp-card-top">
             <span class="admin-exp-id">${exp.id}</span>
@@ -869,7 +1275,7 @@
             <button class="admin-quiet-button" type="button">Abrir expediente ${icon("arrow", 14)}</button>
           </div>
         </article>
-      `).join("");
+      `).join("") : `<div style="grid-column:1/-1;padding:48px 24px;text-align:center;color:var(--entity-muted);background:var(--entity-panel);border-radius:10px;border:1px solid var(--entity-line)">No se han encontrado expedientes que coincidan con "<b>${expSearchQuery}</b>".</div>`;
 
       return `
         <div class="admin-view-head">
@@ -878,109 +1284,173 @@
             <p>Bandeja operativa central. Supervisa el avance por fases, aprueba entregables técnicos y gestiona el suministro.</p>
           </div>
           <button class="admin-primary-button" type="button" data-open-new-exp-modal>
-            ${icon("plus", 16)} Crear expediente estanco
+            ${icon("plus", 16)} Crear Expediente
           </button>
         </div>
+
+        <div class="exp-search-wrapper">
+          ${icon("search", 16)}
+          <input type="search" class="exp-search-input" id="expSearchInput" placeholder="Filtrar en directo por código, producto, cliente, taller o tramo..." value="${expSearchQuery}">
+          ${expSearchQuery ? `<button class="admin-quiet-button" type="button" id="clearExpSearchBtn" style="padding:2px 6px">${icon("x", 14)}</button>` : ""}
+          <span class="exp-search-count">${filteredExp.length} de ${EXPEDIENTES.length}</span>
+        </div>
+
         <div class="admin-exp-list">
           ${cards}
         </div>
       `;
     }
 
-    if (section === "inbox") {
-      const noticeRows = NOTICES.map(n => `
-        <article class="admin-doc-row" style="grid-template-columns:36px minmax(180px,1.4fr) 140px 110px auto;gap:16px">
-          <span style="display:grid;place-items:center;width:34px;height:34px;border-radius:6px;background:var(--entity-panel-2)">
-            ${icon(n.tagClass === "warning" ? "alert" : n.tagClass === "review" ? "file" : "check", 16)}
-          </span>
-          <div>
-            <strong>${n.titulo}</strong>
-            <small style="color:var(--entity-muted)">${n.descripcion}</small>
-          </div>
-          <div>
-            <span class="dossier-chip">${n.expId}</span>
-          </div>
-          <div>
-            <span class="dossier-chip" style="font-size:0.68rem">${n.categoria}</span>
-          </div>
-          <div style="display:flex;align-items:center;gap:10px">
-            <time style="font-size:0.72rem;color:var(--entity-faint)">${n.fecha}</time>
-            <button class="admin-quiet-button" type="button" data-go="${n.enlace}">${n.accion}</button>
-          </div>
-        </article>
-      `).join("");
-
-      return `
-        <div class="admin-view-head">
-          <div>
-            <h1>Inbox central</h1>
-            <p>Registro unificado de avisos, requerimientos de documentación e incidencias de todos los expedientes.</p>
-          </div>
-        </div>
-        <section class="admin-document-list">
-          <div class="admin-doc-table-head" style="grid-template-columns:36px minmax(180px,1.4fr) 140px 110px auto;gap:16px">
-            <span>Aviso / Actividad</span>
-            <span>Expediente</span>
-            <span>Categoría</span>
-            <span style="text-align:right">Fecha & Acción</span>
-          </div>
-          ${noticeRows}
-        </section>
-      `;
+    if (section === "avisos" || section === "inbox") {
+      return renderAvisosSection("admin");
     }
 
     if (section === "directorio") {
-      const prvCards = DIRECTORIO_PROVEEDORES.map(p => `
-        <article class="admin-client-card">
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <span class="admin-client-initials">${p.nombre.slice(0, 2).toUpperCase()}</span>
-            <span class="admin-verified">${icon("shield", 14)} Homologado</span>
-          </div>
-          <h2 style="margin:16px 0 4px">${p.nombre}</h2>
-          <p style="margin:0 0 14px;color:var(--entity-muted);font-size:0.75rem">${p.sede} · CIF: ${p.cif}</p>
-          <dl>
-            <div>
-              <dt>Suministros</dt>
-              <dd style="font-size:0.72rem;text-align:right;max-width:140px;color:var(--entity-muted)">${p.materiales}</dd>
-            </div>
-            <div>
-              <dt>Lead Time medio</dt>
-              <dd>${p.leadTimeMedio}</dd>
-            </div>
-            <div>
-              <dt>Fiabilidad</dt>
-              <dd style="color:var(--entity-accent)">${p.score}</dd>
-            </div>
-          </dl>
-          <footer>
-            <small>${p.contacto}</small>
-          </footer>
-        </article>
-      `).join("");
+      let contentHTML = "";
 
-      const cliCards = DIRECTORIO_CLIENTES.map(c => `
-        <article class="admin-client-card">
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <span class="admin-client-initials" style="background:#1d426b">${c.nombre.slice(0, 2).toUpperCase()}</span>
-            <span class="admin-verified" style="color:#60a5fa">${icon("shield", 14)} Contratista Activo</span>
+      if (directorioViewMode === "table") {
+        contentHTML = `
+          <div style="margin-bottom:28px">
+            <h3 style="margin:0 0 12px;font-size:0.95rem;color:var(--entity-text)">Proveedores homologados</h3>
+            <div class="b2b-dir-table-wrap">
+              <table class="b2b-dir-table">
+                <thead>
+                  <tr>
+                    <th>Proveedor / Razón Social</th>
+                    <th>CIF & Sede</th>
+                    <th>Suministros Acreditados</th>
+                    <th>Lead Time</th>
+                    <th>Fiabilidad</th>
+                    <th>Contacto</th>
+                    <th style="text-align:right">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${DIRECTORIO_PROVEEDORES.map(p => `
+                    <tr>
+                      <td>
+                        <div style="display:flex;align-items:center;gap:10px">
+                          <span class="admin-client-initials" style="width:32px;height:32px;font-size:0.8rem">${p.nombre.slice(0, 2).toUpperCase()}</span>
+                          <strong>${p.nombre}</strong>
+                        </div>
+                      </td>
+                      <td><small style="color:var(--entity-muted)">${p.cif} · ${p.sede}</small></td>
+                      <td><span style="font-size:0.75rem;color:var(--entity-muted)">${p.materiales}</span></td>
+                      <td><strong>${p.leadTimeMedio}</strong></td>
+                      <td><span style="color:var(--entity-accent);font-weight:600">${p.score}</span></td>
+                      <td><small style="color:var(--entity-faint)">${p.contacto}</small></td>
+                      <td style="text-align:right">
+                        <button class="admin-quiet-button" type="button" data-toast="Ficha técnica de ${p.nombre} abierta">Ver ficha</button>
+                      </td>
+                    </tr>
+                  `).join("")}
+                </tbody>
+              </table>
+            </div>
           </div>
-          <h2 style="margin:16px 0 4px">${c.nombre}</h2>
-          <p style="margin:0 0 14px;color:var(--entity-muted);font-size:0.75rem">${c.sede} · CIF: ${c.cif}</p>
-          <dl>
-            <div>
-              <dt>Actividad</dt>
-              <dd style="font-size:0.72rem;text-align:right;max-width:140px;color:var(--entity-muted)">${c.actividad}</dd>
+
+          <div>
+            <h3 style="margin:0 0 12px;font-size:0.95rem;color:var(--entity-text)">Clientes (Constructores de vía)</h3>
+            <div class="b2b-dir-table-wrap">
+              <table class="b2b-dir-table">
+                <thead>
+                  <tr>
+                    <th>Cliente / Contratista</th>
+                    <th>CIF & Sede</th>
+                    <th>Actividad / Especialidad</th>
+                    <th>Expedientes Activos</th>
+                    <th>Contacto</th>
+                    <th style="text-align:right">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${DIRECTORIO_CLIENTES.map(c => `
+                    <tr>
+                      <td>
+                        <div style="display:flex;align-items:center;gap:10px">
+                          <span class="admin-client-initials" style="width:32px;height:32px;font-size:0.8rem;background:#1d426b">${c.nombre.slice(0, 2).toUpperCase()}</span>
+                          <strong>${c.nombre}</strong>
+                        </div>
+                      </td>
+                      <td><small style="color:var(--entity-muted)">${c.cif} · ${c.sede}</small></td>
+                      <td><span style="font-size:0.75rem;color:var(--entity-muted)">${c.actividad}</span></td>
+                      <td><span class="dossier-chip">${c.expedientesActivos} activos</span></td>
+                      <td><small style="color:var(--entity-faint)">${c.contacto}</small></td>
+                      <td style="text-align:right">
+                        <button class="admin-quiet-button" type="button" data-toast="Detalle de ${c.nombre} abierto">Ver actividad</button>
+                      </td>
+                    </tr>
+                  `).join("")}
+                </tbody>
+              </table>
             </div>
-            <div>
-              <dt>Expedientes en curso</dt>
-              <dd>${c.expedientesActivos} activos</dd>
+          </div>
+        `;
+      } else {
+        const prvCards = DIRECTORIO_PROVEEDORES.map(p => `
+          <article class="admin-client-card">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <span class="admin-client-initials">${p.nombre.slice(0, 2).toUpperCase()}</span>
+              <span class="admin-verified">${icon("shield", 14)} Homologado</span>
             </div>
-          </dl>
-          <footer>
-            <small>${c.contacto}</small>
-          </footer>
-        </article>
-      `).join("");
+            <h2 style="margin:16px 0 4px">${p.nombre}</h2>
+            <p style="margin:0 0 14px;color:var(--entity-muted);font-size:0.75rem">${p.sede} · CIF: ${p.cif}</p>
+            <dl>
+              <div>
+                <dt>Suministros</dt>
+                <dd style="font-size:0.72rem;text-align:right;max-width:140px;color:var(--entity-muted)">${p.materiales}</dd>
+              </div>
+              <div>
+                <dt>Lead Time medio</dt>
+                <dd>${p.leadTimeMedio}</dd>
+              </div>
+              <div>
+                <dt>Fiabilidad</dt>
+                <dd style="color:var(--entity-accent)">${p.score}</dd>
+              </div>
+            </dl>
+            <footer>
+              <small>${p.contacto}</small>
+            </footer>
+          </article>
+        `).join("");
+
+        const cliCards = DIRECTORIO_CLIENTES.map(c => `
+          <article class="admin-client-card">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <span class="admin-client-initials" style="background:#1d426b">${c.nombre.slice(0, 2).toUpperCase()}</span>
+              <span class="admin-verified" style="color:#60a5fa">${icon("shield", 14)} Contratista Activo</span>
+            </div>
+            <h2 style="margin:16px 0 4px">${c.nombre}</h2>
+            <p style="margin:0 0 14px;color:var(--entity-muted);font-size:0.75rem">${c.sede} · CIF: ${c.cif}</p>
+            <dl>
+              <div>
+                <dt>Actividad</dt>
+                <dd style="font-size:0.72rem;text-align:right;max-width:140px;color:var(--entity-muted)">${c.actividad}</dd>
+              </div>
+              <div>
+                <dt>Expedientes en curso</dt>
+                <dd>${c.expedientesActivos} activos</dd>
+              </div>
+            </dl>
+            <footer>
+              <small>${c.contacto}</small>
+            </footer>
+          </article>
+        `).join("");
+
+        contentHTML = `
+          <div style="margin-bottom:28px">
+            <h3 style="margin:0 0 14px;font-size:0.95rem;color:var(--entity-text)">Proveedores homologados</h3>
+            <div class="admin-client-grid">${prvCards}</div>
+          </div>
+
+          <div>
+            <h3 style="margin:0 0 14px;font-size:0.95rem;color:var(--entity-text)">Clientes (Constructores de vía)</h3>
+            <div class="admin-client-grid" style="grid-template-columns:repeat(2,1fr)">${cliCards}</div>
+          </div>
+        `;
+      }
 
       return `
         <div class="admin-view-head">
@@ -988,17 +1458,16 @@
             <h1>Clientes y proveedores</h1>
             <p>Directorio homologado de contratistas de vía y talleres industriales con trazabilidad acreditada.</p>
           </div>
+          <div class="view-mode-toggle">
+            <button class="view-mode-btn ${directorioViewMode === 'table' ? 'is-active' : ''}" type="button" data-dir-mode="table">
+              ${icon("table", 14)} Tabla
+            </button>
+            <button class="view-mode-btn ${directorioViewMode === 'grid' ? 'is-active' : ''}" type="button" data-dir-mode="grid">
+              ${icon("grid", 14)} Mosaico
+            </button>
+          </div>
         </div>
-
-        <div style="margin-bottom:28px">
-          <h3 style="margin:0 0 14px;font-size:0.95rem;color:var(--entity-text)">Proveedores homologados</h3>
-          <div class="admin-client-grid">${prvCards}</div>
-        </div>
-
-        <div>
-          <h3 style="margin:0 0 14px;font-size:0.95rem;color:var(--entity-text)">Clientes (Constructores de vía)</h3>
-          <div class="admin-client-grid" style="grid-template-columns:repeat(2,1fr)">${cliCards}</div>
-        </div>
+        ${contentHTML}
       `;
     }
 
@@ -1060,7 +1529,19 @@
   function renderClienteView(section, param) {
     if (section === "expedientes") {
       if (param) return renderDossierBuilder(param);
-      const cards = EXPEDIENTES.map(exp => `
+
+      const clientAll = EXPEDIENTES.filter(e => e.cliente.includes("Infraestructuras") || e.cliente.includes("Adif") || e.cliente.includes("Metro"));
+      const q = expSearchQuery.trim().toLowerCase();
+      const filteredExp = clientAll.filter(exp => {
+        if (!q) return true;
+        return exp.id.toLowerCase().includes(q) ||
+               exp.producto.toLowerCase().includes(q) ||
+               exp.destinatarioFinal.toLowerCase().includes(q) ||
+               exp.proveedor.toLowerCase().includes(q) ||
+               (PHASES[exp.faseActual] && PHASES[exp.faseActual].name.toLowerCase().includes(q));
+      });
+
+      const cards = filteredExp.length ? filteredExp.map(exp => `
         <article class="admin-exp-card" data-go="#cliente/expedientes/${exp.id}" style="cursor:pointer">
           <div class="admin-exp-card-top">
             <span class="admin-exp-id">${exp.id}</span>
@@ -1083,7 +1564,7 @@
             <button class="admin-quiet-button" type="button">Abrir expediente ${icon("arrow", 14)}</button>
           </div>
         </article>
-      `).join("");
+      `).join("") : `<div style="grid-column:1/-1;padding:48px 24px;text-align:center;color:var(--entity-muted);background:var(--entity-panel);border-radius:10px;border:1px solid var(--entity-line)">No se han encontrado expedientes que coincidan con "<b>${expSearchQuery}</b>".</div>`;
 
       return `
         <div class="admin-view-head">
@@ -1110,6 +1591,13 @@
             <span class="scope-dot info"></span>
             <span><b>1</b> Suministro en transporte a pie de vía</span>
           </div>
+        </div>
+
+        <div class="exp-search-wrapper">
+          ${icon("search", 16)}
+          <input type="search" class="exp-search-input" id="expSearchInput" placeholder="Filtrar en directo por código, producto, tramo o taller..." value="${expSearchQuery}">
+          ${expSearchQuery ? `<button class="admin-quiet-button" type="button" id="clearExpSearchBtn" style="padding:2px 6px">${icon("x", 14)}</button>` : ""}
+          <span class="exp-search-count">${filteredExp.length} de ${clientAll.length}</span>
         </div>
 
         <div class="admin-exp-list">
@@ -1162,47 +1650,8 @@
       `;
     }
 
-    if (section === "inbox") {
-      const clientNotices = NOTICES.filter(n => n.roles.includes("cliente"));
-      const noticeRows = clientNotices.map(n => `
-        <article class="admin-doc-row" style="grid-template-columns:36px minmax(180px,1.4fr) 140px 110px auto;gap:16px">
-          <span style="display:grid;place-items:center;width:34px;height:34px;border-radius:6px;background:var(--entity-panel-2)">
-            ${icon(n.tagClass === "warning" ? "alert" : n.tagClass === "review" ? "file" : "check", 16)}
-          </span>
-          <div>
-            <strong>${n.titulo}</strong>
-            <small style="color:var(--entity-muted)">${n.descripcion}</small>
-          </div>
-          <div>
-            <span class="dossier-chip">${n.expId}</span>
-          </div>
-          <div>
-            <span class="dossier-chip" style="font-size:0.68rem">${n.categoria}</span>
-          </div>
-          <div style="display:flex;align-items:center;gap:10px">
-            <time style="font-size:0.72rem;color:var(--entity-faint)">${n.fecha}</time>
-            <button class="admin-quiet-button" type="button" data-go="${n.enlace}">${n.accion}</button>
-          </div>
-        </article>
-      `).join("");
-
-      return `
-        <div class="admin-view-head">
-          <div>
-            <h1>Inbox</h1>
-            <p>Avisos, requerimientos de documentación y acuerdos de mediación para tus obras.</p>
-          </div>
-        </div>
-        <section class="admin-document-list">
-          <div class="admin-doc-table-head" style="grid-template-columns:36px minmax(180px,1.4fr) 140px 110px auto;gap:16px">
-            <span>Aviso</span>
-            <span>Expediente</span>
-            <span>Categoría</span>
-            <span style="text-align:right">Fecha & Acción</span>
-          </div>
-          ${noticeRows}
-        </section>
-      `;
+    if (section === "avisos" || section === "inbox") {
+      return renderAvisosSection("cliente");
     }
 
     if (section === "perfil") {
@@ -1257,6 +1706,43 @@
   function renderProveedorView(section, param) {
     if (section === "expedientes") {
       if (param) return renderDossierBuilder(param);
+
+      const prvAll = EXPEDIENTES.filter(e => e.proveedor.includes("IberRail"));
+      const q = expSearchQuery.trim().toLowerCase();
+      const filteredExp = prvAll.filter(exp => {
+        if (!q) return true;
+        return exp.id.toLowerCase().includes(q) ||
+               exp.producto.toLowerCase().includes(q) ||
+               exp.cliente.toLowerCase().includes(q) ||
+               exp.destinatarioFinal.toLowerCase().includes(q) ||
+               (PHASES[exp.faseActual] && PHASES[exp.faseActual].name.toLowerCase().includes(q));
+      });
+
+      const cards = filteredExp.length ? filteredExp.map(exp => `
+        <article class="admin-exp-card" data-go="#proveedor/expedientes/${exp.id}" style="cursor:pointer">
+          <div class="admin-exp-card-top">
+            <span class="admin-exp-id">${exp.id}</span>
+            <span class="admin-phase-mini">${icon("folder", 12)} Fase ${exp.faseActual + 1}: ${PHASES[exp.faseActual].name}</span>
+          </div>
+          <h3>${exp.producto}</h3>
+          <p>Cliente: <b>${exp.cliente}</b> · ${exp.unidades}</p>
+          <div class="admin-exp-card-meta">
+            <div>
+              <span>Plazo acordado</span>
+              <strong>${exp.plazoPactado}</strong>
+            </div>
+            <div>
+              <span>Entrega estimada</span>
+              <strong class="${exp.desviacionDias.includes("+") ? "admin-due" : ""}">${exp.plazoRealEstimado}</strong>
+            </div>
+          </div>
+          <div class="admin-exp-actions" style="margin-top:14px;display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:0.72rem;color:var(--entity-muted)">${exp.presupuestoTotal}</span>
+            <button class="admin-quiet-button" type="button">Abrir y subir entregables ${icon("arrow", 14)}</button>
+          </div>
+        </article>
+      `).join("") : `<div style="grid-column:1/-1;padding:48px 24px;text-align:center;color:var(--entity-muted);background:var(--entity-panel);border-radius:10px;border:1px solid var(--entity-line)">No se han encontrado expedientes que coincidan con "<b>${expSearchQuery}</b>".</div>`;
+
       return `
         <div class="admin-view-head">
           <div>
@@ -1281,31 +1767,15 @@
           </div>
         </div>
 
+        <div class="exp-search-wrapper">
+          ${icon("search", 16)}
+          <input type="search" class="exp-search-input" id="expSearchInput" placeholder="Filtrar en directo por código, producto o cliente..." value="${expSearchQuery}">
+          ${expSearchQuery ? `<button class="admin-quiet-button" type="button" id="clearExpSearchBtn" style="padding:2px 6px">${icon("x", 14)}</button>` : ""}
+          <span class="exp-search-count">${filteredExp.length} de ${prvAll.length}</span>
+        </div>
+
         <div class="admin-exp-list">
-          ${EXPEDIENTES.filter(e => e.proveedor.includes("IberRail")).map(exp => `
-            <article class="admin-exp-card" data-go="#proveedor/expedientes/${exp.id}" style="cursor:pointer">
-              <div class="admin-exp-card-top">
-                <span class="admin-exp-id">${exp.id}</span>
-                <span class="admin-phase-mini">${icon("folder", 12)} Fase ${exp.faseActual + 1}: ${PHASES[exp.faseActual].name}</span>
-              </div>
-              <h3>${exp.producto}</h3>
-              <p>Cliente: <b>${exp.cliente}</b> · ${exp.unidades}</p>
-              <div class="admin-exp-card-meta">
-                <div>
-                  <span>Plazo acordado</span>
-                  <strong>${exp.plazoPactado}</strong>
-                </div>
-                <div>
-                  <span>Entrega estimada</span>
-                  <strong class="${exp.desviacionDias.includes("+") ? "admin-due" : ""}">${exp.plazoRealEstimado}</strong>
-                </div>
-              </div>
-              <div class="admin-exp-actions" style="margin-top:14px;display:flex;justify-content:space-between;align-items:center">
-                <span style="font-size:0.72rem;color:var(--entity-muted)">${exp.presupuestoTotal}</span>
-                <button class="admin-quiet-button" type="button">Abrir y subir entregables ${icon("arrow", 14)}</button>
-              </div>
-            </article>
-          `).join("")}
+          ${cards}
         </div>
       `;
     }
@@ -1335,47 +1805,8 @@
       `;
     }
 
-    if (section === "inbox") {
-      const prvNotices = NOTICES.filter(n => n.roles.includes("proveedor"));
-      const noticeRows = prvNotices.map(n => `
-        <article class="admin-doc-row" style="grid-template-columns:36px minmax(180px,1.4fr) 140px 110px auto;gap:16px">
-          <span style="display:grid;place-items:center;width:34px;height:34px;border-radius:6px;background:var(--entity-panel-2)">
-            ${icon(n.tagClass === "warning" ? "alert" : n.tagClass === "review" ? "file" : "check", 16)}
-          </span>
-          <div>
-            <strong>${n.titulo}</strong>
-            <small style="color:var(--entity-muted)">${n.descripcion}</small>
-          </div>
-          <div>
-            <span class="dossier-chip">${n.expId}</span>
-          </div>
-          <div>
-            <span class="dossier-chip" style="font-size:0.68rem">${n.categoria}</span>
-          </div>
-          <div style="display:flex;align-items:center;gap:10px">
-            <time style="font-size:0.72rem;color:var(--entity-faint)">${n.fecha}</time>
-            <button class="admin-quiet-button" type="button" data-go="${n.enlace}">${n.accion}</button>
-          </div>
-        </article>
-      `).join("");
-
-      return `
-        <div class="admin-view-head">
-          <div>
-            <h1>Inbox</h1>
-            <p>Requerimientos documentales, avisos de adjudicación y solicitudes de cotización.</p>
-          </div>
-        </div>
-        <section class="admin-document-list">
-          <div class="admin-doc-table-head" style="grid-template-columns:36px minmax(180px,1.4fr) 140px 110px auto;gap:16px">
-            <span>Aviso</span>
-            <span>Expediente</span>
-            <span>Categoría</span>
-            <span style="text-align:right">Fecha & Acción</span>
-          </div>
-          ${noticeRows}
-        </section>
-      `;
+    if (section === "avisos" || section === "inbox") {
+      return renderAvisosSection("proveedor");
     }
 
     if (section === "perfil") {
@@ -1740,6 +2171,83 @@
       btn.addEventListener("click", () => {
         const expId = btn.dataset.openIncidentModal;
         openIncidentModal(expId);
+      });
+    });
+
+    // Filtrado interactivo en Visión Global (gráficos y métricas)
+    document.querySelectorAll("[data-overview-filter]").forEach(el => {
+      el.addEventListener("click", () => {
+        const target = el.dataset.overviewFilter;
+        overviewFilter = overviewFilter === target ? null : target;
+        renderApp();
+      });
+    });
+
+    document.querySelectorAll("[data-clear-overview-filter]").forEach(el => {
+      el.addEventListener("click", () => {
+        overviewFilter = null;
+        renderApp();
+      });
+    });
+
+    // Buscador en directo de Expedientes (filtrado inmediato sin recarga)
+    const searchInput = document.getElementById("expSearchInput");
+    if (searchInput) {
+      searchInput.addEventListener("input", e => {
+        expSearchQuery = e.target.value;
+        const q = expSearchQuery.trim().toLowerCase();
+        const cards = document.querySelectorAll(".admin-exp-card");
+        let visibleCount = 0;
+        cards.forEach(card => {
+          const text = card.textContent.toLowerCase();
+          const match = !q || text.includes(q);
+          card.style.display = match ? "" : "none";
+          if (match) visibleCount++;
+        });
+        const countEl = document.querySelector(".exp-search-count");
+        if (countEl) countEl.textContent = `${visibleCount} de ${cards.length}`;
+      });
+    }
+
+    document.getElementById("clearExpSearchBtn")?.addEventListener("click", () => {
+      expSearchQuery = "";
+      renderApp();
+    });
+
+    // Agrupación en Avisos
+    document.querySelectorAll("[data-group-avisos]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        avisosGroup = btn.dataset.groupAvisos;
+        renderApp();
+      });
+    });
+
+    // Descartar y Restaurar Avisos
+    document.querySelectorAll("[data-dismiss-notice]").forEach(btn => {
+      btn.addEventListener("click", e => {
+        e.stopPropagation();
+        const id = btn.dataset.dismissNotice;
+        discardedNotices.add(id);
+        showToast(`Aviso ${id} descartado`);
+        renderApp();
+      });
+    });
+
+    document.querySelectorAll("[data-restore-notice]").forEach(btn => {
+      btn.addEventListener("click", e => {
+        e.stopPropagation();
+        const id = btn.dataset.restoreNotice;
+        discardedNotices.delete(id);
+        showToast(`Aviso ${id} restaurado`);
+        renderApp();
+      });
+    });
+
+    // Modo Tabla / Mosaico en Directorio de Clientes y Proveedores
+    document.querySelectorAll("[data-dir-mode]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        directorioViewMode = btn.dataset.dirMode;
+        renderApp();
       });
     });
 
