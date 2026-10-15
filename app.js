@@ -417,6 +417,8 @@
   let showDiscardedAvisos = false;
   let directorioViewMode = "table"; // "table" | "grid"
   let previousRouteKey = null;
+  let stagedPliegoFile = null;
+  let suministroRowCount = 1;
 
   function parseHash() {
     const raw = location.hash.replace(/^#\/?/, "");
@@ -535,6 +537,179 @@
           </button>
         </div>
       </header>
+    `;
+  }
+
+  /* ============================================================
+     CONSTRUCTOR DE EXPEDIENTES (PANTALLA 1 - APUNTES 05 Y 06)
+     ============================================================ */
+  function renderCreateExpedienteView(creatorRole) {
+    const isRoleAdmin = creatorRole === "admin";
+    const breadcrumbBase = isRoleAdmin
+      ? `<a href="#admin/overview">Visión global</a> / <a href="#admin/expedientes">Expedientes</a> / <span>Crear expediente</span>`
+      : `<a href="#cliente/expedientes">Mis expedientes</a> / <span>Nuevo expediente</span>`;
+
+    return `
+      <div class="dossier-breadcrumb" style="margin-bottom:14px">
+        ${breadcrumbBase}
+      </div>
+
+      <div class="admin-view-head" style="margin-bottom:22px">
+        <div>
+          <h1>${isRoleAdmin ? "Crear Expediente de Suministro Ferroviario" : "Solicitar Nuevo Expediente"}</h1>
+          <p>Constructor de expedientes estancos. Define la obra, los suministros ferroviarios y adjunta los pliegos técnicos para iniciar el ciclo de homologación y compras.</p>
+        </div>
+        <div>
+          <span class="create-exp-badge ${isRoleAdmin ? "" : "info"}">
+            ${isRoleAdmin
+              ? `${icon("shield", 14)} Alta oficial SOFEIN · Validación inmediata`
+              : `${icon("file", 14)} Solicitud constructor · Requiere validación SOFEIN`}
+          </span>
+        </div>
+      </div>
+
+      <form id="createExpedienteFullForm" class="create-exp-wrap">
+        <!-- Bloque 1: Datos de Obra y Emplazamiento -->
+        <section class="create-exp-card">
+          <div class="create-exp-card-head">
+            <div>
+              <h3>${icon("folder", 18)} 1. Obra Ferroviaria & Emplazamiento</h3>
+              <p>Identificación del proyecto, entidad contratista adjudicataria y tramo de instalación de vía.</p>
+            </div>
+            <span class="dossier-chip">Paso 1 de 3</span>
+          </div>
+
+          <div style="display:grid;gap:14px">
+            <label class="create-exp-label">
+              Título del Proyecto / Nombre de la Obra
+              <input name="titulo" class="create-exp-input" required placeholder="Ej: Renovación de Superestructura Tramo Bobadilla – Algeciras" />
+            </label>
+
+            <div class="create-exp-grid-2">
+              <label class="create-exp-label">
+                Constructor / Contratista
+                ${isRoleAdmin ? `
+                  <select name="cliente" class="create-exp-select" required>
+                    ${DIRECTORIO_CLIENTES.map(c => `<option value="${c.nombre}">${c.nombre} (${c.cif})</option>`).join("")}
+                  </select>
+                ` : `
+                  <input name="cliente" class="create-exp-input" value="Infraestructuras del Norte, S.A." readonly style="opacity:0.85;cursor:not-allowed;background:var(--entity-panel-2)" />
+                `}
+              </label>
+
+              <label class="create-exp-label">
+                Destinatario Final / Administrador de la Infraestructura
+                <select name="destinatarioFinal" class="create-exp-select" required>
+                  <option value="Adif Alta Velocidad (Línea Sur)">Adif Alta Velocidad (Línea Sur)</option>
+                  <option value="Adif Red Convencional">Adif Red Convencional</option>
+                  <option value="Metro de Bilbao (Línea 4)">Metro de Bilbao (Línea 4)</option>
+                  <option value="Ferrocarrils de la Generalitat de Catalunya (FGC)">Ferrocarrils de la Generalitat de Catalunya (FGC)</option>
+                  <option value="Línea de Acceso y Vías Factoría Volkswagen (Red Adif)">Factoría Volkswagen (Red Ferroviaria Industrial)</option>
+                  <option value="Consorcio Autonómico de Transportes">Consorcio Autonómico de Transportes</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="create-exp-grid-2">
+              <label class="create-exp-label">
+                Plazo Objetivo de Entrega a Pie de Vía
+                <input type="date" name="fechaObjetivo" class="create-exp-input" required value="2026-11-30" />
+              </label>
+
+              <label class="create-exp-label">
+                Presupuesto Estimado de Suministro (Opcional)
+                <input name="presupuestoTotal" class="create-exp-input" placeholder="Ej: 450.000 € (En licitación)" />
+              </label>
+            </div>
+          </div>
+        </section>
+
+        <!-- Bloque 2: Suministros y Lotes de Material (Moodle Estanco Multi-Lote) -->
+        <section class="create-exp-card">
+          <div class="create-exp-card-head">
+            <div>
+              <h3>${icon("box", 18)} 2. Suministros Ferroviarios & Lotes Requeridos</h3>
+              <p>Indica uno o varios componentes de vía. Para cada suministro se habilitará trazabilidad y control de plazos.</p>
+            </div>
+            <span class="dossier-chip">Paso 2 de 3</span>
+          </div>
+
+          <div id="suministrosContainer" style="display:grid;gap:12px">
+            <div class="suministro-item" data-suministro-index="0">
+              <div class="suministro-item-top">
+                <span class="suministro-item-title">${icon("route", 14)} Lote de Suministro 1</span>
+              </div>
+              <div class="create-exp-grid-3">
+                <label class="create-exp-label">
+                  Tipo de Componente Ferroviario
+                  <select name="suministro_material_0" class="create-exp-select" required>
+                    <option value="Traviesas de hormigón monobloque PR-22">Traviesas de Hormigón Monobloque PR-22 (Superestructura)</option>
+                    <option value="Carril laminado 54E1 / 60E1">Carril Laminado 54E1 / 60E1 (Grado R260 / R350HT)</option>
+                    <option value="Traviesas de madera tratada creosotada">Traviesas de Madera Tratada Creosotada (3 subtipos)</option>
+                    <option value="Sujeciones y clips elásticos SKL-14">Clips y Fijaciones Elásticas (SKL-14 / Pandrol Fastclip)</option>
+                    <option value="Placas de asiento y suelas elastómero">Placas de Asiento Metálicas / Suelas Bajo Traviesa</option>
+                    <option value="Aparatos de vía y corazones monobloque">Aparatos de Vía, Desvíos y Corazones Monobloque</option>
+                    <option value="Balasto silíceo tipo 1">Balasto Silíceo Certificado Tipo 1</option>
+                    <option value="Otro elemento especial a medida">Otro Elemento de Vía a Medida</option>
+                  </select>
+                </label>
+                <label class="create-exp-label">
+                  Volumen / Unidades
+                  <input name="suministro_unidades_0" class="create-exp-input" required placeholder="Ej: 14.500 unidades" />
+                </label>
+                <label class="create-exp-label">
+                  Tramo de Instalación
+                  <input name="suministro_tramo_0" class="create-exp-input" required placeholder="Ej: P.K. 12+400 a 24+800" />
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <button class="suministro-add-btn" type="button" id="addSuministroRowBtn">
+            ${icon("plus", 14)} Añadir otro suministro al expediente
+          </button>
+        </section>
+
+        <!-- Bloque 3: Documentación Técnica Inicial (Drag & Drop Moodle) -->
+        <section class="create-exp-card">
+          <div class="create-exp-card-head">
+            <div>
+              <h3>${icon("file", 18)} 3. Pliego de Prescripciones Técnicas & Planos de Replanteo</h3>
+              <p>Adjunta las especificaciones técnicas iniciales. Se registrarán automáticamente en la Fase 0 (Alcance & Requisitos).</p>
+            </div>
+            <span class="dossier-chip">Paso 3 de 3</span>
+          </div>
+
+          <input type="file" id="createExpFileInput" style="display:none" accept=".pdf,.dwg,.xlsx" />
+          
+          <div class="slot-dropzone" id="createExpDropzone">
+            <div class="slot-dropzone-copy">
+              ${icon("upload", 24)}
+              <div>
+                <div><b>Arrastra aquí el Pliego Técnico (PPTP) o planos de vía</b> o haz clic para seleccionarlo</div>
+                <span class="sub">Formatos admitidos: .pdf, .dwg, .xlsx (Máximo 25 MB)</span>
+              </div>
+            </div>
+            <button class="slot-upload-btn" type="button" id="triggerFileSelectBtn">
+              ${icon("plus", 14)} Seleccionar pliego
+            </button>
+          </div>
+
+          <div id="fileUploadedPreview" style="display:none;margin-top:4px"></div>
+        </section>
+
+        <!-- Acciones Finales -->
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;padding-top:10px">
+          <button class="admin-quiet-button" type="button" data-go="${isRoleAdmin ? '#admin/expedientes' : '#cliente/expedientes'}">
+            ← Cancelar y volver a bandeja
+          </button>
+          <button class="admin-primary-button" type="submit" id="submitCreateExpBtn" style="padding:10px 22px;font-size:0.85rem">
+            ${isRoleAdmin
+              ? `${icon("check", 16)} Crear Expediente y Activar Matching`
+              : `${icon("arrow", 16)} Enviar Expediente a Validación SOFEIN`}
+          </button>
+        </div>
+      </form>
     `;
   }
 
@@ -718,6 +893,31 @@
 
     return `
       <div class="dossier-builder">
+        <div class="dossier-breadcrumb" style="margin-bottom:14px">
+          <a href="#${activeRole}/expedientes">← Volver a expedientes</a> / <span>${exp.id}</span>
+        </div>
+
+        ${exp.estado === "pending_validation" ? `
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 20px;border-radius:10px;background:rgba(234,179,8,0.08);border:1px solid rgba(234,179,8,0.3);margin-bottom:18px;animation:filterFadeIn 0.2s ease-out">
+            <div style="display:flex;align-items:center;gap:12px">
+              <span style="display:grid;place-items:center;width:34px;height:34px;border-radius:6px;background:rgba(234,179,8,0.15);color:var(--entity-warning)">
+                ${icon("shield", 18)}
+              </span>
+              <div>
+                <strong style="color:var(--entity-text);font-size:0.88rem">Expediente pendiente de validación por SOFEIN</strong>
+                <p style="margin:2px 0 0;font-size:0.75rem;color:var(--entity-muted)">Este expediente fue remitido por el constructor y requiere verificación técnica de pliegos antes de iniciar el matching de talleres (Apuntes 06).</p>
+              </div>
+            </div>
+            ${activeRole === "admin" ? `
+              <button class="admin-primary-button" type="button" data-validate-exp="${exp.id}" style="white-space:nowrap">
+                ${icon("check", 14)} Validar y Activar Preselección
+              </button>
+            ` : `
+              <span style="font-size:0.75rem;color:var(--entity-warning);font-weight:600">En revisión técnica por SOFEIN</span>
+            `}
+          </div>
+        ` : ""}
+
         <!-- Tarjeta de Metadatos del Expediente Estanco -->
         <section class="dossier-meta-card">
           <div class="dossier-title-area">
@@ -1246,6 +1446,10 @@
       `;
     }
 
+    if (section === "nuevo" || (section === "expedientes" && param === "nuevo")) {
+      return renderCreateExpedienteView("admin");
+    }
+
     if (section === "expedientes") {
       if (param) return renderDossierBuilder(param);
 
@@ -1291,7 +1495,7 @@
             <h1>Expedientes</h1>
             <p>Bandeja operativa central. Supervisa el avance por fases, aprueba entregables técnicos y gestiona el suministro.</p>
           </div>
-          <button class="admin-primary-button" type="button" data-open-new-exp-modal>
+          <button class="admin-primary-button" type="button" data-go="#admin/nuevo">
             ${icon("plus", 16)} Crear Expediente
           </button>
         </div>
@@ -1540,6 +1744,10 @@
      VISTAS: CLIENTE (CONSTRUCTOR DE VÍA)
      ============================================================ */
   function renderClienteView(section, param) {
+    if (section === "nuevo" || (section === "expedientes" && param === "nuevo")) {
+      return renderCreateExpedienteView("cliente");
+    }
+
     if (section === "expedientes") {
       if (param) return renderDossierBuilder(param);
 
@@ -1616,50 +1824,6 @@
         <div class="admin-exp-list">
           ${cards}
         </div>
-      `;
-    }
-
-    if (section === "nuevo") {
-      return `
-        <div class="admin-view-head">
-          <div>
-            <h1>Configurar nuevo expediente</h1>
-            <p>Indica los suministros ferroviarios que necesitas, dónde van a instalarse y las especificaciones técnicas.</p>
-          </div>
-        </div>
-        <section class="admin-drawer" style="position:static;width:100%;max-width:760px;margin:0 auto;box-shadow:none;border:1px solid var(--entity-line);border-radius:12px;padding:32px">
-          <form id="newExpedienteForm">
-            <label>Tipo de Producto de Vía (Catálogo MVP)
-              <select name="producto" required>
-                <option value="Traviesas de hormigón monobloque">Traviesas de Hormigón Monobloque PR-22 (Superestructura)</option>
-                <option value="Traviesas de madera tratada">Traviesas de Madera Tratada Creosotada (3 subtipos)</option>
-                <option value="Carril laminado 54E1 / 60E1">Carril Laminado 54E1 / 60E1 Grado R260</option>
-                <option value="Sujeciones y clips elásticos">Clips y Fijaciones Elásticas (SKL-14 / Pandrol)</option>
-                <option value="Placas de asiento">Placas de Asiento Metálicas / Elastómero</option>
-                <option value="Balasto silíceo">Balasto Silíceo Certificado Tipo 1</option>
-                <option value="Especial a medida">Otros / Elementos a Medida (Siemens, Renfe)</option>
-              </select>
-            </label>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-              <label>Volumen / Cantidad Requerida
-                <input name="unidades" placeholder="Ej: 14.500 traviesas o 1.200 t" required />
-              </label>
-              <label>Fecha Objetivo de Llegada a Obra
-                <input type="date" name="fechaObjetivo" required />
-              </label>
-            </div>
-            <label>Destino de la Vía / Tramo de Instalación
-              <input name="destino" placeholder="Ej: Tramo Medina del Campo o Variante Este" required />
-            </label>
-            <label>Pliego o Planos de Replanteo (.pdf, .dwg)
-              <input type="file" name="archivo" />
-            </label>
-            <div style="margin-top:16px;display:flex;gap:12px">
-              <button class="admin-primary-button" type="submit">Crear Expediente y Enviar a Validación SOFEIN</button>
-              <button class="admin-quiet-button" type="button" data-go="#cliente/expedientes">Cancelar</button>
-            </div>
-          </form>
-        </section>
       `;
     }
 
@@ -2133,36 +2297,246 @@
       });
     });
 
-    // Formulario de Nuevo Expediente
-    document.getElementById("newExpedienteForm")?.addEventListener("submit", e => {
-      e.preventDefault();
-      const form = new FormData(e.currentTarget);
-      const newExp = {
-        id: `RFQ-2026-0${EXPEDIENTES.length + 15}`,
-        producto: form.get("producto"),
-        tipoMaterial: form.get("producto"),
-        subtipo: "Especificación formal según pliego",
-        unidades: form.get("unidades"),
-        cliente: "Infraestructuras del Norte, S.A.",
-        destinatarioFinal: form.get("destino"),
-        proveedor: "Pendiente de adjudicación (Fase 1/2)",
-        presupuestoTotal: "En cotización",
-        faseActual: 0,
-        plazoPactado: "A determinar",
-        plazoRealEstimado: "A determinar",
-        desviacionDias: "0 días",
-        estado: "review",
-        incidencias: [],
-        deliverables: {
-          0: [{ name: "Pliego y Memoria de Requisitos", owner: "Cliente", state: "complete", format: "PDF", file: "Pliego-Inicial.pdf", date: "Hoy" }],
-          1: [{ name: "Comparativa Fase 1 de Proveedores", owner: "SOFEIN", state: "pending", format: "PDF", file: null, date: "En curso" }],
-          2: [], 3: [], 4: [], 5: [], 6: []
+    // Validación de Expediente Pendiente (Admin valida solicitud de Cliente - Apuntes 06)
+    document.querySelectorAll("[data-validate-exp]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const id = btn.dataset.validateExp;
+        const targetExp = getActiveExpediente(id);
+        if (targetExp) {
+          targetExp.estado = "review";
+          targetExp.faseActual = 1;
+          targetExp.desviacionDias = "0 días (En plazo)";
+          targetExp.plazoRealEstimado = "45 días";
+          targetExp.plazoPactado = "45 días";
+          if (targetExp.deliverables[0] && targetExp.deliverables[0][0]) {
+            targetExp.deliverables[0][0].state = "complete";
+          }
+          if (!targetExp.deliverables[1] || !targetExp.deliverables[1].length) {
+            targetExp.deliverables[1] = [
+              { name: "Preselección de 3 Proveedores Homologados", owner: "SOFEIN", state: "review", format: "PDF", file: null, date: "Listo para lanzar" }
+            ];
+          }
+          showToast(`✓ Expediente ${id} validado por SOFEIN. Avanza a Fase 1: Preselección`);
+          renderApp();
         }
-      };
-      EXPEDIENTES.unshift(newExp);
-      location.hash = `#cliente/expedientes/${newExp.id}`;
-      showToast(`Expediente estanco ${newExp.id} creado con éxito`);
+      });
     });
+
+    // Constructor de Expediente: Añadir Fila de Suministro Dinámico
+    const addSuministroBtn = document.getElementById("addSuministroRowBtn");
+    const suministrosWrap = document.getElementById("suministrosContainer");
+    if (addSuministroBtn && suministrosWrap) {
+      addSuministroBtn.addEventListener("click", () => {
+        suministroRowCount++;
+        const item = document.createElement("div");
+        item.className = "suministro-item";
+        item.dataset.suministroIndex = suministroRowCount;
+        item.innerHTML = `
+          <div class="suministro-item-top">
+            <span class="suministro-item-title">${icon("route", 14)} Lote de Suministro ${suministroRowCount}</span>
+            <button type="button" class="suministro-remove-btn" data-remove-suministro>${icon("x", 12)} Eliminar lote</button>
+          </div>
+          <div class="create-exp-grid-3">
+            <label class="create-exp-label">
+              Tipo de Componente Ferroviario
+              <select class="create-exp-select" required>
+                <option value="Carril laminado 54E1 / 60E1">Carril Laminado 54E1 / 60E1 (Grado R260 / R350HT)</option>
+                <option value="Traviesas de hormigón monobloque PR-22">Traviesas de Hormigón Monobloque PR-22 (Superestructura)</option>
+                <option value="Traviesas de madera tratada creosotada">Traviesas de Madera Tratada Creosotada (3 subtipos)</option>
+                <option value="Sujeciones y clips elásticos SKL-14">Clips y Fijaciones Elásticas (SKL-14 / Pandrol Fastclip)</option>
+                <option value="Placas de asiento y suelas elastómero">Placas de Asiento Metálicas / Suelas Bajo Traviesa</option>
+                <option value="Aparatos de vía y corazones monobloque">Aparatos de Vía, Desvíos y Corazones Monobloque</option>
+                <option value="Balasto silíceo tipo 1">Balasto Silíceo Certificado Tipo 1</option>
+                <option value="Otro elemento especial a medida">Otro Elemento de Vía a Medida</option>
+              </select>
+            </label>
+            <label class="create-exp-label">
+              Volumen / Unidades
+              <input class="create-exp-input" required placeholder="Ej: 5.000 unidades o 12 km" />
+            </label>
+            <label class="create-exp-label">
+              Tramo de Instalación
+              <input class="create-exp-input" required placeholder="Ej: P.K. 24+800 a 36+000" />
+            </label>
+          </div>
+        `;
+        suministrosWrap.appendChild(item);
+        item.querySelector("[data-remove-suministro]")?.addEventListener("click", () => {
+          item.remove();
+        });
+      });
+    }
+
+    // Constructor de Expediente: Dropzone de Pliegos Técnicos
+    const dropzone = document.getElementById("createExpDropzone");
+    const fileInput = document.getElementById("createExpFileInput");
+    const previewWrap = document.getElementById("fileUploadedPreview");
+    const triggerBtn = document.getElementById("triggerFileSelectBtn");
+
+    function displaySelectedFile(fileName) {
+      stagedPliegoFile = fileName;
+      if (previewWrap) {
+        previewWrap.style.display = "block";
+        previewWrap.innerHTML = `
+          <div class="file-preview-card">
+            <div style="display:flex;align-items:center;gap:12px">
+              <span style="display:grid;place-items:center;width:34px;height:34px;border-radius:6px;background:rgba(82,223,127,0.12);color:var(--entity-accent)">
+                ${icon("file", 18)}
+              </span>
+              <div>
+                <strong style="color:var(--entity-text);font-size:0.84rem">${fileName}</strong>
+                <p style="margin:2px 0 0;font-size:0.72rem;color:var(--entity-muted)">2.4 MB · Indexado para ranura de Fase 0 (Alcance y Requisitos)</p>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <span class="dossier-chip" style="color:var(--entity-accent)">✓ Listo</span>
+              <button type="button" id="removePliegoBtn" class="suministro-remove-btn">${icon("x", 12)} Quitar</button>
+            </div>
+          </div>
+        `;
+        document.getElementById("removePliegoBtn")?.addEventListener("click", () => {
+          stagedPliegoFile = null;
+          previewWrap.style.display = "none";
+          previewWrap.innerHTML = "";
+          if (fileInput) fileInput.value = "";
+        });
+      }
+    }
+
+    if (dropzone && fileInput) {
+      dropzone.addEventListener("click", () => fileInput.click());
+      triggerBtn?.addEventListener("click", e => {
+        e.stopPropagation();
+        fileInput.click();
+      });
+
+      fileInput.addEventListener("change", e => {
+        const file = e.target.files && e.target.files[0];
+        if (file) {
+          displaySelectedFile(file.name);
+        }
+      });
+
+      dropzone.addEventListener("dragover", e => {
+        e.preventDefault();
+        dropzone.classList.add("dragover");
+      });
+      dropzone.addEventListener("dragleave", () => {
+        dropzone.classList.remove("dragover");
+      });
+      dropzone.addEventListener("drop", e => {
+        e.preventDefault();
+        dropzone.classList.remove("dragover");
+        const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+        displaySelectedFile(file ? file.name : "PPTP-Suministro-Ferroviario-2026.pdf");
+      });
+    }
+
+    // Constructor de Expediente: Envío del Formulario (Pantalla 1)
+    const createForm = document.getElementById("createExpedienteFullForm");
+    if (createForm) {
+      createForm.addEventListener("submit", e => {
+        e.preventDefault();
+        const form = new FormData(e.currentTarget);
+        const titulo = (form.get("titulo") || "").trim();
+        const cliente = (form.get("cliente") || "Infraestructuras del Norte, S.A.").trim();
+        const dest = (form.get("destinatarioFinal") || "").trim();
+        const fechaObj = form.get("fechaObjetivo");
+        const presupuesto = (form.get("presupuestoTotal") || "").trim() || "En licitación";
+
+        // Recopilar lotes de suministros
+        const items = document.querySelectorAll("#suministrosContainer .suministro-item");
+        const suministrosList = [];
+        items.forEach(it => {
+          const mat = it.querySelector("select")?.value || "Componente Ferroviario";
+          const units = it.querySelector('input[placeholder*="unidades"]')?.value.trim() || "Cantidad según pliego";
+          const tramo = it.querySelector('input[placeholder*="P.K."]')?.value.trim() || "Vía principal";
+          suministrosList.push({ material: mat, unidades: units, tramo: tramo });
+        });
+
+        const primaryMat = suministrosList[0] ? suministrosList[0].material : "Material Ferroviario";
+        const unitsSummary = suministrosList.map(s => `${s.unidades} (${s.tramo})`).join(" + ");
+        const fileName = stagedPliegoFile || "Pliego-Prescripciones-Tecnicas-PPTP.pdf";
+
+        // Generar ID correlativo
+        const existingNums = EXPEDIENTES.map(exp => {
+          const m = exp.id.match(/\d+$/);
+          return m ? parseInt(m[0], 10) : 0;
+        });
+        const nextNum = Math.max(...existingNums, 22) + 1;
+        const newId = `RFQ-2026-0${nextNum}`;
+
+        const isRoleAdmin = activeRole === "admin";
+
+        const newExpediente = {
+          id: newId,
+          producto: primaryMat,
+          tipoMaterial: "Superestructura Ferroviaria",
+          subtipo: suministrosList.length > 1 ? `${suministrosList.length} lotes de suministro coordinados` : primaryMat,
+          unidades: unitsSummary,
+          cliente: cliente,
+          destinatarioFinal: dest,
+          proveedor: isRoleAdmin ? "Pendiente de matching y cotización" : "Pendiente de asignación por SOFEIN",
+          presupuestoTotal: presupuesto,
+          faseActual: isRoleAdmin ? 1 : 0, // Admin valida directo a Fase 1 (Apuntes 06); Cliente requiere validación previa
+          plazoPactado: isRoleAdmin ? "45 días" : "Pendiente de cotización",
+          plazoRealEstimado: isRoleAdmin ? "45 días" : "Pendiente de validación",
+          desviacionDias: isRoleAdmin ? "0 días (En plazo)" : "Pendiente de validación SOFEIN",
+          estado: isRoleAdmin ? "review" : "pending_validation",
+          incidencias: [],
+          deliverables: {
+            0: [
+              {
+                name: "Pliego de Prescripciones Técnicas Particulares (PPTP)",
+                owner: "Cliente",
+                state: isRoleAdmin ? "complete" : "review",
+                format: fileName.toLowerCase().endsWith(".dwg") ? "DWG / PDF" : "PDF",
+                file: fileName,
+                date: "Hoy, recién indexado"
+              }
+            ],
+            1: isRoleAdmin ? [
+              { name: "Preselección de 3 Proveedores Homologados", owner: "SOFEIN", state: "review", format: "PDF", file: null, date: "Listo para lanzar" }
+            ] : [],
+            2: [], 3: [], 4: [], 5: [], 6: []
+          }
+        };
+
+        EXPEDIENTES.unshift(newExpediente);
+
+        if (isRoleAdmin) {
+          NOTICES.unshift({
+            id: `AV-0${NOTICES.length + 1}`,
+            expId: newId,
+            categoria: "Nuevo Expediente",
+            tagClass: "complete",
+            titulo: `Expediente ${newId} creado y validado`,
+            descripcion: `SOFEIN ha emitido y validado el expediente para "${titulo}". Fase 1 activada para preselección de 3 talleres homologados.`,
+            fecha: "Hoy, ahora",
+            roles: ["admin", "cliente"],
+            accion: "Ver Expediente",
+            enlace: `#admin/expedientes/${newId}`
+          });
+          showToast(`✓ Expediente ${newId} creado y validado. Listo para matching.`);
+          location.hash = `#admin/expedientes/${newId}`;
+        } else {
+          NOTICES.unshift({
+            id: `AV-0${NOTICES.length + 1}`,
+            expId: newId,
+            categoria: "Validación de Expediente",
+            tagClass: "warning",
+            titulo: `Solicitud de nuevo expediente (${newId})`,
+            descripcion: `Infraestructuras del Norte ha configurado una solicitud de suministro para "${titulo}". Requiere verificación y validación técnica por SOFEIN.`,
+            fecha: "Hoy, ahora",
+            roles: ["admin", "cliente"],
+            accion: "Validar Expediente",
+            enlace: `#admin/expedientes/${newId}`
+          });
+          showToast(`✓ Solicitud ${newId} enviada a SOFEIN para validación técnica.`);
+          location.hash = `#cliente/expedientes/${newId}`;
+        }
+      });
+    }
 
     // Formulario de Notificación de Incidencia de Proveedor
     document.getElementById("notifyIncidentForm")?.addEventListener("submit", e => {

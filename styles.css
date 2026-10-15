@@ -3239,3 +3239,210 @@ select:focus,
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+/* ========== CONSTRUCTOR DE EXPEDIENTES (PANTALLA 1) ========== */
+.dossier-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+  color: var(--entity-muted);
+}
+.dossier-breadcrumb a {
+  color: var(--entity-muted);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+.dossier-breadcrumb a:hover {
+  color: var(--entity-accent);
+}
+.dossier-breadcrumb span {
+  color: var(--entity-text);
+  font-weight: 600;
+}
+
+.create-exp-wrap {
+  max-width: 860px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.create-exp-card {
+  background: var(--entity-panel);
+  border: 1px solid var(--entity-line);
+  border-radius: 12px;
+  padding: 22px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.create-exp-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--entity-line);
+}
+
+.create-exp-card-head h3 {
+  margin: 0;
+  font-size: 0.96rem;
+  color: var(--entity-text);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.create-exp-card-head p {
+  margin: 4px 0 0;
+  font-size: 0.74rem;
+  color: var(--entity-muted);
+}
+
+.create-exp-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 99px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  background: var(--entity-accent-soft);
+  color: var(--entity-accent);
+  border: 1px solid rgba(82, 223, 127, 0.25);
+}
+
+.create-exp-badge.info {
+  background: rgba(96, 165, 250, 0.12);
+  color: #60a5fa;
+  border-color: rgba(96, 165, 250, 0.25);
+}
+
+.suministro-item {
+  padding: 16px;
+  border-radius: 8px;
+  background: var(--entity-panel-2);
+  border: 1px solid var(--entity-line);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+  animation: filterFadeIn 0.2s ease-out;
+}
+
+.suministro-item-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.suministro-item-title {
+  font-size: 0.78rem;
+  font-weight: 650;
+  color: var(--entity-text);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.suministro-remove-btn {
+  background: transparent;
+  border: 0;
+  color: var(--entity-muted);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  transition: color 0.15s;
+}
+
+.suministro-remove-btn:hover {
+  color: #ef4444;
+}
+
+.suministro-add-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: 1px dashed var(--entity-line-strong);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--entity-text);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.suministro-add-btn:hover {
+  border-color: var(--entity-accent);
+  color: var(--entity-accent);
+  background: var(--entity-accent-soft);
+}
+
+.create-exp-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.create-exp-grid-3 {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 768px) {
+  .create-exp-grid-2,
+  .create-exp-grid-3 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.create-exp-label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--entity-muted);
+}
+
+.create-exp-input,
+.create-exp-select {
+  height: 38px;
+  padding: 0 11px;
+  border-radius: 6px;
+  border: 1px solid var(--entity-line);
+  background: var(--entity-bg);
+  color: var(--entity-text);
+  font: inherit;
+  font-size: 0.82rem;
+  transition: border-color 0.15s;
+}
+
+.create-exp-input:focus,
+.create-exp-select:focus {
+  outline: none;
+  border-color: var(--entity-accent);
+}
+
+.file-preview-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: var(--entity-panel-2);
+  border: 1px solid var(--entity-line-strong);
+  animation: filterFadeIn 0.2s ease-out;
+}
