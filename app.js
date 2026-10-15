@@ -169,6 +169,65 @@
         6: [ // Cierre
           { name: "Pasaporte Digital SOFEIN (Trazabilidad Consolidada)", owner: "SOFEIN", state: "pending", format: "Certificado", file: null, date: "Fase final" }
         ]
+      },
+      matching: {
+        faseSelector: "adjudicado",
+        proveedoresRecomendados: ["PRV-01", "PRV-06", "PRV-07"],
+        proveedoresPreseleccionadosPorAdmin: ["PRV-01", "PRV-06", "PRV-07"],
+        proveedoresSeleccionadosPorCliente: ["PRV-01", "PRV-06"],
+        cotizaciones: {
+          "PRV-01": {
+            proveedorId: "PRV-01",
+            nombre: "IberRail Components, S.L.",
+            cif: "B-48192837",
+            sede: "Amurrio (Álava) / Bilbao",
+            precioUnitario: "33,24 €/ud",
+            precioTotal: "482.000 €",
+            plazoSemanas: "6 semanas (42 días)",
+            desviacionPlazoDias: 0,
+            validezOferta: "60 días",
+            condicionesPago: "60 días confirmada",
+            garantia: "10 años anticorrosión",
+            puntuacionTecnica: "98/100",
+            requisitosConfirmados: [
+              "Trazabilidad lote a lote con código QR",
+              "Ensayos de rotura dinámica en laboratorio ENAC",
+              "Transporte y descarga a pie de vía con grúa",
+              "Garantía anticorrosión 10 años"
+            ],
+            archivoOferta: "Oferta-IberRail-RevFinal.pdf",
+            estado: "adjudicada",
+            fechaEnvio: "16 jun, 10:15"
+          },
+          "PRV-06": {
+            proveedorId: "PRV-06",
+            nombre: "Prefabricados Prefarail, S.A.",
+            cif: "A-50129384",
+            sede: "Zaragoza",
+            precioUnitario: "34,50 €/ud",
+            precioTotal: "500.250 €",
+            plazoSemanas: "6,5 semanas (46 días)",
+            desviacionPlazoDias: +4,
+            validezOferta: "45 días",
+            condicionesPago: "60 días fecha factura",
+            garantia: "10 años",
+            puntuacionTecnica: "96/100",
+            requisitosConfirmados: [
+              "Capacidad fabril de 800 traviesas/día",
+              "Ensayos de carga estática y dinámica en planta",
+              "Transporte especial en bateas homologadas"
+            ],
+            archivoOferta: "Oferta-Prefarail-PR22.pdf",
+            estado: "recibida",
+            fechaEnvio: "16 jun, 12:40"
+          }
+        },
+        requisitosExigidosCliente: [
+          "Trazabilidad lote a lote con código QR",
+          "Ensayos de rotura dinámica en laboratorio ENAC",
+          "Transporte y descarga a pie de vía con grúa"
+        ],
+        proveedorAdjudicado: "IberRail Components, S.L."
       }
     },
     {
@@ -196,6 +255,86 @@
           { name: "Oferta Económica y Plazo de Entrega Norte Vía", owner: "Proveedor", state: "review", format: "PDF", file: "Oferta-NorteVia-54E1.pdf", date: "Ayer" }
         ],
         2: [], 3: [], 4: [], 5: [], 6: []
+      },
+      matching: {
+        faseSelector: "comparativa", // "preseleccion" | "seleccion_cliente" | "peticion_cotizaciones" | "comparativa" | "adjudicado"
+        proveedoresRecomendados: ["PRV-02", "PRV-04", "PRV-05"],
+        proveedoresPreseleccionadosPorAdmin: ["PRV-02", "PRV-04", "PRV-05"],
+        proveedoresSeleccionadosPorCliente: ["PRV-02", "PRV-04", "PRV-05"],
+        cotizaciones: {
+          "PRV-02": {
+            proveedorId: "PRV-02",
+            nombre: "Norte Vía Industrial, S.A.",
+            cif: "A-33291845",
+            sede: "Gijón (Asturias)",
+            precioUnitario: "945 €/t",
+            precioTotal: "1.134.000 €",
+            plazoSemanas: "8 semanas (56 días)",
+            desviacionPlazoDias: -4,
+            validezOferta: "45 días",
+            condicionesPago: "60 días fecha factura",
+            garantia: "10 años trazabilidad total",
+            puntuacionTecnica: "98/100",
+            requisitosConfirmados: [
+              "Barra larga soldada (tramos hasta 108 m)",
+              "Ensayos no destructivos ultrasonidos al 100%",
+              "Certificado de colada siderúrgica trazable",
+              "Cumplimiento estricto perfil 54E1 Grado R260"
+            ],
+            archivoOferta: "Oferta-NorteVia-54E1.pdf",
+            estado: "recibida",
+            fechaEnvio: "13 jun, 16:40"
+          },
+          "PRV-04": {
+            proveedorId: "PRV-04",
+            nombre: "Siderúrgica Ferroviaria Ibérica, S.L.",
+            cif: "B-46091244",
+            sede: "Sagunto (Valencia)",
+            precioUnitario: "960 €/t",
+            precioTotal: "1.152.000 €",
+            plazoSemanas: "7 semanas (49 días)",
+            desviacionPlazoDias: -11,
+            validezOferta: "60 días",
+            condicionesPago: "60 días confirming",
+            garantia: "8 años anticorrosión",
+            puntuacionTecnica: "95/100",
+            requisitosConfirmados: [
+              "Suministro en barras de 72m / 108m",
+              "Ensayos mecánicos certificados por laboratorio ENAC",
+              "Plan logístico coordinado de fletes por ferrocarril"
+            ],
+            archivoOferta: "Oferta-SFI-Bilbao-54E1.pdf",
+            estado: "recibida",
+            fechaEnvio: "14 jun, 11:20"
+          },
+          "PRV-05": {
+            proveedorId: "PRV-05",
+            nombre: "Rails & Tracks Iberia, S.A.",
+            cif: "A-28190342",
+            sede: "Madrid / Bilbao",
+            precioUnitario: "930 €/t",
+            precioTotal: "1.116.000 €",
+            plazoSemanas: "9 semanas (63 días)",
+            desviacionPlazoDias: +3,
+            validezOferta: "30 días",
+            condicionesPago: "90 días confirming",
+            garantia: "5 años estándar",
+            puntuacionTecnica: "91/100",
+            requisitosConfirmados: [
+              "Control geométrico láser en continuo",
+              "Certificado metalográfico por lote"
+            ],
+            archivoOferta: "Oferta-RailsTracks-54E1.pdf",
+            estado: "recibida",
+            fechaEnvio: "14 jun, 18:05"
+          }
+        },
+        requisitosExigidosCliente: [
+          "Barra larga soldada (tramos hasta 108 m)",
+          "Ensayos no destructivos ultrasonidos al 100%",
+          "Certificado de colada siderúrgica trazable"
+        ],
+        proveedorAdjudicado: null
       }
     },
     {
@@ -332,9 +471,19 @@
       nombre: "IberRail Components, S.L.",
       cif: "B-48192837",
       sede: "Amurrio (Álava) / Bilbao",
+      categorias: ["Traviesas — Superestructura", "Fijaciones — Superestructura"],
       materiales: "Traviesas de Hormigón Monobloque PR-22 · Sujeciones SKL-14",
       homologado: true,
+      homologaciones: ["Adif NAV-2026", "AENOR EN 13230", "Certificado CE"],
       leadTimeMedio: "42 días",
+      precioEstimado: "32 - 35 €/ud",
+      condicionesPago: "60 días confirmada",
+      requisitosQueCumple: [
+        "Trazabilidad lote a lote con código QR",
+        "Ensayos de rotura dinámica en laboratorio ENAC",
+        "Transporte y descarga a pie de vía con grúa",
+        "Garantía anticorrosión 10 años"
+      ],
       score: "98% Conforme",
       contacto: "carlos.m@iberrail.es"
     },
@@ -343,9 +492,19 @@
       nombre: "Norte Vía Industrial, S.A.",
       cif: "A-33291845",
       sede: "Gijón (Asturias)",
+      categorias: ["Carril — Superestructura", "Aparatos de Vía"],
       materiales: "Carril Laminado 54E1 / 60E1 · Aparatos de Vía",
       homologado: true,
+      homologaciones: ["Adif 03.360.501", "EN 13674-1", "ISO 9001 / 14001"],
       leadTimeMedio: "58 días",
+      precioEstimado: "940 - 970 €/t",
+      condicionesPago: "60 días fecha factura",
+      requisitosQueCumple: [
+        "Barra larga soldada (tramos hasta 108 m)",
+        "Ensayos no destructivos ultrasonidos al 100%",
+        "Certificado de colada siderúrgica trazable",
+        "Cumplimiento estricto perfil 54E1 Grado R260"
+      ],
       score: "99% Conforme",
       contacto: "ventas@nortevia.es"
     },
@@ -354,11 +513,244 @@
       nombre: "Madera Vía Ibérica, S.A.",
       cif: "A-47102938",
       sede: "Valladolid",
+      categorias: ["Traviesas de Madera — Especial"],
       materiales: "Traviesas de Madera Tratada Creosotada (3 subtipos)",
       homologado: true,
+      homologaciones: ["Adif Normativa Vía", "Tratamiento UNE-EN 13145", "Cadena FSC/PEFC"],
       leadTimeMedio: "35 días",
+      precioEstimado: "62 - 68 €/ud",
+      condicionesPago: "60 días fecha factura",
+      requisitosQueCumple: [
+        "Tratamiento autoclave vacío-presión creosota Grado C",
+        "Entalladura y barrenado previo según plano cliente",
+        "Certificación ambiental de gestión forestal",
+        "Garantía de durabilidad biológica 25 años"
+      ],
       score: "94% Conforme",
       contacto: "pedidos@maderavia.es"
+    },
+    {
+      id: "PRV-04",
+      nombre: "Siderúrgica Ferroviaria Ibérica, S.L.",
+      cif: "B-46091244",
+      sede: "Sagunto (Valencia)",
+      categorias: ["Carril — Superestructura"],
+      materiales: "Carril Laminado 54E1 / 60E1 · Acero R260 / R350HT",
+      homologado: true,
+      homologaciones: ["Adif 03.360.501", "EN 13674-1", "Certificado Lloyd's"],
+      leadTimeMedio: "52 días",
+      precioEstimado: "950 - 980 €/t",
+      condicionesPago: "60 días confirming",
+      requisitosQueCumple: [
+        "Suministro en barras de 72m / 108m",
+        "Ensayos mecánicos certificados por laboratorio ENAC",
+        "Plan logístico coordinado de fletes por ferrocarril",
+        "Garantía técnica de fatiga de rodadura"
+      ],
+      score: "96% Conforme",
+      contacto: "proyectos@siderurgicaferroviaria.es"
+    },
+    {
+      id: "PRV-05",
+      nombre: "Rails & Tracks Iberia, S.A.",
+      cif: "A-28190342",
+      sede: "Madrid / Bilbao",
+      categorias: ["Carril — Superestructura"],
+      materiales: "Carril Laminado 54E1 / 60E1 · Aparatos y desvíos",
+      homologado: true,
+      homologaciones: ["Adif 03.360.501", "EN 13674-1"],
+      leadTimeMedio: "62 días",
+      precioEstimado: "925 - 950 €/t",
+      condicionesPago: "90 días confirming",
+      requisitosQueCumple: [
+        "Control geométrico láser en continuo",
+        "Certificado metalográfico por lote",
+        "Acopio intermedio en parque logístico propio"
+      ],
+      score: "95% Conforme",
+      contacto: "comercial@railsandtracks.es"
+    },
+    {
+      id: "PRV-06",
+      nombre: "Prefabricados Prefarail, S.A.",
+      cif: "A-50129384",
+      sede: "Zaragoza",
+      categorias: ["Traviesas — Superestructura"],
+      materiales: "Traviesas de Hormigón Monobloque y Bibloque",
+      homologado: true,
+      homologaciones: ["Adif NAV-2026", "AENOR EN 13230", "Certificado CE"],
+      leadTimeMedio: "46 días",
+      precioEstimado: "33 - 36 €/ud",
+      condicionesPago: "60 días fecha factura",
+      requisitosQueCumple: [
+        "Capacidad fabril de 800 traviesas/día",
+        "Ensayos de carga estática y dinámica en planta",
+        "Acabado superficial con protección antivegetación",
+        "Transporte especial en bateas homologadas"
+      ],
+      score: "97% Conforme",
+      contacto: "ventas@prefarail.es"
+    },
+    {
+      id: "PRV-07",
+      nombre: "Traviesas y Hormigones del Norte, S.L.",
+      cif: "B-24109823",
+      sede: "León",
+      categorias: ["Traviesas — Superestructura"],
+      materiales: "Traviesas de Hormigón Monobloque PR-22 y Ancho Mixto",
+      homologado: true,
+      homologaciones: ["Adif NAV-2026", "EN 13230-2"],
+      leadTimeMedio: "40 días",
+      precioEstimado: "34 - 37 €/ud",
+      condicionesPago: "60 días confirmada",
+      requisitosQueCumple: [
+        "Curado térmico con control digital de temperatura",
+        "Ensayos de laboratorio acreditados ENAC",
+        "Suministro escalonado según avance de acopio en vía"
+      ],
+      score: "95% Conforme",
+      contacto: "contacto@traviesasdelnorte.es"
+    },
+    {
+      id: "PRV-08",
+      nombre: "Tratamientos Forestales del Ebro, S.L.",
+      cif: "B-31298451",
+      sede: "Pamplona (Navarra)",
+      categorias: ["Traviesas de Madera — Especial"],
+      materiales: "Traviesas de Roble y Haya Impregnada",
+      homologado: true,
+      homologaciones: ["Adif Homologada", "UNE-EN 13145"],
+      leadTimeMedio: "38 días",
+      precioEstimado: "64 - 70 €/ud",
+      condicionesPago: "60 días fecha factura",
+      requisitosQueCumple: [
+        "Madera de bosques sostenibles PEFC",
+        "Tratamiento protector de larga duración",
+        "Mecanizado de placas según planos Adif"
+      ],
+      score: "93% Conforme",
+      contacto: "info@forestalesebro.es"
+    },
+    {
+      id: "PRV-09",
+      nombre: "Maderas del Guadarrama, S.A.",
+      cif: "A-40192837",
+      sede: "Segovia",
+      categorias: ["Traviesas de Madera — Especial"],
+      materiales: "Traviesas de Madera para Puentes y Desvíos",
+      homologado: true,
+      homologaciones: ["Adif Homologada", "UNE-EN 13145"],
+      leadTimeMedio: "42 días",
+      precioEstimado: "65 - 72 €/ud",
+      condicionesPago: "60 días confirming",
+      requisitosQueCumple: [
+        "Escuadrías especiales y grandes longitudes",
+        "Certificación de secado artificial previo",
+        "Ensayos de absorción y penetración"
+      ],
+      score: "92% Conforme",
+      contacto: "comercial@maderasguadarrama.es"
+    },
+    {
+      id: "PRV-10",
+      nombre: "Fijaciones Industriales Voss, S.A.",
+      cif: "A-01283746",
+      sede: "Vitoria (Álava)",
+      categorias: ["Fijaciones — Superestructura"],
+      materiales: "Clips Elásticos · Tirafondos · Placas Antivibratorias",
+      homologado: true,
+      homologaciones: ["Adif Homologada", "EN 13481"],
+      leadTimeMedio: "30 días",
+      precioEstimado: "7,20 - 7,80 €/conjunto",
+      condicionesPago: "60 días fecha factura",
+      requisitosQueCumple: [
+        "Resistencia a fatiga > 3 millones de ciclos",
+        "Tratamiento anticorrosión Dacromet 500h niebla salina",
+        "Embalaje en cajas paletizadas retractiladas"
+      ],
+      score: "97% Conforme",
+      contacto: "pedidos@fijacionesvoss.es"
+    },
+    {
+      id: "PRV-11",
+      nombre: "ClipRail Ferrocarriles, S.L.",
+      cif: "B-50982341",
+      sede: "Zaragoza",
+      categorias: ["Fijaciones — Superestructura"],
+      materiales: "Sujeciones SKL-14 / W-14 · Placas elásticas",
+      homologado: true,
+      homologaciones: ["Adif Homologada", "EN 13481"],
+      leadTimeMedio: "28 días",
+      precioEstimado: "7,10 - 7,60 €/conjunto",
+      condicionesPago: "60 días confirming",
+      requisitosQueCumple: [
+        "Aisladores de poliamida de alta resistencia dieléctrica",
+        "Trazabilidad de colada en acero para muelles",
+        "Suministro conjunto con tornillería y arandelas"
+      ],
+      score: "96% Conforme",
+      contacto: "ventas@cliprail.es"
+    },
+    {
+      id: "PRV-12",
+      nombre: "Canteras Ferroviarias del Centro, S.A.",
+      cif: "A-45192834",
+      sede: "Toledo",
+      categorias: ["Balasto Silíceo Certificado"],
+      materiales: "Balasto Silíceo Tipo 1 según Pliego Adif",
+      homologado: true,
+      homologaciones: ["Adif Tipo 1", "UNE-EN 13450", "Marcado CE 2+"],
+      leadTimeMedio: "20 días",
+      precioEstimado: "18 - 22 €/t",
+      condicionesPago: "60 días confirmada",
+      requisitosQueCumple: [
+        "Coeficiente Los Ángeles < 14 (alta resistencia al desgaste)",
+        "Micro-Deval < 11",
+        "Lavado y cribado en vía húmeda",
+        "Transporte en tren tolva propio o camión bañera"
+      ],
+      score: "98% Conforme",
+      contacto: "aridos@canterascentro.es"
+    },
+    {
+      id: "PRV-13",
+      nombre: "Áridos Silíceos del Cantábrico, S.L.",
+      cif: "B-33190283",
+      sede: "Oviedo (Asturias)",
+      categorias: ["Balasto Silíceo Certificado"],
+      materiales: "Balasto Silíceo Cuarcítico Tipo 1",
+      homologado: true,
+      homologaciones: ["Adif Tipo 1", "UNE-EN 13450"],
+      leadTimeMedio: "22 días",
+      precioEstimado: "19 - 23 €/t",
+      condicionesPago: "60 días fecha factura",
+      requisitosQueCumple: [
+        "Densidad aparente > 2,65 t/m3",
+        "Ensayos petrográficos y de resistencia al hielo-deshielo",
+        "Acopios en tolvas cubiertas"
+      ],
+      score: "95% Conforme",
+      contacto: "comercial@aridoscantabrico.es"
+    },
+    {
+      id: "PRV-14",
+      nombre: "Balastos y Gravas Ibéricas, S.A.",
+      cif: "A-13098234",
+      sede: "Ciudad Real",
+      categorias: ["Balasto Silíceo Certificado"],
+      materiales: "Balasto Ofítico / Basáltico Alta Velocidad",
+      homologado: true,
+      homologaciones: ["Adif Tipo 1 AV", "UNE-EN 13450"],
+      leadTimeMedio: "18 días",
+      precioEstimado: "21 - 25 €/t",
+      condicionesPago: "60 días confirming",
+      requisitosQueCumple: [
+        "Piedra basáltica de máxima tenacidad",
+        "Ausencia total de finos arcillosos",
+        "Capacidad de suministro 3.000 t/día"
+      ],
+      score: "99% Conforme",
+      contacto: "ventas@balastosibericos.es"
     }
   ];
 
@@ -400,6 +792,38 @@
 
   function getActiveExpediente(id = "RFQ-2026-014") {
     return EXPEDIENTES.find(e => e.id === id) || EXPEDIENTES[0];
+  }
+
+  /* ---------- Helper: Matching de Proveedores por Expediente (Apuntes 06) ---------- */
+  function ensureExpedienteMatching(exp) {
+    if (!exp) return null;
+    if (exp.matching) return exp.matching;
+
+    const mat = (exp.tipoMaterial || exp.producto || "").toLowerCase();
+    let candidates = DIRECTORIO_PROVEEDORES.filter(p => {
+      if (!p.categorias) return true;
+      return p.categorias.some(c => mat.includes(c.toLowerCase().split(" ")[0]));
+    });
+
+    if (candidates.length < 3) {
+      candidates = DIRECTORIO_PROVEEDORES.slice(0, 3);
+    }
+    const ids = candidates.map(c => c.id);
+
+    exp.matching = {
+      faseSelector: exp.faseActual > 1 ? "adjudicado" : "preseleccion",
+      proveedoresRecomendados: ids,
+      proveedoresPreseleccionadosPorAdmin: [...ids],
+      proveedoresSeleccionadosPorCliente: ids.slice(0, Math.min(ids.length, 2)),
+      cotizaciones: {},
+      requisitosExigidosCliente: [
+        "Trazabilidad de colada / lote con código individual",
+        "Certificación de ensayos en laboratorio acreditado ENAC"
+      ],
+      proveedorAdjudicado: exp.faseActual > 1 ? exp.proveedor : null
+    };
+
+    return exp.matching;
   }
 
   /* ---------- Enrutador y Estado de Vista ---------- */
@@ -715,6 +1139,686 @@
   }
 
   /* ============================================================
+     PANTALLA 2: SELECTOR Y MATCHING DE PROVEEDORES (FASE DE COTIZACIONES)
+     Apuntes 06 - Tablas 2 y 3 (Preselección SOFEIN, Selección Cliente, Cotizaciones, Comparativa)
+     ============================================================ */
+  function renderSelectorProveedoresView(expId = "RFQ-2026-011") {
+    const exp = getActiveExpediente(expId);
+    const matching = ensureExpedienteMatching(exp);
+    const isRoleAdmin = activeRole === "admin";
+    const isRoleCliente = activeRole === "cliente";
+    const isRoleProveedor = activeRole === "proveedor";
+
+    // 4 Sub-fases oficiales del Selector de Proveedores
+    const SUBSTEPS = [
+      { id: "preseleccion", num: 1, title: "1. Preselección SOFEIN", desc: "Mínimo 3 homologados" },
+      { id: "seleccion_cliente", num: 2, title: "2. Selección de Cliente", desc: "Elección para cotización" },
+      { id: "peticion_cotizaciones", num: 3, title: "3. Cotizaciones de Talleres", desc: "Ofertas vinculantes" },
+      { id: "comparativa", num: 4, title: "4. Comparativa & Elección", desc: "Adjudicación y requisitos" }
+    ];
+
+    const currentStepIdx = SUBSTEPS.findIndex(s => s.id === matching.faseSelector);
+    const activeStepIndex = currentStepIdx >= 0 ? currentStepIdx : (matching.faseSelector === "adjudicado" ? 3 : 0);
+
+    const stepperHTML = SUBSTEPS.map((step, idx) => {
+      const isActive = idx === activeStepIndex;
+      const isDone = matching.faseSelector === "adjudicado" || idx < activeStepIndex;
+      return `
+        <div class="selector-substep ${isActive ? "is-active" : isDone ? "is-done" : ""}" data-switch-selector-step="${step.id}" data-exp-id="${exp.id}" style="cursor:pointer" title="Ver sub-fase ${step.title}">
+          <span class="selector-substep-num">${isDone ? icon("check", 13) : step.num}</span>
+          <div class="selector-substep-text">
+            <strong>${step.title}</strong>
+            <small>${step.desc}</small>
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    // Breadcrumb
+    const breadcrumbBase = `
+      <div class="dossier-breadcrumb" style="margin-bottom:14px">
+        <a href="#${activeRole}/expedientes">← Volver a expedientes</a> / 
+        <a href="#${activeRole}/expedientes/${exp.id}">${exp.id}</a> / 
+        <span>Selector de Proveedores & Matching</span>
+      </div>
+    `;
+
+    // Legal / Normative Banner (Apuntes 05 & 06: Mínimo 3 proveedores)
+    const legalBannerHTML = `
+      <div class="selector-legal-banner">
+        <div style="display:flex;align-items:center;gap:12px">
+          <span style="color:var(--entity-accent);display:grid;place-items:center;flex-shrink:0">
+            ${icon("shield", 22)}
+          </span>
+          <div>
+            <strong>Requisito Normativo Adif / Ley 38/2015 del Sector Ferroviario</strong>
+            <p>El sistema aplica la concurrencia obligatoria: Mínimo 3 proveedores homologados para asegurar neutralidad técnica, trazabilidad y libre concurrencia antes de la adjudicación.</p>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <span class="dossier-chip" style="font-size:0.7rem;color:var(--entity-accent);background:var(--entity-panel)">
+            ${matching.proveedoresPreseleccionadosPorAdmin.length} Homologados Aptos
+          </span>
+        </div>
+      </div>
+    `;
+
+    // Candidate providers for preselection
+    const matQuery = (exp.tipoMaterial || exp.producto || "").toLowerCase();
+    let candidateProviders = DIRECTORIO_PROVEEDORES.filter(p => {
+      if (!p.categorias) return true;
+      return p.categorias.some(c => matQuery.includes(c.toLowerCase().split(" ")[0]));
+    });
+    if (candidateProviders.length < 3) {
+      candidateProviders = DIRECTORIO_PROVEEDORES.slice(0, 3);
+    }
+
+    let dynamicContentHTML = "";
+
+    // -------------------------------------------------------------
+    // SUB-FASE 1: PRESELECCIÓN SOFEIN (ADMIN)
+    // -------------------------------------------------------------
+    if (matching.faseSelector === "preseleccion") {
+      const preselectedIds = new Set(matching.proveedoresPreseleccionadosPorAdmin);
+      const cardsHTML = candidateProviders.map(prv => {
+        const isPreselected = preselectedIds.has(prv.id);
+        return `
+          <article class="selector-provider-card ${isPreselected ? "is-selected" : ""}">
+            <div class="selector-card-head">
+              <div>
+                <strong style="font-size:0.95rem;color:var(--entity-text);display:block">${prv.nombre}</strong>
+                <small style="color:var(--entity-muted);font-size:0.72rem">${prv.sede} · CIF ${prv.cif}</small>
+              </div>
+              <span class="selector-provider-badge-score">${prv.score || "98% Conforme"}</span>
+            </div>
+
+            <div class="selector-homologations">
+              ${(prv.homologaciones || ["Adif NAV Vigente", "CE", "ENAC"]).map(h => `<span class="selector-homologation-chip">${icon("shield", 12)} ${h}</span>`).join("")}
+            </div>
+
+            <div class="selector-metrics-row">
+              <div class="selector-metric-item">
+                <span>Plazo Medio</span>
+                <strong>${prv.leadTimeMedio}</strong>
+              </div>
+              <div class="selector-metric-item">
+                <span>Precio Orientativo</span>
+                <strong>${prv.precioEstimado || "A cotizar"}</strong>
+              </div>
+            </div>
+
+            <div style="font-size:0.68rem;text-transform:uppercase;color:var(--entity-faint);font-weight:600;margin-bottom:6px">Requisitos que puede cumplir:</div>
+            <ul class="selector-reqs-list">
+              ${(prv.requisitosQueCumple || ["Trazabilidad completa"]).map(r => `<li>${icon("check", 13)} <span>${r}</span></li>`).join("")}
+            </ul>
+
+            <div class="selector-card-foot">
+              <span style="font-size:0.72rem;color:var(--entity-muted)">${prv.condicionesPago || "60 días confirmada"}</span>
+              ${isRoleAdmin ? `
+                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.76rem;color:var(--entity-text);font-weight:600">
+                  <input type="checkbox" data-preselect-prv="${prv.id}" data-exp-id="${exp.id}" ${isPreselected ? "checked" : ""} style="accent-color:var(--entity-accent);width:15px;height:15px">
+                  <span>Preseleccionar</span>
+                </label>
+              ` : `
+                <span class="dossier-chip" style="font-size:0.68rem;color:var(--entity-accent)">Homologado</span>
+              `}
+            </div>
+          </article>
+        `;
+      }).join("");
+
+      dynamicContentHTML = `
+        <div style="margin-bottom:18px">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:14px">
+            <div>
+              <h2 style="margin:0 0 4px;font-size:1.15rem;color:var(--entity-text)">Paso 1: Preselección Técnica por SOFEIN</h2>
+              <p style="margin:0;font-size:0.8rem;color:var(--entity-muted)">SOFEIN filtra los talleres homologados aptos para este pliego antes de habilitar la selección al cliente.</p>
+            </div>
+            ${isRoleAdmin ? `
+              <div style="display:flex;align-items:center;gap:8px">
+                <span style="font-size:0.76rem;color:var(--entity-muted)"><b style="color:var(--entity-accent)">${matching.proveedoresPreseleccionadosPorAdmin.length}</b> seleccionados</span>
+              </div>
+            ` : ""}
+          </div>
+
+          <div class="selector-cards-grid">
+            ${cardsHTML}
+          </div>
+
+          <div class="selector-action-bar">
+            <div>
+              <strong style="display:block;font-size:0.85rem;color:var(--entity-text)">
+                ${isRoleAdmin ? "Validación de la Preselección" : "Esperando Validación de SOFEIN"}
+              </strong>
+              <small style="color:var(--entity-muted);font-size:0.75rem">
+                ${isRoleAdmin ? "Al validar, el cliente recibirá aviso en su bandeja para seleccionar a quién solicitar cotización." : "SOFEIN está revisando los pliegos técnicos para autorizar el paso a selección de cliente."}
+              </small>
+            </div>
+            ${isRoleAdmin ? `
+              <button class="admin-primary-button" id="approvePreselectionBtn" data-exp-id="${exp.id}" type="button">
+                ${icon("check", 14)} Aprobar Preselección Oficial y Habilitar para Cliente
+              </button>
+            ` : `
+              <span class="dossier-chip info">${icon("file", 14)} En validación técnica</span>
+            `}
+          </div>
+        </div>
+      `;
+    }
+
+    // -------------------------------------------------------------
+    // SUB-FASE 2: SELECCIÓN DEL CLIENTE (CONSTRUCTOR)
+    // -------------------------------------------------------------
+    else if (matching.faseSelector === "seleccion_cliente") {
+      const preselectedPrvs = candidateProviders.filter(p => matching.proveedoresPreseleccionadosPorAdmin.includes(p.id));
+      const clientSelectedSet = new Set(matching.proveedoresSeleccionadosPorCliente);
+
+      const cardsHTML = preselectedPrvs.map(prv => {
+        const isSelectedByClient = clientSelectedSet.has(prv.id);
+        return `
+          <article class="selector-provider-card ${isSelectedByClient ? "is-selected" : ""}">
+            <div class="selector-card-head">
+              <div>
+                <strong style="font-size:0.95rem;color:var(--entity-text);display:block">${prv.nombre}</strong>
+                <small style="color:var(--entity-muted);font-size:0.72rem">${prv.sede}</small>
+              </div>
+              <span class="selector-provider-badge-score">${prv.score || "98% Conforme"}</span>
+            </div>
+
+            <div class="selector-homologations">
+              ${(prv.homologaciones || ["Adif NAV", "CE"]).map(h => `<span class="selector-homologation-chip">${icon("shield", 12)} ${h}</span>`).join("")}
+            </div>
+
+            <div class="selector-metrics-row">
+              <div class="selector-metric-item">
+                <span>Plazo Comprometido</span>
+                <strong>${prv.leadTimeMedio}</strong>
+              </div>
+              <div class="selector-metric-item">
+                <span>Precio Estimativo</span>
+                <strong>${prv.precioEstimado || "Según pliego"}</strong>
+              </div>
+            </div>
+
+            <div style="font-size:0.68rem;text-transform:uppercase;color:var(--entity-faint);font-weight:600;margin-bottom:6px">Requisitos acreditados:</div>
+            <ul class="selector-reqs-list">
+              ${(prv.requisitosQueCumple || []).slice(0, 3).map(r => `<li>${icon("check", 13)} <span>${r}</span></li>`).join("")}
+            </ul>
+
+            <div class="selector-card-foot">
+              <span style="font-size:0.72rem;color:var(--entity-muted)">Pago: ${prv.condicionesPago || "60 días"}</span>
+              ${isRoleCliente ? `
+                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.76rem;color:var(--entity-accent);font-weight:600">
+                  <input type="checkbox" data-client-select-prv="${prv.id}" data-exp-id="${exp.id}" ${isSelectedByClient ? "checked" : ""} style="accent-color:var(--entity-accent);width:16px;height:16px">
+                  <span>Pedir Cotización</span>
+                </label>
+              ` : `
+                <span class="dossier-chip ${isSelectedByClient ? "complete" : ""}">
+                  ${isSelectedByClient ? "✓ Elegido por cliente" : "Opción disponible"}
+                </span>
+              `}
+            </div>
+          </article>
+        `;
+      }).join("");
+
+      dynamicContentHTML = `
+        <div style="margin-bottom:18px">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:14px">
+            <div>
+              <h2 style="margin:0 0 4px;font-size:1.15rem;color:var(--entity-text)">Paso 2: Selección de Talleres para Petición de Oferta Ciega</h2>
+              <p style="margin:0;font-size:0.8rem;color:var(--entity-muted)">Elige los proveedores a los que SOFEIN solicitará cotización vinculante de precio, plazo y ensayos técnicos.</p>
+            </div>
+            <span class="dossier-chip" style="color:var(--entity-accent)">${matching.proveedoresSeleccionadosPorCliente.length} Seleccionados para cotizar</span>
+          </div>
+
+          <div class="selector-cards-grid">
+            ${cardsHTML}
+          </div>
+
+          <div class="selector-action-bar">
+            <div>
+              <strong style="display:block;font-size:0.85rem;color:var(--entity-text)">Confirmación de Petición de Ofertas</strong>
+              <small style="color:var(--entity-muted);font-size:0.75rem">Se emitirá la solicitud formal con los pliegos técnicos adjuntos del expediente ${exp.id}.</small>
+            </div>
+            ${isRoleCliente ? `
+              <button class="admin-primary-button" id="requestClientQuotesBtn" data-exp-id="${exp.id}" type="button">
+                ${icon("file", 14)} Solicitar Cotización Formal a Seleccionados (${matching.proveedoresSeleccionadosPorCliente.length})
+              </button>
+            ` : isRoleAdmin ? `
+              <button class="admin-primary-button" id="emitRfqOrdersBtn" data-exp-id="${exp.id}" type="button">
+                ${icon("file", 14)} Emitir Petición de Ofertas Ciega a Talleres
+              </button>
+            ` : `
+              <span class="dossier-chip info">Fase de selección por el constructor</span>
+            `}
+          </div>
+        </div>
+      `;
+    }
+
+    // -------------------------------------------------------------
+    // SUB-FASE 3: RECEPCIÓN DE COTIZACIONES DE TALLERES
+    // -------------------------------------------------------------
+    else if (matching.faseSelector === "peticion_cotizaciones") {
+      const selectedPrvs = candidateProviders.filter(p => matching.proveedoresSeleccionadosPorCliente.includes(p.id));
+      const quotesObj = matching.cotizaciones || {};
+
+      const listHTML = selectedPrvs.map(prv => {
+        const quote = quotesObj[prv.id];
+        const hasQuote = Boolean(quote && quote.estado !== "pendiente");
+        return `
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-radius:8px;background:var(--entity-panel);border:1px solid var(--entity-line);margin-bottom:12px;gap:16px;flex-wrap:wrap">
+            <div style="display:flex;align-items:center;gap:12px">
+              <span style="display:grid;place-items:center;width:34px;height:34px;border-radius:6px;background:${hasQuote ? "rgba(82,223,127,0.12)" : "rgba(234,179,8,0.12)"};color:${hasQuote ? "var(--entity-accent)" : "var(--entity-warning)"}">
+                ${icon(hasQuote ? "check" : "file", 18)}
+              </span>
+              <div>
+                <strong style="color:var(--entity-text);font-size:0.9rem">${prv.nombre}</strong>
+                <p style="margin:2px 0 0;font-size:0.75rem;color:var(--entity-muted)">${prv.sede} · Plazo orientativo: ${prv.leadTimeMedio}</p>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px">
+              ${hasQuote ? `
+                <div style="text-align:right">
+                  <strong style="color:var(--entity-text);font-size:0.85rem">${quote.precioTotal || quote.precioUnitario}</strong>
+                  <small style="display:block;color:var(--entity-muted);font-size:0.7rem">${quote.plazoSemanas}</small>
+                </div>
+                <span class="dossier-chip complete">✓ Cotización Recibida</span>
+              ` : `
+                <span class="dossier-chip pending">⏳ Pendiente de Respuesta</span>
+              `}
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      // Proveedor Formulario de Cotización
+      let providerFormHTML = "";
+      if (isRoleProveedor) {
+        providerFormHTML = `
+          <form id="providerQuoteForm" data-exp-id="${exp.id}" style="padding:22px;border-radius:10px;background:var(--entity-panel);border:1px solid var(--entity-accent-soft);margin-top:20px">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+              <span style="color:var(--entity-accent)">${icon("file", 20)}</span>
+              <div>
+                <h3 style="margin:0;font-size:1.05rem;color:var(--entity-text)">Enviar Cotización Vinculante para ${exp.id}</h3>
+                <small style="color:var(--entity-muted)">Suministro: ${exp.producto} (${exp.unidades}) · Destino: ${exp.destinatarioFinal}</small>
+              </div>
+            </div>
+
+            <div class="create-exp-grid-3" style="margin-bottom:14px">
+              <label class="create-exp-label">
+                <span>Precio Unitario Ofertado</span>
+                <input type="text" class="create-exp-input" id="quoteUnitPrice" placeholder="Ej: 945 €/t o 33,50 €/ud" required>
+              </label>
+              <label class="create-exp-label">
+                <span>Importe Total Calculado</span>
+                <input type="text" class="create-exp-input" id="quoteTotalPrice" placeholder="Ej: 1.134.000 €" required>
+              </label>
+              <label class="create-exp-label">
+                <span>Plazo Garantizado de Entrega</span>
+                <input type="text" class="create-exp-input" id="quoteDeliveryTime" placeholder="Ej: 8 semanas (56 días)" required>
+              </label>
+            </div>
+
+            <div class="create-exp-grid-2" style="margin-bottom:16px">
+              <label class="create-exp-label">
+                <span>Condiciones de Pago Propuestas</span>
+                <select class="create-exp-select" id="quotePaymentCond">
+                  <option value="60 días fecha factura">60 días fecha factura (Estándar SOFEIN)</option>
+                  <option value="60 días confirming">60 días confirming bancario</option>
+                  <option value="90 días confirming">90 días confirming</option>
+                </select>
+              </label>
+              <label class="create-exp-label">
+                <span>Validez de la Oferta</span>
+                <select class="create-exp-select" id="quoteValidity">
+                  <option value="45 días">45 días naturales</option>
+                  <option value="60 días">60 días naturales</option>
+                  <option value="30 días">30 días naturales</option>
+                </select>
+              </label>
+            </div>
+
+            <div style="margin-bottom:16px">
+              <span class="create-exp-label" style="margin-bottom:8px">Confirmación de Requisitos Técnicos del Pliego:</span>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                <label class="selector-req-check-item">
+                  <input type="checkbox" checked required>
+                  <span>Certificación de ensayos mecánicos en laboratorio ENAC</span>
+                </label>
+                <label class="selector-req-check-item">
+                  <input type="checkbox" checked required>
+                  <span>Trazabilidad de colada / lote con código individual QR</span>
+                </label>
+                <label class="selector-req-check-item">
+                  <input type="checkbox" checked required>
+                  <span>Cumplimiento estricto de especificación técnica y tolerancias</span>
+                </label>
+                <label class="selector-req-check-item">
+                  <input type="checkbox" checked>
+                  <span>Plan de transporte y acopio coordinado a pie de vía</span>
+                </label>
+              </div>
+            </div>
+
+            <div style="display:flex;justify-content:flex-end;gap:10px">
+              <button class="admin-primary-button" type="submit" style="padding:9px 20px">
+                ${icon("check", 14)} Enviar Cotización Oficial a SOFEIN
+              </button>
+            </div>
+          </form>
+        `;
+      }
+
+      dynamicContentHTML = `
+        <div style="margin-bottom:18px">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:14px">
+            <div>
+              <h2 style="margin:0 0 4px;font-size:1.15rem;color:var(--entity-text)">Paso 3: Recepción de Cotizaciones Vinculantes</h2>
+              <p style="margin:0;font-size:0.8rem;color:var(--entity-muted)">Petición formal remitida a los proveedores seleccionados. A medida que responden, SOFEIN revisa y valida sus ofertas.</p>
+            </div>
+            <div style="display:flex;gap:8px">
+              <button class="admin-quiet-button" type="button" id="simulateAllQuotesBtn" data-exp-id="${exp.id}">
+                ${icon("check", 13)} Simular recepción de todas las ofertas
+              </button>
+            </div>
+          </div>
+
+          <div>
+            ${listHTML}
+          </div>
+
+          ${providerFormHTML}
+
+          <div class="selector-action-bar" style="margin-top:20px">
+            <div>
+              <strong style="display:block;font-size:0.85rem;color:var(--entity-text)">Paso a la Comparativa</strong>
+              <small style="color:var(--entity-muted);font-size:0.75rem">Cuando se hayan recibido las cotizaciones, se habilitará la matriz comparativa de ofertas.</small>
+            </div>
+            <button class="admin-primary-button" id="goToComparisonBtn" data-exp-id="${exp.id}" type="button">
+              ${icon("arrow", 14)} Abrir Matriz Comparativa de Cotizaciones
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    // -------------------------------------------------------------
+    // SUB-FASE 4: COMPARATIVA DE OFERTAS & ADJUDICACIÓN FINAL
+    // -------------------------------------------------------------
+    else if (matching.faseSelector === "comparativa") {
+      const quotes = Object.values(matching.cotizaciones || {});
+      const reqsExigidosSet = new Set(matching.requisitosExigidosCliente || []);
+
+      const tableColsHTML = quotes.map(q => {
+        const isWinner = matching.proveedorAdjudicado === q.nombre;
+        return `
+          <th style="min-width:240px;text-align:left;background:${isWinner ? "rgba(82,223,127,0.06)" : "var(--entity-panel-2)"};border-left:1px solid var(--entity-line)">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <strong style="color:var(--entity-text);font-size:0.88rem">${q.nombre}</strong>
+              ${isWinner ? `<span class="dossier-chip complete" style="font-size:0.68rem">✓ Adjudicado</span>` : ""}
+            </div>
+            <small style="color:var(--entity-muted);font-size:0.7rem">${q.sede}</small>
+          </th>
+        `;
+      }).join("");
+
+      const priceRowHTML = quotes.map(q => `
+        <td style="border-left:1px solid var(--entity-line)">
+          <div class="selector-quote-price">${q.precioTotal}</div>
+          <span class="selector-quote-unit">${q.precioUnitario}</span>
+        </td>
+      `).join("");
+
+      const plazoRowHTML = quotes.map(q => {
+        const diff = q.desviacionPlazoDias || 0;
+        const diffClass = diff < 0 ? "complete" : diff === 0 ? "info" : "warning";
+        const diffText = diff < 0 ? `${Math.abs(diff)} días antes` : diff === 0 ? "Exacto a fecha" : `+${diff} días`;
+        return `
+          <td style="border-left:1px solid var(--entity-line)">
+            <strong style="color:var(--entity-text);font-size:0.82rem">${q.plazoSemanas}</strong>
+            <span class="dossier-chip ${diffClass}" style="display:inline-block;margin-top:4px;font-size:0.68rem">${diffText}</span>
+          </td>
+        `;
+      }).join("");
+
+      const condRowHTML = quotes.map(q => `
+        <td style="border-left:1px solid var(--entity-line)">
+          <div style="font-size:0.78rem;color:var(--entity-text)">${q.condicionesPago}</div>
+          <small style="color:var(--entity-muted);font-size:0.7rem">Garantía: ${q.garantia}</small>
+        </td>
+      `).join("");
+
+      const reqsRowHTML = quotes.map(q => `
+        <td style="border-left:1px solid var(--entity-line)">
+          <ul class="selector-reqs-list" style="margin:0">
+            ${(q.requisitosConfirmados || []).map(r => `<li>${icon("check", 13)} <span>${r}</span></li>`).join("")}
+          </ul>
+        </td>
+      `).join("");
+
+      const fileRowHTML = quotes.map(q => `
+        <td style="border-left:1px solid var(--entity-line)">
+          <button class="slot-action-btn" type="button" data-download="${q.archivoOferta}">
+            ${icon("download", 13)} ${q.archivoOferta}
+          </button>
+        </td>
+      `).join("");
+
+      const actionRowHTML = quotes.map(q => {
+        const isWinner = matching.proveedorAdjudicado === q.nombre;
+        return `
+          <td style="border-left:1px solid var(--entity-line);padding:14px">
+            ${isRoleCliente ? `
+              <button class="admin-primary-button" type="button" data-select-winning-prv="${q.nombre}" data-exp-id="${exp.id}" style="width:100%;padding:8px;font-size:0.78rem;background:${isWinner ? "var(--entity-accent)" : "transparent"};color:${isWinner ? "var(--entity-accent-ink)" : "var(--entity-accent)"};border:1px solid var(--entity-accent)">
+                ${isWinner ? `${icon("check", 14)} Proveedor Seleccionado` : "Elegir este Proveedor"}
+              </button>
+            ` : `
+              <span class="dossier-chip ${isWinner ? "complete" : ""}" style="width:100%;text-align:center;display:block">
+                ${isWinner ? "✓ Oferta Adjudicada" : "Oferta evaluada"}
+              </span>
+            `}
+          </td>
+        `;
+      }).join("");
+
+      // Lista de requisitos exigibles (Apuntes 06: marcación/desmarcación)
+      const allRequirements = [
+        "Barra larga soldada (tramos hasta 108 m con transporte especial)",
+        "Ensayos no destructivos ultrasonidos al 100% en taller",
+        "Certificado de colada siderúrgica trazable lote a lote con QR",
+        "Cumplimiento estricto perfil 54E1 Grado R260 según norma EN 13674-1",
+        "Entrega fraccionada a pie de vía según ritmo de montaje"
+      ];
+
+      const reqChecksHTML = allRequirements.map(req => {
+        const isChecked = reqsExigidosSet.has(req);
+        return `
+          <label class="selector-req-check-item">
+            <input type="checkbox" data-req-exigible-check="${req}" data-exp-id="${exp.id}" ${isChecked ? "checked" : ""}>
+            <span>${req}</span>
+          </label>
+        `;
+      }).join("");
+
+      dynamicContentHTML = `
+        <div style="margin-bottom:18px">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:14px">
+            <div>
+              <h2 style="margin:0 0 4px;font-size:1.15rem;color:var(--entity-text)">Paso 4: Matriz Comparativa de Ofertas Vinculantes</h2>
+              <p style="margin:0;font-size:0.8rem;color:var(--entity-muted)">Analiza las propuestas técnicas y económicas. Selecciona el taller adjudicatario y marca los requisitos contractuales exigibles (Apuntes 06).</p>
+            </div>
+            ${matching.proveedorAdjudicado ? `
+              <span class="dossier-chip complete" style="font-size:0.75rem">
+                ${icon("award", 14)} Adjudicado a: <b>${matching.proveedorAdjudicado}</b>
+              </span>
+            ` : ""}
+          </div>
+
+          <!-- Matriz Comparativa B2B -->
+          <div class="selector-matrix-wrap">
+            <table class="selector-matrix-table">
+              <thead>
+                <tr>
+                  <th style="width:180px">Concepto</th>
+                  ${tableColsHTML}
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Oferta Económica</strong></td>
+                  ${priceRowHTML}
+                </tr>
+                <tr>
+                  <td><strong>Plazo de Entrega</strong></td>
+                  ${plazoRowHTML}
+                </tr>
+                <tr>
+                  <td><strong>Condiciones & Pago</strong></td>
+                  ${condRowHTML}
+                </tr>
+                <tr>
+                  <td><strong>Requisitos Técnicos</strong></td>
+                  ${reqsRowHTML}
+                </tr>
+                <tr>
+                  <td><strong>Ficha de Oferta (PDF)</strong></td>
+                  ${fileRowHTML}
+                </tr>
+                <tr>
+                  <td><strong>Acción</strong></td>
+                  ${actionRowHTML}
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Bloque de Marcación de Requisitos Acordados (Apuntes 06 - Tabla 3) -->
+          <div style="padding:20px;border-radius:10px;background:var(--entity-panel);border:1px solid var(--entity-line);margin-bottom:20px">
+            <div style="margin-bottom:12px">
+              <strong style="color:var(--entity-text);font-size:0.9rem">Requisitos Contractuales Exigibles al Proveedor</strong>
+              <p style="margin:2px 0 0;font-size:0.75rem;color:var(--entity-muted)">
+                Marca los requisitos que quedarán formalmente estipulados en la hoja de pedido y delimitación de responsabilidad SOFEIN.
+              </p>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:10px">
+              ${reqChecksHTML}
+            </div>
+          </div>
+
+          <!-- Barra de Acción de Adjudicación -->
+          <div class="selector-action-bar">
+            <div>
+              <strong style="display:block;font-size:0.85rem;color:var(--entity-text)">
+                ${matching.proveedorAdjudicado ? `Adjudicación Seleccionada: ${matching.proveedorAdjudicado}` : "Selecciona un proveedor en la matriz"}
+              </strong>
+              <small style="color:var(--entity-muted);font-size:0.75rem">
+                ${isRoleCliente ? "Al confirmar la adjudicación, SOFEIN validará el pedido para emitir la hoja de contrato (Fase 3)." : "Como Administrador SOFEIN, puedes validar la adjudicación final del cliente."}
+              </small>
+            </div>
+            <div style="display:flex;gap:10px">
+              ${isRoleCliente && matching.proveedorAdjudicado ? `
+                <button class="admin-primary-button" id="confirmAwardBtn" data-exp-id="${exp.id}" type="button">
+                  ${icon("award", 14)} Confirmar Selección de Proveedor y Requisitos
+                </button>
+              ` : isRoleAdmin ? `
+                <button class="admin-primary-button" id="formalizePedidoBtn" data-exp-id="${exp.id}" type="button">
+                  ${icon("check", 14)} Validar Adjudicación y Pasar a Fase 3: Formalización
+                </button>
+              ` : `
+                <span class="dossier-chip info">Esperando confirmación</span>
+              `}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // -------------------------------------------------------------
+    // SUB-FASE 5: ADJUDICADO (PROVEEDOR CONFIRMADO)
+    // -------------------------------------------------------------
+    else if (matching.faseSelector === "adjudicado") {
+      dynamicContentHTML = `
+        <div style="padding:28px;border-radius:12px;background:var(--entity-panel);border:1px solid rgba(82,223,127,0.3);margin-bottom:20px;animation:filterFadeIn 0.25s ease-out">
+          <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px">
+            <span style="display:grid;place-items:center;width:48px;height:48px;border-radius:10px;background:rgba(82,223,127,0.12);color:var(--entity-accent)">
+              ${icon("award", 26)}
+            </span>
+            <div>
+              <div style="display:flex;align-items:center;gap:8px">
+                <span class="dossier-chip complete">✓ Proceso de Selección Completado</span>
+                <span style="font-size:0.75rem;color:var(--entity-muted)">Fase 2 de Cotización Finalizada</span>
+              </div>
+              <h2 style="margin:4px 0 0;font-size:1.4rem;color:var(--entity-text)">Proveedor Adjudicatario: ${matching.proveedorAdjudicado || exp.proveedor}</h2>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:16px;padding:16px 0;border-top:1px solid var(--entity-line);border-bottom:1px solid var(--entity-line);margin-bottom:20px">
+            <div>
+              <span style="font-size:0.68rem;color:var(--entity-faint);text-transform:uppercase;font-weight:600">Presupuesto Cerrado</span>
+              <strong style="display:block;margin-top:4px;color:var(--entity-text);font-size:1.05rem">${exp.presupuestoTotal}</strong>
+            </div>
+            <div>
+              <span style="font-size:0.68rem;color:var(--entity-faint);text-transform:uppercase;font-weight:600">Plazo Acordado</span>
+              <strong style="display:block;margin-top:4px;color:var(--entity-text);font-size:1.05rem">${exp.plazoPactado}</strong>
+            </div>
+            <div>
+              <span style="font-size:0.68rem;color:var(--entity-faint);text-transform:uppercase;font-weight:600">Responsabilidad Técnica</span>
+              <strong style="display:block;margin-top:4px;color:var(--entity-accent);font-size:0.85rem">Fabricante Homologado (Delimitada SOFEIN)</strong>
+            </div>
+          </div>
+
+          <div style="margin-bottom:24px">
+            <strong style="font-size:0.82rem;color:var(--entity-text);display:block;margin-bottom:8px">Requisitos Contractuales Firmados:</strong>
+            <div style="display:flex;flex-wrap:wrap;gap:8px">
+              ${(matching.requisitosExigidosCliente || []).map(r => `<span class="dossier-chip complete">${icon("check", 12)} ${r}</span>`).join("")}
+            </div>
+          </div>
+
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+            <button class="admin-quiet-button" type="button" data-switch-selector-step="comparativa" data-exp-id="${exp.id}">
+              ${icon("table", 14)} Volver a consultar la Matriz Comparativa
+            </button>
+            <button class="admin-primary-button" type="button" data-go="#${activeRole}/expedientes/${exp.id}">
+              ${icon("arrow", 14)} Ir al Expediente (Fase 3: Formalización de Pedido)
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    return `
+      <div class="selector-view-wrap" style="max-width:1200px;margin:0 auto">
+        ${breadcrumbBase}
+
+        <div class="admin-view-head" style="margin-bottom:18px">
+          <div>
+            <h1>Selector y Matching de Proveedores</h1>
+            <p>Expediente estanco <b>${exp.id}</b> · ${exp.producto} (${exp.unidades}) · Destino: <b>${exp.destinatarioFinal}</b></p>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <button class="admin-quiet-button" type="button" data-go="#${activeRole}/expedientes/${exp.id}">
+              ${icon("folder", 14)} Ver Expediente
+            </button>
+          </div>
+        </div>
+
+        <!-- Stepper de 4 Sub-pasos -->
+        <div class="selector-stepper-wrap">
+          ${stepperHTML}
+        </div>
+
+        <!-- Banner de Cumplimiento Legal (Mínimo 3) -->
+        ${legalBannerHTML}
+
+        <!-- Contenido Dinámico de la Sub-fase -->
+        ${dynamicContentHTML}
+      </div>
+    `;
+  }
+
+  /* ============================================================
      EL CONSTRUCTOR DE EXPEDIENTES (LMS/Moodle Modular B2B)
      ============================================================ */
   function renderDossierBuilder(expId) {
@@ -741,6 +1845,23 @@
     // Deliverables / Ranuras Documentales
     let tabContent = "";
     if (activeDossierTab === "deliverables") {
+      const matchingBannerHTML = activeDossierPhase === 1 ? `
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 20px;border-radius:10px;background:var(--entity-panel-2);border:1px solid var(--entity-accent-soft);margin-bottom:18px;animation:filterFadeIn 0.2s ease-out">
+          <div style="display:flex;align-items:center;gap:12px">
+            <span style="display:grid;place-items:center;width:38px;height:38px;border-radius:8px;background:var(--entity-accent-soft);color:var(--entity-accent)">
+              ${icon("users", 20)}
+            </span>
+            <div>
+              <strong style="color:var(--entity-text);font-size:0.92rem">Selector y Matching de Proveedores (Pantalla 2)</strong>
+              <p style="margin:2px 0 0;font-size:0.75rem;color:var(--entity-muted)">Preselección de 3 homologados, solicitud de cotizaciones vinculantes y matriz comparativa de ofertas.</p>
+            </div>
+          </div>
+          <button class="admin-primary-button" type="button" data-go="#${activeRole}/selector/${exp.id}" style="white-space:nowrap">
+            ${icon("arrow", 14)} Abrir Selector de Proveedores
+          </button>
+        </div>
+      ` : "";
+
       const slotsHTML = deliverables.length ? deliverables.map((del, dIdx) => `
         <article class="deliverable-slot">
           <div class="slot-head">
@@ -797,7 +1918,7 @@
         </article>
       `).join("") : `<div style="padding:32px;background:var(--entity-panel);border:1px solid var(--entity-line);border-radius:10px;text-align:center;color:var(--entity-muted)">No hay entregables documentales asignados a esta fase todavía.</div>`;
 
-      tabContent = `<div class="deliverable-slot-grid">${slotsHTML}</div>`;
+      tabContent = `${matchingBannerHTML}<div class="deliverable-slot-grid">${slotsHTML}</div>`;
     } else if (activeDossierTab === "incidents") {
       // Muro de Incidencias & Modificaciones
       const incidentsHTML = exp.incidencias.length ? exp.incidencias.map((inc) => `
@@ -968,6 +2089,9 @@
         <div class="dossier-tabs">
           <button class="dossier-tab-btn ${activeDossierTab === "deliverables" ? "is-active" : ""}" type="button" data-switch-dossier-tab="deliverables">
             ${icon("file", 16)} Ranuras Documentales (Fase ${activeDossierPhase + 1})
+          </button>
+          <button class="dossier-tab-btn" type="button" data-go="#${activeRole}/selector/${exp.id}">
+            ${icon("users", 16)} Selector & Matching de Proveedores
           </button>
           <button class="dossier-tab-btn ${activeDossierTab === "incidents" ? "is-active" : ""}" type="button" data-switch-dossier-tab="incidents">
             ${icon("alert", 16)} Incidencias & Modificaciones
@@ -1447,6 +2571,10 @@
       `;
     }
 
+    if (section === "selector") {
+      return renderSelectorProveedoresView(param || "RFQ-2026-011");
+    }
+
     if (section === "nuevo" || (section === "expedientes" && param === "nuevo")) {
       return renderCreateExpedienteView("admin");
     }
@@ -1483,9 +2611,16 @@
               <strong>${exp.proveedor}</strong>
             </div>
           </div>
-          <div class="admin-exp-actions" style="margin-top:14px;display:flex;justify-content:space-between;align-items:center">
+          <div class="admin-exp-actions" style="margin-top:14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
             <span style="font-size:0.72rem;color:${exp.desviacionDias.includes("+") ? "var(--entity-warning)" : "var(--entity-muted)"}">${exp.plazoRealEstimado} (${exp.desviacionDias})</span>
-            <button class="admin-quiet-button" type="button">Abrir expediente ${icon("arrow", 14)}</button>
+            <div style="display:flex;gap:6px">
+              ${exp.faseActual === 1 ? `
+                <button class="admin-quiet-button" type="button" data-go="#admin/selector/${exp.id}" style="color:var(--entity-accent);font-size:0.75rem">
+                  ${icon("users", 13)} Selector & Matching
+                </button>
+              ` : ""}
+              <button class="admin-quiet-button" type="button">Abrir expediente ${icon("arrow", 14)}</button>
+            </div>
           </div>
         </article>
       `).join("") : `<div style="grid-column:1/-1;padding:48px 24px;text-align:center;color:var(--entity-muted);background:var(--entity-panel);border-radius:10px;border:1px solid var(--entity-line)">No se han encontrado expedientes que coincidan con "<b>${expSearchQuery}</b>".</div>`;
@@ -1745,6 +2880,10 @@
      VISTAS: CLIENTE (CONSTRUCTOR DE VÍA)
      ============================================================ */
   function renderClienteView(section, param) {
+    if (section === "selector") {
+      return renderSelectorProveedoresView(param || "RFQ-2026-011");
+    }
+
     if (section === "nuevo" || (section === "expedientes" && param === "nuevo")) {
       return renderCreateExpedienteView("cliente");
     }
@@ -1781,9 +2920,16 @@
               <strong class="${exp.desviacionDias.includes("+") ? "admin-due" : ""}">${exp.plazoRealEstimado}</strong>
             </div>
           </div>
-          <div class="admin-exp-actions" style="margin-top:14px;display:flex;justify-content:space-between;align-items:center">
+          <div class="admin-exp-actions" style="margin-top:14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
             <span style="font-size:0.72rem;color:var(--entity-muted)">${exp.presupuestoTotal}</span>
-            <button class="admin-quiet-button" type="button">Abrir expediente ${icon("arrow", 14)}</button>
+            <div style="display:flex;gap:6px">
+              ${exp.faseActual === 1 ? `
+                <button class="admin-quiet-button" type="button" data-go="#cliente/selector/${exp.id}" style="color:var(--entity-accent);font-size:0.75rem">
+                  ${icon("users", 13)} Selector de Proveedores
+                </button>
+              ` : ""}
+              <button class="admin-quiet-button" type="button">Abrir expediente ${icon("arrow", 14)}</button>
+            </div>
           </div>
         </article>
       `).join("") : `<div style="grid-column:1/-1;padding:48px 24px;text-align:center;color:var(--entity-muted);background:var(--entity-panel);border-radius:10px;border:1px solid var(--entity-line)">No se han encontrado expedientes que coincidan con "<b>${expSearchQuery}</b>".</div>`;
@@ -1882,6 +3028,10 @@
      VISTAS: PROVEEDOR HOMOLOGADO
      ============================================================ */
   function renderProveedorView(section, param) {
+    if (section === "selector") {
+      return renderSelectorProveedoresView(param || "RFQ-2026-011");
+    }
+
     if (section === "expedientes") {
       if (param) return renderDossierBuilder(param);
 
@@ -1974,8 +3124,8 @@
               <p style="margin:0;color:var(--entity-muted);font-size:0.8rem">Volumen solicitado: 1.200 toneladas · Plazo objetivo cliente: 60 días</p>
             </div>
             <div style="display:flex;gap:10px">
-              <button class="admin-primary-button" type="button" data-toast="Oferta económica confirmada y trasladada a SOFEIN">
-                ${icon("check", 14)} Enviar oferta vinculante
+              <button class="admin-primary-button" type="button" data-go="#proveedor/selector/RFQ-2026-011">
+                ${icon("file", 14)} Abrir Cotización & Responder Oferta
               </button>
             </div>
           </div>
@@ -2674,6 +3824,328 @@
         directorioViewMode = btn.dataset.dirMode;
         renderApp();
       });
+    });
+
+    /* ---------- Eventos del Selector y Matching de Proveedores (Pantalla 2) ---------- */
+    // 1. Navegación directa entre sub-fases del selector (stepper)
+    document.querySelectorAll("[data-switch-selector-step]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const targetStep = btn.dataset.switchSelectorStep;
+        const expId = btn.dataset.expId;
+        const exp = getActiveExpediente(expId);
+        const matching = ensureExpedienteMatching(exp);
+        matching.faseSelector = targetStep;
+        renderApp();
+      });
+    });
+
+    // 2. Toggle de preselección por SOFEIN Admin (Paso 1)
+    document.querySelectorAll("[data-preselect-prv]").forEach(chk => {
+      chk.addEventListener("change", e => {
+        const prvId = chk.dataset.preselectPrv;
+        const exp = getActiveExpediente(chk.dataset.expId);
+        const matching = ensureExpedienteMatching(exp);
+        const set = new Set(matching.proveedoresPreseleccionadosPorAdmin);
+        if (e.target.checked) {
+          set.add(prvId);
+        } else {
+          set.delete(prvId);
+        }
+        matching.proveedoresPreseleccionadosPorAdmin = Array.from(set);
+        renderApp();
+      });
+    });
+
+    // 3. SOFEIN Admin aprueba preselección (Paso 1 -> Paso 2)
+    document.getElementById("approvePreselectionBtn")?.addEventListener("click", e => {
+      const exp = getActiveExpediente(e.currentTarget.dataset.expId);
+      const matching = ensureExpedienteMatching(exp);
+      if (matching.proveedoresPreseleccionadosPorAdmin.length < 3) {
+        showToast("⚠️ Debes preseleccionar al menos 3 proveedores para cumplir la normativa ferroviaria");
+        return;
+      }
+      matching.faseSelector = "seleccion_cliente";
+      // Inicializar selección cliente si estaba vacía
+      if (!matching.proveedoresSeleccionadosPorCliente.length) {
+        matching.proveedoresSeleccionadosPorCliente = [...matching.proveedoresPreseleccionadosPorAdmin.slice(0, 3)];
+      }
+      NOTICES.unshift({
+        id: `AV-0${NOTICES.length + 1}`,
+        expId: exp.id,
+        categoria: "Matching / Cotizaciones",
+        tagClass: "complete",
+        titulo: `Preselección de proveedores completada (${exp.id})`,
+        descripcion: `SOFEIN ha aprobado la preselección de ${matching.proveedoresPreseleccionadosPorAdmin.length} talleres homologados. El constructor ya puede seleccionar a quién solicitar oferta.`,
+        fecha: "Hoy, ahora",
+        roles: ["admin", "cliente"],
+        accion: "Ver Preselección",
+        enlace: `#cliente/selector/${exp.id}`
+      });
+      showToast(`✓ Preselección aprobada. El constructor ha recibido aviso para seleccionar talleres.`);
+      renderApp();
+    });
+
+    // 4. Toggle de selección por el Cliente (Paso 2)
+    document.querySelectorAll("[data-client-select-prv]").forEach(chk => {
+      chk.addEventListener("change", e => {
+        const prvId = chk.dataset.clientSelectPrv;
+        const exp = getActiveExpediente(chk.dataset.expId);
+        const matching = ensureExpedienteMatching(exp);
+        const set = new Set(matching.proveedoresSeleccionadosPorCliente);
+        if (e.target.checked) {
+          set.add(prvId);
+        } else {
+          set.delete(prvId);
+        }
+        matching.proveedoresSeleccionadosPorCliente = Array.from(set);
+        renderApp();
+      });
+    });
+
+    // 5. Cliente solicita cotizaciones formales (Paso 2 -> Paso 3)
+    document.getElementById("requestClientQuotesBtn")?.addEventListener("click", e => {
+      const exp = getActiveExpediente(e.currentTarget.dataset.expId);
+      const matching = ensureExpedienteMatching(exp);
+      if (matching.proveedoresSeleccionadosPorCliente.length === 0) {
+        showToast("⚠️ Selecciona al menos un taller para solicitar cotización");
+        return;
+      }
+      matching.faseSelector = "peticion_cotizaciones";
+      // Inicializar estado de cotizaciones
+      matching.proveedoresSeleccionadosPorCliente.forEach(pId => {
+        if (!matching.cotizaciones[pId]) {
+          const prv = DIRECTORIO_PROVEEDORES.find(p => p.id === pId);
+          matching.cotizaciones[pId] = {
+            proveedorId: pId,
+            nombre: prv ? prv.nombre : pId,
+            cif: prv ? prv.cif : "",
+            sede: prv ? prv.sede : "",
+            estado: "pendiente"
+          };
+        }
+      });
+      NOTICES.unshift({
+        id: `AV-0${NOTICES.length + 1}`,
+        expId: exp.id,
+        categoria: "Cotización Vinculante",
+        tagClass: "warning",
+        titulo: `Nueva solicitud de cotización para ${exp.id}`,
+        descripcion: `SOFEIN ha remitido la solicitud de oferta económica y técnica para el suministro de ${exp.producto}.`,
+        fecha: "Hoy, ahora",
+        roles: ["admin", "proveedor"],
+        accion: "Enviar Cotización",
+        enlace: `#proveedor/selector/${exp.id}`
+      });
+      showToast(`✓ Petición formal de cotización enviada a ${matching.proveedoresSeleccionadosPorCliente.length} talleres.`);
+      renderApp();
+    });
+
+    // 5B. Admin emite petición de ofertas ciega
+    document.getElementById("emitRfqOrdersBtn")?.addEventListener("click", e => {
+      const exp = getActiveExpediente(e.currentTarget.dataset.expId);
+      const matching = ensureExpedienteMatching(exp);
+      matching.faseSelector = "peticion_cotizaciones";
+      showToast("✓ Petición de cotizaciones ciega emitida a talleres.");
+      renderApp();
+    });
+
+    // 6. Simular recepción de cotizaciones (Helper Demo para reuniones)
+    document.getElementById("simulateAllQuotesBtn")?.addEventListener("click", e => {
+      const exp = getActiveExpediente(e.currentTarget.dataset.expId);
+      const matching = ensureExpedienteMatching(exp);
+      const selectedIds = matching.proveedoresSeleccionadosPorCliente.length
+        ? matching.proveedoresSeleccionadosPorCliente
+        : matching.proveedoresPreseleccionadosPorAdmin.slice(0, 3);
+
+      selectedIds.forEach((pId, idx) => {
+        const prv = DIRECTORIO_PROVEEDORES.find(p => p.id === pId) || DIRECTORIO_PROVEEDORES[0];
+        const prices = ["945 €/t", "960 €/t", "930 €/t", "33,50 €/ud", "34,20 €/ud", "32,80 €/ud"];
+        const totals = ["1.134.000 €", "1.152.000 €", "1.116.000 €", "485.750 €", "495.900 €", "475.600 €"];
+        const delivery = ["8 semanas (56 días)", "7 semanas (49 días)", "9 semanas (63 días)"];
+        matching.cotizaciones[pId] = {
+          proveedorId: pId,
+          nombre: prv.nombre,
+          cif: prv.cif,
+          sede: prv.sede,
+          precioUnitario: prices[idx % prices.length],
+          precioTotal: totals[idx % totals.length],
+          plazoSemanas: delivery[idx % delivery.length],
+          desviacionPlazoDias: idx === 1 ? -7 : idx === 2 ? +3 : -4,
+          validezOferta: "45 días",
+          condicionesPago: prv.condicionesPago || "60 días confirmada",
+          garantia: "10 años trazabilidad total",
+          puntuacionTecnica: `${95 + idx}/100`,
+          requisitosConfirmados: prv.requisitosQueCumple || ["Trazabilidad completa"],
+          archivoOferta: `Oferta-${prv.nombre.split(" ")[0]}-${exp.id}.pdf`,
+          estado: "recibida",
+          fechaEnvio: "Hoy, hace unos minutos"
+        };
+      });
+      matching.faseSelector = "comparativa";
+      showToast("✓ Todas las cotizaciones recibidas. Matriz comparativa habilitada.");
+      renderApp();
+    });
+
+    // 7. Formulario de cotización de Proveedor (Paso 3)
+    document.getElementById("providerQuoteForm")?.addEventListener("submit", e => {
+      e.preventDefault();
+      const expId = e.currentTarget.dataset.expId;
+      const exp = getActiveExpediente(expId);
+      const matching = ensureExpedienteMatching(exp);
+      const unitPrice = document.getElementById("quoteUnitPrice")?.value || "945 €/t";
+      const totalPrice = document.getElementById("quoteTotalPrice")?.value || "1.134.000 €";
+      const delivery = document.getElementById("quoteDeliveryTime")?.value || "8 semanas";
+      const payment = document.getElementById("quotePaymentCond")?.value || "60 días confirmada";
+      const validity = document.getElementById("quoteValidity")?.value || "45 días";
+
+      const prvId = "PRV-01"; // Proveedor por defecto IberRail
+      matching.cotizaciones[prvId] = {
+        proveedorId: prvId,
+        nombre: "IberRail Components, S.L.",
+        cif: "B-48192837",
+        sede: "Amurrio (Álava) / Bilbao",
+        precioUnitario: unitPrice,
+        precioTotal: totalPrice,
+        plazoSemanas: delivery,
+        desviacionPlazoDias: 0,
+        validezOferta: validity,
+        condicionesPago: payment,
+        garantia: "10 años trazabilidad total",
+        puntuacionTecnica: "98/100",
+        requisitosConfirmados: [
+          "Certificación de ensayos mecánicos en laboratorio ENAC",
+          "Trazabilidad de colada / lote con código individual QR",
+          "Cumplimiento estricto de especificación técnica y tolerancias"
+        ],
+        archivoOferta: `Oferta-IberRail-${exp.id}.pdf`,
+        estado: "recibida",
+        fechaEnvio: "Hoy, ahora"
+      };
+
+      NOTICES.unshift({
+        id: `AV-0${NOTICES.length + 1}`,
+        expId: exp.id,
+        categoria: "Cotización Recibida",
+        tagClass: "complete",
+        titulo: `Cotización recibida de IberRail Components (${exp.id})`,
+        descripcion: `Oferta vinculante de ${totalPrice} con plazo de ${delivery}. Disponible para validación en la matriz comparativa.`,
+        fecha: "Hoy, ahora",
+        roles: ["admin", "cliente"],
+        accion: "Ver Comparativa",
+        enlace: `#admin/selector/${exp.id}`
+      });
+
+      matching.faseSelector = "comparativa";
+      showToast("✓ Cotización vinculante remitida con éxito a SOFEIN.");
+      renderApp();
+    });
+
+    // 8. Botón rápido "Abrir Matriz Comparativa"
+    document.getElementById("goToComparisonBtn")?.addEventListener("click", e => {
+      const exp = getActiveExpediente(e.currentTarget.dataset.expId);
+      const matching = ensureExpedienteMatching(exp);
+      matching.faseSelector = "comparativa";
+      renderApp();
+    });
+
+    // 9. Cliente selecciona proveedor ganador en la matriz (Paso 4)
+    document.querySelectorAll("[data-select-winning-prv]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const prvName = btn.dataset.selectWinningPrv;
+        const exp = getActiveExpediente(btn.dataset.expId);
+        const matching = ensureExpedienteMatching(exp);
+        matching.proveedorAdjudicado = prvName;
+        showToast(`Proveedor seleccionado: ${prvName}`);
+        renderApp();
+      });
+    });
+
+    // 10. Checkboxes de requisitos exigibles en adjudicación (Apuntes 06)
+    document.querySelectorAll("[data-req-exigible-check]").forEach(chk => {
+      chk.addEventListener("change", e => {
+        const reqText = chk.dataset.reqExigibleCheck;
+        const exp = getActiveExpediente(chk.dataset.expId);
+        const matching = ensureExpedienteMatching(exp);
+        const set = new Set(matching.requisitosExigidosCliente);
+        if (e.target.checked) {
+          set.add(reqText);
+        } else {
+          set.delete(reqText);
+        }
+        matching.requisitosExigidosCliente = Array.from(set);
+      });
+    });
+
+    // 11. Confirmar adjudicación (Cliente)
+    document.getElementById("confirmAwardBtn")?.addEventListener("click", e => {
+      const exp = getActiveExpediente(e.currentTarget.dataset.expId);
+      const matching = ensureExpedienteMatching(exp);
+      if (!matching.proveedorAdjudicado) {
+        showToast("⚠️ Selecciona primero un proveedor de la matriz");
+        return;
+      }
+      matching.faseSelector = "adjudicado";
+      exp.proveedor = matching.proveedorAdjudicado;
+      // Actualizar presupuesto del expediente al precio de la oferta adjudicada
+      const quote = Object.values(matching.cotizaciones).find(q => q.nombre === matching.proveedorAdjudicado);
+      if (quote && quote.precioTotal) {
+        exp.presupuestoTotal = quote.precioTotal;
+        exp.plazoPactado = quote.plazoSemanas;
+      }
+
+      NOTICES.unshift({
+        id: `AV-0${NOTICES.length + 1}`,
+        expId: exp.id,
+        categoria: "Adjudicación Formal",
+        tagClass: "complete",
+        titulo: `Proveedor adjudicado para ${exp.id}: ${matching.proveedorAdjudicado}`,
+        descripcion: `El constructor ha seleccionado a ${matching.proveedorAdjudicado}. Requisitos exigidos registrados. SOFEIN debe formalizar la hoja de pedido.`,
+        fecha: "Hoy, ahora",
+        roles: ["admin", "cliente", "proveedor"],
+        accion: "Formalizar Pedido",
+        enlace: `#admin/selector/${exp.id}`
+      });
+
+      showToast(`✓ Adjudicación confirmada para ${matching.proveedorAdjudicado}.`);
+      renderApp();
+    });
+
+    // 12. Admin valida adjudicación y avanza a Formalización de Pedido (Fase 3)
+    document.getElementById("formalizePedidoBtn")?.addEventListener("click", e => {
+      const exp = getActiveExpediente(e.currentTarget.dataset.expId);
+      const matching = ensureExpedienteMatching(exp);
+      if (!matching.proveedorAdjudicado) {
+        const firstQuote = Object.values(matching.cotizaciones)[0];
+        matching.proveedorAdjudicado = firstQuote ? firstQuote.nombre : exp.proveedor;
+      }
+      matching.faseSelector = "adjudicado";
+      exp.proveedor = matching.proveedorAdjudicado;
+      exp.faseActual = 2; // Avanza a Fase 3 (num 3: Formalización de Pedido)
+      activeDossierPhase = 2;
+
+      // Registrar entregable de formalización
+      if (!exp.deliverables[2] || exp.deliverables[2].length === 0) {
+        exp.deliverables[2] = [
+          { name: "Hoja de Pedido Formalizada (Delimitación Responsabilidad)", owner: "SOFEIN", state: "review", format: "PDF", file: `Hoja-Pedido-${exp.id}.pdf`, date: "Hoy" },
+          { name: "Acuerdo Marco Plataforma y Condiciones de Suministro", owner: "Cliente", state: "complete", format: "Digital", file: `Acuerdo-Marco-${exp.cliente.split(" ")[0]}.pdf`, date: "Hoy" }
+        ];
+      }
+
+      NOTICES.unshift({
+        id: `AV-0${NOTICES.length + 1}`,
+        expId: exp.id,
+        categoria: "Formalización",
+        tagClass: "complete",
+        titulo: `Expediente ${exp.id} avanzado a Formalización de Pedido`,
+        descripcion: `Adjudicación acreditada para ${matching.proveedorAdjudicado}. Hoja de pedido y acuerdo tripartito emitidos.`,
+        fecha: "Hoy, ahora",
+        roles: ["admin", "cliente"],
+        accion: "Ver Pedido",
+        enlace: `#admin/expedientes/${exp.id}`
+      });
+
+      showToast(`✓ Adjudicación validada. Expediente avanzado a Fase 3 (Formalización).`);
+      location.hash = `#admin/expedientes/${exp.id}`;
     });
 
     // Toasts genéricos

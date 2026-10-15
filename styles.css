@@ -3446,3 +3446,349 @@ select:focus,
   border: 1px solid var(--entity-line-strong);
   animation: filterFadeIn 0.2s ease-out;
 }
+
+/* ============================================================
+   PANTALLA 2: SELECTOR Y MATCHING DE PROVEEDORES (FASE DE COTIZACIONES)
+   ============================================================ */
+
+.selector-stepper-wrap {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 860px) {
+  .selector-stepper-wrap {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .selector-stepper-wrap {
+    grid-template-columns: 1fr;
+  }
+}
+
+.selector-substep {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: var(--entity-panel);
+  border: 1px solid var(--entity-line);
+  transition: all 0.2s ease;
+}
+
+.selector-substep.is-active {
+  border-color: var(--entity-accent);
+  background: var(--entity-panel-2);
+  box-shadow: 0 0 0 1px var(--entity-accent-soft);
+}
+
+.selector-substep.is-done {
+  border-color: var(--entity-line-strong);
+  opacity: 0.9;
+}
+
+.selector-substep-num {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  font-size: 0.72rem;
+  font-weight: 700;
+  background: var(--entity-panel-2);
+  color: var(--entity-muted);
+  border: 1px solid var(--entity-line);
+  flex-shrink: 0;
+}
+
+.selector-substep.is-active .selector-substep-num {
+  background: var(--entity-accent);
+  color: var(--entity-accent-ink);
+  border-color: var(--entity-accent);
+}
+
+.selector-substep.is-done .selector-substep-num {
+  background: var(--entity-panel-2);
+  color: var(--entity-accent);
+  border-color: var(--entity-accent);
+}
+
+.selector-substep-text {
+  min-width: 0;
+}
+
+.selector-substep-text strong {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--entity-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.selector-substep-text small {
+  display: block;
+  font-size: 0.68rem;
+  color: var(--entity-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Legal/Normative Alert */
+.selector-legal-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 18px;
+  border-radius: 8px;
+  background: rgba(82, 223, 127, 0.05);
+  border: 1px solid rgba(82, 223, 127, 0.22);
+  margin-bottom: 22px;
+}
+
+.selector-legal-banner p {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--entity-muted);
+  line-height: 1.45;
+}
+
+.selector-legal-banner strong {
+  color: var(--entity-text);
+}
+
+/* Provider Matching Cards Grid */
+.selector-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.selector-provider-card {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  border-radius: 10px;
+  background: var(--entity-panel);
+  border: 1px solid var(--entity-line);
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.selector-provider-card:hover {
+  border-color: var(--entity-line-strong);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.selector-provider-card.is-selected {
+  border-color: var(--entity-accent);
+  background: var(--entity-panel-2);
+  box-shadow: 0 0 0 1px var(--entity-accent);
+}
+
+.selector-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.selector-provider-badge-score {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(82, 223, 127, 0.12);
+  color: var(--entity-accent);
+  white-space: nowrap;
+}
+
+.selector-homologations {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.selector-homologation-chip {
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: var(--entity-bg);
+  border: 1px solid var(--entity-line);
+  color: var(--entity-muted);
+}
+
+.selector-metrics-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 10px 0;
+  border-top: 1px solid var(--entity-line);
+  border-bottom: 1px solid var(--entity-line);
+  margin-bottom: 14px;
+}
+
+.selector-metric-item span {
+  display: block;
+  font-size: 0.66rem;
+  color: var(--entity-faint);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.selector-metric-item strong {
+  display: block;
+  font-size: 0.82rem;
+  color: var(--entity-text);
+  margin-top: 2px;
+}
+
+.selector-reqs-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-grow: 1;
+}
+
+.selector-reqs-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.74rem;
+  color: var(--entity-muted);
+  line-height: 1.35;
+}
+
+.selector-reqs-list li svg {
+  flex-shrink: 0;
+  color: var(--entity-accent);
+  margin-top: 2px;
+}
+
+.selector-card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px dashed var(--entity-line);
+}
+
+/* Comparison Matrix (Fase 4) */
+.selector-matrix-wrap {
+  overflow-x: auto;
+  border-radius: 10px;
+  border: 1px solid var(--entity-line);
+  background: var(--entity-panel);
+  margin-bottom: 24px;
+}
+
+.selector-matrix-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.8rem;
+}
+
+.selector-matrix-table th,
+.selector-matrix-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--entity-line);
+  vertical-align: top;
+}
+
+.selector-matrix-table th {
+  background: var(--entity-panel-2);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--entity-faint);
+  font-weight: 600;
+}
+
+.selector-matrix-table tr:last-child td {
+  border-bottom: none;
+}
+
+.selector-matrix-table tr:hover td {
+  background: rgba(255, 255, 255, 0.015);
+}
+
+.selector-quote-price {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--entity-text);
+}
+
+.selector-quote-unit {
+  font-size: 0.72rem;
+  color: var(--entity-muted);
+  margin-left: 4px;
+}
+
+/* Requirements Checkboxes in Adjudication */
+.selector-req-check-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 6px;
+  background: var(--entity-bg);
+  border: 1px solid var(--entity-line);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.selector-req-check-item:hover {
+  border-color: var(--entity-accent);
+}
+
+.selector-req-check-item input[type="checkbox"] {
+  accent-color: var(--entity-accent);
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.selector-req-check-item span {
+  font-size: 0.78rem;
+  color: var(--entity-text);
+  font-weight: 500;
+}
+
+/* Bottom Action Bar */
+.selector-action-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 18px 24px;
+  border-radius: 10px;
+  background: var(--entity-panel);
+  border: 1px solid var(--entity-line);
+}
+
+@media (max-width: 640px) {
+  .selector-action-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
