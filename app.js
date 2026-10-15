@@ -416,6 +416,7 @@
   let discardedNotices = new Set();
   let showDiscardedAvisos = false;
   let directorioViewMode = "table"; // "table" | "grid"
+  let previousRouteKey = null;
 
   function parseHash() {
     const raw = location.hash.replace(/^#\/?/, "");
@@ -919,250 +920,266 @@
   /* ============================================================
      VISTAS: SOFEIN ADMIN
      ============================================================ */
+  const OVERVIEW_FILTER_LABELS = {
+    validados: "Entregables técnicos validados y conformes (18)",
+    review: "Entregables en revisión por SOFEIN (5)",
+    pending: "Entregables pendientes de carga por taller o cliente (8)",
+    futuras: "Ranuras de fases futuras (12)",
+    expedientes: "Expedientes ferroviarios activos (4)",
+    incidencias: "Incidencias y mediaciones en curso (1)",
+    proveedores: "Talleres y proveedores homologados (6)"
+  };
+
+  function getOverviewFilterHTML(filter) {
+    let filterResultsHTML = "";
+    if (filter === "review") {
+      filterResultsHTML = `
+        <div class="admin-section-head">
+          <div>
+            <h2>Documentación en Revisión por SOFEIN (5)</h2>
+            <p>Entregables subidos que requieren verificación técnica y firma de conformidad.</p>
+          </div>
+        </div>
+        <div class="admin-alert-list">
+          <div class="admin-alert-row is-urgent">
+            <span class="admin-deadline">En revisión</span>
+            <strong>Certificado de ensayos mecánicos EN 13230</strong>
+            <span>RFQ-2026-014</span>
+            <span>IberRail Components</span>
+            <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-014">Validar</button>
+          </div>
+          <div class="admin-alert-row is-urgent">
+            <span class="admin-deadline">En revisión</span>
+            <strong>Oferta económica vinculante Norte Vía (54E1)</strong>
+            <span>RFQ-2026-011</span>
+            <span>Norte Vía Industrial</span>
+            <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-011">Validar</button>
+          </div>
+          <div class="admin-alert-row is-urgent">
+            <span class="admin-deadline">En revisión</span>
+            <strong>Acta de descarga y pesaje a pie de vía</strong>
+            <span>RFQ-2026-009</span>
+            <span>FGC Terrassa - Sabadell</span>
+            <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-009">Validar</button>
+          </div>
+          <div class="admin-alert-row is-urgent">
+            <span class="admin-deadline">En revisión</span>
+            <strong>Póliza de suministro y hoja de pedido formalizada</strong>
+            <span>RFQ-2026-022</span>
+            <span>Madera Vía Ibérica</span>
+            <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-022">Validar</button>
+          </div>
+          <div class="admin-alert-row is-urgent">
+            <span class="admin-deadline">En revisión</span>
+            <strong>Conformidad técnica de lote de traviesas</strong>
+            <span>RFQ-2026-014</span>
+            <span>Infraestructuras del Norte</span>
+            <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-014">Validar</button>
+          </div>
+        </div>
+      `;
+    } else if (filter === "pending") {
+      filterResultsHTML = `
+        <div class="admin-section-head">
+          <div>
+            <h2>Entregables Pendientes de Entrega (8)</h2>
+            <p>Ranuras documentales de fases activas con entrega requerida.</p>
+          </div>
+        </div>
+        <div class="admin-alert-list">
+          <div class="admin-alert-row">
+            <span class="admin-deadline" style="color:var(--entity-warning)">Pendiente taller</span>
+            <strong>Certificado de lote homologado (Fase 4)</strong>
+            <span>RFQ-2026-014</span>
+            <span>IberRail Components</span>
+            <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-014">Requerir</button>
+          </div>
+          <div class="admin-alert-row">
+            <span class="admin-deadline" style="color:var(--entity-warning)">Pendiente taller</span>
+            <strong>Plan logístico y transporte ferroviario especial</strong>
+            <span>RFQ-2026-014</span>
+            <span>IberRail Components</span>
+            <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-014">Requerir</button>
+          </div>
+          <div class="admin-alert-row">
+            <span class="admin-deadline" style="color:var(--entity-warning)">Pendiente cliente</span>
+            <strong>Selección de proveedor para cotización vinculante</strong>
+            <span>RFQ-2026-011</span>
+            <span>Metro de Bilbao</span>
+            <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-011">Avisar</button>
+          </div>
+        </div>
+      `;
+    } else if (filter === "validados") {
+      filterResultsHTML = `
+        <div class="admin-section-head">
+          <div>
+            <h2>Documentos Técnicos Validados y Conformes (18)</h2>
+            <p>Pliegos, planos y certificados con visto bueno y firma de trazabilidad SOFEIN.</p>
+          </div>
+        </div>
+        <div class="admin-alert-list">
+          <div class="admin-alert-row">
+            <span class="admin-deadline" style="color:var(--entity-accent)">✓ Conforme</span>
+            <strong>Especificación técnica y trazabilidad Adif 03.360.501</strong>
+            <span>RFQ-2026-011</span>
+            <span>SOFEIN Verificado</span>
+            <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-011">Ver</button>
+          </div>
+          <div class="admin-alert-row">
+            <span class="admin-deadline" style="color:var(--entity-accent)">✓ Conforme</span>
+            <strong>Ensayo dinámico y fatiga EN 13481 (Sujeciones SKL-14)</strong>
+            <span>RFQ-2026-009</span>
+            <span>Laboratorio Homologado</span>
+            <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-009">Ver</button>
+          </div>
+          <div class="admin-alert-row">
+            <span class="admin-deadline" style="color:var(--entity-accent)">✓ Conforme</span>
+            <strong>Ficha técnica de lote y análisis de material (PR-22)</strong>
+            <span>RFQ-2026-014</span>
+            <span>IberRail Components</span>
+            <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-014">Ver</button>
+          </div>
+        </div>
+      `;
+    } else if (filter === "futuras") {
+      filterResultsHTML = `
+        <div class="admin-section-head">
+          <div>
+            <h2>Ranuras de Fases Futuras (12)</h2>
+            <p>Requisitos de recepción en obra, liquidación y emisión de Pasaporte Digital SOFEIN.</p>
+          </div>
+        </div>
+        <div class="admin-alert-list">
+          <div class="admin-alert-row">
+            <span class="admin-deadline">Fase 6: Recepción</span>
+            <strong>Acta de Descarga a Pie de Vía (Medina del Campo)</strong>
+            <span>RFQ-2026-022</span>
+            <span>Programada</span>
+            <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-022">Ver</button>
+          </div>
+          <div class="admin-alert-row">
+            <span class="admin-deadline">Fase 7: Cierre</span>
+            <strong>Pasaporte Digital SOFEIN (Factoría Volkswagen)</strong>
+            <span>RFQ-2026-014</span>
+            <span>Generación final</span>
+            <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-014">Ver</button>
+          </div>
+        </div>
+      `;
+    } else if (filter === "expedientes") {
+      filterResultsHTML = `
+        <div class="admin-section-head">
+          <div>
+            <h2>Expedientes Ferroviarios Activos (4)</h2>
+            <p>Lotes de superestructura y componentes bajo supervisión SOFEIN.</p>
+          </div>
+          <button class="admin-quiet-button" type="button" data-go="#admin/expedientes">Ver todos en bandeja ${icon("arrow", 14)}</button>
+        </div>
+        <div class="admin-alert-list">
+          ${EXPEDIENTES.map(e => `
+            <div class="admin-alert-row">
+              <span class="admin-deadline" style="color:var(--entity-accent)">${e.id}</span>
+              <strong>${e.producto}</strong>
+              <span>${e.cliente}</span>
+              <span>${e.plazoRealEstimado}</span>
+              <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/${e.id}">Abrir</button>
+            </div>
+          `).join("")}
+        </div>
+      `;
+    } else if (filter === "incidencias") {
+      filterResultsHTML = `
+        <div class="admin-section-head">
+          <div>
+            <h2>Incidencias en Mediación Activa (1)</h2>
+            <p>Alteraciones de fabricación o plazos sometidas al procedimiento de mediación SOFEIN (Apuntes 06).</p>
+          </div>
+        </div>
+        <div class="admin-alert-list">
+          <div class="admin-alert-row is-critical">
+            <span class="admin-deadline">Mediación</span>
+            <strong>Propuesta de mediación (curado Lote B por ola de calor)</strong>
+            <span>RFQ-2026-014</span>
+            <span>Pendiente de firma del constructor</span>
+            <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-014">Gestionar Mediación</button>
+          </div>
+        </div>
+      `;
+    } else if (filter === "proveedores") {
+      filterResultsHTML = `
+        <div class="admin-section-head">
+          <div>
+            <h2>Proveedores y Talleres Homologados</h2>
+            <p>Talleres acreditados con índice de fiabilidad de entrega superior al 94%.</p>
+          </div>
+          <button class="admin-quiet-button" type="button" data-go="#admin/directorio">Ir al directorio ${icon("arrow", 14)}</button>
+        </div>
+        <div class="admin-alert-list">
+          ${DIRECTORIO_PROVEEDORES.map(p => `
+            <div class="admin-alert-row">
+              <span class="admin-deadline" style="color:var(--entity-accent)">${p.id}</span>
+              <strong>${p.nombre}</strong>
+              <span>${p.sede}</span>
+              <span>Score: ${p.score}</span>
+              <button class="admin-quiet-button" type="button" data-go="#admin/directorio">Ficha</button>
+            </div>
+          `).join("")}
+        </div>
+      `;
+    } else {
+      filterResultsHTML = `
+        <div class="admin-section-head">
+          <div>
+            <h2>Alertas operativas prioritarias</h2>
+            <p>Requerimientos y firmas pendientes ordenados por urgencia de obra.</p>
+          </div>
+          <span>3 activas</span>
+        </div>
+        <div class="admin-alert-list">
+          <div class="admin-alert-row is-critical">
+            <span class="admin-deadline">Urgente</span>
+            <strong>Propuesta de mediación (curado Lote B)</strong>
+            <span>RFQ-2026-014</span>
+            <span>Pendiente firma constructor</span>
+            <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-014">Revisar</button>
+          </div>
+          <div class="admin-alert-row is-urgent">
+            <span class="admin-deadline">En revisión</span>
+            <strong>Certificado de ensayos EN 13230</strong>
+            <span>RFQ-2026-014</span>
+            <span>IberRail Components</span>
+            <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-014">Validar</button>
+          </div>
+          <div class="admin-alert-row">
+            <span class="admin-deadline" style="color:var(--entity-accent)">En plazo</span>
+            <strong>Preselección de 3 laminadores</strong>
+            <span>RFQ-2026-011</span>
+            <span>Metro Bilbao</span>
+            <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-011">Ver ofertas</button>
+          </div>
+        </div>
+      `;
+    }
+
+    const isFiltered = !!filter;
+    return `
+      ${isFiltered ? `
+        <div class="overview-filter-bar">
+          <span>Filtrando vista por: <b>${OVERVIEW_FILTER_LABELS[filter] || filter}</b></span>
+          <button class="admin-quiet-button" type="button" data-clear-overview-filter style="color:var(--entity-accent)">
+            ${icon("x", 12)} Restablecer filtro (Ver alertas)
+          </button>
+        </div>
+      ` : ""}
+      <section class="admin-alerts">
+        ${filterResultsHTML}
+      </section>
+    `;
+  }
+
   function renderAdminView(section, param) {
     if (section === "overview") {
-      const isFiltered = !!overviewFilter;
-      const filterLabels = {
-        validados: "Entregables técnicos validados y conformes (18)",
-        review: "Entregables en revisión por SOFEIN (5)",
-        pending: "Entregables pendientes de carga por taller o cliente (8)",
-        futuras: "Ranuras de fases futuras (12)",
-        expedientes: "Expedientes ferroviarios activos (4)",
-        incidencias: "Incidencias y mediaciones en curso (1)",
-        proveedores: "Talleres y proveedores homologados (6)"
-      };
-
-      let filterResultsHTML = "";
-      if (overviewFilter === "review") {
-        filterResultsHTML = `
-          <div class="admin-section-head">
-            <div>
-              <h2>Documentación en Revisión por SOFEIN (5)</h2>
-              <p>Entregables subidos que requieren verificación técnica y firma de conformidad.</p>
-            </div>
-          </div>
-          <div class="admin-alert-list">
-            <div class="admin-alert-row is-urgent">
-              <span class="admin-deadline">En revisión</span>
-              <strong>Certificado de ensayos mecánicos EN 13230</strong>
-              <span>RFQ-2026-014</span>
-              <span>IberRail Components</span>
-              <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-014">Validar</button>
-            </div>
-            <div class="admin-alert-row is-urgent">
-              <span class="admin-deadline">En revisión</span>
-              <strong>Oferta económica vinculante Norte Vía (54E1)</strong>
-              <span>RFQ-2026-011</span>
-              <span>Norte Vía Industrial</span>
-              <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-011">Validar</button>
-            </div>
-            <div class="admin-alert-row is-urgent">
-              <span class="admin-deadline">En revisión</span>
-              <strong>Acta de descarga y pesaje a pie de vía</strong>
-              <span>RFQ-2026-009</span>
-              <span>FGC Terrassa - Sabadell</span>
-              <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-009">Validar</button>
-            </div>
-            <div class="admin-alert-row is-urgent">
-              <span class="admin-deadline">En revisión</span>
-              <strong>Póliza de suministro y hoja de pedido formalizada</strong>
-              <span>RFQ-2026-022</span>
-              <span>Madera Vía Ibérica</span>
-              <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-022">Validar</button>
-            </div>
-            <div class="admin-alert-row is-urgent">
-              <span class="admin-deadline">En revisión</span>
-              <strong>Conformidad técnica de lote de traviesas</strong>
-              <span>RFQ-2026-014</span>
-              <span>Infraestructuras del Norte</span>
-              <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-014">Validar</button>
-            </div>
-          </div>
-        `;
-      } else if (overviewFilter === "pending") {
-        filterResultsHTML = `
-          <div class="admin-section-head">
-            <div>
-              <h2>Entregables Pendientes de Entrega (8)</h2>
-              <p>Ranuras documentales de fases activas con entrega requerida.</p>
-            </div>
-          </div>
-          <div class="admin-alert-list">
-            <div class="admin-alert-row">
-              <span class="admin-deadline" style="color:var(--entity-warning)">Pendiente taller</span>
-              <strong>Certificado de lote homologado (Fase 4)</strong>
-              <span>RFQ-2026-014</span>
-              <span>IberRail Components</span>
-              <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-014">Requerir</button>
-            </div>
-            <div class="admin-alert-row">
-              <span class="admin-deadline" style="color:var(--entity-warning)">Pendiente taller</span>
-              <strong>Plan logístico y transporte ferroviario especial</strong>
-              <span>RFQ-2026-014</span>
-              <span>IberRail Components</span>
-              <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-014">Requerir</button>
-            </div>
-            <div class="admin-alert-row">
-              <span class="admin-deadline" style="color:var(--entity-warning)">Pendiente cliente</span>
-              <strong>Selección de proveedor para cotización vinculante</strong>
-              <span>RFQ-2026-011</span>
-              <span>Metro de Bilbao</span>
-              <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-011">Avisar</button>
-            </div>
-          </div>
-        `;
-      } else if (overviewFilter === "validados") {
-        filterResultsHTML = `
-          <div class="admin-section-head">
-            <div>
-              <h2>Documentos Técnicos Validados y Conformes (18)</h2>
-              <p>Pliegos, planos y certificados con visto bueno y firma de trazabilidad SOFEIN.</p>
-            </div>
-          </div>
-          <div class="admin-alert-list">
-            <div class="admin-alert-row">
-              <span class="admin-deadline" style="color:var(--entity-accent)">✓ Conforme</span>
-              <strong>Especificación técnica y trazabilidad Adif 03.360.501</strong>
-              <span>RFQ-2026-011</span>
-              <span>SOFEIN Verificado</span>
-              <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-011">Ver</button>
-            </div>
-            <div class="admin-alert-row">
-              <span class="admin-deadline" style="color:var(--entity-accent)">✓ Conforme</span>
-              <strong>Ensayo dinámico y fatiga EN 13481 (Sujeciones SKL-14)</strong>
-              <span>RFQ-2026-009</span>
-              <span>Laboratorio Homologado</span>
-              <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-009">Ver</button>
-            </div>
-            <div class="admin-alert-row">
-              <span class="admin-deadline" style="color:var(--entity-accent)">✓ Conforme</span>
-              <strong>Ficha técnica de lote y análisis de material (PR-22)</strong>
-              <span>RFQ-2026-014</span>
-              <span>IberRail Components</span>
-              <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-014">Ver</button>
-            </div>
-          </div>
-        `;
-      } else if (overviewFilter === "futuras") {
-        filterResultsHTML = `
-          <div class="admin-section-head">
-            <div>
-              <h2>Ranuras de Fases Futuras (12)</h2>
-              <p>Requisitos de recepción en obra, liquidación y emisión de Pasaporte Digital SOFEIN.</p>
-            </div>
-          </div>
-          <div class="admin-alert-list">
-            <div class="admin-alert-row">
-              <span class="admin-deadline">Fase 6: Recepción</span>
-              <strong>Acta de Descarga a Pie de Vía (Medina del Campo)</strong>
-              <span>RFQ-2026-022</span>
-              <span>Programada</span>
-              <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-022">Ver</button>
-            </div>
-            <div class="admin-alert-row">
-              <span class="admin-deadline">Fase 7: Cierre</span>
-              <strong>Pasaporte Digital SOFEIN (Factoría Volkswagen)</strong>
-              <span>RFQ-2026-014</span>
-              <span>Generación final</span>
-              <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-014">Ver</button>
-            </div>
-          </div>
-        `;
-      } else if (overviewFilter === "expedientes") {
-        filterResultsHTML = `
-          <div class="admin-section-head">
-            <div>
-              <h2>Expedientes Ferroviarios Activos (4)</h2>
-              <p>Lotes de superestructura y componentes bajo supervisión SOFEIN.</p>
-            </div>
-            <button class="admin-quiet-button" type="button" data-go="#admin/expedientes">Ver todos en bandeja ${icon("arrow", 14)}</button>
-          </div>
-          <div class="admin-alert-list">
-            ${EXPEDIENTES.map(e => `
-              <div class="admin-alert-row">
-                <span class="admin-deadline" style="color:var(--entity-accent)">${e.id}</span>
-                <strong>${e.producto}</strong>
-                <span>${e.cliente}</span>
-                <span>${e.plazoRealEstimado}</span>
-                <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/${e.id}">Abrir</button>
-              </div>
-            `).join("")}
-          </div>
-        `;
-      } else if (overviewFilter === "incidencias") {
-        filterResultsHTML = `
-          <div class="admin-section-head">
-            <div>
-              <h2>Incidencias en Mediación Activa (1)</h2>
-              <p>Alteraciones de fabricación o plazos sometidas al procedimiento de mediación SOFEIN (Apuntes 06).</p>
-            </div>
-          </div>
-          <div class="admin-alert-list">
-            <div class="admin-alert-row is-critical">
-              <span class="admin-deadline">Mediación</span>
-              <strong>Propuesta de mediación (curado Lote B por ola de calor)</strong>
-              <span>RFQ-2026-014</span>
-              <span>Pendiente de firma del constructor</span>
-              <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-014">Gestionar Mediación</button>
-            </div>
-          </div>
-        `;
-      } else if (overviewFilter === "proveedores") {
-        filterResultsHTML = `
-          <div class="admin-section-head">
-            <div>
-              <h2>Proveedores y Talleres Homologados</h2>
-              <p>Talleres acreditados con índice de fiabilidad de entrega superior al 94%.</p>
-            </div>
-            <button class="admin-quiet-button" type="button" data-go="#admin/directorio">Ir al directorio ${icon("arrow", 14)}</button>
-          </div>
-          <div class="admin-alert-list">
-            ${DIRECTORIO_PROVEEDORES.map(p => `
-              <div class="admin-alert-row">
-                <span class="admin-deadline" style="color:var(--entity-accent)">${p.id}</span>
-                <strong>${p.nombre}</strong>
-                <span>${p.sede}</span>
-                <span>Score: ${p.score}</span>
-                <button class="admin-quiet-button" type="button" data-go="#admin/directorio">Ficha</button>
-              </div>
-            `).join("")}
-          </div>
-        `;
-      } else {
-        filterResultsHTML = `
-          <div class="admin-section-head">
-            <div>
-              <h2>Alertas operativas prioritarias</h2>
-              <p>Requerimientos y firmas pendientes ordenados por urgencia de obra.</p>
-            </div>
-            <span>3 activas</span>
-          </div>
-          <div class="admin-alert-list">
-            <div class="admin-alert-row is-critical">
-              <span class="admin-deadline">Urgente</span>
-              <strong>Propuesta de mediación (curado Lote B)</strong>
-              <span>RFQ-2026-014</span>
-              <span>Pendiente firma constructor</span>
-              <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-014">Revisar</button>
-            </div>
-            <div class="admin-alert-row is-urgent">
-              <span class="admin-deadline">En revisión</span>
-              <strong>Certificado de ensayos EN 13230</strong>
-              <span>RFQ-2026-014</span>
-              <span>IberRail Components</span>
-              <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-014">Validar</button>
-            </div>
-            <div class="admin-alert-row">
-              <span class="admin-deadline" style="color:var(--entity-accent)">En plazo</span>
-              <strong>Preselección de 3 laminadores</strong>
-              <span>RFQ-2026-011</span>
-              <span>Metro Bilbao</span>
-              <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-011">Ver ofertas</button>
-            </div>
-          </div>
-        `;
-      }
-
       return `
         <div class="admin-view-head">
           <div>
@@ -1223,18 +1240,9 @@
           </div>
         </section>
 
-        ${isFiltered ? `
-          <div class="overview-filter-bar">
-            <span>Filtrando vista por: <b>${filterLabels[overviewFilter]}</b></span>
-            <button class="admin-quiet-button" type="button" data-clear-overview-filter style="color:var(--entity-accent)">
-              ${icon("x", 12)} Restablecer filtro (Ver alertas)
-            </button>
-          </div>
-        ` : ""}
-
-        <section class="admin-alerts">
-          ${filterResultsHTML}
-        </section>
+        <div id="overviewDynamicContent">
+          ${getOverviewFilterHTML(overviewFilter)}
+        </div>
       `;
     }
 
@@ -1458,12 +1466,17 @@
             <h1>Clientes y proveedores</h1>
             <p>Directorio homologado de contratistas de vía y talleres industriales con trazabilidad acreditada.</p>
           </div>
-          <div class="view-mode-toggle">
-            <button class="view-mode-btn ${directorioViewMode === 'table' ? 'is-active' : ''}" type="button" data-dir-mode="table">
-              ${icon("table", 14)} Tabla
-            </button>
-            <button class="view-mode-btn ${directorioViewMode === 'grid' ? 'is-active' : ''}" type="button" data-dir-mode="grid">
-              ${icon("grid", 14)} Mosaico
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <div class="view-mode-toggle">
+              <button class="view-mode-btn ${directorioViewMode === 'table' ? 'is-active' : ''}" type="button" data-dir-mode="table">
+                ${icon("table", 14)} Tabla
+              </button>
+              <button class="view-mode-btn ${directorioViewMode === 'grid' ? 'is-active' : ''}" type="button" data-dir-mode="grid">
+                ${icon("grid", 14)} Mosaico
+              </button>
+            </div>
+            <button class="admin-primary-button" type="button" data-open-add-dir-modal>
+              ${icon("plus", 14)} Añadir
             </button>
           </div>
         </div>
@@ -1938,6 +1951,10 @@
   function renderApp() {
     parseHash();
 
+    const currentRouteKey = `${activeRole}/${activeSection}/${activeParam || ""}`;
+    const routeChanged = previousRouteKey !== currentRouteKey;
+    previousRouteKey = currentRouteKey;
+
     let viewHTML = "";
     if (activeRole === "admin") {
       viewHTML = renderAdminView(activeSection, activeParam);
@@ -1965,7 +1982,9 @@
     `;
 
     bindEvents();
-    window.scrollTo(0, 0);
+    if (routeChanged) {
+      window.scrollTo(0, 0);
+    }
   }
 
   /* ---------- Notificaciones Toast ---------- */
@@ -2174,19 +2193,50 @@
       });
     });
 
-    // Filtrado interactivo en Visión Global (gráficos y métricas)
+    // Modal de Alta en Directorio (Clientes y Proveedores)
+    document.querySelectorAll("[data-open-add-dir-modal]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        openAddEntityModal();
+      });
+    });
+
+    // Filtrado interactivo en Visión Global (gráficos y métricas sin recarga total ni saltos)
+    function applyOverviewFilter(target) {
+      overviewFilter = overviewFilter === target ? null : target;
+      const dynamicWrap = document.getElementById("overviewDynamicContent");
+      if (!dynamicWrap) {
+        renderApp();
+        return;
+      }
+
+      // 1. Alternar clases activas en tarjetas métricas
+      document.querySelectorAll(".admin-metric[data-overview-filter]").forEach(m => {
+        m.classList.toggle("is-active-filter", m.dataset.overviewFilter === overviewFilter);
+      });
+
+      // 2. Alternar clases activas en barras del histograma (sin recargar el DOM ni re-disparar barGrow)
+      document.querySelectorAll(".admin-histogram-bars article[data-overview-filter]").forEach(a => {
+        a.classList.toggle("is-active-filter", a.dataset.overviewFilter === overviewFilter);
+      });
+
+      // 3. Reemplazar únicamente el bloque inferior dinámico con animación suave en fade
+      dynamicWrap.innerHTML = getOverviewFilterHTML(overviewFilter);
+
+      // 4. Vincular el botón de limpiar filtro si se renderizó
+      dynamicWrap.querySelectorAll("[data-clear-overview-filter]").forEach(btn => {
+        btn.addEventListener("click", () => applyOverviewFilter(null));
+      });
+    }
+
     document.querySelectorAll("[data-overview-filter]").forEach(el => {
       el.addEventListener("click", () => {
-        const target = el.dataset.overviewFilter;
-        overviewFilter = overviewFilter === target ? null : target;
-        renderApp();
+        applyOverviewFilter(el.dataset.overviewFilter);
       });
     });
 
     document.querySelectorAll("[data-clear-overview-filter]").forEach(el => {
       el.addEventListener("click", () => {
-        overviewFilter = null;
-        renderApp();
+        applyOverviewFilter(null);
       });
     });
 
@@ -2318,6 +2368,9 @@
     const close = () => { modalWrap.innerHTML = ""; };
     document.getElementById("closeIncidentModalBtn")?.addEventListener("click", close);
     document.getElementById("cancelModalBtn")?.addEventListener("click", close);
+    document.getElementById("incidentModalBackdrop")?.addEventListener("click", e => {
+      if (e.target.id === "incidentModalBackdrop") close();
+    });
     document.getElementById("modalIncidentForm")?.addEventListener("submit", e => {
       e.preventDefault();
       const form = new FormData(e.currentTarget);
@@ -2335,6 +2388,154 @@
       });
       close();
       showToast("✓ Incidencia registrada con propuesta de mediación activa");
+      renderApp();
+    });
+  }
+
+  function openAddEntityModal() {
+    const modalWrap = document.getElementById("modalContainer");
+    if (!modalWrap) return;
+
+    modalWrap.innerHTML = `
+      <div class="procurement-modal-backdrop" id="addEntityModalBackdrop">
+        <div class="procurement-modal" style="width:min(560px,100%)">
+          <div class="procurement-modal-head">
+            <div>
+              <h3>Añadir al Directorio</h3>
+              <p style="margin:2px 0 0;font-size:0.75rem;color:var(--entity-muted)">Alta de nuevo taller homologado o cliente constructor de vía</p>
+            </div>
+            <button type="button" id="closeAddEntityModalBtn" aria-label="Cerrar">×</button>
+          </div>
+          <form id="modalAddEntityForm">
+            <div class="procurement-modal-body" style="gap:14px;max-height:calc(85vh - 140px);overflow-y:auto;padding-right:18px">
+              <div style="display:grid;gap:6px">
+                <label style="font-size:0.75rem;font-weight:600;color:var(--entity-muted)">Tipo de entidad</label>
+                <select id="entityTypeSelect" name="tipo" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem">
+                  <option value="proveedor">Proveedor Homologado (Taller / Fabricante)</option>
+                  <option value="cliente">Cliente (Constructor de vía / Contratista)</option>
+                </select>
+              </div>
+
+              <div style="display:grid;grid-template-columns:1fr 130px;gap:12px">
+                <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
+                  Razón Social / Nombre
+                  <input name="nombre" required placeholder="Ej: Aceros Ferroviarios del Cantábrico, S.L." style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem" />
+                </label>
+                <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
+                  CIF
+                  <input name="cif" required placeholder="Ej: B-48192837" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem" />
+                </label>
+              </div>
+
+              <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
+                Sede / Fábrica principal
+                <input name="sede" required placeholder="Ej: Amurrio (Álava) / Bilbao" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem" />
+              </label>
+
+              <!-- Campos específicos para Proveedor -->
+              <div id="proveedorFields" style="display:grid;gap:14px">
+                <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
+                  Suministros / Componentes acreditados
+                  <input name="materiales" placeholder="Ej: Carril 54E1 / 60E1 · Desvíos y Corazones Monobloque" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem" />
+                </label>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                  <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
+                    Lead Time medio habitual
+                    <input name="leadTimeMedio" value="40 días" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem" />
+                  </label>
+                  <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
+                    Score de fiabilidad inicial
+                    <input name="score" value="98% Conforme" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem" />
+                  </label>
+                </div>
+              </div>
+
+              <!-- Campos específicos para Cliente -->
+              <div id="clienteFields" style="display:none;gap:14px">
+                <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
+                  Actividad / Especialidad ferroviaria
+                  <input name="actividad" placeholder="Ej: Constructora Ferroviaria (Licitaciones Adif / FGC)" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem" />
+                </label>
+                <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
+                  Expedientes iniciales en curso
+                  <input name="expedientesActivos" type="number" min="0" value="1" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem" />
+                </label>
+              </div>
+
+              <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
+                Email de contacto operativo
+                <input name="contacto" type="email" required placeholder="contacto@empresa.es" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem" />
+              </label>
+            </div>
+            <div class="procurement-modal-footer">
+              <button class="admin-quiet-button" type="button" id="cancelAddEntityBtn">Cancelar</button>
+              <button class="admin-primary-button" type="submit">Dar de alta en directorio</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    `;
+
+    const close = () => { modalWrap.innerHTML = ""; };
+    document.getElementById("closeAddEntityModalBtn")?.addEventListener("click", close);
+    document.getElementById("cancelAddEntityBtn")?.addEventListener("click", close);
+    document.getElementById("addEntityModalBackdrop")?.addEventListener("click", e => {
+      if (e.target.id === "addEntityModalBackdrop") close();
+    });
+
+    const typeSelect = document.getElementById("entityTypeSelect");
+    const prvFields = document.getElementById("proveedorFields");
+    const cliFields = document.getElementById("clienteFields");
+
+    typeSelect?.addEventListener("change", e => {
+      if (e.target.value === "proveedor") {
+        prvFields.style.display = "grid";
+        cliFields.style.display = "none";
+      } else {
+        prvFields.style.display = "none";
+        cliFields.style.display = "grid";
+      }
+    });
+
+    document.getElementById("modalAddEntityForm")?.addEventListener("submit", e => {
+      e.preventDefault();
+      const form = new FormData(e.currentTarget);
+      const tipo = form.get("tipo");
+      const nombre = (form.get("nombre") || "").trim();
+      const cif = (form.get("cif") || "").trim();
+      const sede = (form.get("sede") || "").trim();
+      const contacto = (form.get("contacto") || "").trim();
+
+      if (tipo === "proveedor") {
+        const newPrv = {
+          id: `PRV-0${DIRECTORIO_PROVEEDORES.length + 1}`,
+          nombre,
+          cif,
+          sede,
+          materiales: (form.get("materiales") || "").trim() || "Suministros ferroviarios homologados",
+          homologado: true,
+          leadTimeMedio: (form.get("leadTimeMedio") || "").trim() || "35 días",
+          score: (form.get("score") || "").trim() || "98% Conforme",
+          contacto
+        };
+        DIRECTORIO_PROVEEDORES.unshift(newPrv);
+        close();
+        showToast(`✓ Proveedor "${newPrv.nombre}" añadido al directorio homologado`);
+      } else {
+        const newCli = {
+          id: `CLI-0${DIRECTORIO_CLIENTES.length + 1}`,
+          nombre,
+          cif,
+          sede,
+          actividad: (form.get("actividad") || "").trim() || "Constructora Ferroviaria",
+          expedientesActivos: parseInt(form.get("expedientesActivos") || "1", 10),
+          homologado: true,
+          contacto
+        };
+        DIRECTORIO_CLIENTES.unshift(newCli);
+        close();
+        showToast(`✓ Cliente "${newCli.nombre}" añadido al directorio`);
+      }
       renderApp();
     });
   }
