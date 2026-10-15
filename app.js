@@ -554,19 +554,20 @@
         ${breadcrumbBase}
       </div>
 
-      <div class="admin-view-head" style="margin-bottom:22px">
+      <div class="admin-view-head" style="margin-bottom:${isRoleAdmin ? '22px' : '14px'}">
         <div>
           <h1>${isRoleAdmin ? "Crear Expediente de Suministro Ferroviario" : "Solicitar Nuevo Expediente"}</h1>
           <p>Constructor de expedientes estancos. Define la obra, los suministros ferroviarios y adjunta los pliegos técnicos para iniciar el ciclo de homologación y compras.</p>
         </div>
-        <div>
-          <span class="create-exp-badge ${isRoleAdmin ? "" : "info"}">
-            ${isRoleAdmin
-              ? `${icon("shield", 14)} Alta oficial SOFEIN · Validación inmediata`
-              : `${icon("file", 14)} Solicitud constructor · Requiere validación SOFEIN`}
+      </div>
+
+      ${!isRoleAdmin ? `
+        <div style="display:flex;justify-content:center;margin-bottom:22px">
+          <span class="create-exp-badge info" style="font-size:0.78rem;padding:6px 16px">
+            ${icon("file", 15)} Solicitud constructor · Requiere validación SOFEIN
           </span>
         </div>
-      </div>
+      ` : ""}
 
       <form id="createExpedienteFullForm" class="create-exp-wrap">
         <!-- Bloque 1: Datos de Obra y Emplazamiento -->
