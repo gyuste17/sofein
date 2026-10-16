@@ -3980,4 +3980,94 @@ select:focus,
   flex-wrap: wrap;
 }
 
+/* ============================================================
+   PANTALLA 4: GESTIÓN DE LA DOCUMENTACIÓN Y ENLACES DE AVISOS
+   ============================================================ */
+.avisos-exp-chip-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--entity-line);
+  background: var(--entity-panel-2);
+  color: var(--entity-text);
+  font-size: 0.72rem;
+  font-weight: 650;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.avisos-exp-chip-link:hover {
+  border-color: var(--entity-accent);
+  color: var(--entity-accent);
+  background: var(--entity-accent-soft);
+}
+
+.doc-manager-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--entity-line);
+  background: var(--entity-panel-2);
+  margin-bottom: 16px;
+}
+.doc-filter-pills {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.doc-filter-pill {
+  border: 1px solid var(--entity-line);
+  background: var(--entity-panel);
+  color: var(--entity-muted);
+  border-radius: 6px;
+  padding: 5px 11px;
+  font-size: 0.74rem;
+  font-weight: 550;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.doc-filter-pill:hover {
+  color: var(--entity-text);
+  border-color: var(--entity-accent);
+}
+.doc-filter-pill.is-active {
+  background: var(--entity-accent-soft);
+  color: var(--entity-accent);
+  border-color: rgba(0, 135, 81, 0.35);
+  font-weight: 650;
+}
+
+.slot-rejection-box {
+  margin-top: 10px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: rgba(239, 68, 68, 0.07);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.slot-rejection-box strong {
+  display: block;
+  font-size: 0.76rem;
+  color: #ef4444;
+  margin-bottom: 2px;
+}
+.slot-rejection-box p {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--entity-text);
+  line-height: 1.4;
+}
+
+
 

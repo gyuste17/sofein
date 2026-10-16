@@ -875,6 +875,8 @@
   let previousRouteKey = null;
   let stagedPliegoFile = null;
   let suministroRowCount = 1;
+  let docScopeMode = "phase"; // "phase" | "all"
+  let docStatusFilter = "all"; // "all" | "complete" | "review" | "pending" | "rejected"
 
   function parseHash() {
     const raw = location.hash.replace(/^#\/?/, "");
@@ -2103,6 +2105,11 @@
                 ${icon("shield", 14)} Ver Hoja de Pedido
               </button>
             ` : ""}
+            ${!isDestinatario ? `
+              <button class="admin-quiet-button" type="button" data-open-upload-free-doc="${exp.id}">
+                ${icon("upload", 14)} Adjuntar Documento
+              </button>
+            ` : ""}
             ${isRoleAdmin ? `
               <button class="admin-quiet-button" type="button" data-open-timeline-modal="${exp.id}">
                 ${icon("calendar", 14)} Actualizar Plazo / Fase
@@ -2120,14 +2127,83 @@
         </div>
       ` : "";
 
-      const slotsHTML = deliverables.length ? deliverables.map((del, dIdx) => `
+      // PANTALLA 4: Gestión de la Documentación (Alcance por Fase o Dossier Completo + Filtros por Estado)
+      const allExpDocs = [];
+      PHASES.forEach((pObj, pIdx) => {
+        const list = exp.deliverables[pIdx] || [];
+        list.forEach((delItem, sIdx) => {
+          allExpDocs.push({ del: delItem, phaseIdx: pIdx, phaseName: pObj.name, slotIdx: sIdx });
+        });
+      });
+
+      const baseDocs = docScopeMode === "all"
+        ? allExpDocs
+        : deliverables.map((delItem, sIdx) => ({
+            del: delItem,
+            phaseIdx: activeDossierPhase,
+            phaseName: PHASES[activeDossierPhase].name,
+            slotIdx: sIdx
+          }));
+
+      const countByState = {
+        all: baseDocs.length,
+        complete: baseDocs.filter(x => x.del.state === "complete").length,
+        review: baseDocs.filter(x => x.del.state === "review").length,
+        pending: baseDocs.filter(x => x.del.state === "pending").length,
+        rejected: baseDocs.filter(x => x.del.state === "rejected").length
+      };
+
+      const filteredDocs = docStatusFilter === "all"
+        ? baseDocs
+        : baseDocs.filter(x => x.del.state === docStatusFilter);
+
+      const docManagerBarHTML = `
+        <div class="doc-manager-bar">
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <span style="font-size:0.74rem;font-weight:650;color:var(--entity-muted)">Alcance documental:</span>
+            <div class="avisos-group-buttons">
+              <button class="avisos-group-btn ${docScopeMode === "phase" ? "is-active" : ""}" type="button" data-doc-scope="phase">
+                Fase ${activeDossierPhase + 1} (${deliverables.length})
+              </button>
+              <button class="avisos-group-btn ${docScopeMode === "all" ? "is-active" : ""}" type="button" data-doc-scope="all">
+                Todo el Expediente (${allExpDocs.length})
+              </button>
+            </div>
+          </div>
+
+          <div class="doc-filter-pills">
+            <button class="doc-filter-pill ${docStatusFilter === "all" ? "is-active" : ""}" type="button" data-doc-filter="all">
+              Todos (${countByState.all})
+            </button>
+            <button class="doc-filter-pill ${docStatusFilter === "complete" ? "is-active" : ""}" type="button" data-doc-filter="complete">
+              Validados (${countByState.complete})
+            </button>
+            <button class="doc-filter-pill ${docStatusFilter === "review" ? "is-active" : ""}" type="button" data-doc-filter="review">
+              En revisión (${countByState.review})
+            </button>
+            <button class="doc-filter-pill ${docStatusFilter === "pending" ? "is-active" : ""}" type="button" data-doc-filter="pending">
+              Pendientes (${countByState.pending})
+            </button>
+            ${countByState.rejected > 0 || docStatusFilter === "rejected" ? `
+              <button class="doc-filter-pill ${docStatusFilter === "rejected" ? "is-active" : ""}" type="button" data-doc-filter="rejected">
+                Con observaciones (${countByState.rejected})
+              </button>
+            ` : ""}
+          </div>
+        </div>
+      `;
+
+      const slotsHTML = filteredDocs.length ? filteredDocs.map(({ del, phaseIdx, phaseName, slotIdx }) => `
         <article class="deliverable-slot">
           <div class="slot-head">
             <div class="slot-identity">
               <span class="slot-icon">${icon(del.format === "DWG / PDF" ? "route" : del.format === "Digital" ? "shield" : "file", 20)}</span>
               <div class="slot-title">
-                <h3>${del.name}</h3>
-                <p>Formato requerido: <b>${del.format}</b> · Entregable formal de la fase</p>
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                  <h3>${del.name}</h3>
+                  ${docScopeMode === "all" ? `<span class="dossier-chip" style="font-size:0.66rem;padding:2px 7px">${phaseName}</span>` : ""}
+                </div>
+                <p>Formato requerido: <b>${del.format}</b> · ${del.deadline ? `Fecha límite: <b>${del.deadline}</b>` : "Entregable formal de trazabilidad"}</p>
               </div>
             </div>
             <div class="slot-badges">
@@ -2136,36 +2212,55 @@
             </div>
           </div>
 
+          ${del.state === "rejected" ? `
+            <div class="slot-rejection-box">
+              <div>
+                <strong>${icon("alert", 13)} Subsanación requerida por SOFEIN</strong>
+                <p>${del.rejectReason || "El documento adjunto presenta observaciones técnicas. Por favor, revisa y sube una versión subsanada."}</p>
+              </div>
+              ${!isDestinatario ? `
+                <button class="admin-primary-button" type="button" data-reupload-exp="${exp.id}" data-phase="${phaseIdx}" data-slot="${slotIdx}" style="font-size:0.74rem;padding:6px 12px">
+                  ${icon("upload", 13)} Subir versión corregida
+                </button>
+              ` : ""}
+            </div>
+          ` : ""}
+
           ${del.file ? `
             <div class="slot-file-row">
               <div class="slot-file-meta">
                 ${icon("file", 18)}
                 <div>
                   <strong>${del.file}</strong>
-                  <small>Registrado el ${del.date} · Firma digital SOFEIN de verificación</small>
+                  <small>Registrado: ${del.date} · ${del.state === "complete" ? "Certificado y sellado por SOFEIN" : del.state === "rejected" ? "Versión observada pendiente de subsanación" : "En cola de verificación técnica SOFEIN"}</small>
                 </div>
               </div>
               <div class="slot-actions">
+                <button class="slot-action-btn" type="button" data-inspect-doc="${exp.id}" data-phase="${phaseIdx}" data-slot="${slotIdx}">
+                  ${icon("eye", 14)} Ver / Auditar
+                </button>
                 <button class="slot-action-btn" type="button" data-download="${del.file}">
                   ${icon("download", 14)} Descargar
                 </button>
-                ${activeRole === "admin" && del.state === "review" ? `
-                  <button class="slot-action-btn approve" type="button" data-admin-approve="${exp.id}" data-slot="${dIdx}">
-                    ${icon("check", 14)} Aprobar y Validar
+                ${activeRole === "admin" && (del.state === "review" || del.state === "rejected") ? `
+                  <button class="slot-action-btn approve" type="button" data-admin-approve="${exp.id}" data-phase="${phaseIdx}" data-slot="${slotIdx}">
+                    ${icon("check", 14)} Validar
                   </button>
-                  <button class="slot-action-btn reject" type="button" data-admin-reject="${exp.id}" data-slot="${dIdx}">
+                ` : ""}
+                ${activeRole === "admin" && del.state === "review" ? `
+                  <button class="slot-action-btn reject" type="button" data-admin-reject="${exp.id}" data-phase="${phaseIdx}" data-slot="${slotIdx}">
                     ${icon("alert", 14)} Rechazar con Nota
                   </button>
                 ` : ""}
               </div>
             </div>
           ` : `
-            <div class="slot-dropzone" data-dropzone-exp="${exp.id}" data-slot="${dIdx}">
+            <div class="slot-dropzone" data-dropzone-exp="${exp.id}" data-phase="${phaseIdx}" data-slot="${slotIdx}">
               <div class="slot-dropzone-copy">
                 ${icon("upload", 22)}
                 <div>
-                  <div><b>Arrastra aquí el archivo</b> o haz clic para subir</div>
-                  <span class="sub">Formatos admitidos: .pdf, .dwg, .xlsx (Máx 25 MB)</span>
+                  <div><b>Arrastra aquí el archivo (${del.name})</b> o haz clic para subir</div>
+                  <span class="sub">Responsable asignado: ${del.owner} · Formatos admitidos: .pdf, .dwg, .xlsx (Máx 25 MB)</span>
                 </div>
               </div>
               <button class="slot-upload-btn" type="button">
@@ -2174,9 +2269,9 @@
             </div>
           `}
         </article>
-      `).join("") : `<div style="padding:32px;background:var(--entity-panel);border:1px solid var(--entity-line);border-radius:10px;text-align:center;color:var(--entity-muted)">No hay entregables documentales asignados a esta fase todavía.${isRoleAdmin ? ` Puedes pulsar en <b>"+ Requerir Documento"</b> para habilitar una ranura.` : ""}</div>`;
+      `).join("") : `<div style="padding:32px;background:var(--entity-panel);border:1px solid var(--entity-line);border-radius:10px;text-align:center;color:var(--entity-muted)">No hay documentos que coincidan con el filtro seleccionado.${isRoleAdmin ? ` Puedes pulsar en <b>"+ Requerir Documento"</b> para crear una nueva ranura.` : ""}</div>`;
 
-      tabContent = `${matchingBannerHTML}${formalizacionBlockHTML}${phaseOpsPanelHTML}<div class="deliverable-slot-grid">${slotsHTML}</div>`;
+      tabContent = `${matchingBannerHTML}${formalizacionBlockHTML}${phaseOpsPanelHTML}${docManagerBarHTML}<div class="deliverable-slot-grid">${slotsHTML}</div>`;
     } else if (activeDossierTab === "incidents") {
       // Muro de Incidencias & Modificaciones
       const incidentsHTML = exp.incidencias.length ? exp.incidencias.map((inc) => `
@@ -2391,11 +2486,13 @@
           ${icon(n.tagClass === "warning" ? "alert" : n.tagClass === "review" ? "file" : "check", 16)}
         </span>
         <div style="min-width:0">
-          <strong style="display:block;margin-bottom:2px">${n.titulo}</strong>
+          <strong style="display:block;margin-bottom:2px;cursor:pointer" data-go="${n.enlace}">${n.titulo}</strong>
           <small style="color:var(--entity-muted);display:block;line-height:1.4">${n.descripcion}</small>
         </div>
         <div>
-          <span class="dossier-chip" style="white-space:nowrap">${n.expId}</span>
+          <button class="avisos-exp-chip-link" type="button" data-go="#${role}/expedientes/${n.expId}" title="Abrir expediente ${n.expId}">
+            ${icon("folder", 12)} ${n.expId}
+          </button>
         </div>
         <div>
           <span class="dossier-chip" style="font-size:0.68rem;white-space:nowrap">${n.categoria}</span>
@@ -2440,9 +2537,9 @@
         return `
           <section class="avisos-group-card">
             <div class="avisos-group-card-head">
-              <div class="avisos-group-card-title">
+              <div class="avisos-group-card-title" data-go="#${role}/expedientes/${expId}" style="cursor:pointer" title="Abrir expediente ${expId}">
                 ${icon("folder", 16)}
-                <span>${expId} · ${exp.producto}</span>
+                <span style="text-decoration:underline;text-underline-offset:3px">${expId} · ${exp.producto}</span>
                 <span class="avisos-group-card-sub">· ${exp.cliente} (${phaseName})</span>
               </div>
               <div style="display:flex;align-items:center;gap:10px">
@@ -3690,13 +3787,57 @@
         e.preventDefault();
         dropzone.classList.remove("dragover");
         const expId = dropzone.dataset.dropzoneExp;
+        const phaseIdx = dropzone.dataset.phase !== undefined ? Number(dropzone.dataset.phase) : activeDossierPhase;
         const slotIdx = Number(dropzone.dataset.slot);
-        simulateFileUpload(expId, slotIdx);
+        simulateFileUpload(expId, slotIdx, phaseIdx);
       });
       dropzone.addEventListener("click", () => {
         const expId = dropzone.dataset.dropzoneExp;
+        const phaseIdx = dropzone.dataset.phase !== undefined ? Number(dropzone.dataset.phase) : activeDossierPhase;
         const slotIdx = Number(dropzone.dataset.slot);
-        simulateFileUpload(expId, slotIdx);
+        simulateFileUpload(expId, slotIdx, phaseIdx);
+      });
+    });
+
+    // Subir versión subsanada en ranura rechazada (Pantalla 4)
+    document.querySelectorAll("[data-reupload-exp]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const expId = btn.dataset.reuploadExp;
+        const phaseIdx = Number(btn.dataset.phase);
+        const slotIdx = Number(btn.dataset.slot);
+        simulateFileUpload(expId, slotIdx, phaseIdx, true);
+      });
+    });
+
+    // Filtros de Alcance y Estado de Gestión Documental (Pantalla 4)
+    document.querySelectorAll("[data-doc-scope]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        docScopeMode = btn.dataset.docScope;
+        renderApp();
+      });
+    });
+
+    document.querySelectorAll("[data-doc-filter]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        docStatusFilter = btn.dataset.docFilter;
+        renderApp();
+      });
+    });
+
+    // Inspector / Visor de Auditoría Documental (Pantalla 4)
+    document.querySelectorAll("[data-inspect-doc]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const expId = btn.dataset.inspectDoc;
+        const phaseIdx = Number(btn.dataset.phase);
+        const slotIdx = Number(btn.dataset.slot);
+        openInspectDeliverableModal(expId, phaseIdx, slotIdx);
+      });
+    });
+
+    // Adjuntar Documento Adicional Libre (Pantalla 4)
+    document.querySelectorAll("[data-open-upload-free-doc]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        openUploadFreeDocModal(btn.dataset.openUploadFreeDoc);
       });
     });
 
@@ -3704,9 +3845,11 @@
     document.querySelectorAll("[data-admin-approve]").forEach(btn => {
       btn.addEventListener("click", () => {
         const exp = getActiveExpediente(btn.dataset.adminApprove);
+        const phaseIdx = btn.dataset.phase !== undefined ? Number(btn.dataset.phase) : activeDossierPhase;
         const slot = Number(btn.dataset.slot);
-        if (exp.deliverables[activeDossierPhase] && exp.deliverables[activeDossierPhase][slot]) {
-          exp.deliverables[activeDossierPhase][slot].state = "complete";
+        if (exp.deliverables[phaseIdx] && exp.deliverables[phaseIdx][slot]) {
+          exp.deliverables[phaseIdx][slot].state = "complete";
+          exp.deliverables[phaseIdx][slot].rejectReason = null;
           showToast(`✓ Documento validado y certificado con firma SOFEIN`);
           renderApp();
         }
@@ -3715,16 +3858,10 @@
 
     document.querySelectorAll("[data-admin-reject]").forEach(btn => {
       btn.addEventListener("click", () => {
-        const exp = getActiveExpediente(btn.dataset.adminReject);
+        const expId = btn.dataset.adminReject;
+        const phaseIdx = btn.dataset.phase !== undefined ? Number(btn.dataset.phase) : activeDossierPhase;
         const slot = Number(btn.dataset.slot);
-        const motivo = prompt("Indica el motivo del rechazo formal (se notificará al responsable):", "Falta el sello del laboratorio acreditado en la página 4.");
-        if (motivo) {
-          if (exp.deliverables[activeDossierPhase] && exp.deliverables[activeDossierPhase][slot]) {
-            exp.deliverables[activeDossierPhase][slot].state = "rejected";
-            showToast(`Rechazo notificado: ${motivo}`);
-            renderApp();
-          }
-        }
+        openRejectDeliverableModal(expId, phaseIdx, slot);
       });
     });
 
@@ -4675,17 +4812,16 @@
 
   function openAddDeliverableModal(expId) {
     const exp = getActiveExpediente(expId);
-    const phaseObj = PHASES[activeDossierPhase] || PHASES[0];
     const modalWrap = document.getElementById("modalContainer");
     if (!modalWrap) return;
 
     modalWrap.innerHTML = `
       <div class="procurement-modal-backdrop" id="addSlotModalBackdrop">
-        <div class="procurement-modal" style="width:min(520px,100%)">
+        <div class="procurement-modal" style="width:min(540px,100%)">
           <div class="procurement-modal-head">
             <div>
-              <h3>Requerir Documento en ${phaseObj.name}</h3>
-              <p style="margin:2px 0 0;font-size:0.75rem;color:var(--entity-muted)">Crea una nueva ranura documental obligatoria en el expediente ${exp.id}</p>
+              <h3>Requerir Nuevo Documento (${exp.id})</h3>
+              <p style="margin:2px 0 0;font-size:0.75rem;color:var(--entity-muted)">Crea una nueva ranura documental obligatoria y notifica al actor responsable</p>
             </div>
             <button type="button" id="closeAddSlotModalBtn">×</button>
           </div>
@@ -4697,6 +4833,12 @@
               </label>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
                 <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
+                  Fase del Proceso
+                  <select name="phaseIdx" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem">
+                    ${PHASES.map((p, idx) => `<option value="${idx}" ${idx === activeDossierPhase ? "selected" : ""}>Fase ${p.num}: ${p.name}</option>`).join("")}
+                  </select>
+                </label>
+                <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
                   Actor Responsable de Subida
                   <select name="owner" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem">
                     <option value="Proveedor">Proveedor Adjudicatario</option>
@@ -4704,6 +4846,8 @@
                     <option value="SOFEIN">SOFEIN Digital</option>
                   </select>
                 </label>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
                 <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
                   Formato Admitido
                   <select name="format" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem">
@@ -4712,6 +4856,10 @@
                     <option value="DWG / PDF">Plano Técnico (DWG / PDF)</option>
                     <option value="Digital">Conformidad Digital</option>
                   </select>
+                </label>
+                <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
+                  Fecha Límite Sugerida
+                  <input name="deadline" value="En 5 días hábiles" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem" />
                 </label>
               </div>
             </div>
@@ -4735,20 +4883,26 @@
       e.preventDefault();
       const form = new FormData(e.currentTarget);
       const docName = (form.get("name") || "").trim();
+      const targetPhase = parseInt(form.get("phaseIdx"), 10);
       const owner = form.get("owner") || "Proveedor";
       const format = form.get("format") || "PDF";
+      const deadline = (form.get("deadline") || "").trim();
+      const targetPhaseObj = PHASES[targetPhase] || PHASES[activeDossierPhase];
 
-      if (!exp.deliverables[activeDossierPhase]) {
-        exp.deliverables[activeDossierPhase] = [];
+      if (!exp.deliverables[targetPhase]) {
+        exp.deliverables[targetPhase] = [];
       }
-      exp.deliverables[activeDossierPhase].push({
+      exp.deliverables[targetPhase].push({
         name: docName,
         owner,
         state: "pending",
         format,
+        deadline,
         file: null,
         date: "Requerido hoy"
       });
+
+      activeDossierPhase = targetPhase;
 
       NOTICES.unshift({
         id: `AV-0${NOTICES.length + 1}`,
@@ -4756,7 +4910,7 @@
         categoria: "Documentación",
         tagClass: "warning",
         titulo: `Nuevo documento requerido: ${docName}`,
-        descripcion: `SOFEIN ha habilitado una nueva ranura documental para ${owner} en la ${phaseObj.name}.`,
+        descripcion: `SOFEIN ha habilitado una nueva ranura documental para ${owner} en la ${targetPhaseObj.name} (${deadline}).`,
         fecha: "Hoy, ahora",
         roles: ["admin", owner === "Cliente" ? "cliente" : "proveedor"],
         accion: "Subir Documento",
@@ -4764,23 +4918,245 @@
       });
 
       close();
-      showToast(`✓ Ranura "${docName}" creada y notificada a ${owner}`);
+      showToast(`✓ Ranura "${docName}" creada en ${targetPhaseObj.name}`);
       renderApp();
     });
   }
 
-  function simulateFileUpload(expId, slotIdx) {
+  function openUploadFreeDocModal(expId) {
     const exp = getActiveExpediente(expId);
-    showToast("Subiendo entregable a la ranura documental...");
+    const defaultOwner = activeRole === "cliente" ? "Cliente" : activeRole === "proveedor" ? "Proveedor" : "SOFEIN";
+    const modalWrap = document.getElementById("modalContainer");
+    if (!modalWrap) return;
+
+    modalWrap.innerHTML = `
+      <div class="procurement-modal-backdrop" id="freeDocModalBackdrop">
+        <div class="procurement-modal" style="width:min(520px,100%)">
+          <div class="procurement-modal-head">
+            <div>
+              <h3>Adjuntar Documento al Expediente (${exp.id})</h3>
+              <p style="margin:2px 0 0;font-size:0.75rem;color:var(--entity-muted)">Sube un certificado, anexo o informe técnico a la fase seleccionada</p>
+            </div>
+            <button type="button" id="closeFreeDocModalBtn">×</button>
+          </div>
+          <form id="modalFreeDocForm">
+            <div class="procurement-modal-body" style="gap:14px">
+              <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
+                Título del Documento / Certificado
+                <input name="name" required placeholder="Ej: Informe Complementario de Trazabilidad de Lote" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem" />
+              </label>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
+                  Fase Asociada
+                  <select name="phaseIdx" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem">
+                    ${PHASES.map((p, idx) => `<option value="${idx}" ${idx === activeDossierPhase ? "selected" : ""}>Fase ${p.num}: ${p.name}</option>`).join("")}
+                  </select>
+                </label>
+                <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
+                  Nombre del Archivo
+                  <input name="fileName" value="Anexo-Tecnico-${exp.id}.pdf" required style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem" />
+                </label>
+              </div>
+            </div>
+            <div class="procurement-modal-footer">
+              <button class="admin-quiet-button" type="button" id="cancelFreeDocModalBtn">Cancelar</button>
+              <button class="admin-primary-button" type="submit">${icon("upload", 14)} Subir y Registrar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    `;
+
+    const close = () => { modalWrap.innerHTML = ""; };
+    document.getElementById("closeFreeDocModalBtn")?.addEventListener("click", close);
+    document.getElementById("cancelFreeDocModalBtn")?.addEventListener("click", close);
+    document.getElementById("freeDocModalBackdrop")?.addEventListener("click", e => {
+      if (e.target.id === "freeDocModalBackdrop") close();
+    });
+
+    document.getElementById("modalFreeDocForm")?.addEventListener("submit", e => {
+      e.preventDefault();
+      const form = new FormData(e.currentTarget);
+      const docName = (form.get("name") || "").trim();
+      const targetPhase = parseInt(form.get("phaseIdx"), 10);
+      const fileName = (form.get("fileName") || "").trim() || `${docName.replace(/[^a-zA-Z0-9]/g, "-")}.pdf`;
+
+      if (!exp.deliverables[targetPhase]) {
+        exp.deliverables[targetPhase] = [];
+      }
+      exp.deliverables[targetPhase].push({
+        name: docName,
+        owner: defaultOwner,
+        state: activeRole === "admin" ? "complete" : "review",
+        format: "PDF",
+        file: fileName,
+        date: "Hoy, recién adjuntado"
+      });
+
+      activeDossierPhase = targetPhase;
+      close();
+      showToast(`✓ Documento "${fileName}" adjuntado en ${PHASES[targetPhase].name}`);
+      renderApp();
+    });
+  }
+
+  function openRejectDeliverableModal(expId, phaseIdx, slotIdx) {
+    const exp = getActiveExpediente(expId);
+    const del = exp.deliverables[phaseIdx] && exp.deliverables[phaseIdx][slotIdx];
+    if (!del) return;
+    const modalWrap = document.getElementById("modalContainer");
+    if (!modalWrap) return;
+
+    modalWrap.innerHTML = `
+      <div class="procurement-modal-backdrop" id="rejectDocModalBackdrop">
+        <div class="procurement-modal" style="width:min(520px,100%)">
+          <div class="procurement-modal-head">
+            <div>
+              <h3>Rechazar Documento con Observaciones</h3>
+              <p style="margin:2px 0 0;font-size:0.75rem;color:var(--entity-muted)">${del.name} (${exp.id})</p>
+            </div>
+            <button type="button" id="closeRejectDocModalBtn">×</button>
+          </div>
+          <form id="modalRejectDocForm">
+            <div class="procurement-modal-body" style="gap:14px">
+              <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
+                Motivo Técnico del Rechazo / Subsanación Requerida
+                <textarea name="motivo" rows="3" required style="padding:10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem">Falta el sello y firma del laboratorio acreditado ENAC en el anexo de resultados de la página 4.</textarea>
+              </label>
+            </div>
+            <div class="procurement-modal-footer">
+              <button class="admin-quiet-button" type="button" id="cancelRejectDocModalBtn">Cancelar</button>
+              <button class="admin-primary-button" type="submit" style="background:#dc2626;border-color:#dc2626">Notificar Rechazo a ${del.owner}</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    `;
+
+    const close = () => { modalWrap.innerHTML = ""; };
+    document.getElementById("closeRejectDocModalBtn")?.addEventListener("click", close);
+    document.getElementById("cancelRejectDocModalBtn")?.addEventListener("click", close);
+    document.getElementById("rejectDocModalBackdrop")?.addEventListener("click", e => {
+      if (e.target.id === "rejectDocModalBackdrop") close();
+    });
+
+    document.getElementById("modalRejectDocForm")?.addEventListener("submit", e => {
+      e.preventDefault();
+      const form = new FormData(e.currentTarget);
+      const motivo = (form.get("motivo") || "").trim();
+      del.state = "rejected";
+      del.rejectReason = motivo;
+
+      NOTICES.unshift({
+        id: `AV-0${NOTICES.length + 1}`,
+        expId: exp.id,
+        categoria: "Documentación Observada",
+        tagClass: "warning",
+        titulo: `Subsanación requerida en "${del.name}" (${exp.id})`,
+        descripcion: `SOFEIN ha rechazado el documento con observaciones: "${motivo}".`,
+        fecha: "Hoy, ahora",
+        roles: ["admin", del.owner === "Cliente" ? "cliente" : "proveedor"],
+        accion: "Subsanar Documento",
+        enlace: `#${del.owner === "Cliente" ? "cliente" : "proveedor"}/expedientes/${exp.id}`
+      });
+
+      close();
+      showToast(`⚠️ Documento rechazado. Se ha enviado aviso de subsanación a ${del.owner}.`);
+      renderApp();
+    });
+  }
+
+  function openInspectDeliverableModal(expId, phaseIdx, slotIdx) {
+    const exp = getActiveExpediente(expId);
+    const del = exp.deliverables[phaseIdx] && exp.deliverables[phaseIdx][slotIdx];
+    if (!del) return;
+    const phaseObj = PHASES[phaseIdx] || PHASES[0];
+    const modalWrap = document.getElementById("modalContainer");
+    if (!modalWrap) return;
+
+    modalWrap.innerHTML = `
+      <div class="procurement-modal-backdrop" id="inspectDocModalBackdrop">
+        <div class="procurement-modal" style="width:min(580px,100%)">
+          <div class="procurement-modal-head">
+            <div>
+              <h3>Auditoría y Trazabilidad Documental</h3>
+              <p style="margin:2px 0 0;font-size:0.75rem;color:var(--entity-muted)">Expediente ${exp.id} · ${phaseObj.name}</p>
+            </div>
+            <button type="button" id="closeInspectDocModalBtn">×</button>
+          </div>
+          <div class="procurement-modal-body" style="gap:14px">
+            <div style="padding:16px;border-radius:10px;background:var(--entity-panel-2);border:1px solid var(--entity-line);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+              <div style="display:flex;align-items:center;gap:12px">
+                <span style="display:grid;place-items:center;width:42px;height:42px;border-radius:8px;background:var(--entity-accent-soft);color:var(--entity-accent)">
+                  ${icon("file", 22)}
+                </span>
+                <div>
+                  <strong style="display:block;font-size:0.94rem;color:var(--entity-text)">${del.file || del.name}</strong>
+                  <small style="color:var(--entity-muted);font-size:0.75rem">${del.name} · Formato ${del.format}</small>
+                </div>
+              </div>
+              ${getStatusPill(del.state)}
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+              <div style="padding:12px;border-radius:8px;border:1px solid var(--entity-line);background:var(--entity-bg)">
+                <span style="font-size:0.68rem;text-transform:uppercase;color:var(--entity-faint);font-weight:600">Entidad Emisora / Responsable</span>
+                <strong style="display:block;margin-top:4px;font-size:0.84rem;color:var(--entity-text)">${del.owner}</strong>
+              </div>
+              <div style="padding:12px;border-radius:8px;border:1px solid var(--entity-line);background:var(--entity-bg)">
+                <span style="font-size:0.68rem;text-transform:uppercase;color:var(--entity-faint);font-weight:600">Sello Temporal de Registro</span>
+                <strong style="display:block;margin-top:4px;font-size:0.84rem;color:var(--entity-text)">${del.date || "Registrado"}</strong>
+              </div>
+            </div>
+
+            <div style="padding:12px 14px;border-radius:8px;border:1px solid var(--entity-line);background:var(--entity-bg)">
+              <span style="font-size:0.68rem;text-transform:uppercase;color:var(--entity-faint);font-weight:600">Huella Digital de Trazabilidad (Pasaporte Digital SOFEIN)</span>
+              <code style="display:block;margin-top:4px;font-size:0.73rem;color:var(--entity-accent);word-break:break-all">SHA256: 8f94e2c1a04d73b912e85b02c48f19a7d6c31f09e2a4b78c9d01f3a6e4c1928d</code>
+            </div>
+
+            ${del.rejectReason ? `
+              <div class="slot-rejection-box" style="margin-top:0">
+                <div>
+                  <strong>Observación Técnica Registrada por SOFEIN:</strong>
+                  <p>${del.rejectReason}</p>
+                </div>
+              </div>
+            ` : ""}
+          </div>
+          <div class="procurement-modal-footer">
+            <button class="admin-quiet-button" type="button" id="closeInspectDocFooterBtn">Cerrar</button>
+            <button class="admin-primary-button" type="button" id="downloadInspectedDocBtn">${icon("download", 14)} Descargar Original (${del.file})</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    const close = () => { modalWrap.innerHTML = ""; };
+    document.getElementById("closeInspectDocModalBtn")?.addEventListener("click", close);
+    document.getElementById("closeInspectDocFooterBtn")?.addEventListener("click", close);
+    document.getElementById("inspectDocModalBackdrop")?.addEventListener("click", e => {
+      if (e.target.id === "inspectDocModalBackdrop") close();
+    });
+    document.getElementById("downloadInspectedDocBtn")?.addEventListener("click", () => {
+      close();
+      showToast(`Descarga iniciada: ${del.file}`);
+    });
+  }
+
+  function simulateFileUpload(expId, slotIdx, phaseIdx = activeDossierPhase, isReupload = false) {
+    const exp = getActiveExpediente(expId);
+    showToast(isReupload ? "Subiendo versión corregida a la ranura..." : "Subiendo entregable a la ranura documental...");
     setTimeout(() => {
-      if (exp.deliverables[activeDossierPhase] && exp.deliverables[activeDossierPhase][slotIdx]) {
-        exp.deliverables[activeDossierPhase][slotIdx].file = `${exp.deliverables[activeDossierPhase][slotIdx].name.replace(/[^a-zA-Z0-9]/g, "-")}-subido.pdf`;
-        exp.deliverables[activeDossierPhase][slotIdx].state = "review";
-        exp.deliverables[activeDossierPhase][slotIdx].date = "Hoy, recién subido";
+      if (exp.deliverables[phaseIdx] && exp.deliverables[phaseIdx][slotIdx]) {
+        const suffix = isReupload ? "rev02-subsanado.pdf" : "subido.pdf";
+        exp.deliverables[phaseIdx][slotIdx].file = `${exp.deliverables[phaseIdx][slotIdx].name.replace(/[^a-zA-Z0-9]/g, "-")}-${suffix}`;
+        exp.deliverables[phaseIdx][slotIdx].state = "review";
+        exp.deliverables[phaseIdx][slotIdx].rejectReason = null;
+        exp.deliverables[phaseIdx][slotIdx].date = isReupload ? "Hoy, versión subsanada" : "Hoy, recién subido";
         showToast("✓ Archivo subido. Estado actualizado a: 'En revisión por SOFEIN'");
         renderApp();
       }
-    }, 600);
+    }, 500);
   }
 
   function openIncidentModal(expId) {
