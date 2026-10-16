@@ -5489,6 +5489,7 @@
     const exp = getActiveExpediente(expId);
     if (!exp) return;
 
+    const isRoleAdmin = activeRole === "admin";
     const defaultOrigin = activeRole === "cliente" ? `Cliente (${exp.cliente})` : activeRole === "proveedor" ? `Proveedor (${exp.proveedor || "Taller Homologado"})` : "SOFEIN (De Oficio)";
 
     modalWrap.innerHTML = `
@@ -6229,13 +6230,64 @@
     });
   }
 
-  // Navegación delegada por hash
+  // Navegación y acciones delegadas globales
   document.addEventListener("click", e => {
     const go = e.target.closest("[data-go]");
     if (go) {
       e.preventDefault();
       location.hash = go.dataset.go;
       document.getElementById("app")?.classList.remove("nav-open");
+      return;
+    }
+
+    const openInc = e.target.closest("[data-open-incident-modal]");
+    if (openInc) {
+      e.preventDefault();
+      openIncidentModal(openInc.dataset.openIncidentModal);
+      return;
+    }
+
+    const medBtn = e.target.closest("[data-open-mediation-modal]");
+    if (medBtn) {
+      e.preventDefault();
+      openMediationModal(medBtn.dataset.openMediationModal, medBtn.dataset.incidentId);
+      return;
+    }
+
+    const signBtn = e.target.closest("[data-sign-incident-party]");
+    if (signBtn) {
+      e.preventDefault();
+      openSignIncidentModal(signBtn.dataset.expId, signBtn.dataset.incidentId, signBtn.dataset.signIncidentParty);
+      return;
+    }
+
+    const silenceBtn = e.target.closest("[data-apply-silence-incident]");
+    if (silenceBtn) {
+      e.preventDefault();
+      applySilencePositive(silenceBtn.dataset.applySilenceIncident, silenceBtn.dataset.incidentId);
+      return;
+    }
+
+    const consolBtn = e.target.closest("[data-consolidate-addendum]");
+    if (consolBtn) {
+      e.preventDefault();
+      consolidateAddendum(consolBtn.dataset.consolidateAddendum, consolBtn.dataset.incidentId);
+      return;
+    }
+
+    const viewAddendumBtn = e.target.closest("[data-view-addendum]");
+    if (viewAddendumBtn) {
+      e.preventDefault();
+      openConsolidatedAddendumModal(viewAddendumBtn.dataset.viewAddendum, viewAddendumBtn.dataset.incidentId);
+      return;
+    }
+
+    const filterBtn = e.target.closest("[data-incident-filter]");
+    if (filterBtn) {
+      e.preventDefault();
+      incidentStatusFilter = filterBtn.dataset.incidentFilter;
+      renderApp();
+      return;
     }
   });
 
