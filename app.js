@@ -826,11 +826,43 @@
     return exp.matching;
   }
 
+  /* ---------- Helper: Formalización del Acuerdo y Contrato (Pantalla 3 - Apuntes 05 y 06) ---------- */
+  function ensureExpedienteFormalizacion(exp) {
+    if (!exp) return null;
+    if (exp.formalizacion) return exp.formalizacion;
+
+    const isAlreadyPastFormalizacion = exp.faseActual > 2;
+    const matching = ensureExpedienteMatching(exp);
+    const winningPrv = matching.proveedorAdjudicado || exp.proveedor || "IberRail Components, S.L.";
+    const prvObj = DIRECTORIO_PROVEEDORES.find(p => p.nombre === winningPrv) || DIRECTORIO_PROVEEDORES[0];
+    const cliObj = DIRECTORIO_CLIENTES.find(c => exp.cliente.includes(c.nombre.split(",")[0])) || DIRECTORIO_CLIENTES[0];
+
+    exp.formalizacion = {
+      codigoContrato: `PED-SOF-${exp.id.replace("RFQ-", "")}`,
+      fechaEmision: isAlreadyPastFormalizacion ? "18 jun 2026" : "Hoy",
+      clienteCif: cliObj ? cliObj.cif : "A-48092311",
+      proveedorCif: prvObj ? prvObj.cif : "B-48192837",
+      condicionesPago: prvObj && prvObj.condicionesPago ? prvObj.condicionesPago : "Confirming 60 días fecha recepción conforme",
+      garantiaContractual: "10 años de trazabilidad y garantía técnica directa del fabricante",
+      acuerdoMarcoCliente: true,
+      acuerdoMarcoProveedor: true,
+      firmaCliente: isAlreadyPastFormalizacion,
+      fechaFirmaCliente: isAlreadyPastFormalizacion ? "18 jun, 11:20" : null,
+      firmaProveedor: isAlreadyPastFormalizacion,
+      fechaFirmaProveedor: isAlreadyPastFormalizacion ? "18 jun, 13:05" : null,
+      validadoSofein: isAlreadyPastFormalizacion,
+      fechaValidacionSofein: isAlreadyPastFormalizacion ? "18 jun, 14:00" : null
+    };
+
+    return exp.formalizacion;
+  }
+
   /* ---------- Enrutador y Estado de Vista ---------- */
   let activeRole = "admin";
   let activeSection = "overview";
   let activeParam = null;
   let activeDossierPhase = 3;
+  let lastOpenedExpId = null;
   let activeDossierTab = "deliverables"; // deliverables | incidents | passport
 
   // Nuevos Estados Interactivos
@@ -1820,11 +1852,22 @@
 
   /* ============================================================
      EL CONSTRUCTOR DE EXPEDIENTES (LMS/Moodle Modular B2B)
+     + PANTALLA 3: FORMALIZACIÓN DEL ACUERDO Y GESTIÓN DEL EXPEDIENTE
      ============================================================ */
   function renderDossierBuilder(expId) {
     const exp = getActiveExpediente(expId);
+    if (lastOpenedExpId !== exp.id) {
+      lastOpenedExpId = exp.id;
+      activeDossierPhase = exp.faseActual;
+    }
+
+    const matching = ensureExpedienteMatching(exp);
+    const formalizacion = ensureExpedienteFormalizacion(exp);
     const deliverables = exp.deliverables[activeDossierPhase] || [];
     const isDestinatario = activeRole === "destinatario";
+    const isRoleAdmin = activeRole === "admin";
+    const isRoleCliente = activeRole === "cliente";
+    const isRoleProveedor = activeRole === "proveedor";
 
     // Stepper HTML
     const stepperHTML = PHASES.map((p, idx) => {
@@ -1842,9 +1885,13 @@
       `;
     }).join("");
 
-    // Deliverables / Ranuras Documentales
+    // Contabilizar ranuras validadas en la fase seleccionada
+    const completedSlotsCount = deliverables.filter(d => d.state === "complete").length;
+
+    // Deliverables / Ranuras Documentales + Pantalla 3 (Formalización y Gestión Operativa)
     let tabContent = "";
     if (activeDossierTab === "deliverables") {
+      // Banner de Fase 2 (Matching)
       const matchingBannerHTML = activeDossierPhase === 1 ? `
         <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 20px;border-radius:10px;background:var(--entity-panel-2);border:1px solid var(--entity-accent-soft);margin-bottom:18px;animation:filterFadeIn 0.2s ease-out">
           <div style="display:flex;align-items:center;gap:12px">
@@ -1859,6 +1906,217 @@
           <button class="admin-primary-button" type="button" data-go="#${activeRole}/selector/${exp.id}" style="white-space:nowrap">
             ${icon("arrow", 14)} Abrir Selector de Proveedores
           </button>
+        </div>
+      ` : "";
+
+      // Bloque de PANTALLA 3 (Parte A): Formalización del Acuerdo y Hoja de Pedido (Fase 3: index 2)
+      const bothSigned = formalizacion.firmaCliente && formalizacion.firmaProveedor;
+      const contractStateBadge = formalizacion.validadoSofein
+        ? `<span class="entity-status complete"><i></i>Acuerdo Formalizado y Validado por SOFEIN</span>`
+        : bothSigned
+          ? `<span class="entity-status review"><i></i>Firmado por las partes · Pendiente Validación SOFEIN</span>`
+          : `<span class="entity-status pending"><i></i>Pendiente de Firmas Digitales</span>`;
+
+      const reqsContractList = (matching.requisitosExigidosCliente && matching.requisitosExigidosCliente.length)
+        ? matching.requisitosExigidosCliente
+        : [
+            "Trazabilidad de lote con código identificativo individual",
+            "Certificación de ensayos mecánicos en laboratorio acreditado ENAC",
+            "Cumplimiento estricto de especificación técnica Adif / UNE-EN"
+          ];
+
+      const formalizacionBlockHTML = activeDossierPhase === 2 ? `
+        <section class="formalizacion-card">
+          <div class="formalizacion-card-head">
+            <div>
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px">
+                <span class="dossier-chip" style="color:var(--entity-accent);font-weight:700">${formalizacion.codigoContrato}</span>
+                <span class="dossier-chip">${icon("shield", 12)} Acuerdo Marco Cliente: Vigente</span>
+                <span class="dossier-chip">${icon("shield", 12)} Acuerdo Marco Proveedor: Vigente</span>
+              </div>
+              <h3 style="margin:0 0 4px;font-size:1.15rem;color:var(--entity-text)">Hoja de Pedido y Formalización del Acuerdo de Suministro</h3>
+              <p style="margin:0;font-size:0.78rem;color:var(--entity-muted)">Documento contractual vinculante entre Constructor y Proveedor Adjudicatario con intermediación y trazabilidad SOFEIN (Apuntes 05 y 06).</p>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+              ${contractStateBadge}
+              <small style="font-size:0.7rem;color:var(--entity-faint)">Emisión: ${formalizacion.fechaEmision}</small>
+            </div>
+          </div>
+
+          <!-- Resumen de Condiciones Contractuales -->
+          <div class="formalizacion-summary-grid">
+            <div class="formalizacion-stat-box">
+              <span>Constructor (Comprador)</span>
+              <strong>${exp.cliente}</strong>
+              <small>CIF: ${formalizacion.clienteCif} · Acuerdo Marco activo</small>
+            </div>
+            <div class="formalizacion-stat-box">
+              <span>Proveedor Adjudicatario</span>
+              <strong>${matching.proveedorAdjudicado || exp.proveedor}</strong>
+              <small>CIF: ${formalizacion.proveedorCif} · Homologado SOFEIN</small>
+            </div>
+            <div class="formalizacion-stat-box">
+              <span>Importe & Pago Acordado</span>
+              <strong style="color:var(--entity-accent)">${!isDestinatario ? exp.presupuestoTotal : "[Reservado]"}</strong>
+              <small>${formalizacion.condicionesPago}</small>
+            </div>
+            <div class="formalizacion-stat-box">
+              <span>Plazo Contractual & Destino</span>
+              <strong>${exp.plazoPactado}</strong>
+              <small>${exp.destinatarioFinal}</small>
+            </div>
+          </div>
+
+          <!-- Requisitos Exigidos Incorporados al Pedido -->
+          <div style="padding:14px 16px;border-radius:8px;background:var(--entity-bg);border:1px solid var(--entity-line);margin-bottom:18px">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px">
+              <strong style="font-size:0.8rem;color:var(--entity-text)">Requisitos Técnicos y de Calidad Exigibles en Contrato (Seleccionados en Fase 2):</strong>
+              <button class="admin-quiet-button" type="button" data-go="#${activeRole}/selector/${exp.id}" style="font-size:0.72rem;padding:3px 9px">
+                ${icon("table", 12)} Ver Matriz de Adjudicación
+              </button>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px">
+              ${reqsContractList.map(r => `<span class="dossier-chip complete" style="font-size:0.73rem">${icon("check", 12)} ${r}</span>`).join("")}
+            </div>
+          </div>
+
+          <!-- Cláusula Legal de Delimitación de Responsabilidad SOFEIN -->
+          <div class="formalizacion-clause-box">
+            ${icon("shield", 22)}
+            <div>
+              <h4>Cláusula de Delimitación de Responsabilidad Técnica y Civil (SOFEIN Digital)</h4>
+              <p>
+                Por el presente acuerdo, la relación mercantil de suministro, así como la garantía de fabricación, el cumplimiento de normativas técnicas ferroviarias (Adif / UNE-EN / Marcado CE), los ensayos de laboratorio y la responsabilidad civil sobre el producto suministrado recaen <b>única y exclusivamente sobre el Proveedor Adjudicatario (${matching.proveedorAdjudicado || exp.proveedor})</b>. <b>SOFEIN</b> actúa en calidad de gestor del procedimiento, intermediario tecnológico y entidad certificadora de la trazabilidad documental del expediente.
+              </p>
+            </div>
+          </div>
+
+          <!-- Panel de Firmas Digitales (Cliente + Proveedor + Validación SOFEIN) -->
+          <div class="formalizacion-sign-grid">
+            <!-- 1. Firma Cliente -->
+            <div class="formalizacion-sign-card ${formalizacion.firmaCliente ? "is-signed" : ""}">
+              <div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+                  <span style="font-size:0.68rem;font-weight:700;text-transform:uppercase;color:var(--entity-faint)">1. Conformidad Constructor</span>
+                  ${formalizacion.firmaCliente
+                    ? `<span style="font-size:0.72rem;color:var(--entity-accent);font-weight:600">✓ Firmado</span>`
+                    : `<span style="font-size:0.72rem;color:var(--entity-warning);font-weight:600">Pendiente</span>`}
+                </div>
+                <strong style="display:block;font-size:0.86rem;color:var(--entity-text)">${exp.cliente}</strong>
+                <small style="color:var(--entity-muted);font-size:0.72rem">
+                  ${formalizacion.firmaCliente ? `Firmado digitalmente (${formalizacion.fechaFirmaCliente})` : "Aceptación de condiciones y plazos de pedido"}
+                </small>
+              </div>
+              <div>
+                ${!formalizacion.firmaCliente && (isRoleCliente || isRoleAdmin) ? `
+                  <button class="admin-primary-button" type="button" data-sign-contract-role="cliente" data-exp-id="${exp.id}" style="width:100%;justify-content:center;font-size:0.76rem">
+                    ${icon("check", 14)} ${isRoleCliente ? "Firmar Hoja de Pedido" : "Firmar por Cliente (Demo)"}
+                  </button>
+                ` : formalizacion.firmaCliente ? `
+                  <span class="dossier-chip complete" style="width:100%;justify-content:center">${icon("shield", 12)} Sello Digital Constructor Verificado</span>
+                ` : `
+                  <span class="dossier-chip" style="width:100%;justify-content:center">Esperando firma del constructor</span>
+                `}
+              </div>
+            </div>
+
+            <!-- 2. Firma Proveedor -->
+            <div class="formalizacion-sign-card ${formalizacion.firmaProveedor ? "is-signed" : ""}">
+              <div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+                  <span style="font-size:0.68rem;font-weight:700;text-transform:uppercase;color:var(--entity-faint)">2. Compromiso Proveedor</span>
+                  ${formalizacion.firmaProveedor
+                    ? `<span style="font-size:0.72rem;color:var(--entity-accent);font-weight:600">✓ Firmado</span>`
+                    : `<span style="font-size:0.72rem;color:var(--entity-warning);font-weight:600">Pendiente</span>`}
+                </div>
+                <strong style="display:block;font-size:0.86rem;color:var(--entity-text)">${matching.proveedorAdjudicado || exp.proveedor}</strong>
+                <small style="color:var(--entity-muted);font-size:0.72rem">
+                  ${formalizacion.firmaProveedor ? `Firmado digitalmente (${formalizacion.fechaFirmaProveedor})` : "Asunción de requisitos técnicos y garantía"}
+                </small>
+              </div>
+              <div>
+                ${!formalizacion.firmaProveedor && (isRoleProveedor || isRoleAdmin) ? `
+                  <button class="admin-primary-button" type="button" data-sign-contract-role="proveedor" data-exp-id="${exp.id}" style="width:100%;justify-content:center;font-size:0.76rem">
+                    ${icon("check", 14)} ${isRoleProveedor ? "Firmar Compromiso y Plazo" : "Firmar por Proveedor (Demo)"}
+                  </button>
+                ` : formalizacion.firmaProveedor ? `
+                  <span class="dossier-chip complete" style="width:100%;justify-content:center">${icon("shield", 12)} Sello Digital Proveedor Verificado</span>
+                ` : `
+                  <span class="dossier-chip" style="width:100%;justify-content:center">Esperando firma del taller</span>
+                `}
+              </div>
+            </div>
+
+            <!-- 3. Validación y Activación SOFEIN -->
+            <div class="formalizacion-sign-card ${formalizacion.validadoSofein ? "is-signed" : ""}">
+              <div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+                  <span style="font-size:0.68rem;font-weight:700;text-transform:uppercase;color:var(--entity-faint)">3. Validación SOFEIN</span>
+                  ${formalizacion.validadoSofein
+                    ? `<span style="font-size:0.72rem;color:var(--entity-accent);font-weight:600">✓ Validado</span>`
+                    : `<span style="font-size:0.72rem;color:var(--entity-muted);font-weight:600">Cierre Fase 3</span>`}
+                </div>
+                <strong style="display:block;font-size:0.86rem;color:var(--entity-text)">SOFEIN Digital HQ</strong>
+                <small style="color:var(--entity-muted);font-size:0.72rem">
+                  ${formalizacion.validadoSofein ? `Validado (${formalizacion.fechaValidacionSofein}) · Fabricación activada` : "Verificación de firmas y orden de arranque fabril"}
+                </small>
+              </div>
+              <div>
+                ${!formalizacion.validadoSofein && isRoleAdmin ? `
+                  <button class="admin-primary-button" type="button" data-validate-contract-sofein="${exp.id}" style="width:100%;justify-content:center;font-size:0.76rem">
+                    ${icon("award", 14)} Validar Acuerdo y Arrancar Fabricación
+                  </button>
+                ` : formalizacion.validadoSofein ? `
+                  <span class="dossier-chip complete" style="width:100%;justify-content:center">${icon("award", 12)} Orden de Fabricación Emitida</span>
+                ` : `
+                  <span class="dossier-chip" style="width:100%;justify-content:center">Pendiente validación SOFEIN</span>
+                `}
+              </div>
+            </div>
+          </div>
+        </section>
+      ` : "";
+
+      // Bloque de PANTALLA 3 (Parte B): Panel de Gestión Operativa de la Fase
+      const phaseStateLabel = activeDossierPhase < exp.faseActual
+        ? `<span class="entity-status complete"><i></i>Fase Completada</span>`
+        : activeDossierPhase === exp.faseActual
+          ? `<span class="entity-status review"><i></i>Fase en Curso (Activa)</span>`
+          : `<span class="entity-status pending"><i></i>Fase Programada</span>`;
+
+      const phaseOpsPanelHTML = !isDestinatario ? `
+        <div class="phase-ops-panel">
+          <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+            ${phaseStateLabel}
+            <div>
+              <strong style="display:block;font-size:0.9rem;color:var(--entity-text)">
+                Gestión Operativa — ${PHASES[activeDossierPhase].name}
+              </strong>
+              <span style="font-size:0.76rem;color:var(--entity-muted)">
+                ${PHASES[activeDossierPhase].desc} · <b>${completedSlotsCount} de ${deliverables.length}</b> entregables validados
+              </span>
+            </div>
+          </div>
+          <div class="phase-ops-controls">
+            ${activeDossierPhase !== 2 ? `
+              <button class="admin-quiet-button" type="button" data-select-dossier-phase="2" title="Consultar Hoja de Pedido y Contrato">
+                ${icon("shield", 14)} Ver Hoja de Pedido
+              </button>
+            ` : ""}
+            ${isRoleAdmin ? `
+              <button class="admin-quiet-button" type="button" data-open-timeline-modal="${exp.id}">
+                ${icon("calendar", 14)} Actualizar Plazo / Fase
+              </button>
+              <button class="admin-quiet-button" type="button" data-open-add-slot-modal="${exp.id}">
+                ${icon("plus", 14)} Requerir Documento
+              </button>
+              ${activeDossierPhase === exp.faseActual && exp.faseActual < PHASES.length - 1 ? `
+                <button class="admin-primary-button" type="button" data-advance-dossier-phase="${exp.id}">
+                  ${icon("check", 14)} Completar Fase ${activeDossierPhase + 1} y Avanzar
+                </button>
+              ` : ""}
+            ` : ""}
+          </div>
         </div>
       ` : "";
 
@@ -1916,9 +2174,9 @@
             </div>
           `}
         </article>
-      `).join("") : `<div style="padding:32px;background:var(--entity-panel);border:1px solid var(--entity-line);border-radius:10px;text-align:center;color:var(--entity-muted)">No hay entregables documentales asignados a esta fase todavía.</div>`;
+      `).join("") : `<div style="padding:32px;background:var(--entity-panel);border:1px solid var(--entity-line);border-radius:10px;text-align:center;color:var(--entity-muted)">No hay entregables documentales asignados a esta fase todavía.${isRoleAdmin ? ` Puedes pulsar en <b>"+ Requerir Documento"</b> para habilitar una ranura.` : ""}</div>`;
 
-      tabContent = `${matchingBannerHTML}<div class="deliverable-slot-grid">${slotsHTML}</div>`;
+      tabContent = `${matchingBannerHTML}${formalizacionBlockHTML}${phaseOpsPanelHTML}<div class="deliverable-slot-grid">${slotsHTML}</div>`;
     } else if (activeDossierTab === "incidents") {
       // Muro de Incidencias & Modificaciones
       const incidentsHTML = exp.incidencias.length ? exp.incidencias.map((inc) => `
@@ -2078,7 +2336,7 @@
         <div>
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
             <span style="font-size:0.76rem;font-weight:600;color:var(--entity-faint);text-transform:uppercase;letter-spacing:0.06em">Secuencia de Trazabilidad por Fases</span>
-            <span style="font-size:0.76rem;color:var(--entity-accent);font-weight:600">Fase actual: ${PHASES[exp.faseActual].name}</span>
+            <span style="font-size:0.76rem;color:var(--entity-accent);font-weight:600">Fase actual del expediente: ${PHASES[exp.faseActual].name}</span>
           </div>
           <div class="dossier-stepper">
             ${stepperHTML}
@@ -2088,7 +2346,7 @@
         <!-- Pestañas Internas del Expediente -->
         <div class="dossier-tabs">
           <button class="dossier-tab-btn ${activeDossierTab === "deliverables" ? "is-active" : ""}" type="button" data-switch-dossier-tab="deliverables">
-            ${icon("file", 16)} Ranuras Documentales (Fase ${activeDossierPhase + 1})
+            ${icon("file", 16)} Gestión & Documentación (${PHASES[activeDossierPhase].name})
           </button>
           <button class="dossier-tab-btn" type="button" data-go="#${activeRole}/selector/${exp.id}">
             ${icon("users", 16)} Selector & Matching de Proveedores
@@ -2116,25 +2374,36 @@
     const activeNotices = roleNotices.filter(n => !discardedNotices.has(n.id));
     const discardedList = roleNotices.filter(n => discardedNotices.has(n.id));
 
+    const tableHeaderHTML = `
+      <div class="admin-doc-table-head avisos-grid">
+        <span>Tipo</span>
+        <span>Aviso / Actividad</span>
+        <span>Expediente</span>
+        <span>Categoría</span>
+        <span>Fecha</span>
+        <span style="text-align:right">Acciones</span>
+      </div>
+    `;
+
     const renderNoticeRow = (n, isDiscarded = false) => `
       <article class="admin-doc-row avisos-grid">
         <span style="display:grid;place-items:center;width:34px;height:34px;border-radius:6px;background:var(--entity-panel-2)">
           ${icon(n.tagClass === "warning" ? "alert" : n.tagClass === "review" ? "file" : "check", 16)}
         </span>
-        <div>
-          <strong>${n.titulo}</strong>
-          <small style="color:var(--entity-muted)">${n.descripcion}</small>
+        <div style="min-width:0">
+          <strong style="display:block;margin-bottom:2px">${n.titulo}</strong>
+          <small style="color:var(--entity-muted);display:block;line-height:1.4">${n.descripcion}</small>
         </div>
         <div>
-          <span class="dossier-chip">${n.expId}</span>
+          <span class="dossier-chip" style="white-space:nowrap">${n.expId}</span>
         </div>
         <div>
-          <span class="dossier-chip" style="font-size:0.68rem">${n.categoria}</span>
+          <span class="dossier-chip" style="font-size:0.68rem;white-space:nowrap">${n.categoria}</span>
         </div>
-        <div>
+        <div style="white-space:nowrap">
           <time style="font-size:0.72rem;color:var(--entity-faint)">${n.fecha}</time>
         </div>
-        <div style="display:flex;align-items:center;justify-content:flex-end;gap:8px">
+        <div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;white-space:nowrap">
           ${!isDiscarded ? `
             <button class="admin-quiet-button" type="button" data-go="${n.enlace}">${n.accion}</button>
             <button class="admin-quiet-button" type="button" data-dismiss-notice="${n.id}" title="Descartar aviso">${icon("x", 12)} Descartar</button>
@@ -2145,25 +2414,47 @@
       </article>
     `;
 
-    let bodyContent = "";
+    let mainAvisosHTML = "";
     if (activeNotices.length === 0) {
-      bodyContent = `<div style="padding:40px;text-align:center;color:var(--entity-muted);background:var(--entity-panel);border-radius:8px;border:1px solid var(--entity-line)">No hay avisos pendientes en esta bandeja.</div>`;
+      mainAvisosHTML = `
+        <div style="padding:40px;text-align:center;color:var(--entity-muted);background:var(--entity-panel);border-radius:10px;border:1px solid var(--entity-line)">
+          No hay avisos pendientes en esta bandeja.
+        </div>
+      `;
     } else if (avisosGroup === "none") {
-      bodyContent = activeNotices.map(n => renderNoticeRow(n)).join("");
+      mainAvisosHTML = `
+        <section class="admin-document-list" style="border:1px solid var(--entity-line);border-radius:10px;overflow:hidden;background:var(--entity-panel)">
+          ${tableHeaderHTML}
+          ${activeNotices.map(n => renderNoticeRow(n)).join("")}
+        </section>
+      `;
     } else if (avisosGroup === "expediente") {
       const groups = {};
       activeNotices.forEach(n => {
         if (!groups[n.expId]) groups[n.expId] = [];
         groups[n.expId].push(n);
       });
-      bodyContent = Object.keys(groups).map(expId => {
+      mainAvisosHTML = Object.keys(groups).map(expId => {
         const exp = getActiveExpediente(expId);
+        const phaseName = PHASES[exp.faseActual] ? PHASES[exp.faseActual].name : "";
         return `
-          <div class="avisos-group-header">
-            <span>${icon("folder", 14)} ${expId} · ${exp.producto}</span>
-            <small style="color:var(--entity-muted);font-weight:normal">${groups[expId].length} aviso(s)</small>
-          </div>
-          ${groups[expId].map(n => renderNoticeRow(n)).join("")}
+          <section class="avisos-group-card">
+            <div class="avisos-group-card-head">
+              <div class="avisos-group-card-title">
+                ${icon("folder", 16)}
+                <span>${expId} · ${exp.producto}</span>
+                <span class="avisos-group-card-sub">· ${exp.cliente} (${phaseName})</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px">
+                <span class="avisos-group-count-pill">${groups[expId].length} ${groups[expId].length === 1 ? "aviso" : "avisos"}</span>
+                <button class="admin-quiet-button" type="button" data-go="#${role}/expedientes/${expId}" style="padding:3px 9px;font-size:0.72rem">
+                  Abrir expediente ${icon("arrow", 12)}
+                </button>
+              </div>
+            </div>
+            ${tableHeaderHTML}
+            ${groups[expId].map(n => renderNoticeRow(n)).join("")}
+          </section>
         `;
       }).join("");
     } else if (avisosGroup === "categoria") {
@@ -2172,12 +2463,18 @@
         if (!groups[n.categoria]) groups[n.categoria] = [];
         groups[n.categoria].push(n);
       });
-      bodyContent = Object.keys(groups).map(cat => `
-        <div class="avisos-group-header">
-          <span>${icon("file", 14)} Categoría: ${cat}</span>
-          <small style="color:var(--entity-muted);font-weight:normal">${groups[cat].length} aviso(s)</small>
-        </div>
-        ${groups[cat].map(n => renderNoticeRow(n)).join("")}
+      mainAvisosHTML = Object.keys(groups).map(cat => `
+        <section class="avisos-group-card">
+          <div class="avisos-group-card-head">
+            <div class="avisos-group-card-title">
+              ${icon("file", 16)}
+              <span>Categoría: ${cat}</span>
+            </div>
+            <span class="avisos-group-count-pill">${groups[cat].length} ${groups[cat].length === 1 ? "aviso" : "avisos"}</span>
+          </div>
+          ${tableHeaderHTML}
+          ${groups[cat].map(n => renderNoticeRow(n)).join("")}
+        </section>
       `).join("");
     } else if (avisosGroup === "fecha") {
       const groups = {};
@@ -2186,12 +2483,18 @@
         if (!groups[dateKey]) groups[dateKey] = [];
         groups[dateKey].push(n);
       });
-      bodyContent = Object.keys(groups).map(dateKey => `
-        <div class="avisos-group-header">
-          <span>${icon("calendar", 14)} ${dateKey}</span>
-          <small style="color:var(--entity-muted);font-weight:normal">${groups[dateKey].length} aviso(s)</small>
-        </div>
-        ${groups[dateKey].map(n => renderNoticeRow(n)).join("")}
+      mainAvisosHTML = Object.keys(groups).map(dateKey => `
+        <section class="avisos-group-card">
+          <div class="avisos-group-card-head">
+            <div class="avisos-group-card-title">
+              ${icon("calendar", 16)}
+              <span>Periodo: ${dateKey}</span>
+            </div>
+            <span class="avisos-group-count-pill">${groups[dateKey].length} ${groups[dateKey].length === 1 ? "aviso" : "avisos"}</span>
+          </div>
+          ${tableHeaderHTML}
+          ${groups[dateKey].map(n => renderNoticeRow(n)).join("")}
+        </section>
       `).join("");
     }
 
@@ -2216,17 +2519,7 @@
         <span style="font-size:0.74rem;color:var(--entity-muted)">${activeNotices.length} aviso(s) activo(s)</span>
       </div>
 
-      <section class="admin-document-list" style="border:1px solid var(--entity-line);border-radius:10px;overflow:hidden">
-        <div class="admin-doc-table-head avisos-grid">
-          <span>Tipo</span>
-          <span>Aviso / Actividad</span>
-          <span>Expediente</span>
-          <span>Categoría</span>
-          <span>Fecha</span>
-          <span style="text-align:right">Acciones</span>
-        </div>
-        ${bodyContent}
-      </section>
+      ${mainAvisosHTML}
 
       <details class="admin-discarded-details" ${showDiscardedAvisos ? "open" : ""}>
         <summary id="toggleDiscardedSummary">
@@ -4148,6 +4441,159 @@
       location.hash = `#admin/expedientes/${exp.id}`;
     });
 
+    /* ---------- Eventos de Pantalla 3: Formalización del Acuerdo y Gestión Operativa ---------- */
+    // 1. Firma digital de Hoja de Pedido por Cliente o Proveedor
+    document.querySelectorAll("[data-sign-contract-role]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const signRole = btn.dataset.signContractRole;
+        const exp = getActiveExpediente(btn.dataset.expId);
+        const formalizacion = ensureExpedienteFormalizacion(exp);
+        if (signRole === "cliente") {
+          formalizacion.firmaCliente = true;
+          formalizacion.fechaFirmaCliente = "Hoy, ahora";
+          showToast(`✓ Hoja de Pedido firmada digitalmente por ${exp.cliente}`);
+        } else if (signRole === "proveedor") {
+          formalizacion.firmaProveedor = true;
+          formalizacion.fechaFirmaProveedor = "Hoy, ahora";
+          showToast(`✓ Compromiso de suministro firmado por ${exp.proveedor}`);
+        }
+        renderApp();
+      });
+    });
+
+    // 2. Validación de Acuerdo por SOFEIN Admin y Arranque de Fabricación (Fase 3 -> Fase 4)
+    document.querySelectorAll("[data-validate-contract-sofein]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const exp = getActiveExpediente(btn.dataset.validateContractSofein);
+        const formalizacion = ensureExpedienteFormalizacion(exp);
+        formalizacion.firmaCliente = true;
+        if (!formalizacion.fechaFirmaCliente) formalizacion.fechaFirmaCliente = "Hoy";
+        formalizacion.firmaProveedor = true;
+        if (!formalizacion.fechaFirmaProveedor) formalizacion.fechaFirmaProveedor = "Hoy";
+        formalizacion.validadoSofein = true;
+        formalizacion.fechaValidacionSofein = "Hoy, ahora";
+
+        // Marcar entregables de Fase 3 como validados
+        if (exp.deliverables[2] && exp.deliverables[2].length) {
+          exp.deliverables[2].forEach(d => { d.state = "complete"; });
+        } else {
+          exp.deliverables[2] = [
+            { name: "Hoja de Pedido Formalizada (Delimitación Responsabilidad)", owner: "SOFEIN", state: "complete", format: "PDF", file: `Hoja-Pedido-${exp.id}.pdf`, date: "Hoy" },
+            { name: "Acuerdo Marco Plataforma Firmado", owner: "Cliente", state: "complete", format: "Digital", file: `Acuerdo-Marco-${exp.id}.pdf`, date: "Hoy" }
+          ];
+        }
+
+        // Avanzar a Fase 4 (Fabricación & Calidad) si estaba en Fase 3 o anterior
+        if (exp.faseActual <= 2) {
+          exp.faseActual = 3;
+          activeDossierPhase = 3;
+          if (!exp.deliverables[3] || exp.deliverables[3].length === 0) {
+            exp.deliverables[3] = [
+              { name: "Orden de Fabricación y Programa de Ensayos", owner: "SOFEIN", state: "complete", format: "PDF", file: `OF-${exp.id}.pdf`, date: "Hoy" },
+              { name: "Ficha Técnica de Lote y Análisis de Material", owner: "Proveedor", state: "pending", format: "PDF", file: null, date: "Requerido en fabricación" },
+              { name: "Certificado de Ensayos en Laboratorio Acreditado ENAC", owner: "Proveedor", state: "pending", format: "PDF / Lab", file: null, date: "Requerido en fabricación" }
+            ];
+          }
+        }
+
+        NOTICES.unshift({
+          id: `AV-0${NOTICES.length + 1}`,
+          expId: exp.id,
+          categoria: "Formalización",
+          tagClass: "complete",
+          titulo: `Acuerdo formalizado y Orden de Fabricación activada (${exp.id})`,
+          descripcion: `SOFEIN ha validado la Hoja de Pedido ${formalizacion.codigoContrato}. El expediente avanza a Fase 4: Fabricación & Calidad.`,
+          fecha: "Hoy, ahora",
+          roles: ["admin", "cliente", "proveedor"],
+          accion: "Ver Fabricación",
+          enlace: `#admin/expedientes/${exp.id}`
+        });
+
+        showToast(`✓ Acuerdo ${formalizacion.codigoContrato} validado. Fase 4 (Fabricación) activada.`);
+        renderApp();
+      });
+    });
+
+    // 3. Completar Fase Actual y Avanzar a la Siguiente (Gestión Operativa SOFEIN)
+    document.querySelectorAll("[data-advance-dossier-phase]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const exp = getActiveExpediente(btn.dataset.advanceDossierPhase);
+        const currentIdx = exp.faseActual;
+        if (currentIdx < PHASES.length - 1) {
+          // Marcar ranuras de la fase actual como completas
+          if (exp.deliverables[currentIdx]) {
+            exp.deliverables[currentIdx].forEach(d => {
+              if (!d.file) d.file = `${d.name.replace(/[^a-zA-Z0-9]/g, "-")}-${exp.id}.pdf`;
+              d.state = "complete";
+            });
+          }
+
+          const nextIdx = currentIdx + 1;
+          exp.faseActual = nextIdx;
+          activeDossierPhase = nextIdx;
+
+          // Inicializar ranuras por defecto si la nueva fase está vacía
+          if (!exp.deliverables[nextIdx] || exp.deliverables[nextIdx].length === 0) {
+            const defaultByPhase = {
+              1: [{ name: "Comparativa de Ofertas Homologadas", owner: "SOFEIN", state: "review", format: "PDF", file: null, date: "En curso" }],
+              2: [{ name: "Hoja de Pedido Formalizada (Delimitación Responsabilidad)", owner: "SOFEIN", state: "review", format: "PDF", file: `Hoja-Pedido-${exp.id}.pdf`, date: "Hoy" }],
+              3: [
+                { name: "Ficha Técnica de Lote y Producción", owner: "Proveedor", state: "pending", format: "PDF", file: null, date: "Pendiente" },
+                { name: "Certificado de Ensayos de Calidad ENAC", owner: "Proveedor", state: "pending", format: "PDF / Lab", file: null, date: "Pendiente" }
+              ],
+              4: [
+                { name: "Plan Logístico y Coordinación de Transporte", owner: "Proveedor", state: "pending", format: "PDF", file: null, date: "Pendiente" },
+                { name: "Albaranes de Salida de Fábrica", owner: "Proveedor", state: "pending", format: "PDF", file: null, date: "Pendiente" }
+              ],
+              5: [
+                { name: "Acta de Descarga a Pie de Vía", owner: "SOFEIN", state: "pending", format: "PDF", file: null, date: "Pendiente" },
+                { name: "Conformidad Técnica de Recepción en Obra", owner: "Cliente", state: "pending", format: "Digital", file: null, date: "Pendiente" }
+              ],
+              6: [
+                { name: "Pasaporte Digital SOFEIN (Trazabilidad Consolidada)", owner: "SOFEIN", state: "complete", format: "Certificado", file: `Pasaporte-Digital-${exp.id}.pdf`, date: "Hoy" }
+              ]
+            };
+            exp.deliverables[nextIdx] = defaultByPhase[nextIdx] || [];
+          }
+
+          NOTICES.unshift({
+            id: `AV-0${NOTICES.length + 1}`,
+            expId: exp.id,
+            categoria: "Avance de Fase",
+            tagClass: "complete",
+            titulo: `Expediente ${exp.id} avanza a ${PHASES[nextIdx].name}`,
+            descripcion: `SOFEIN ha certificado el cierre de la ${PHASES[currentIdx].name} y ha habilitado la ${PHASES[nextIdx].name}.`,
+            fecha: "Hoy, ahora",
+            roles: ["admin", "cliente", "proveedor"],
+            accion: "Abrir Expediente",
+            enlace: `#admin/expedientes/${exp.id}`
+          });
+
+          showToast(`✓ Fase ${currentIdx + 1} completada. Expediente en ${PHASES[nextIdx].name}`);
+          renderApp();
+        }
+      });
+    });
+
+    // 4. Modal para Actualizar Plazo / Fase del Expediente
+    document.querySelectorAll("[data-open-timeline-modal]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        openUpdateTimelineModal(btn.dataset.openTimelineModal);
+      });
+    });
+
+    // 5. Modal para Requerir / Añadir Ranura Documental a la Fase
+    document.querySelectorAll("[data-open-add-slot-modal]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        openAddDeliverableModal(btn.dataset.openAddSlotModal);
+      });
+    });
+
+    // Recordar apertura/cierre de descartados en Avisos
+    document.querySelector(".admin-discarded-details")?.addEventListener("toggle", e => {
+      showDiscardedAvisos = e.currentTarget.open;
+    });
+
     // Toasts genéricos
     document.querySelectorAll("[data-toast]").forEach(el => {
       el.addEventListener("click", () => showToast(el.dataset.toast));
@@ -4155,6 +4601,171 @@
 
     document.querySelectorAll("[data-download]").forEach(el => {
       el.addEventListener("click", () => showToast(`Descarga iniciada: ${el.dataset.download}`));
+    });
+  }
+
+  function openUpdateTimelineModal(expId) {
+    const exp = getActiveExpediente(expId);
+    const modalWrap = document.getElementById("modalContainer");
+    if (!modalWrap) return;
+
+    modalWrap.innerHTML = `
+      <div class="procurement-modal-backdrop" id="timelineModalBackdrop">
+        <div class="procurement-modal" style="width:min(520px,100%)">
+          <div class="procurement-modal-head">
+            <div>
+              <h3>Gestión Operativa del Expediente (${exp.id})</h3>
+              <p style="margin:2px 0 0;font-size:0.75rem;color:var(--entity-muted)">Actualiza la fase activa y el seguimiento de plazos reales vs. pactados</p>
+            </div>
+            <button type="button" id="closeTimelineModalBtn">×</button>
+          </div>
+          <form id="modalTimelineForm">
+            <div class="procurement-modal-body" style="gap:14px">
+              <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
+                Fase Activa del Expediente
+                <select name="faseActual" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem">
+                  ${PHASES.map((p, idx) => `<option value="${idx}" ${exp.faseActual === idx ? "selected" : ""}>Fase ${p.num}: ${p.name}</option>`).join("")}
+                </select>
+              </label>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
+                  Plazo Pactado Contractual
+                  <input name="plazoPactado" value="${exp.plazoPactado}" required style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem" />
+                </label>
+                <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
+                  Plazo Real Estimado
+                  <input name="plazoRealEstimado" value="${exp.plazoRealEstimado}" required style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem" />
+                </label>
+              </div>
+              <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
+                Estado de Desviación / Nota de Seguimiento
+                <input name="desviacionDias" value="${exp.desviacionDias}" required placeholder="Ej: 0 días (En cronograma) o +4 días (Ajuste logístico)" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem" />
+              </label>
+            </div>
+            <div class="procurement-modal-footer">
+              <button class="admin-quiet-button" type="button" id="cancelTimelineModalBtn">Cancelar</button>
+              <button class="admin-primary-button" type="submit">Guardar Actualización</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    `;
+
+    const close = () => { modalWrap.innerHTML = ""; };
+    document.getElementById("closeTimelineModalBtn")?.addEventListener("click", close);
+    document.getElementById("cancelTimelineModalBtn")?.addEventListener("click", close);
+    document.getElementById("timelineModalBackdrop")?.addEventListener("click", e => {
+      if (e.target.id === "timelineModalBackdrop") close();
+    });
+
+    document.getElementById("modalTimelineForm")?.addEventListener("submit", e => {
+      e.preventDefault();
+      const form = new FormData(e.currentTarget);
+      const newPhase = parseInt(form.get("faseActual"), 10);
+      exp.faseActual = newPhase;
+      activeDossierPhase = newPhase;
+      exp.plazoPactado = (form.get("plazoPactado") || "").trim();
+      exp.plazoRealEstimado = (form.get("plazoRealEstimado") || "").trim();
+      exp.desviacionDias = (form.get("desviacionDias") || "").trim();
+      close();
+      showToast(`✓ Seguimiento operativo de ${exp.id} actualizado`);
+      renderApp();
+    });
+  }
+
+  function openAddDeliverableModal(expId) {
+    const exp = getActiveExpediente(expId);
+    const phaseObj = PHASES[activeDossierPhase] || PHASES[0];
+    const modalWrap = document.getElementById("modalContainer");
+    if (!modalWrap) return;
+
+    modalWrap.innerHTML = `
+      <div class="procurement-modal-backdrop" id="addSlotModalBackdrop">
+        <div class="procurement-modal" style="width:min(520px,100%)">
+          <div class="procurement-modal-head">
+            <div>
+              <h3>Requerir Documento en ${phaseObj.name}</h3>
+              <p style="margin:2px 0 0;font-size:0.75rem;color:var(--entity-muted)">Crea una nueva ranura documental obligatoria en el expediente ${exp.id}</p>
+            </div>
+            <button type="button" id="closeAddSlotModalBtn">×</button>
+          </div>
+          <form id="modalAddSlotForm">
+            <div class="procurement-modal-body" style="gap:14px">
+              <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
+                Nombre del Documento / Certificado Exigido
+                <input name="name" required placeholder="Ej: Certificado de Ultrasonidos y Colada EN 10204 3.1" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem" />
+              </label>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
+                  Actor Responsable de Subida
+                  <select name="owner" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem">
+                    <option value="Proveedor">Proveedor Adjudicatario</option>
+                    <option value="Cliente">Cliente (Constructor)</option>
+                    <option value="SOFEIN">SOFEIN Digital</option>
+                  </select>
+                </label>
+                <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
+                  Formato Admitido
+                  <select name="format" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem">
+                    <option value="PDF">PDF Firmado</option>
+                    <option value="PDF / Lab">Informe Laboratorio (PDF)</option>
+                    <option value="DWG / PDF">Plano Técnico (DWG / PDF)</option>
+                    <option value="Digital">Conformidad Digital</option>
+                  </select>
+                </label>
+              </div>
+            </div>
+            <div class="procurement-modal-footer">
+              <button class="admin-quiet-button" type="button" id="cancelAddSlotModalBtn">Cancelar</button>
+              <button class="admin-primary-button" type="submit">Crear Ranura y Notificar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    `;
+
+    const close = () => { modalWrap.innerHTML = ""; };
+    document.getElementById("closeAddSlotModalBtn")?.addEventListener("click", close);
+    document.getElementById("cancelAddSlotModalBtn")?.addEventListener("click", close);
+    document.getElementById("addSlotModalBackdrop")?.addEventListener("click", e => {
+      if (e.target.id === "addSlotModalBackdrop") close();
+    });
+
+    document.getElementById("modalAddSlotForm")?.addEventListener("submit", e => {
+      e.preventDefault();
+      const form = new FormData(e.currentTarget);
+      const docName = (form.get("name") || "").trim();
+      const owner = form.get("owner") || "Proveedor";
+      const format = form.get("format") || "PDF";
+
+      if (!exp.deliverables[activeDossierPhase]) {
+        exp.deliverables[activeDossierPhase] = [];
+      }
+      exp.deliverables[activeDossierPhase].push({
+        name: docName,
+        owner,
+        state: "pending",
+        format,
+        file: null,
+        date: "Requerido hoy"
+      });
+
+      NOTICES.unshift({
+        id: `AV-0${NOTICES.length + 1}`,
+        expId: exp.id,
+        categoria: "Documentación",
+        tagClass: "warning",
+        titulo: `Nuevo documento requerido: ${docName}`,
+        descripcion: `SOFEIN ha habilitado una nueva ranura documental para ${owner} en la ${phaseObj.name}.`,
+        fecha: "Hoy, ahora",
+        roles: ["admin", owner === "Cliente" ? "cliente" : "proveedor"],
+        accion: "Subir Documento",
+        enlace: `#${owner === "Cliente" ? "cliente" : "proveedor"}/expedientes/${exp.id}`
+      });
+
+      close();
+      showToast(`✓ Ranura "${docName}" creada y notificada a ${owner}`);
+      renderApp();
     });
   }
 

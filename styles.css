@@ -3042,9 +3042,12 @@ select:focus,
 .admin-doc-table-head.avisos-grid,
 .admin-doc-row.avisos-grid {
   display: grid;
-  grid-template-columns: 36px minmax(220px, 1.8fr) 130px 140px 105px 175px;
+  grid-template-columns: 36px minmax(200px, 1.8fr) 125px 150px 100px 245px;
   align-items: center;
   gap: 14px;
+}
+.admin-doc-table-head.avisos-grid span:first-child {
+  grid-column: auto;
 }
 .admin-doc-table-head.avisos-grid {
   padding: 10px 16px;
@@ -3055,7 +3058,6 @@ select:focus,
   text-transform: uppercase;
   letter-spacing: 0.06em;
   background: var(--entity-panel-2);
-  border-radius: 8px 8px 0 0;
 }
 .admin-doc-row.avisos-grid {
   padding: 14px 16px;
@@ -3108,18 +3110,68 @@ select:focus,
   font-weight: 650;
 }
 
-.avisos-group-header {
-  margin: 22px 0 10px;
-  padding: 8px 14px;
+.avisos-group-card {
+  border: 1px solid var(--entity-line);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--entity-panel);
+  margin-bottom: 18px;
+}
+.avisos-group-card:last-of-type {
+  margin-bottom: 0;
+}
+.avisos-group-card-head {
+  padding: 11px 16px;
   background: var(--entity-panel-2);
-  border-radius: 6px;
+  border-bottom: 1px solid var(--entity-line);
+  border-left: 3px solid var(--entity-accent);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 0.82rem;
-  font-weight: 600;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.avisos-group-card-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.84rem;
+  font-weight: 650;
   color: var(--entity-text);
-  border-left: 3px solid var(--entity-accent);
+}
+.avisos-group-card-title svg {
+  color: var(--entity-accent);
+  flex-shrink: 0;
+}
+.avisos-group-card-sub {
+  font-size: 0.74rem;
+  font-weight: 450;
+  color: var(--entity-muted);
+}
+.avisos-group-count-pill {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--entity-muted);
+  background: var(--entity-panel);
+  border: 1px solid var(--entity-line);
+  padding: 2px 9px;
+  border-radius: 12px;
+  white-space: nowrap;
+}
+.avisos-group-card .admin-doc-table-head.avisos-grid {
+  background: var(--entity-panel);
+  padding: 8px 16px;
+  font-size: 0.64rem;
+}
+
+@media (max-width: 960px) {
+  .admin-doc-table-head.avisos-grid {
+    display: none;
+  }
+  .admin-doc-row.avisos-grid {
+    grid-template-columns: 36px 1fr;
+    gap: 10px;
+  }
 }
 
 .admin-discarded-details {
@@ -3791,4 +3843,141 @@ select:focus,
     align-items: stretch;
   }
 }
+
+/* ============================================================
+   PANTALLA 3: FORMALIZACIÓN DEL ACUERDO Y GESTIÓN DEL EXPEDIENTE
+   ============================================================ */
+.formalizacion-card {
+  border: 1px solid var(--entity-line);
+  border-radius: 12px;
+  background: var(--entity-panel);
+  padding: 24px;
+  margin-bottom: 22px;
+  animation: filterFadeIn 0.22s ease-out;
+}
+.formalizacion-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--entity-line);
+  margin-bottom: 20px;
+}
+.formalizacion-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 20px;
+}
+@media (max-width: 960px) {
+  .formalizacion-summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 560px) {
+  .formalizacion-summary-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.formalizacion-stat-box {
+  padding: 14px 16px;
+  border-radius: 8px;
+  background: var(--entity-panel-2);
+  border: 1px solid var(--entity-line);
+}
+.formalizacion-stat-box span {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--entity-faint);
+  margin-bottom: 4px;
+}
+.formalizacion-stat-box strong {
+  display: block;
+  font-size: 0.95rem;
+  color: var(--entity-text);
+}
+.formalizacion-stat-box small {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--entity-muted);
+  margin-top: 2px;
+}
+
+.formalizacion-clause-box {
+  padding: 16px 18px;
+  border-radius: 10px;
+  background: rgba(0, 135, 81, 0.06);
+  border: 1px solid rgba(0, 135, 81, 0.25);
+  margin-bottom: 20px;
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+.formalizacion-clause-box svg {
+  color: var(--entity-accent);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.formalizacion-clause-box h4 {
+  margin: 0 0 4px;
+  font-size: 0.84rem;
+  color: var(--entity-text);
+}
+.formalizacion-clause-box p {
+  margin: 0;
+  font-size: 0.76rem;
+  line-height: 1.5;
+  color: var(--entity-muted);
+}
+
+.formalizacion-sign-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+@media (max-width: 900px) {
+  .formalizacion-sign-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.formalizacion-sign-card {
+  padding: 16px;
+  border-radius: 10px;
+  border: 1px solid var(--entity-line);
+  background: var(--entity-bg);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+}
+.formalizacion-sign-card.is-signed {
+  border-color: rgba(82, 223, 127, 0.35);
+  background: rgba(82, 223, 127, 0.03);
+}
+
+/* Panel de Gestión Operativa de Fase (SOFEIN Control) */
+.phase-ops-panel {
+  border: 1px solid var(--entity-line);
+  border-radius: 10px;
+  background: var(--entity-panel);
+  padding: 18px 20px;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.phase-ops-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 
