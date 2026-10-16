@@ -423,7 +423,7 @@
       fecha: "Hoy, 10:35",
       roles: ["admin", "cliente"],
       accion: "Ver Mediación",
-      enlace: "#cliente/expedientes/RFQ-2026-014"
+      enlace: "#cliente/expedientes/RFQ-2026-014?tab=incidents&openMediation=INC-2026-014-01"
     },
     {
       id: "AV-02",
@@ -435,7 +435,7 @@
       fecha: "Hoy, 09:15",
       roles: ["admin", "proveedor"],
       accion: "Validar Documento",
-      enlace: "#admin/expedientes/RFQ-2026-014"
+      enlace: "#admin/expedientes/RFQ-2026-014?tab=deliverables"
     },
     {
       id: "AV-03",
@@ -447,7 +447,7 @@
       fecha: "Ayer, 16:40",
       roles: ["admin", "cliente"],
       accion: "Revisar Proveedores",
-      enlace: "#admin/expedientes/RFQ-2026-011"
+      enlace: "#admin/selector/RFQ-2026-011"
     },
     {
       id: "AV-04",
@@ -459,7 +459,7 @@
       fecha: "18 jun, 11:00",
       roles: ["admin", "cliente", "proveedor"],
       accion: "Consultar Albarán",
-      enlace: "#admin/expedientes/RFQ-2026-009"
+      enlace: "#admin/expedientes/RFQ-2026-009?tab=deliverables"
     },
     {
       id: "AV-05",
@@ -471,7 +471,7 @@
       fecha: "Hoy, 08:30",
       roles: ["admin", "cliente"],
       accion: "Revisar Póliza",
-      enlace: "#admin/expedientes/RFQ-2026-022"
+      enlace: "#admin/expedientes/RFQ-2026-022?tab=deliverables"
     },
     {
       id: "AV-06",
@@ -483,7 +483,7 @@
       fecha: "Ayer, 12:10",
       roles: ["admin", "proveedor"],
       accion: "Ver Ficha",
-      enlace: "#admin/expedientes/RFQ-2026-014"
+      enlace: "#admin/expedientes/RFQ-2026-014?tab=deliverables"
     }
   ];
 
@@ -886,8 +886,9 @@
   let activeParam = null;
   let activeDossierPhase = 3;
   let lastOpenedExpId = null;
-  let activeDossierTab = "deliverables"; // deliverables | incidents | passport
+  let activeDossierTab = "deliverables"; // deliverables | incidents | passport | comms
   let incidentStatusFilter = "all"; // "all" | "in_mediation" | "pending_signs" | "consolidated"
+  let pendingOpenMediation = null;
 
   // Nuevos Estados Interactivos
   let overviewFilter = null; // "validados" | "review" | "pending" | "futuras" | "expedientes" | "incidencias" | "proveedores"
@@ -915,6 +916,12 @@
       const qParams = new URLSearchParams(queryPart);
       if (qParams.get("tab")) {
         activeDossierTab = qParams.get("tab");
+      }
+      if (qParams.get("phase")) {
+        activeDossierPhase = parseInt(qParams.get("phase"), 10) || 0;
+      }
+      if (qParams.get("openMediation")) {
+        pendingOpenMediation = qParams.get("openMediation");
       }
     }
     const [role, rawSection, param] = pathPart.split("/");
@@ -2737,44 +2744,8 @@
         </div>
       `;
     } else if (activeDossierTab === "passport") {
-      // Pasaporte Digital SOFEIN
-      tabContent = `
-        <section class="destinatario-hero">
-          <div class="destinatario-hero-badges">
-            <span class="entity-status complete"><i></i>Sello Oficial SOFEIN Digital</span>
-            <span class="dossier-chip">EN 13230 Acreditada</span>
-            <span class="dossier-chip">Trazabilidad Inmutable</span>
-          </div>
-          <h2 style="margin:0 0 8px;color:var(--entity-text);font-size:1.6rem;letter-spacing:-0.03em">Pasaporte Digital de Suministro Ferroviario</h2>
-          <p style="margin:0 0 20px;color:var(--entity-muted);max-width:700px;font-size:0.88rem;line-height:1.6">
-            Dossier consolidado que acredita especificaciones técnicas, hitos cronológicos certificados, control de incidencias y cumplimiento de normas europeas para el lote <b>${exp.id}</b>.
-          </p>
-
-          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px">
-            <div style="padding:14px;background:var(--entity-panel-2);border-radius:8px;border:1px solid var(--entity-line)">
-              <span style="font-size:0.68rem;color:var(--entity-faint);text-transform:uppercase;font-weight:600">Material de Vía</span>
-              <strong style="display:block;margin-top:4px;color:var(--entity-text);font-size:0.88rem">${exp.producto}</strong>
-            </div>
-            <div style="padding:14px;background:var(--entity-panel-2);border-radius:8px;border:1px solid var(--entity-line)">
-              <span style="font-size:0.68rem;color:var(--entity-faint);text-transform:uppercase;font-weight:600">Destino de la Vía</span>
-              <strong style="display:block;margin-top:4px;color:var(--entity-text);font-size:0.88rem">${exp.destinatarioFinal}</strong>
-            </div>
-            <div style="padding:14px;background:var(--entity-panel-2);border-radius:8px;border:1px solid var(--entity-line)">
-              <span style="font-size:0.68rem;color:var(--entity-faint);text-transform:uppercase;font-weight:600">Garantía y Responsabilidad</span>
-              <strong style="display:block;margin-top:4px;color:var(--entity-accent);font-size:0.88rem">Fabricante Homologado</strong>
-            </div>
-          </div>
-
-          <div style="display:flex;gap:12px">
-            <button class="admin-primary-button" type="button" data-toast="Descargando Pasaporte Digital SOFEIN (Dossier PDF Acreditado)">
-              ${icon("download", 16)} Descargar Pasaporte Digital (PDF)
-            </button>
-            <button class="admin-quiet-button" type="button" data-toast="Preparando archivo ZIP con certificados y fichas de laboratorio">
-              ${icon("folder", 16)} Descargar Expediente Documental Completo (ZIP)
-            </button>
-          </div>
-        </section>
-      `;
+      // Pantalla 7: Pasaporte Digital SOFEIN
+      tabContent = renderPassportSection(exp, isDestinatario);
     }
 
     const expNotices = NOTICES.filter(n => n.expId === exp.id && n.roles.includes(activeRole) && !discardedNotices.has(n.id));
@@ -3993,6 +3964,493 @@
   }
 
   /* ============================================================
+     PANTALLA 7: PASAPORTE DIGITAL SOFEIN (CONSOLIDACIÓN Y CIERRE)
+     ============================================================ */
+  function renderPassportSection(expIdOrObj, isDestinatario = false) {
+    const exp = typeof expIdOrObj === "string" ? getActiveExpediente(expIdOrObj) : expIdOrObj;
+    if (!exp) return `<div style="padding:40px;text-align:center;color:var(--entity-muted)">Expediente no encontrado</div>`;
+
+    const passportId = `PASAPORTE-SOFEIN-${exp.id}`;
+    const globalHash = "SHA256: 7f8a91c0e392da54bf618b049d21e8ac8564177d6438902b4d9981ef0351f2bc";
+
+    // Hitos certificados de las 7 fases
+    const certifiedMilestones = [
+      {
+        phase: "Fase 1: Alcance & Requisitos Técnicos",
+        fecha: "12 jun 2026",
+        actor: exp.cliente,
+        estado: "Validado por SOFEIN Admin",
+        desc: "PPT Adif NAV 3-1-0.0 y plano de vía aprobados para licitación"
+      },
+      {
+        phase: "Fase 2: Cotizaciones & Preselección",
+        fecha: "16 jun 2026",
+        actor: "SOFEIN Digital",
+        estado: "Adjudicado a " + exp.proveedor,
+        desc: "Matriz comparativa de 3 laminadores. Oferta más ventajosa adjudicada"
+      },
+      {
+        phase: "Fase 3: Formalización & Póliza",
+        fecha: "18 jun 2026",
+        actor: "Bilateral Tripartita",
+        estado: "Firmas Electrónicas Validadas",
+        desc: "Hoja de Pedido vinculante con cláusula de delimitación SOFEIN"
+      },
+      {
+        phase: "Fase 4: Fabricación & Control de Calidad",
+        fecha: "24 jun 2026",
+        actor: exp.proveedor,
+        estado: "Lote Homologado",
+        desc: "Fabricación industrial bajo norma EN 13230 y trazabilidad QR"
+      },
+      {
+        phase: "Fase 5: Ensayos de Laboratorio Acreditado",
+        fecha: "02 jul 2026",
+        actor: "Laboratorio ENAC",
+        estado: "Conforme EN 13230-2",
+        desc: "Rotura dinámica a fatiga (2M ciclos) y resistencia a flexión"
+      },
+      {
+        phase: "Fase 6: Logística & Transporte Especial",
+        fecha: "10 jul 2026",
+        actor: "Operador Logístico Vía",
+        estado: "Despacho Autorizado",
+        desc: "Bateas homologadas y albaranes de salida validados"
+      },
+      {
+        phase: "Fase 7: Recepción en Obra & Pasaporte",
+        fecha: "16 jul 2026",
+        actor: exp.destinatarioFinal,
+        estado: "Recepción Técnica Favorable",
+        desc: "Acta de descarga a pie de vía y sellado final de Pasaporte Digital"
+      }
+    ];
+
+    // Ensayos y auditoría de documentos
+    const certifiedCertificates = [
+      {
+        titulo: "Certificado de Ensayos Mecánicos y Rotura Dinámica EN 13230-2",
+        norma: "UNE-EN 13230-2:2016",
+        laboratorio: "Laboratorio Central de Estructuras (Acreditación ENAC nº 204/LE)",
+        fecha: "02 jul 2026",
+        resultado: "CONFORME (62.4 MPa)",
+        hash: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        archivo: "Ensayo-Fatiga-EN13230-Lote44.pdf"
+      },
+      {
+        titulo: "Declaración de Prestaciones (DoP) y Marcado CE Ferroviario",
+        norma: "Directiva 2008/57/CE (Interoperabilidad)",
+        laboratorio: "Organismo Notificado NoBo 0098",
+        fecha: "19 jun 2026",
+        resultado: "CONFORME CE",
+        hash: "8a72b0c14f89d341908b7a62e30129cd887198fb2910384a921008129e71ab32",
+        archivo: "Marcado-CE-IberRail-2026.pdf"
+      },
+      {
+        titulo: "Trazabilidad de Acero y Armadura Activa de Pretensado",
+        norma: "UNE-EN 10138-3 (Cordón Y1860S7)",
+        laboratorio: "Control Metalúrgico Acería Homologada",
+        fecha: "18 jun 2026",
+        resultado: "CONFORME LOTE",
+        hash: "c4180f983a12984b9012cd764501a9b128710398402918237190283012938102",
+        archivo: "Trazabilidad-Acero-Armadura.pdf"
+      },
+      {
+        titulo: "Declaración Ambiental de Producto (DAP) y Huella de Carbono",
+        norma: "ISO 14025 / EN 15804",
+        laboratorio: "Instituto de Sostenibilidad y Ciclo de Vida",
+        fecha: "14 jun 2026",
+        resultado: "VERIFICADO ESG",
+        hash: "9182730192840192830192830192840192830192840192830192840192830192",
+        archivo: "DAP-Traviesa-Hormigon-2026.pdf"
+      }
+    ];
+
+    const consolidatedIncidents = exp.incidencias ? exp.incidencias.filter(i => i.adendaId) : [];
+
+    return `
+      <section class="passport-card">
+        <!-- Cabecera Oficial y Sello Criptográfico -->
+        <div class="passport-official-head">
+          <div class="passport-official-title">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+              <span class="entity-status complete"><i></i>Documento Oficial Auditado</span>
+              <span class="dossier-chip" style="background:rgba(0,135,81,0.12);color:var(--entity-accent);font-weight:600">Sello SOFEIN Digital</span>
+              <span class="dossier-chip">Acreditación EN 13230</span>
+              <span class="dossier-chip">Trazabilidad Criptográfica</span>
+            </div>
+            <h2>Pasaporte Digital de Suministro Ferroviario</h2>
+            <p>
+              Dossier técnico oficial inmutable que certifica el ciclo de vida, trazabilidad cronológica, ensayos normativos y conformidad de recepción para el suministro <b>${exp.id}</b>.
+            </p>
+          </div>
+
+          <div class="passport-stamp">
+            <span class="stamp-label">${icon("shield", 12)} Sello de Conformidad</span>
+            <span class="stamp-id">${passportId}</span>
+            <span class="stamp-hash">${globalHash}</span>
+            <div style="margin-top:6px;font-size:0.68rem;color:var(--entity-accent);font-weight:600">
+              ✓ Cadena de Custodia Certificada
+            </div>
+          </div>
+        </div>
+
+        <!-- 1. Especificaciones del Suministro -->
+        <div class="passport-section-title">
+          <h3>${icon("file", 16)} 1. Resumen Técnico y Actores del Suministro</h3>
+          <span style="font-size:0.75rem;color:var(--entity-muted)">Expediente ${exp.id}</span>
+        </div>
+
+        <div class="passport-spec-grid">
+          <div class="passport-spec-box">
+            <span class="label">Material Homologado</span>
+            <strong class="val">${exp.producto}</strong>
+            <span class="sub">${exp.tipoMaterial || "Superestructura"} · ${exp.subtipo}</span>
+          </div>
+          <div class="passport-spec-box">
+            <span class="label">Volumen Total</span>
+            <strong class="val">${exp.unidades}</strong>
+            <span class="sub">Tolerancia dimensional ±1mm</span>
+          </div>
+          <div class="passport-spec-box">
+            <span class="label">Contratista Adjudicatario</span>
+            <strong class="val">${exp.cliente}</strong>
+            <span class="sub">Constructor y ejecutor de vía</span>
+          </div>
+          <div class="passport-spec-box">
+            <span class="label">Taller / Fabricante</span>
+            <strong class="val">${!isDestinatario ? exp.proveedor : exp.proveedor.split(",")[0]}</strong>
+            <span class="sub">Planta homologada Adif</span>
+          </div>
+          <div class="passport-spec-box">
+            <span class="label">Destinatario Final de la Vía</span>
+            <strong class="val">${exp.destinatarioFinal}</strong>
+            <span class="sub">Titular de la infraestructura</span>
+          </div>
+          <div class="passport-spec-box">
+            <span class="label">Presupuesto Formalizado</span>
+            <strong class="val" style="color:var(--entity-accent)">${!isDestinatario ? exp.presupuestoTotal : "[Dato Comercial Reservado por Contratista]"}</strong>
+            <span class="sub">${!isDestinatario ? "Hoja de Pedido Vinculante" : "Confidencial Comercial"}</span>
+          </div>
+        </div>
+
+        <!-- 2. Cronología Certificada de las 7 Fases -->
+        <div class="passport-section-title">
+          <h3>${icon("calendar", 16)} 2. Trazabilidad Cronológica Certificada (7 Fases)</h3>
+          <span style="font-size:0.75rem;color:var(--entity-accent);font-weight:600">100% Verificado</span>
+        </div>
+
+        <div class="passport-timeline">
+          ${certifiedMilestones.map(m => `
+            <div class="passport-timeline-item">
+              <div class="passport-timeline-dot">
+                ${icon("check", 14)}
+              </div>
+              <div>
+                <strong style="color:var(--entity-text);display:block;font-size:0.78rem">${m.phase}</strong>
+                <span style="font-size:0.7rem;color:var(--entity-muted)">${m.fecha}</span>
+              </div>
+              <div>
+                <span style="color:var(--entity-text);display:block">${m.desc}</span>
+                <span style="font-size:0.7rem;color:var(--entity-faint)">Responsable: <b>${m.actor}</b></span>
+              </div>
+              <div style="text-align:right">
+                <span class="entity-status complete" style="font-size:0.68rem"><i></i>${m.estado}</span>
+              </div>
+            </div>
+          `).join("")}
+        </div>
+
+        <!-- 3. Auditoría de Calidad y Ensayos de Laboratorio -->
+        <div class="passport-section-title">
+          <h3>${icon("award", 16)} 3. Ensayos Normativos y Certificaciones (EN 13230 / Marcado CE)</h3>
+          <span style="font-size:0.75rem;color:var(--entity-muted)">Acreditación ENAC e Interoperabilidad</span>
+        </div>
+
+        <div style="border:1px solid var(--entity-line);border-radius:10px;overflow:hidden;background:var(--entity-panel)">
+          <table class="passport-certs-table">
+            <thead>
+              <tr>
+                <th>Ensayo / Certificación</th>
+                <th>Normativa Exigible</th>
+                <th>Laboratorio Emisor</th>
+                <th>Resultado</th>
+                <th>Hash Criptográfico SHA-256</th>
+                <th style="text-align:right">Auditoría</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${certifiedCertificates.map(c => `
+                <tr>
+                  <td>
+                    <strong style="display:block;color:var(--entity-text)">${c.titulo}</strong>
+                    <small style="color:var(--entity-muted)">${c.archivo}</small>
+                  </td>
+                  <td><span class="dossier-chip" style="font-size:0.7rem">${c.norma}</span></td>
+                  <td><span style="font-size:0.75rem;color:var(--entity-muted)">${c.laboratorio}</span></td>
+                  <td><span class="entity-status complete"><i></i>${c.resultado}</span></td>
+                  <td><span class="passport-hash-pill" title="${c.hash}">${c.hash.slice(0, 16)}...${c.hash.slice(-8)}</span></td>
+                  <td style="text-align:right">
+                    <button class="admin-quiet-button" type="button" data-inspect-cert="${c.hash}" data-cert-name="${c.titulo}" data-cert-file="${c.archivo}" data-cert-lab="${c.laboratorio}" data-cert-norm="${c.norma}" data-cert-res="${c.resultado}" style="padding:4px 8px;font-size:0.72rem">
+                      ${icon("shield", 12)} Verificar
+                    </button>
+                  </td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 4. Histórico de Modificaciones y Adendas Consolidadas -->
+        <div class="passport-section-title">
+          <h3>${icon("alert", 16)} 4. Histórico Oficial de Incidencias y Adendas Contractuales</h3>
+          <span style="font-size:0.75rem;color:var(--entity-muted)">Trazabilidad Jurídica Inmutable</span>
+        </div>
+
+        ${consolidatedIncidents.length ? `
+          <div style="display:grid;gap:12px">
+            ${consolidatedIncidents.map(inc => `
+              <div style="padding:14px 18px;border-radius:8px;background:var(--entity-panel-2);border:1px solid var(--entity-line);display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
+                <div style="display:flex;align-items:center;gap:12px">
+                  <span style="display:grid;place-items:center;width:34px;height:34px;border-radius:6px;background:rgba(0,135,81,0.12);color:var(--entity-accent)">
+                    ${icon("award", 18)}
+                  </span>
+                  <div>
+                    <strong style="color:var(--entity-text);font-size:0.86rem;display:block">
+                      ${inc.adendaId}: Modificación y Mediación por ${inc.titulo}
+                    </strong>
+                    <span style="font-size:0.74rem;color:var(--entity-muted);display:block;margin-top:2px">
+                      Consolidada el ${inc.adendaFecha} · Desvío: <b>${inc.propuestaMediacion?.impactoCoste || "0 €"}</b> · Silencio positivo aplicado (5 días hábiles).
+                    </span>
+                    <span class="passport-hash-pill" style="margin-top:4px;display:inline-block">Hash: ${inc.adendaHash || "SHA256: 9e8a71c0b...44"}</span>
+                  </div>
+                </div>
+                <button class="admin-quiet-button" type="button" data-view-addendum="${exp.id}" data-incident-id="${inc.id}" style="font-size:0.75rem">
+                  ${icon("file", 14)} Consultar Adenda Oficial
+                </button>
+              </div>
+            `).join("")}
+          </div>
+        ` : `
+          <div style="padding:16px 20px;border-radius:8px;background:var(--entity-panel-2);border:1px solid var(--entity-line);font-size:0.8rem;color:var(--entity-muted)">
+            ✓ Suministro ejecutado con pleno cumplimiento de pliegos, sin incidencias contractuales ni alteraciones de alcance.
+          </div>
+        `}
+
+        <!-- 5. Cláusula de Delimitación de Responsabilidad Legal -->
+        <div class="passport-legal-clause">
+          <strong>${icon("shield", 14)} Delimitación Legal de Responsabilidad y Declaración de Garante de Proceso</strong>
+          SOFEIN Digital interviene exclusivamente como plataforma tecnológica y garante fehaciente de trazabilidad documental, cronológica y procedimental. La garantía de los materiales, propiedades físicas, resistencia mecánica y ensayos de laboratorio corresponde de forma exclusiva y directa al Fabricante Homologado (<b>${exp.proveedor}</b>) conforme a la legislación aplicable y normativa ferroviaria. La correcta colocación, montaje y supervisión en obra corresponde al Contratista Adjudicatario (<b>${exp.cliente}</b>).
+        </div>
+
+        <!-- 6. Firmas Digitales Tripartitas -->
+        <div class="passport-signatures-row">
+          <div class="passport-signature-card">
+            <div>
+              <span class="role-label">Garante de Proceso & Trazabilidad</span>
+              <strong class="signer-name">Ángel Plaza</strong>
+              <span class="signer-meta">Director de Operaciones, SOFEIN Digital</span>
+            </div>
+            <div class="passport-signature-seal">
+              <span>${icon("check", 12)} Sello eIDAS / FNMT</span>
+              <span>16 jun 2026</span>
+            </div>
+          </div>
+          <div class="passport-signature-card">
+            <div>
+              <span class="role-label">Fabricante Homologado</span>
+              <strong class="signer-name">Carlos Mendía</strong>
+              <span class="signer-meta">Director Industrial, ${exp.proveedor.split(",")[0]}</span>
+            </div>
+            <div class="passport-signature-seal">
+              <span>${icon("check", 12)} Firma Cualificada</span>
+              <span>16 jun 2026</span>
+            </div>
+          </div>
+          <div class="passport-signature-card">
+            <div>
+              <span class="role-label">Contratista Adjudicatario</span>
+              <strong class="signer-name">Javier Ruiz</strong>
+              <span class="signer-meta">Jefe de Obra Vía, ${exp.cliente}</span>
+            </div>
+            <div class="passport-signature-seal">
+              <span>${icon("check", 12)} Conformidad de Recepción</span>
+              <span>16 jun 2026</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 7. Barra de Acciones y Descarga de Certificado -->
+        <div class="passport-actions-bar">
+          <div style="display:flex;align-items:center;gap:10px">
+            <button class="admin-primary-button" type="button" data-print-passport>
+              ${icon("award", 16)} Descargar / Imprimir Pasaporte Digital (PDF)
+            </button>
+            <button class="admin-quiet-button" type="button" data-inspect-passport-crypto="${exp.id}">
+              ${icon("shield", 16)} Inspeccionar Sellado Criptográfico SHA-256
+            </button>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <button class="admin-quiet-button" type="button" data-toast="Generando paquete ZIP consolidado con todos los certificados y albaranes...">
+              ${icon("download", 14)} Descargar Expediente Completo (ZIP)
+            </button>
+          </div>
+        </div>
+      </section>
+    `;
+  }
+
+  function openCertificateAuditModal(cert) {
+    const modalWrap = document.getElementById("modalContainer");
+    if (!modalWrap) return;
+
+    modalWrap.innerHTML = `
+      <div class="procurement-modal-backdrop" id="certAuditModalBackdrop">
+        <div class="procurement-modal" style="width:min(580px,100%)">
+          <div class="procurement-modal-head">
+            <div>
+              <h3>Auditoría Criptográfica de Ensayo Técnico</h3>
+              <p style="margin:2px 0 0;font-size:0.75rem;color:var(--entity-muted)">Verificación fehaciente de integridad y acreditación normativa</p>
+            </div>
+            <button type="button" id="closeCertAuditModalBtn">×</button>
+          </div>
+          <div class="procurement-modal-body" style="gap:14px">
+            <div style="padding:14px;border-radius:8px;background:var(--entity-panel-2);border:1px solid var(--entity-line);display:grid;gap:6px">
+              <strong style="color:var(--entity-text);font-size:0.92rem">${cert.titulo}</strong>
+              <span style="font-size:0.75rem;color:var(--entity-muted)">Archivo: <b>${cert.archivo}</b></span>
+              <div style="display:flex;gap:8px;margin-top:4px">
+                <span class="dossier-chip">${cert.norma}</span>
+                <span class="entity-status complete"><i></i>${cert.resultado}</span>
+              </div>
+            </div>
+
+            <div style="display:grid;gap:6px">
+              <span style="font-size:0.72rem;color:var(--entity-faint);text-transform:uppercase;font-weight:600">Entidad Emisora / Laboratorio</span>
+              <div style="padding:10px 12px;background:var(--entity-panel-2);border-radius:6px;font-size:0.8rem;color:var(--entity-text)">
+                ${cert.laboratorio}
+              </div>
+            </div>
+
+            <div style="display:grid;gap:6px">
+              <span style="font-size:0.72rem;color:var(--entity-faint);text-transform:uppercase;font-weight:600">Hash SHA-256 Inmutable</span>
+              <code style="padding:10px 12px;background:var(--entity-panel-2);border-radius:6px;font-size:0.72rem;font-family:monospace;word-break:break-all;color:var(--entity-text);border:1px solid var(--entity-line)">
+                ${cert.hash}
+              </code>
+            </div>
+
+            <div style="padding:10px 12px;background:rgba(0,135,81,0.06);border:1px solid rgba(0,135,81,0.2);border-radius:6px;font-size:0.75rem;color:var(--entity-accent)">
+              ✓ Sello temporal RFC 3161 auditado. El documento depositado coincide exactamente con la copia validada por SOFEIN Digital y el laboratorio emisor.
+            </div>
+          </div>
+          <div class="procurement-modal-footer">
+            <button class="admin-quiet-button" type="button" id="cancelCertAuditModalBtn">Cerrar</button>
+            <button class="admin-primary-button" type="button" data-download="${cert.archivo}">
+              ${icon("download", 14)} Descargar Certificado Original
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    const close = () => { modalWrap.innerHTML = ""; };
+    document.getElementById("closeCertAuditModalBtn")?.addEventListener("click", close);
+    document.getElementById("cancelCertAuditModalBtn")?.addEventListener("click", close);
+    document.getElementById("certAuditModalBackdrop")?.addEventListener("click", e => {
+      if (e.target.id === "certAuditModalBackdrop") close();
+    });
+  }
+
+  function openPassportCryptoModal(exp) {
+    const modalWrap = document.getElementById("modalContainer");
+    if (!modalWrap) return;
+
+    modalWrap.innerHTML = `
+      <div class="procurement-modal-backdrop" id="passportCryptoModalBackdrop">
+        <div class="procurement-modal" style="width:min(680px,100%)">
+          <div class="procurement-modal-head">
+            <div>
+              <h3>Cadena de Custodia Criptográfica (SHA-256)</h3>
+              <p style="margin:2px 0 0;font-size:0.75rem;color:var(--entity-muted)">Sellado inmutable de bloques y entregables para ${exp.id}</p>
+            </div>
+            <button type="button" id="closePassportCryptoModalBtn" aria-label="Cerrar">×</button>
+          </div>
+          <div class="procurement-modal-body" style="gap:14px;max-height:calc(85vh - 140px);overflow-y:auto;padding-right:12px">
+            
+            <div style="padding:14px;background:rgba(0,135,81,0.06);border:1px solid rgba(0,135,81,0.25);border-radius:8px">
+              <span style="font-size:0.68rem;text-transform:uppercase;color:var(--entity-accent);font-weight:700">Hash Raíz del Pasaporte Digital</span>
+              <strong style="display:block;font-family:monospace;font-size:0.82rem;margin-top:4px;word-break:break-all;color:var(--entity-text)">
+                SHA-256: 7f8a91c0e392da54bf618b049d21e8ac8564177d6438902b4d9981ef0351f2bc
+              </strong>
+              <small style="display:block;margin-top:4px;font-size:0.72rem;color:var(--entity-muted)">
+                Sellado de tiempo RFC 3161 emitido por Autoridad de Certificación SOFEIN Trust · Timestamp: 16-OCT-2026 12:45:00 UTC
+              </small>
+            </div>
+
+            <div style="display:grid;gap:10px;margin-top:6px">
+              <strong style="font-size:0.78rem;color:var(--entity-faint);text-transform:uppercase;letter-spacing:0.06em">Bloques Auditados del Expediente</strong>
+              
+              <div style="padding:10px 12px;border:1px solid var(--entity-line);border-radius:6px;background:var(--entity-panel-2);display:grid;gap:3px">
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <strong style="font-size:0.78rem">Bloque 1: Pliegos Iniciales y PPT Adif NAV</strong>
+                  <span class="entity-status complete" style="font-size:0.65rem"><i></i>Certificado</span>
+                </div>
+                <span style="font-family:monospace;font-size:0.7rem;color:var(--entity-muted)">SHA-256: d5a4e21980f7a63b401928371290384a92817263541290384712903847120938</span>
+              </div>
+
+              <div style="padding:10px 12px;border:1px solid var(--entity-line);border-radius:6px;background:var(--entity-panel-2);display:grid;gap:3px">
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <strong style="font-size:0.78rem">Bloque 2: Oferta Vinculante y Adjudicación a ${exp.proveedor.split(",")[0]}</strong>
+                  <span class="entity-status complete" style="font-size:0.65rem"><i></i>Certificado</span>
+                </div>
+                <span style="font-family:monospace;font-size:0.7rem;color:var(--entity-muted)">SHA-256: a8f9213847129038471209384712093847120938471209384712093847120938</span>
+              </div>
+
+              <div style="padding:10px 12px;border:1px solid var(--entity-line);border-radius:6px;background:var(--entity-panel-2);display:grid;gap:3px">
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <strong style="font-size:0.78rem">Bloque 3: Hoja de Pedido y Póliza Tripartita</strong>
+                  <span class="entity-status complete" style="font-size:0.65rem"><i></i>Certificado</span>
+                </div>
+                <span style="font-family:monospace;font-size:0.7rem;color:var(--entity-muted)">SHA-256: 3120948120938471209384712093847120938471209384712093847120938471</span>
+              </div>
+
+              <div style="padding:10px 12px;border:1px solid var(--entity-line);border-radius:6px;background:var(--entity-panel-2);display:grid;gap:3px">
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <strong style="font-size:0.78rem">Bloque 4: Ensayos Mecánicos EN 13230 y Marcado CE</strong>
+                  <span class="entity-status complete" style="font-size:0.65rem"><i></i>Certificado</span>
+                </div>
+                <span style="font-family:monospace;font-size:0.7rem;color:var(--entity-muted)">SHA-256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855</span>
+              </div>
+
+              ${exp.incidencias && exp.incidencias.some(i => i.adendaId) ? `
+                <div style="padding:10px 12px;border:1px solid var(--entity-line);border-radius:6px;background:var(--entity-panel-2);display:grid;gap:3px">
+                  <div style="display:flex;justify-content:space-between;align-items:center">
+                    <strong style="font-size:0.78rem">Bloque 5: Adenda Oficial Consolidada (ADENDA-014-01)</strong>
+                    <span class="entity-status complete" style="font-size:0.65rem"><i></i>Certificado</span>
+                  </div>
+                  <span style="font-family:monospace;font-size:0.7rem;color:var(--entity-muted)">SHA-256: ad7f9c2041b3e851a02938471209384712093847120938471209384712093847</span>
+                </div>
+              ` : ""}
+
+            </div>
+
+          </div>
+          <div class="procurement-modal-footer">
+            <button class="admin-quiet-button" type="button" id="closePassportCryptoBtn">Cerrar Inspector</button>
+            <button class="admin-primary-button" type="button" data-toast="Hash de integridad copiado al portapapeles">Copiar Hash Raíz</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    const close = () => { modalWrap.innerHTML = ""; };
+    document.getElementById("closePassportCryptoModalBtn")?.addEventListener("click", close);
+    document.getElementById("closePassportCryptoBtn")?.addEventListener("click", close);
+    document.getElementById("passportCryptoModalBackdrop")?.addEventListener("click", e => {
+      if (e.target.id === "passportCryptoModalBackdrop") close();
+    });
+  }
+
+  /* ============================================================
      VISTAS: DESTINATARIO FINAL (AUDITOR / ESPECTADOR DE VÍA)
      ============================================================ */
   function renderDestinatarioView() {
@@ -4005,72 +4463,25 @@
             <span class="dossier-chip" style="background:rgba(0,135,81,0.15);color:var(--entity-accent)">Vista Espectador / Auditoría</span>
             <span style="font-size:0.75rem;color:var(--entity-muted)">Propietario de la Infraestructura</span>
           </div>
-          <h1>Estado del Tramo Ferroviario</h1>
-          <p>${exp.destinatarioFinal}</p>
+          <h1>Pasaporte Digital del Tramo Ferroviario</h1>
+          <p>${exp.destinatarioFinal} · Acceso técnico oficial con confidencialidad de datos financieros de contratista</p>
         </div>
-        <button class="admin-primary-button" type="button" data-toast="Descargando Pasaporte Digital oficial del tramo...">
-          ${icon("award", 16)} Descargar Pasaporte de Vía
-        </button>
+        <div style="display:flex;align-items:center;gap:10px">
+          <button class="admin-primary-button" type="button" data-print-passport>
+            ${icon("award", 16)} Descargar Pasaporte de Vía (PDF)
+          </button>
+          <button class="admin-quiet-button" type="button" data-inspect-passport-crypto="${exp.id}">
+            ${icon("shield", 16)} Sellado Criptográfico
+          </button>
+        </div>
       </div>
 
-      <section class="destinatario-hero">
-        <div class="destinatario-hero-badges">
-          <span class="entity-status complete"><i></i>Material Homologado Adif</span>
-          <span class="dossier-chip">EN 13230 Verificada</span>
-          <span class="dossier-chip">Trazabilidad Total</span>
-        </div>
-        <h2 style="margin:0 0 8px;font-size:1.4rem;color:var(--entity-text)">Suministro: ${exp.producto}</h2>
-        <p style="margin:0 0 16px;color:var(--entity-muted);font-size:0.86rem">
-          Instalación a cargo del contratista adjudicatario <b>${exp.cliente}</b> con supervisión y soporte documental de <b>SOFEIN Digital</b>.
-        </p>
+      <div class="destinatario-confidential-notice" style="margin-bottom:20px">
+        ${icon("shield", 18)}
+        <span><b>Aviso de Confidencialidad Comercial:</b> Como destinatario final de la infraestructura dispones de acceso íntegro a certificaciones técnicas, trazabilidad y normativas. Los datos financieros bilaterales y márgenes entre contratista y proveedor quedan reservados conforme a los acuerdos del expediente.</span>
+      </div>
 
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px">
-          <div style="padding:14px;background:var(--entity-panel-2);border-radius:8px;border:1px solid var(--entity-line)">
-            <span style="font-size:0.68rem;color:var(--entity-faint);text-transform:uppercase;font-weight:600">Volumen en Instalación</span>
-            <strong style="display:block;margin-top:4px;color:var(--entity-text);font-size:0.92rem">${exp.unidades}</strong>
-          </div>
-          <div style="padding:14px;background:var(--entity-panel-2);border-radius:8px;border:1px solid var(--entity-line)">
-            <span style="font-size:0.68rem;color:var(--entity-faint);text-transform:uppercase;font-weight:600">Fase del Suministro</span>
-            <strong style="display:block;margin-top:4px;color:var(--entity-accent);font-size:0.92rem">Fabricación e Inspección en Taller</strong>
-          </div>
-          <div style="padding:14px;background:var(--entity-panel-2);border-radius:8px;border:1px solid var(--entity-line)">
-            <span style="font-size:0.68rem;color:var(--entity-faint);text-transform:uppercase;font-weight:600">Recepción Prevista en Obra</span>
-            <strong style="display:block;margin-top:4px;color:var(--entity-text);font-size:0.92rem">En 18 días hábiles</strong>
-          </div>
-        </div>
-
-        <div class="destinatario-confidential-notice">
-          ${icon("shield", 18)}
-          <span><b>Aviso de Confidencialidad Comercial:</b> Como destinatario final de la infraestructura dispones de acceso íntegro a certificaciones técnicas, trazabilidad y normativas. Los datos financieros bilaterales y márgenes entre contratista y proveedor quedan reservados conforme a los acuerdos del expediente.</span>
-        </div>
-      </section>
-
-      <!-- Verificación Técnica del Tramo -->
-      <section class="deliverable-slot" style="padding:24px">
-        <h3 style="margin:0 0 14px;font-size:1.05rem;color:var(--entity-text)">Certificaciones Técnicas Vinculadas a este Tramo</h3>
-        <div style="display:grid;gap:10px">
-          <div class="slot-file-row">
-            <div class="slot-file-meta">
-              ${icon("shield", 18)}
-              <div>
-                <strong>Acreditación EN 13230: Traviesas y Soporte Ferroviario</strong>
-                <small>Laboratorio Homologado · Cumple pliego Adif NAV</small>
-              </div>
-            </div>
-            <span class="entity-status complete"><i></i>Certificado en Vigor</span>
-          </div>
-          <div class="slot-file-row">
-            <div class="slot-file-meta">
-              ${icon("award", 18)}
-              <div>
-                <strong>Declaración de Conformidad CE de Componentes</strong>
-                <small>Marcado reglamentario para interoperabilidad ferroviaria europea</small>
-              </div>
-            </div>
-            <span class="entity-status complete"><i></i>Validado</span>
-          </div>
-        </div>
-      </section>
+      ${renderPassportSection(exp, true)}
     `;
   }
 
@@ -4111,6 +4522,13 @@
     bindEvents();
     if (routeChanged) {
       window.scrollTo(0, 0);
+    }
+    if (pendingOpenMediation) {
+      const incId = pendingOpenMediation;
+      pendingOpenMediation = null;
+      setTimeout(() => {
+        openMediationModal(activeParam || "RFQ-2026-014", incId);
+      }, 70);
     }
   }
 
@@ -6322,6 +6740,11 @@
 
       const tagClass = prioridadVal === "critica" ? "review" : prioridadVal === "urgente" ? "warning" : "complete";
 
+      let targetTab = "comms";
+      if (categoriaVal === "Requerimiento Documental") targetTab = "deliverables";
+      else if (categoriaVal === "Incidencia / Mediación") targetTab = "incidents";
+      else if (categoriaVal === "Aviso de Plazo / Calendario") targetTab = "deliverables";
+
       const newNotice = {
         id: `AV-${Date.now()}`,
         expId: targetExpId,
@@ -6332,7 +6755,7 @@
         fecha: "Hoy, recién emitido",
         roles: rolesArr,
         accion: accionVal,
-        enlace: `#${activeRole}/expedientes/${targetExpId}?tab=comms`
+        enlace: `#${activeRole}/expedientes/${targetExpId}?tab=${targetTab}`
       };
 
       NOTICES.unshift(newNotice);
@@ -6550,6 +6973,35 @@
     if (viewAddendumBtn) {
       e.preventDefault();
       openConsolidatedAddendumModal(viewAddendumBtn.dataset.viewAddendum, viewAddendumBtn.dataset.incidentId);
+      return;
+    }
+
+    const printPassportBtn = e.target.closest("[data-print-passport]");
+    if (printPassportBtn) {
+      e.preventDefault();
+      window.print();
+      return;
+    }
+
+    const cryptoPassportBtn = e.target.closest("[data-inspect-passport-crypto]");
+    if (cryptoPassportBtn) {
+      e.preventDefault();
+      const exp = getActiveExpediente(cryptoPassportBtn.dataset.inspectPassportCrypto);
+      openPassportCryptoModal(exp);
+      return;
+    }
+
+    const inspectCertBtn = e.target.closest("[data-inspect-cert]");
+    if (inspectCertBtn) {
+      e.preventDefault();
+      openCertificateAuditModal({
+        titulo: inspectCertBtn.dataset.certName,
+        archivo: inspectCertBtn.dataset.certFile,
+        laboratorio: inspectCertBtn.dataset.certLab,
+        norma: inspectCertBtn.dataset.certNorm,
+        resultado: inspectCertBtn.dataset.certRes,
+        hash: inspectCertBtn.dataset.inspectCert
+      });
       return;
     }
 

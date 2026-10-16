@@ -4482,5 +4482,329 @@ select:focus,
   line-height: 1.4;
 }
 
+/* ============================================================
+   PANTALLA 7: PASAPORTE DIGITAL SOFEIN (ESTÁNDAR B2B FERROVIARIO)
+   ============================================================ */
+
+.passport-card {
+  background: var(--entity-panel);
+  border: 1px solid var(--entity-line);
+  border-radius: 14px;
+  box-shadow: var(--entity-shadow);
+  padding: 32px 36px;
+  margin-bottom: 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+.passport-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--entity-accent) 0%, #10b981 50%, #059669 100%);
+}
+
+.passport-official-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--entity-line);
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.passport-official-title h2 {
+  margin: 6px 0 6px;
+  font-size: 1.4rem;
+  letter-spacing: -0.02em;
+  color: var(--entity-text);
+  font-weight: 700;
+}
+
+.passport-official-title p {
+  margin: 0;
+  font-size: 0.84rem;
+  color: var(--entity-muted);
+  line-height: 1.5;
+}
+
+.passport-stamp {
+  border: 2px dashed rgba(0, 135, 81, 0.4);
+  border-radius: 10px;
+  padding: 12px 16px;
+  background: rgba(0, 135, 81, 0.05);
+  text-align: right;
+  min-width: 210px;
+}
+
+.passport-stamp .stamp-label {
+  display: block;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--entity-accent);
+  font-weight: 700;
+}
+
+.passport-stamp .stamp-id {
+  display: block;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.78rem;
+  color: var(--entity-text);
+  font-weight: 700;
+  margin: 2px 0;
+}
+
+.passport-stamp .stamp-hash {
+  display: block;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.62rem;
+  color: var(--entity-faint);
+  word-break: break-all;
+}
+
+.passport-section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 24px 0 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--entity-line);
+}
+
+.passport-section-title h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 650;
+  color: var(--entity-text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.passport-spec-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.passport-spec-box {
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: var(--entity-panel-2);
+  border: 1px solid var(--entity-line);
+}
+
+.passport-spec-box .label {
+  display: block;
+  font-size: 0.68rem;
+  color: var(--entity-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+}
+
+.passport-spec-box .val {
+  display: block;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--entity-text);
+  margin-top: 3px;
+}
+
+.passport-spec-box .sub {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--entity-muted);
+  margin-top: 2px;
+}
+
+/* Timeline vertical de hitos certificados */
+.passport-timeline {
+  display: grid;
+  gap: 10px;
+}
+
+.passport-timeline-item {
+  display: grid;
+  grid-template-columns: 28px 130px 1fr 130px;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: var(--entity-panel-2);
+  border: 1px solid var(--entity-line);
+  font-size: 0.8rem;
+}
+
+@media (max-width: 768px) {
+  .passport-timeline-item {
+    grid-template-columns: 28px 1fr;
+    gap: 8px;
+  }
+}
+
+.passport-timeline-dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 135, 81, 0.15);
+  color: var(--entity-accent);
+}
+
+/* Ensayos y auditoría de documentos */
+.passport-certs-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+
+.passport-certs-table th {
+  text-align: left;
+  padding: 10px 14px;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  color: var(--entity-faint);
+  letter-spacing: 0.05em;
+  background: var(--entity-panel-2);
+  border-bottom: 1px solid var(--entity-line);
+}
+
+.passport-certs-table td {
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--entity-line);
+  color: var(--entity-text);
+}
+
+.passport-hash-pill {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.68rem;
+  background: rgba(0, 0, 0, 0.04);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--entity-muted);
+}
+
+/* Cláusula legal de delimitación */
+.passport-legal-clause {
+  margin-top: 22px;
+  padding: 16px 18px;
+  border-radius: 10px;
+  background: rgba(0, 135, 81, 0.04);
+  border: 1px solid rgba(0, 135, 81, 0.2);
+  font-size: 0.77rem;
+  line-height: 1.55;
+  color: var(--entity-text);
+}
+
+.passport-legal-clause strong {
+  color: var(--entity-accent);
+  display: block;
+  margin-bottom: 4px;
+}
+
+/* Firmas Digitales Tripartitas */
+.passport-signatures-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.passport-signature-card {
+  padding: 14px;
+  border-radius: 8px;
+  background: var(--entity-panel-2);
+  border: 1px solid var(--entity-line);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.passport-signature-card .role-label {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  color: var(--entity-faint);
+  font-weight: 600;
+}
+
+.passport-signature-card .signer-name {
+  font-size: 0.86rem;
+  font-weight: 650;
+  color: var(--entity-text);
+  margin: 5px 0 2px;
+}
+
+.passport-signature-card .signer-meta {
+  font-size: 0.72rem;
+  color: var(--entity-muted);
+}
+
+.passport-signature-seal {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--entity-line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.68rem;
+  color: var(--entity-accent);
+}
+
+/* Barra de acciones export / auditoría */
+.passport-actions-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--entity-line);
+  flex-wrap: wrap;
+}
+
+/* Impresión optimizada A4 para Pasaporte */
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #111827 !important;
+    font-size: 9.5pt !important;
+  }
+  .app-sidebar,
+  .app-topbar,
+  .dossier-breadcrumb,
+  .dossier-stepper,
+  .dossier-tabs,
+  .passport-actions-bar,
+  .admin-quiet-button,
+  .admin-primary-button,
+  .toast,
+  .procurement-modal-backdrop,
+  #modalContainer {
+    display: none !important;
+  }
+  .app, .app-content {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+  }
+  .passport-card {
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+  .passport-stamp {
+    border: 1px solid #111827 !important;
+  }
+}
+
 
 
