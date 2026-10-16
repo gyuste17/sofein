@@ -2625,6 +2625,117 @@
           ${incidentsCardsHTML}
         </div>
       `;
+    } else if (activeDossierTab === "comms") {
+      // Pantalla 6: Comunicaciones & Avisos del Expediente
+      const roleNotices = NOTICES.filter(n => n.expId === exp.id && n.roles.includes(activeRole));
+      const activeNotices = roleNotices.filter(n => !discardedNotices.has(n.id));
+      const discardedList = roleNotices.filter(n => discardedNotices.has(n.id));
+
+      const tableHeaderHTML = `
+        <div class="admin-doc-table-head avisos-grid">
+          <span>Tipo</span>
+          <span>Aviso / Actividad</span>
+          <span>Expediente</span>
+          <span>Categoría</span>
+          <span>Fecha</span>
+          <span style="text-align:right">Acciones</span>
+        </div>
+      `;
+
+      const renderNoticeRow = (n, isDiscarded = false) => `
+        <article class="admin-doc-row avisos-grid">
+          <span style="display:grid;place-items:center;width:34px;height:34px;border-radius:6px;background:var(--entity-panel-2)">
+            ${icon(n.tagClass === "warning" ? "alert" : n.tagClass === "review" ? "file" : "check", 16)}
+          </span>
+          <div style="min-width:0">
+            <strong style="display:block;margin-bottom:2px;cursor:pointer" data-go="${n.enlace}">${n.titulo}</strong>
+            <small style="color:var(--entity-muted);display:block;line-height:1.4">${n.descripcion}</small>
+          </div>
+          <div>
+            <button class="avisos-exp-chip-link" type="button" data-go="#${activeRole}/expedientes/${n.expId}" title="Expediente ${n.expId}">
+              ${icon("folder", 12)} ${n.expId}
+            </button>
+          </div>
+          <div>
+            <span class="dossier-chip" style="font-size:0.68rem;white-space:nowrap">${n.categoria}</span>
+          </div>
+          <div style="white-space:nowrap">
+            <time style="font-size:0.72rem;color:var(--entity-faint)">${n.fecha}</time>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;white-space:nowrap">
+            ${!isDiscarded ? `
+              <button class="admin-quiet-button" type="button" data-go="${n.enlace}">${n.accion || "Ver"}</button>
+              <button class="admin-quiet-button" type="button" data-dismiss-notice="${n.id}" title="Descartar aviso">${icon("x", 12)} Descartar</button>
+            ` : `
+              <button class="admin-quiet-button" type="button" data-restore-notice="${n.id}" style="color:var(--entity-accent)">${icon("check", 12)} Restaurar</button>
+            `}
+          </div>
+        </article>
+      `;
+
+      tabContent = `
+        <div class="incident-container">
+          <div class="incident-hero-banner">
+            <div class="incident-hero-header">
+              <div class="incident-hero-title">
+                <h3>${icon("inbox", 20)} Comunicaciones & Avisos del Expediente ${exp.id}</h3>
+                <p>
+                  Registro cronológico de avisos vinculantes, requerimientos de documentación e hitos automáticos de este lote.
+                </p>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px">
+                <button class="admin-quiet-button" type="button" data-go="#${activeRole}/avisos" style="font-size:0.75rem">
+                  ${icon("folder", 14)} Abrir Bandeja Central
+                </button>
+                ${isRoleAdmin ? `
+                  <button class="admin-primary-button" type="button" data-open-create-notice-modal="${exp.id}" style="font-size:0.76rem">
+                    ${icon("plus", 14)} Emitir Aviso / Requerimiento
+                  </button>
+                ` : ""}
+              </div>
+            </div>
+            
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:4px">
+              <div class="incident-kpi-card">
+                <span class="label">Avisos de este Lote</span>
+                <strong class="value">${roleNotices.length}</strong>
+                <small class="sub">${activeNotices.length} activos · ${discardedList.length} descartados</small>
+              </div>
+              <div class="incident-kpi-card">
+                <span class="label">Partes Vinculadas</span>
+                <strong class="value" style="font-size:0.92rem;color:var(--entity-text);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${exp.cliente}</strong>
+                <small class="sub">${exp.proveedor}</small>
+              </div>
+              <div class="incident-kpi-card">
+                <span class="label">Garante de Proceso</span>
+                <strong class="value" style="font-size:0.92rem;color:var(--entity-accent);margin-top:4px">SOFEIN Digital</strong>
+                <small class="sub">Trazabilidad fehaciente</small>
+              </div>
+            </div>
+          </div>
+
+          <section class="admin-document-list" style="border:1px solid var(--entity-line);border-radius:10px;overflow:hidden;background:var(--entity-panel)">
+            ${tableHeaderHTML}
+            ${activeNotices.length ? activeNotices.map(n => renderNoticeRow(n)).join("") : `
+              <div style="padding:36px;text-align:center;color:var(--entity-muted)">
+                No hay avisos pendientes para este expediente. Toda la operativa avanza conforme al pliego.
+              </div>
+            `}
+          </section>
+
+          ${discardedList.length ? `
+            <details class="admin-discarded-details">
+              <summary id="toggleDiscardedSummary">
+                <span>${icon("archive", 14)} Ver descartados de este expediente (${discardedList.length})</span>
+                <span style="font-size:0.72rem;color:var(--entity-faint)">Desplegar para restaurar</span>
+              </summary>
+              <div class="admin-discarded-list">
+                ${discardedList.map(n => renderNoticeRow(n, true)).join("")}
+              </div>
+            </details>
+          ` : ""}
+        </div>
+      `;
     } else if (activeDossierTab === "passport") {
       // Pasaporte Digital SOFEIN
       tabContent = `
@@ -2665,6 +2776,8 @@
         </section>
       `;
     }
+
+    const expNotices = NOTICES.filter(n => n.expId === exp.id && n.roles.includes(activeRole) && !discardedNotices.has(n.id));
 
     return `
       <div class="dossier-builder">
@@ -2749,6 +2862,10 @@
           <button class="dossier-tab-btn ${activeDossierTab === "incidents" ? "is-active" : ""}" type="button" data-switch-dossier-tab="incidents">
             ${icon("alert", 16)} Incidencias & Modificaciones
             ${exp.incidencias.length ? `<b class="badge">${exp.incidencias.length}</b>` : ""}
+          </button>
+          <button class="dossier-tab-btn ${activeDossierTab === "comms" ? "is-active" : ""}" type="button" data-switch-dossier-tab="comms">
+            ${icon("inbox", 16)} Avisos & Hitos
+            ${expNotices.length ? `<b class="badge">${expNotices.length}</b>` : ""}
           </button>
           <button class="dossier-tab-btn ${activeDossierTab === "passport" ? "is-active" : ""}" type="button" data-switch-dossier-tab="passport">
             ${icon("award", 16)} Pasaporte Digital SOFEIN
@@ -2901,6 +3018,11 @@
           <h1>Avisos</h1>
           <p>Registro unificado de avisos, requerimientos de documentación e incidencias de los expedientes.</p>
         </div>
+        ${role === "admin" ? `
+          <button class="admin-primary-button" type="button" data-open-create-notice-modal>
+            ${icon("plus", 14)} Emitir Aviso / Requerimiento
+          </button>
+        ` : ""}
       </div>
 
       <div class="avisos-controls">
@@ -6082,6 +6204,144 @@
     });
   }
 
+  function openCreateNoticeModal(preselectedExpId = null) {
+    const modalWrap = document.getElementById("modalContainer");
+    if (!modalWrap) return;
+
+    modalWrap.innerHTML = `
+      <div class="procurement-modal-backdrop" id="createNoticeModalBackdrop">
+        <div class="procurement-modal" style="width:min(620px,100%)">
+          <div class="procurement-modal-head">
+            <div>
+              <h3>Emitir Aviso / Requerimiento Oficial</h3>
+              <p style="margin:2px 0 0;font-size:0.75rem;color:var(--entity-muted)">Notificación trazable para clientes y talleres proveedores</p>
+            </div>
+            <button type="button" id="closeCreateNoticeModalBtn" aria-label="Cerrar">×</button>
+          </div>
+          <form id="modalCreateNoticeForm">
+            <div class="procurement-modal-body" style="gap:14px;max-height:calc(85vh - 140px);overflow-y:auto;padding-right:12px">
+              
+              <!-- Expediente Vinculado y Destinatarios -->
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
+                  Expediente Vinculado
+                  <select name="expId" required style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem">
+                    ${EXPEDIENTES.map(e => `
+                      <option value="${e.id}" ${preselectedExpId === e.id ? "selected" : ""}>
+                        ${e.id} · ${e.producto.split(" ")[0]} (${e.cliente.split(" ")[0]})
+                      </option>
+                    `).join("")}
+                  </select>
+                </label>
+                <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
+                  Destinatarios
+                  <select name="targetRoles" required style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem">
+                    <option value="both">Ambos (Cliente & Proveedor)</option>
+                    <option value="cliente">Solo Constructor (Cliente)</option>
+                    <option value="proveedor">Solo Taller (Proveedor)</option>
+                  </select>
+                </label>
+              </div>
+
+              <!-- Categoría y Prioridad -->
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
+                  Categoría del Aviso
+                  <select name="categoria" required style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem">
+                    <option value="Requerimiento Documental">Requerimiento Documental (Certificados / Ensayos)</option>
+                    <option value="Aviso de Plazo / Calendario">Aviso de Plazo / Calendario de Fabricación</option>
+                    <option value="Instrucción Técnica de Obra">Instrucción Técnica de Obra / Replanteo</option>
+                    <option value="Convocatoria de Coordinación">Convocatoria de Coordinación y Seguimiento</option>
+                    <option value="Información de Suministro">Información General de Suministro</option>
+                  </select>
+                </label>
+                <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
+                  Nivel de Prioridad / Urgencia
+                  <select name="prioridad" required style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem">
+                    <option value="normal">Normal (Informativa)</option>
+                    <option value="urgente">Urgente (Respuesta en < 24h)</option>
+                    <option value="critica">Crítica (Riesgo de paralización de vía)</option>
+                  </select>
+                </label>
+              </div>
+
+              <!-- Asunto -->
+              <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
+                Asunto del Aviso
+                <input name="titulo" required placeholder="Ej: Aportar certificado de tracción EN 13230 antes del despacho" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem" />
+              </label>
+
+              <!-- Mensaje Detallado -->
+              <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
+                Mensaje / Detalle del Requerimiento
+                <textarea name="descripcion" rows="3" required placeholder="Explicar con precisión el requerimiento oficial, documentos pendientes o fechas límite de respuesta..." style="padding:10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;line-height:1.5"></textarea>
+              </label>
+
+              <!-- Botón de Acción Sugerida -->
+              <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
+                Etiqueta del Botón de Acción
+                <input name="accion" value="Subir Documento" required placeholder="Ej: Subir Certificado, Revisar Oferta, etc." style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem" />
+              </label>
+
+            </div>
+            <div class="procurement-modal-footer">
+              <button class="admin-quiet-button" type="button" id="cancelCreateNoticeModalBtn">Cancelar</button>
+              <button class="admin-primary-button" type="submit">${icon("inbox", 14)} Emitir y Notificar Aviso</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    `;
+
+    const close = () => { modalWrap.innerHTML = ""; };
+    document.getElementById("closeCreateNoticeModalBtn")?.addEventListener("click", close);
+    document.getElementById("cancelCreateNoticeModalBtn")?.addEventListener("click", close);
+    document.getElementById("createNoticeModalBackdrop")?.addEventListener("click", e => {
+      if (e.target.id === "createNoticeModalBackdrop") close();
+    });
+
+    document.getElementById("modalCreateNoticeForm")?.addEventListener("submit", e => {
+      e.preventDefault();
+      const form = new FormData(e.currentTarget);
+      const targetExpId = form.get("expId");
+      const targetRolesVal = form.get("targetRoles");
+      const categoriaVal = form.get("categoria");
+      const prioridadVal = form.get("prioridad");
+      const tituloVal = form.get("titulo");
+      const descripcionVal = form.get("descripcion");
+      const accionVal = form.get("accion") || "Ver";
+
+      let rolesArr = ["admin"];
+      if (targetRolesVal === "both") {
+        rolesArr.push("cliente", "proveedor");
+      } else if (targetRolesVal === "cliente") {
+        rolesArr.push("cliente");
+      } else if (targetRolesVal === "proveedor") {
+        rolesArr.push("proveedor");
+      }
+
+      const tagClass = prioridadVal === "critica" ? "review" : prioridadVal === "urgente" ? "warning" : "complete";
+
+      const newNotice = {
+        id: `AV-${Date.now()}`,
+        expId: targetExpId,
+        categoria: categoriaVal,
+        tagClass: tagClass,
+        titulo: tituloVal,
+        descripcion: descripcionVal,
+        fecha: "Hoy, recién emitido",
+        roles: rolesArr,
+        accion: accionVal,
+        enlace: `#${activeRole}/expedientes/${targetExpId}?tab=comms`
+      };
+
+      NOTICES.unshift(newNotice);
+      close();
+      showToast(`✓ Aviso formal emitido para el expediente ${targetExpId}`);
+      renderApp();
+    });
+  }
+
   function openAddEntityModal() {
     const modalWrap = document.getElementById("modalContainer");
     if (!modalWrap) return;
@@ -6235,8 +6495,19 @@
     const go = e.target.closest("[data-go]");
     if (go) {
       e.preventDefault();
-      location.hash = go.dataset.go;
+      let target = go.dataset.go;
+      if (target.startsWith("#") && !target.includes("/selector/")) {
+        target = target.replace(/^#(admin|cliente|proveedor|destinatario)\/(expedientes|avisos)/, `#${activeRole}/$2`);
+      }
+      location.hash = target;
       document.getElementById("app")?.classList.remove("nav-open");
+      return;
+    }
+
+    const createNoticeBtn = e.target.closest("[data-open-create-notice-modal]");
+    if (createNoticeBtn) {
+      e.preventDefault();
+      openCreateNoticeModal(createNoticeBtn.dataset.openCreateNoticeModal || null);
       return;
     }
 
