@@ -2,3 +2,5 @@
 .env*
 .playwright-cli/
 *.mp3
+.claude/
+.codex/

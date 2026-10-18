@@ -7138,6 +7138,23 @@
     }
   });
 
+  // Accesibilidad de modales (procurement-modal): role="dialog", aria-modal
+  // y cierre con Escape. Observador único (no se re-asocia por apertura,
+  // evitando fugas de listeners) porque #modalContainer se recrea en cada renderApp().
+  new MutationObserver(() => {
+    const modal = document.querySelector(".procurement-modal-backdrop .procurement-modal");
+    if (modal && !modal.hasAttribute("role")) {
+      modal.setAttribute("role", "dialog");
+      modal.setAttribute("aria-modal", "true");
+    }
+  }).observe(document.body, { childList: true, subtree: true });
+
+  document.addEventListener("keydown", e => {
+    if (e.key !== "Escape") return;
+    const modalWrap = document.getElementById("modalContainer");
+    if (modalWrap && modalWrap.firstElementChild) modalWrap.innerHTML = "";
+  });
+
   window.addEventListener("hashchange", renderApp);
 
   // Inicializar al cargar
