@@ -1,4 +1,4 @@
-﻿/* ============================================================
+/* ============================================================
    SOFEIN Procurement — SPA Oficial (SOFEIN Digital)
    4 Players: Admin (SOFEIN), Cliente (Constructor), Proveedor, Destinatario Final (Espectador)
    Constructor de Expedientes Estancos (LMS/Moodle modular) + Gestión de Incidencias + SOFEIN Data
@@ -93,6 +93,18 @@
         { id: "cotizaciones", label: "Cotizaciones", icon: "file", count: 1 },
         { id: "perfil", label: "Perfil", icon: "profile" },
         { id: "avisos", label: "Avisos", icon: "inbox", count: 1 }
+      ]
+    },
+    destinatario: {
+      id: "destinatario",
+      shortLabel: "Destinatario Final",
+      label: "Destinatario Final (Auditor)",
+      badge: "Gestor de Infraestructura",
+      entity: "Volkswagen Navarra / ADIF",
+      avatar: "DF",
+      defaultNav: "pasaporte",
+      nav: [
+        { id: "pasaporte", label: "Pasaporte de Vía", icon: "award" }
       ]
     }
   };
@@ -452,7 +464,7 @@
       fecha: "Hoy, 10:35",
       roles: ["admin", "cliente"],
       accion: "Ver Mediación",
-      enlace: "#cliente/expedientes/RFQ-2026-014?tab=incidents&openMediation=INC-2026-014-01"
+      enlace: "#cliente/expedientes/RFQ-2026-014?tab=incidents&openMediation=INC-014-1"
     },
     {
       id: "AV-02",
@@ -1048,6 +1060,14 @@
                 </div>
                 ${activeRole === "proveedor" ? icon("check", 14) : ""}
               </button>
+              <button class="role-popover-item ${activeRole === "destinatario" ? "is-active" : ""}" type="button" data-switch-role="destinatario">
+                <span class="role-badge-dot destinatario"></span>
+                <div>
+                  <strong>Destinatario Final (Auditor)</strong>
+                  <small>Volkswagen Navarra / ADIF</small>
+                </div>
+                ${activeRole === "destinatario" ? icon("check", 14) : ""}
+              </button>
             </div>
           </div>
 
@@ -1292,8 +1312,8 @@
             ${icon("shield", 22)}
           </span>
           <div>
-            <strong>Requisito Normativo Adif / Ley 38/2015 del Sector Ferroviario</strong>
-            <p>El sistema aplica la concurrencia obligatoria: Mínimo 3 proveedores homologados para asegurar neutralidad técnica, trazabilidad y libre concurrencia antes de la adjudicación.</p>
+            <strong>Política de Homologación & Concurrencia SOFEIN</strong>
+            <p>El sistema aplica la concurrencia obligatoria: Mínimo 3 talleres homologados para garantizar neutralidad técnica, trazabilidad y libre concurrencia en la contratación de suministros ferroviarios (conforme a los pliegos técnicos y Ley 38/2015 del Sector Ferroviario).</p>
           </div>
         </div>
         <div style="display:flex;gap:6px;align-items:center">
@@ -1652,44 +1672,73 @@
       const quotes = Object.values(matching.cotizaciones || {});
       const reqsExigidosSet = new Set(matching.requisitosExigidosCliente || []);
 
+      const isRoleProveedor = activeRole === "proveedor";
+      const myEntityName = PLAYERS.proveedor?.entity || "IberRail Components, S.L.";
+
       const tableColsHTML = quotes.map(q => {
         const isWinner = matching.proveedorAdjudicado === q.nombre;
+        const isOwn = !isRoleProveedor || q.nombre === myEntityName || q.proveedorId === "PRV-01";
+        const displayName = isOwn ? q.nombre : "Taller Homologado Competidor";
+        const displaySede = isOwn ? q.sede : "Centro de Fabricación Homologado";
         return `
           <th style="min-width:240px;text-align:left;background:${isWinner ? "rgba(82,223,127,0.06)" : "var(--entity-panel-2)"};border-left:1px solid var(--entity-line)">
             <div style="display:flex;justify-content:space-between;align-items:center">
-              <strong style="color:var(--entity-text);font-size:0.88rem">${q.nombre}</strong>
-              ${isWinner ? `<span class="dossier-chip complete" style="font-size:0.68rem">✓ Adjudicado</span>` : ""}
+              <strong style="color:var(--entity-text);font-size:0.88rem">${displayName}</strong>
+              ${isWinner ? `<span class="dossier-chip complete" style="font-size:0.68rem">✓ Adjudicado</span>` : (!isOwn ? `<span class="dossier-chip" style="font-size:0.65rem;color:var(--entity-muted)">Competidor</span>` : "")}
             </div>
-            <small style="color:var(--entity-muted);font-size:0.7rem">${q.sede}</small>
+            <small style="color:var(--entity-muted);font-size:0.7rem">${displaySede}</small>
           </th>
         `;
       }).join("");
 
-      const priceRowHTML = quotes.map(q => `
-        <td style="border-left:1px solid var(--entity-line)">
-          <div class="selector-quote-price">${q.precioTotal}</div>
-          <span class="selector-quote-unit">${q.precioUnitario}</span>
-        </td>
-      `).join("");
+      const priceRowHTML = quotes.map(q => {
+        const isOwn = !isRoleProveedor || q.nombre === myEntityName || q.proveedorId === "PRV-01";
+        if (!isOwn) {
+          return `
+            <td style="border-left:1px solid var(--entity-line)">
+              <div class="selector-quote-price" style="font-size:0.82rem;color:var(--entity-muted)">[Confidencial]</div>
+              <span class="selector-quote-unit" style="font-size:0.68rem;color:var(--entity-faint)">Oferta de taller competidor</span>
+            </td>
+          `;
+        }
+        return `
+          <td style="border-left:1px solid var(--entity-line)">
+            <div class="selector-quote-price">${q.precioTotal}</div>
+            <span class="selector-quote-unit">${q.precioUnitario}</span>
+          </td>
+        `;
+      }).join("");
 
       const plazoRowHTML = quotes.map(q => {
+        const isOwn = !isRoleProveedor || q.nombre === myEntityName || q.proveedorId === "PRV-01";
         const diff = q.desviacionPlazoDias || 0;
         const diffClass = diff < 0 ? "complete" : diff === 0 ? "info" : "warning";
         const diffText = diff < 0 ? `${Math.abs(diff)} días antes` : diff === 0 ? "Exacto a fecha" : `+${diff} días`;
         return `
           <td style="border-left:1px solid var(--entity-line)">
-            <strong style="color:var(--entity-text);font-size:0.82rem">${q.plazoSemanas}</strong>
+            <strong style="color:var(--entity-text);font-size:0.82rem">${isOwn ? q.plazoSemanas : "Plazo en pliego"}</strong>
             <span class="dossier-chip ${diffClass}" style="display:inline-block;margin-top:4px;font-size:0.68rem">${diffText}</span>
           </td>
         `;
       }).join("");
 
-      const condRowHTML = quotes.map(q => `
-        <td style="border-left:1px solid var(--entity-line)">
-          <div style="font-size:0.78rem;color:var(--entity-text)">${q.condicionesPago}</div>
-          <small style="color:var(--entity-muted);font-size:0.7rem">Garantía: ${q.garantia}</small>
-        </td>
-      `).join("");
+      const condRowHTML = quotes.map(q => {
+        const isOwn = !isRoleProveedor || q.nombre === myEntityName || q.proveedorId === "PRV-01";
+        if (!isOwn) {
+          return `
+            <td style="border-left:1px solid var(--entity-line)">
+              <div style="font-size:0.78rem;color:var(--entity-muted)">[Condiciones Reservadas]</div>
+              <small style="color:var(--entity-muted);font-size:0.7rem">Garantía homologada</small>
+            </td>
+          `;
+        }
+        return `
+          <td style="border-left:1px solid var(--entity-line)">
+            <div style="font-size:0.78rem;color:var(--entity-text)">${q.condicionesPago}</div>
+            <small style="color:var(--entity-muted);font-size:0.7rem">Garantía: ${q.garantia}</small>
+          </td>
+        `;
+      }).join("");
 
       const reqsRowHTML = quotes.map(q => `
         <td style="border-left:1px solid var(--entity-line)">
@@ -1699,22 +1748,37 @@
         </td>
       `).join("");
 
-      const fileRowHTML = quotes.map(q => `
-        <td style="border-left:1px solid var(--entity-line)">
-          <button class="slot-action-btn" type="button" data-download="${q.archivoOferta}">
-            ${icon("download", 13)} ${q.archivoOferta}
-          </button>
-        </td>
-      `).join("");
+      const fileRowHTML = quotes.map(q => {
+        const isOwn = !isRoleProveedor || q.nombre === myEntityName || q.proveedorId === "PRV-01";
+        if (!isOwn) {
+          return `
+            <td style="border-left:1px solid var(--entity-line)">
+              <span class="dossier-chip" style="font-size:0.7rem;color:var(--entity-muted)">${icon("lock", 12)} Oferta Privada</span>
+            </td>
+          `;
+        }
+        return `
+          <td style="border-left:1px solid var(--entity-line)">
+            <button class="slot-action-btn" type="button" data-download="${q.archivoOferta}">
+              ${icon("download", 13)} ${q.archivoOferta}
+            </button>
+          </td>
+        `;
+      }).join("");
 
       const actionRowHTML = quotes.map(q => {
         const isWinner = matching.proveedorAdjudicado === q.nombre;
+        const isOwn = !isRoleProveedor || q.nombre === myEntityName || q.proveedorId === "PRV-01";
         return `
           <td style="border-left:1px solid var(--entity-line);padding:14px">
             ${isRoleCliente ? `
               <button class="admin-primary-button" type="button" data-select-winning-prv="${q.nombre}" data-exp-id="${exp.id}" style="width:100%;padding:8px;font-size:0.78rem;background:${isWinner ? "var(--entity-accent)" : "transparent"};color:${isWinner ? "var(--entity-accent-ink)" : "var(--entity-accent)"};border:1px solid var(--entity-accent)">
                 ${isWinner ? `${icon("check", 14)} Proveedor Seleccionado` : "Elegir este Proveedor"}
               </button>
+            ` : isRoleProveedor && !isOwn ? `
+              <span class="dossier-chip" style="width:100%;text-align:center;display:block;color:var(--entity-muted)">
+                ${isWinner ? "Adjudicado" : "Oferta competidora"}
+              </span>
             ` : `
               <span class="dossier-chip ${isWinner ? "complete" : ""}" style="width:100%;text-align:center;display:block">
                 ${isWinner ? "✓ Oferta Adjudicada" : "Oferta evaluada"}
@@ -4073,7 +4137,7 @@
       },
       {
         titulo: "Declaración de Prestaciones (DoP) y Marcado CE Ferroviario",
-        norma: "Directiva 2008/57/CE (Interoperabilidad)",
+        norma: "Directiva (UE) 2016/797 / RD 929/2020 (Interoperabilidad)",
         laboratorio: "Organismo Notificado NoBo 0098",
         fecha: "19 jun 2026",
         resultado: "CONFORME CE",
@@ -4116,12 +4180,12 @@
       hormigon: certifiedCertificates,
       madera: [{ titulo: "Certificado de Tratamiento de Preservación (Creosota / Vacío-Presión)", norma: "UNE-EN 351-1 / UNE-EN 599-1", laboratorio: "Laboratorio de Tecnología de la Madera (ENAC)", resultado: "CONFORME CLASE 4", hash: "a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90", archivo: "Cert-Tratamiento-Madera.pdf" },
         { titulo: "Clasificación Estructural y Humedad de Traviesas", norma: "UNE-EN 13145 / UNE-EN 14081", laboratorio: "Organismo de Control Forestal Acreditado", resultado: "CONFORME LOTE", hash: "b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1", archivo: "Clasificacion-Madera-Lote.pdf" },
-        { titulo: "Declaración de Prestaciones (DoP) y Marcado CE", norma: "Directiva 2008/57/CE (Interoperabilidad)", laboratorio: "Organismo Notificado NoBo 0098", resultado: "CONFORME CE", hash: "c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2", archivo: "Marcado-CE-Madera.pdf" },
+        { titulo: "Declaración de Prestaciones (DoP) y Marcado CE", norma: "Directiva (UE) 2016/797 / RD 929/2020 (Interoperabilidad)", laboratorio: "Organismo Notificado NoBo 0098", resultado: "CONFORME CE", hash: "c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2", archivo: "Marcado-CE-Madera.pdf" },
         { titulo: "Certificación de Procedencia Sostenible (cadena de custodia)", norma: "FSC / PEFC · ISO 14025", laboratorio: "Entidad Certificadora de Gestión Forestal", resultado: "VERIFICADO ESG", hash: "d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3", archivo: "Cadena-Custodia-Forestal.pdf" }],
       fijaciones: [{ titulo: "Ensayo de Fatiga Dinámica y Fuerza de Sujeción", norma: "UNE-EN 13481 / UNE-EN 13146", laboratorio: "Laboratorio Central de Estructuras (Acreditación ENAC)", resultado: "CONFORME", hash: "e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4", archivo: "Cert-Fatiga-Fijaciones.pdf" },
         { titulo: "Certificado de Colada Siderúrgica y Propiedades Mecánicas del Acero", norma: "UNE-EN 10204 tipo 3.1", laboratorio: "Control Metalúrgico Acería Homologada", resultado: "CONFORME LOTE", hash: "f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5", archivo: "Cert-Colada-Acero.pdf" },
         { titulo: "Protección Anticorrosión (Galvanizado)", norma: "UNE-EN ISO 1461", laboratorio: "Laboratorio de Recubrimientos Metálicos", resultado: "CONFORME", hash: "0718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f6", archivo: "Cert-Galvanizado.pdf" },
-        { titulo: "Declaración de Prestaciones (DoP) y Marcado CE", norma: "Directiva 2008/57/CE (Interoperabilidad)", laboratorio: "Organismo Notificado NoBo 0098", resultado: "CONFORME CE", hash: "18293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f607", archivo: "Marcado-CE-Fijaciones.pdf" }]
+        { titulo: "Declaración de Prestaciones (DoP) y Marcado CE", norma: "Directiva (UE) 2016/797 / RD 929/2020 (Interoperabilidad)", laboratorio: "Organismo Notificado NoBo 0098", resultado: "CONFORME CE", hash: "18293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f607", archivo: "Marcado-CE-Fijaciones.pdf" }]
     };
     const visibleCertificates = doneCount >= 4 ? certsByMaterial[materialKey] : [];
     const materialNorm = { hormigon: "EN 13230", madera: "EN 13145", fijaciones: "EN 13481" }[materialKey];
@@ -4295,7 +4359,7 @@
                       ${inc.adendaId}: Modificación y Mediación por ${inc.titulo}
                     </strong>
                     <span style="font-size:0.74rem;color:var(--entity-muted);display:block;margin-top:2px">
-                      Consolidada el ${inc.adendaFecha} · Desvío: <b>${inc.propuestaMediacion?.impactoCoste || "0 €"}</b> · ${inc.silencioPositivoAplicado ? "Aprobada por silencio positivo (5 días hábiles sin oposición)." : "Firmada por las partes."}
+                      Consolidada el ${inc.adendaFecha} · Desvío: <b>${inc.nuevoCosteAcordado || inc.impactoCoste || "0 €"}</b> · ${inc.silencioPositivoAplicado ? "Aprobada por silencio positivo (5 días hábiles sin oposición)." : "Firmada por las partes."}
                     </span>
                     <span class="passport-hash-pill" style="margin-top:4px;display:inline-block">Hash: ${inc.adendaHash || "SHA256: 9e8a71c0b...44"}</span>
                   </div>
@@ -4531,8 +4595,8 @@
   /* ============================================================
      VISTAS: DESTINATARIO FINAL (AUDITOR / ESPECTADOR DE VÍA)
      ============================================================ */
-  function renderDestinatarioView() {
-    const exp = getActiveExpediente("RFQ-2026-014");
+  function renderDestinatarioView(dossierId = null) {
+    const exp = getActiveExpediente(dossierId || activeParam || "RFQ-2026-014");
 
     return `
       <div class="admin-view-head">
@@ -4579,7 +4643,7 @@
     } else if (activeRole === "proveedor") {
       viewHTML = renderProveedorView(activeSection, activeParam);
     } else if (activeRole === "destinatario") {
-      viewHTML = renderDestinatarioView();
+      viewHTML = renderDestinatarioView(activeParam);
     }
 
     const appRoot = document.getElementById("app");
@@ -4604,9 +4668,20 @@
     if (pendingOpenMediation) {
       const incId = pendingOpenMediation;
       pendingOpenMediation = null;
-      setTimeout(() => {
-        openMediationModal(activeParam || "RFQ-2026-014", incId);
-      }, 70);
+      if (activeRole === "admin") {
+        setTimeout(() => {
+          openMediationModal(activeParam || "RFQ-2026-014", incId);
+        }, 70);
+      } else {
+        setTimeout(() => {
+          const targetCard = document.querySelector(`[data-incident-id="${incId}"]`) || document.querySelector(".incident-card");
+          if (targetCard) {
+            targetCard.scrollIntoView({ behavior: "smooth", block: "center" });
+            targetCard.style.outline = "2px solid var(--entity-accent)";
+            setTimeout(() => { targetCard.style.outline = ""; }, 2500);
+          }
+        }, 120);
+      }
     }
   }
 
@@ -6330,10 +6405,15 @@
   }
 
   function openMediationModal(expId, incId) {
+    if (activeRole !== "admin") return;
     const modalWrap = document.getElementById("modalContainer");
     if (!modalWrap) return;
     const exp = getActiveExpediente(expId);
-    const inc = exp ? exp.incidencias.find(i => i.id === incId) : null;
+    const normalizedIncId = String(incId || "").replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
+    const inc = exp && exp.incidencias ? (
+      exp.incidencias.find(i => i.id === incId) ||
+      exp.incidencias.find(i => String(i.id).replace(/[^a-zA-Z0-9]/g, "").toLowerCase() === normalizedIncId)
+    ) : null;
     if (!inc) return;
 
     modalWrap.innerHTML = `
@@ -6742,7 +6822,14 @@
       if (e.target.id === "addendumDocBackdrop") close();
     });
     document.getElementById("printAddendumBtn")?.addEventListener("click", () => {
+      document.body.classList.add("printing-modal");
+      const cleanup = () => {
+        document.body.classList.remove("printing-modal");
+        window.removeEventListener("afterprint", cleanup);
+      };
+      window.addEventListener("afterprint", cleanup);
       window.print();
+      setTimeout(cleanup, 2000);
     });
   }
 
@@ -7043,8 +7130,8 @@
     if (go) {
       e.preventDefault();
       let target = go.dataset.go;
-      if (target.startsWith("#") && !target.includes("/selector/")) {
-        target = target.replace(/^#(admin|cliente|proveedor|destinatario)\/(expedientes|avisos)/, `#${activeRole}/$2`);
+      if (target.startsWith("#")) {
+        target = target.replace(/^#(admin|cliente|proveedor|destinatario)\//, `#${activeRole}/`);
       }
       location.hash = target;
       document.getElementById("app")?.classList.remove("nav-open");
