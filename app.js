@@ -4651,6 +4651,7 @@
 
     appRoot.innerHTML = `
       ${renderSidebar()}
+      <div class="admin-scrim" id="adminScrim" aria-hidden="true"></div>
       <div class="admin-main">
         ${renderTopbar()}
         <main class="admin-view">
@@ -4751,6 +4752,9 @@
     // Menú móvil
     document.getElementById("menuToggleBtn")?.addEventListener("click", () => {
       document.getElementById("app")?.classList.toggle("nav-open");
+    });
+    document.getElementById("adminScrim")?.addEventListener("click", () => {
+      document.getElementById("app")?.classList.remove("nav-open");
     });
 
     // Cambio de fase en el Constructor de Expedientes

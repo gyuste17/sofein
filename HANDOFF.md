@@ -3,7 +3,7 @@
 **Fecha:** 18 de Octubre de 2026  
 **Rama Git:** `procurement`  
 **Entorno de Producción:** [https://sofein-procurement.vercel.app](https://sofein-procurement.vercel.app) (Proyecto Vercel: `sofein-procurement`)  
-**Versión de Assets:** `?v=procurement-v10`
+**Versión de Assets:** `?v=procurement-v11`
 
 ---
 
@@ -52,7 +52,31 @@ Las **7 pantallas funcionales** requeridas en las reuniones con Ángel Plaza y e
 
 ---
 
-## 3. Guía de Despliegue y Comandos
+## 3. Optimización y Auditoría Mobile UX (360px - 768px)
+
+Se realizó un repaso y rediseño completo de la experiencia móvil y táctil en todas las pantallas y flujos:
+
+1. **Cero Desbordamiento Horizontal (Zero Overflow):**
+   - Corregida la inflación de pistas en CSS Grid (`grid-template-columns: minmax(0, 1fr)`) en `.dossier-builder`, `.admin-main` y `.admin-view`.
+   - Verificado con Chrome DevTools en anchos estándar de 360px y 375px: `document.documentElement.scrollWidth === window.innerWidth` en las 7 pantallas.
+2. **Drawer de Navegación Móvil y Backdrop Scrim:**
+   - Inserción de elemento nativo `.admin-scrim` (`#adminScrim`) en `app.js` con cierre táctil intuitivo al pulsar fuera del menú lateral.
+   - Acceso con una sola mano mediante botón hamburguesa flotante en cabecera.
+3. **Pestañas y Steppers con Scroll Horizontal Nativo y Snap:**
+   - `.dossier-tabs` y `.dossier-stepper` convertidos a carruseles horizontales con `-webkit-overflow-scrolling: touch`, barras ocultas y alineación suave (`scroll-snap-align: start`).
+4. **Modales Adaptados a Bottom-Sheet:**
+   - En pantallas `<= 640px`, todos los modales (Incidencias, Mediación, Adenda, Firma, Solicitudes) se anclan a la base de la pantalla como hojas emergentes (*bottom sheets*) con esquinas redondeadas (`12px 12px 0 0`) y desplazamiento vertical interno.
+   - Orden de botones invertido (`flex-direction: column-reverse`) para situar la acción primaria más cerca del pulgar.
+5. **Matriz Comparativa y Ranuras Documentales Móviles:**
+   - Tabla comparativa con primera columna estática fijada (`position: sticky; left: 0`) con sombreado de separación para comparar especificaciones de talleres deslizando horizontalmente.
+   - Ranuras documentales de Fabricación y tarjetas de Avisos adaptadas a formato de tarjeta apilada táctil con botones de acción a pantalla completa.
+6. **Ergonomía Táctil y Prevención de Zoom en iOS:**
+   - Entradas de formulario (`input`, `select`, `textarea`) ajustadas a `16px` para evitar el molesto zoom automático de iOS Safari.
+   - Objetivos táctiles mínimos de `44px` en botones, controles y filtros de estado.
+
+---
+
+## 4. Guía de Despliegue y Comandos
 
 Para desplegar actualizaciones en la rama `procurement`:
 
@@ -68,3 +92,4 @@ npx.cmd vercel --prod --yes
 ```
 
 > **NOTA IMPORTANTE:** Mantener siempre aislada la rama `procurement` respecto a `main` para evitar sobreescrituras con la web corporativa institucional (`sofein.vercel.app`).
+

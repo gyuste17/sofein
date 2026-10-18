@@ -671,7 +671,15 @@ select:focus,
 /* Constructor de Expedientes (Dossier Builder) */
 .dossier-builder {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 24px;
+  min-width: 0;
+  width: 100%;
+}
+
+.dossier-builder > * {
+  min-width: 0;
+  max-width: 100%;
 }
 
 .dossier-meta-card {
@@ -3268,3 +3276,483 @@ select:focus,
 .passport-signature-card > div:first-child > strong { display:block; }
 @media (max-width: 900px) { .passport-spec-grid { grid-template-columns: repeat(2, minmax(0,1fr)); } }
 @media (max-width: 768px) { .passport-spec-grid { grid-template-columns: 1fr; } .passport-timeline-item { grid-template-columns: 28px 1fr; } }
+
+/* ============================================================
+   SOFEIN PROCUREMENT — SISTEMA RESPONSIVE Y OPTIMIZACIÓN MOBILE
+   Adaptación integral para smartphones y tablets (360px - 768px)
+   ============================================================ */
+
+/* Pestañas de vista con scroll horizontal táctil nativo */
+.dossier-tabs {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  white-space: nowrap;
+}
+.dossier-tabs::-webkit-scrollbar {
+  display: none;
+}
+.dossier-tab-btn {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  /* 1. Shell Global, Layout y Topbar */
+  .app {
+    display: block !important;
+    width: 100% !important;
+    min-height: 100vh;
+    overflow-x: hidden !important;
+  }
+  .admin-main {
+    width: 100% !important;
+    min-width: 0 !important;
+    overflow-x: hidden !important;
+  }
+  .admin-view {
+    padding: 16px 12px 64px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    overflow-x: hidden !important;
+  }
+  .admin-topbar {
+    min-height: 56px !important;
+    padding: 0 12px !important;
+    gap: 8px !important;
+  }
+  .admin-crumbs {
+    min-width: 0 !important;
+    max-width: 135px !important;
+    overflow: hidden !important;
+    white-space: nowrap !important;
+    text-overflow: ellipsis !important;
+    font-size: 0.72rem !important;
+  }
+  .admin-crumbs > span:first-child,
+  .admin-crumbs > i:first-of-type {
+    display: none !important;
+  }
+  .admin-topbar-actions {
+    gap: 6px !important;
+  }
+  .role-switcher-btn {
+    padding: 0 8px !important;
+    min-height: 38px !important;
+  }
+  .role-switcher-btn span.role-trigger-label {
+    display: none !important;
+  }
+  .role-switcher-popover {
+    position: fixed !important;
+    top: 56px !important;
+    left: 10px !important;
+    right: 10px !important;
+    width: auto !important;
+    max-width: calc(100vw - 20px) !important;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6) !important;
+  }
+  .admin-view-head {
+    margin-bottom: 18px !important;
+    gap: 10px !important;
+  }
+  .admin-view-head h1 {
+    font-size: 1.35rem !important;
+    line-height: 1.25 !important;
+  }
+  .admin-view-head p {
+    font-size: 0.78rem !important;
+  }
+
+  /* 2. Cabecera de Expediente, Métricas y Stepper */
+  .dossier-meta-card {
+    padding: 16px 14px !important;
+    gap: 12px !important;
+  }
+  .dossier-title-area h2 {
+    font-size: 1.15rem !important;
+  }
+  .dossier-chips {
+    gap: 6px !important;
+  }
+  .dossier-chip {
+    font-size: 0.7rem !important;
+    padding: 3px 8px !important;
+  }
+  .dossier-quick-stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+    width: 100% !important;
+    text-align: left !important;
+    margin-top: 4px !important;
+    padding-top: 12px !important;
+    border-top: 1px solid var(--entity-line) !important;
+  }
+  .dossier-quick-stat span {
+    font-size: 0.64rem !important;
+  }
+  .dossier-quick-stat strong {
+    font-size: 0.82rem !important;
+  }
+  .dossier-stepper {
+    display: flex !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    scroll-snap-type: x proximity;
+    gap: 8px !important;
+    padding: 4px 0 10px !important;
+    scrollbar-width: thin;
+  }
+  .dossier-step {
+    flex: 0 0 145px !important;
+    scroll-snap-align: start;
+    padding: 10px 12px !important;
+  }
+  .dossier-tabs {
+    gap: 6px !important;
+    padding-bottom: 6px !important;
+    margin-bottom: 14px !important;
+  }
+  .dossier-tab-btn {
+    padding: 8px 12px !important;
+    font-size: 0.75rem !important;
+    min-height: 40px !important;
+  }
+
+  /* 3. Pantalla 1: Constructor de Expedientes */
+  .create-exp-card {
+    padding: 16px 12px !important;
+  }
+  .create-exp-grid-2,
+  .create-exp-grid-3 {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+  .create-exp-actions {
+    flex-direction: column-reverse !important;
+    gap: 8px !important;
+  }
+  .create-exp-actions button {
+    width: 100% !important;
+    min-height: 44px !important;
+    justify-content: center !important;
+  }
+
+  /* 4. Pantalla 2: Selector & Matriz Comparativa B2B */
+  .selector-stepper-wrap {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+  }
+  .selector-legal-banner {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+    padding: 12px 14px !important;
+  }
+  .selector-cards-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+  .selector-matrix-wrap {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: thin;
+    border-radius: 8px !important;
+  }
+  .selector-matrix-table th:first-child,
+  .selector-matrix-table td:first-child {
+    position: sticky !important;
+    left: 0 !important;
+    z-index: 3 !important;
+    background: var(--entity-panel) !important;
+    box-shadow: 2px 0 6px rgba(0, 0, 0, 0.25) !important;
+    min-width: 130px !important;
+    max-width: 140px !important;
+    font-size: 0.74rem !important;
+  }
+  .selector-matrix-table th {
+    padding: 10px 12px !important;
+    font-size: 0.74rem !important;
+  }
+  .selector-matrix-table td {
+    padding: 12px 12px !important;
+    min-width: 190px !important;
+  }
+  .selector-action-bar {
+    flex-direction: column !important;
+    gap: 12px !important;
+    align-items: stretch !important;
+  }
+  .selector-action-bar button {
+    width: 100% !important;
+    min-height: 44px !important;
+    justify-content: center !important;
+  }
+
+  /* 5. Pantalla 3: Formalización & Pedido */
+  .formalizacion-card {
+    padding: 16px 12px !important;
+  }
+  .formalizacion-summary-grid {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+  }
+  .formalizacion-clause-box {
+    padding: 12px 12px !important;
+    gap: 10px !important;
+  }
+  .formalizacion-sign-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+  .formalizacion-sign-card {
+    padding: 14px !important;
+  }
+  .formalizacion-sign-card button {
+    width: 100% !important;
+    min-height: 44px !important;
+    justify-content: center !important;
+  }
+
+  /* 6. Pantalla 4: Documentación y Ranuras */
+  .deliverable-slot {
+    padding: 14px 12px !important;
+    gap: 10px !important;
+  }
+  .slot-head {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+  }
+  .slot-badges {
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+  }
+  .slot-dropzone {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+    padding: 12px 14px !important;
+  }
+  .slot-dropzone-copy {
+    font-size: 0.76rem !important;
+  }
+  .slot-file-row {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+  }
+  .slot-actions {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+  .slot-action-btn,
+  .slot-dropzone button {
+    width: 100% !important;
+    min-height: 42px !important;
+    justify-content: center !important;
+  }
+
+  /* 7. Pantalla 5: Incidencias y Mediación */
+  .incident-card {
+    padding: 14px 12px !important;
+  }
+  .incident-filter-bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+  }
+  .incident-filter-bar > div:first-child {
+    display: flex !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+    padding-bottom: 4px !important;
+    gap: 6px !important;
+  }
+  .incident-filter-pill {
+    flex-shrink: 0 !important;
+    min-height: 38px !important;
+    padding: 6px 12px !important;
+    font-size: 0.74rem !important;
+  }
+  .incident-filter-bar > button {
+    width: 100% !important;
+    min-height: 44px !important;
+    justify-content: center !important;
+  }
+  .incident-card-top {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+  }
+  .incident-kpi-grid,
+  .incident-impact-grid,
+  .incident-terms-grid,
+  .incident-signers-grid {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+  }
+  .incident-consolidation-bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+  }
+  .incident-consolidation-bar button {
+    width: 100% !important;
+    min-height: 44px !important;
+    justify-content: center !important;
+  }
+
+  /* 8. Pantalla 6: Comunicaciones y Avisos (Formato Tarjeta Mobile) */
+  .admin-doc-table-head.avisos-grid {
+    display: none !important;
+  }
+  .admin-doc-row.avisos-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+    padding: 14px 12px !important;
+    border-radius: 8px !important;
+    background: var(--entity-panel) !important;
+    border: 1px solid var(--entity-line) !important;
+    margin-bottom: 10px !important;
+  }
+  .admin-doc-row.avisos-grid > span:first-child {
+    display: inline-grid !important;
+    width: 32px !important;
+    height: 32px !important;
+  }
+  .admin-doc-row.avisos-grid > div:nth-child(2) strong {
+    font-size: 0.86rem !important;
+    line-height: 1.35 !important;
+  }
+  .admin-doc-row.avisos-grid > div:nth-child(3),
+  .admin-doc-row.avisos-grid > div:nth-child(4),
+  .admin-doc-row.avisos-grid > div:nth-child(5) {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    margin-right: 6px !important;
+  }
+  .admin-doc-row.avisos-grid > div:last-child {
+    display: flex !important;
+    gap: 8px !important;
+    margin-top: 6px !important;
+    padding-top: 10px !important;
+    border-top: 1px dashed var(--entity-line) !important;
+  }
+  .admin-doc-row.avisos-grid > div:last-child button {
+    flex: 1 !important;
+    min-height: 40px !important;
+    justify-content: center !important;
+    font-size: 0.78rem !important;
+  }
+
+  /* 9. Pantalla 7: Pasaporte Digital SOFEIN */
+  .passport-card {
+    padding: 16px 12px !important;
+    border-radius: 8px !important;
+  }
+  .passport-official-head {
+    flex-direction: column !important;
+    gap: 12px !important;
+    align-items: stretch !important;
+  }
+  .passport-official-title h2 {
+    font-size: 1.15rem !important;
+    margin: 4px 0 !important;
+  }
+  .passport-stamp {
+    width: 100% !important;
+    min-width: 0 !important;
+    text-align: left !important;
+    padding: 10px 12px !important;
+  }
+  .passport-spec-grid {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+  }
+  .passport-timeline-item {
+    grid-template-columns: 24px 1fr !important;
+    gap: 8px !important;
+    padding: 10px !important;
+  }
+  .passport-timeline-item > div:last-child {
+    grid-column: 2 !important;
+    margin-top: 4px !important;
+  }
+  .passport-signatures-row {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+  .passport-actions-bar {
+    flex-direction: column !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+  .passport-actions-bar button {
+    width: 100% !important;
+    min-height: 44px !important;
+    justify-content: center !important;
+  }
+  .passport-certs-wrap {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: thin !important;
+  }
+
+  /* 10. Accesibilidad Táctil & Prevención de Zoom iOS */
+  input, select, textarea,
+  .create-exp-input, .create-exp-select {
+    font-size: 16px !important;
+    min-height: 44px !important;
+  }
+  .topbar-icon-btn,
+  .admin-menu,
+  .role-switcher-btn {
+    min-width: 42px !important;
+    min-height: 42px !important;
+  }
+}
+
+/* 11. Modales como Bottom Sheets en Smartphone (< 640px) */
+@media (max-width: 640px) {
+  .procurement-modal-backdrop {
+    padding: 0 !important;
+    align-items: flex-end !important;
+  }
+  .procurement-modal {
+    width: 100% !important;
+    max-height: 90dvh !important;
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+    border-left: 0 !important;
+    border-right: 0 !important;
+    border-bottom: 0 !important;
+  }
+  .procurement-modal-head {
+    padding: 14px 16px !important;
+  }
+  .procurement-modal-head h3 {
+    font-size: 0.96rem !important;
+  }
+  .procurement-modal-body {
+    padding: 14px 16px !important;
+    gap: 12px !important;
+  }
+  .procurement-modal-footer {
+    flex-direction: column-reverse !important;
+    gap: 8px !important;
+    padding: 12px 16px !important;
+  }
+  .procurement-modal-footer button {
+    width: 100% !important;
+    min-height: 44px !important;
+    justify-content: center !important;
+  }
+}
+
