@@ -1,4 +1,4 @@
-/* ============================================================
+﻿/* ============================================================
    SOFEIN Procurement — SPA Oficial (SOFEIN Digital)
    4 Players: Admin (SOFEIN), Cliente (Constructor), Proveedor, Destinatario Final (Espectador)
    Constructor de Expedientes Estancos (LMS/Moodle modular) + Gestión de Incidencias + SOFEIN Data
@@ -60,7 +60,7 @@
       defaultNav: "overview",
       nav: [
         { id: "overview", label: "Visión global", icon: "grid" },
-        { id: "expedientes", label: "Expedientes", icon: "folder", count: 4 },
+        { id: "expedientes", label: "Expedientes", icon: "folder", count: 5 },
         { id: "directorio", label: "Clientes y Proveedores", icon: "users" },
         { id: "configuracion", label: "Configuración", icon: "cog" },
         { id: "avisos", label: "Avisos", icon: "inbox", count: 2 }
@@ -400,13 +400,42 @@
       plazoPactado: "35 días",
       plazoRealEstimado: "35 días",
       desviacionDias: "0 días (En cronograma)",
-      estado: "complete",
+      estado: "review",
       incidencias: [],
       deliverables: {
         0: [{ name: "Especificación de Tratamiento Vacío-Presión", owner: "Cliente", state: "complete", format: "PDF", file: "Pliego-Creosota.pdf", date: "Ayer" }],
         1: [{ name: "Oferta Aceptada Madera Vía", owner: "Proveedor", state: "complete", format: "PDF", file: "Oferta-MaderaVia.pdf", date: "Hoy" }],
         2: [{ name: "Hoja de Pedido y Póliza de Suministro", owner: "SOFEIN", state: "review", format: "PDF", file: "Hoja-Pedido-Madera.pdf", date: "Hoy" }],
         3: [], 4: [], 5: [], 6: []
+      }
+    },
+    {
+      id: "RFQ-2026-003",
+      producto: "Tirafondos de acero tratado TF-24",
+      tipoMaterial: "Tirafondos — Superestructura",
+      subtipo: "Tirafondo roscado galvanizado para traviesa de madera",
+      unidades: "62.000 unidades",
+      cliente: "Infraestructuras del Norte, S.A.",
+      destinatarioFinal: "ADIF Red Convencional (Tramo Miranda de Ebro)",
+      proveedor: "IberRail Components, S.L.",
+      presupuestoTotal: "74.400 €",
+      faseActual: 6,
+      cerrado: true,
+      fechaCierre: "29 abr 2026",
+      hitosFechas: ["10 feb 2026", "20 feb 2026", "27 feb 2026", "20 mar 2026", "27 mar 2026", "10 abr 2026", "29 abr 2026"],
+      plazoPactado: "45 días",
+      plazoRealEstimado: "44 días",
+      desviacionDias: "-1 día (Entregado en plazo)",
+      estado: "complete",
+      incidencias: [],
+      deliverables: {
+        0: [{ name: "Especificación Técnica de Tirafondos", owner: "Cliente", state: "complete", format: "PDF", file: "Espec-TF24-ADIF.pdf", date: "10 feb" }],
+        1: [{ name: "Oferta Económica Vinculante IberRail", owner: "Proveedor", state: "complete", format: "PDF", file: "Oferta-TF24-IberRail.pdf", date: "20 feb" }],
+        2: [{ name: "Hoja de Pedido Formalizada (Delimitación Responsabilidad)", owner: "SOFEIN", state: "complete", format: "PDF", file: "Hoja-Pedido-SOF-2026-003.pdf", date: "27 feb" }],
+        3: [{ name: "Certificado de Ensayos y Lote Homologado", owner: "Proveedor", state: "complete", format: "PDF / Lab", file: "Cert-Lote-TF24.pdf", date: "20 mar" }],
+        4: [{ name: "Albaranes de Salida de Fábrica", owner: "Proveedor", state: "complete", format: "PDF", file: "Albaranes-TF24.pdf", date: "10 abr" }],
+        5: [{ name: "Acta de Descarga a Pie de Vía", owner: "SOFEIN", state: "complete", format: "PDF", file: "Acta-Descarga-TF24.pdf", date: "27 abr" }],
+        6: [{ name: "Pasaporte Digital SOFEIN (Trazabilidad Consolidada)", owner: "SOFEIN", state: "complete", format: "Certificado", file: "Pasaporte-SOF-2026-003.pdf", date: "29 abr" }]
       }
     }
   ];
@@ -1912,7 +1941,7 @@
     // Stepper HTML
     const stepperHTML = PHASES.map((p, idx) => {
       const isCurrent = idx === activeDossierPhase;
-      const isDone = idx < exp.faseActual;
+      const isDone = idx < exp.faseActual || !!exp.cerrado;
       return `
         <div class="dossier-step ${isCurrent ? "is-current" : isDone ? "is-done" : ""}" data-select-dossier-phase="${idx}">
           <div class="dossier-step-top">
@@ -1920,7 +1949,7 @@
             ${isDone ? `<span style="color:var(--entity-accent)">${icon("check", 14)}</span>` : ""}
           </div>
           <div class="dossier-step-title">${p.name}</div>
-          <div class="dossier-step-meta">${idx === exp.faseActual ? "En curso" : idx < exp.faseActual ? "Completada" : "Siguiente"}</div>
+          <div class="dossier-step-meta">${exp.cerrado ? "Completada" : idx === exp.faseActual ? "En curso" : idx < exp.faseActual ? "Completada" : "Siguiente"}</div>
         </div>
       `;
     }).join("");
@@ -2118,7 +2147,7 @@
       ` : "";
 
       // Bloque de PANTALLA 3 (Parte B): Panel de Gestión Operativa de la Fase
-      const phaseStateLabel = activeDossierPhase < exp.faseActual
+      const phaseStateLabel = (activeDossierPhase < exp.faseActual || exp.cerrado)
         ? `<span class="entity-status complete"><i></i>Fase Completada</span>`
         : activeDossierPhase === exp.faseActual
           ? `<span class="entity-status review"><i></i>Fase en Curso (Activa)</span>`
@@ -2158,6 +2187,11 @@
               ${activeDossierPhase === exp.faseActual && exp.faseActual < PHASES.length - 1 ? `
                 <button class="admin-primary-button" type="button" data-advance-dossier-phase="${exp.id}">
                   ${icon("check", 14)} Completar Fase ${activeDossierPhase + 1} y Avanzar
+                </button>
+              ` : ""}
+              ${activeDossierPhase === exp.faseActual && exp.faseActual === PHASES.length - 1 && !exp.cerrado ? `
+                <button class="admin-primary-button" type="button" data-close-dossier="${exp.id}">
+                  ${icon("award", 14)} Cerrar expediente y emitir Pasaporte
                 </button>
               ` : ""}
             ` : ""}
@@ -3033,7 +3067,7 @@
     review: "Entregables en revisión por SOFEIN (5)",
     pending: "Entregables pendientes de carga por taller o cliente (8)",
     futuras: "Ranuras de fases futuras (12)",
-    expedientes: "Expedientes ferroviarios activos (4)",
+    expedientes: "Expedientes ferroviarios (5)",
     incidencias: "Incidencias y mediaciones en curso (1)",
     proveedores: "Talleres y proveedores homologados (6)"
   };
@@ -4067,6 +4101,35 @@
     ];
 
     const consolidatedIncidents = exp.incidencias ? exp.incidencias.filter(i => i.adendaId) : [];
+    const pendingIncidents = exp.incidencias ? exp.incidencias.filter(i => !i.adendaId) : [];
+
+    // El pasaporte solo se emite (sello, firmas) cuando el expediente está cerrado (Fase 7 completada).
+    const isClosed = !!exp.cerrado;
+    const doneCount = isClosed ? PHASES.length : exp.faseActual;
+    if (exp.hitosFechas) certifiedMilestones.forEach((m, i) => { if (exp.hitosFechas[i]) m.fecha = exp.hitosFechas[i]; });
+    // Los ensayos solo existen una vez completada la fase 4 (Fabricación & Calidad).
+    // Catálogo de ensayos según el tipo de material del expediente.
+    const materialKey = /madera/i.test(exp.tipoMaterial + " " + exp.subtipo + " " + exp.producto) ? "madera"
+      : /fijaci|tirafondo|clip|sujeci|placa/i.test(exp.tipoMaterial + " " + exp.producto) ? "fijaciones"
+      : "hormigon";
+    const certsByMaterial = {
+      hormigon: certifiedCertificates,
+      madera: [{ titulo: "Certificado de Tratamiento de Preservación (Creosota / Vacío-Presión)", norma: "UNE-EN 351-1 / UNE-EN 599-1", laboratorio: "Laboratorio de Tecnología de la Madera (ENAC)", resultado: "CONFORME CLASE 4", hash: "a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90", archivo: "Cert-Tratamiento-Madera.pdf" },
+        { titulo: "Clasificación Estructural y Humedad de Traviesas", norma: "UNE-EN 13145 / UNE-EN 14081", laboratorio: "Organismo de Control Forestal Acreditado", resultado: "CONFORME LOTE", hash: "b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1", archivo: "Clasificacion-Madera-Lote.pdf" },
+        { titulo: "Declaración de Prestaciones (DoP) y Marcado CE", norma: "Directiva 2008/57/CE (Interoperabilidad)", laboratorio: "Organismo Notificado NoBo 0098", resultado: "CONFORME CE", hash: "c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2", archivo: "Marcado-CE-Madera.pdf" },
+        { titulo: "Certificación de Procedencia Sostenible (cadena de custodia)", norma: "FSC / PEFC · ISO 14025", laboratorio: "Entidad Certificadora de Gestión Forestal", resultado: "VERIFICADO ESG", hash: "d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3", archivo: "Cadena-Custodia-Forestal.pdf" }],
+      fijaciones: [{ titulo: "Ensayo de Fatiga Dinámica y Fuerza de Sujeción", norma: "UNE-EN 13481 / UNE-EN 13146", laboratorio: "Laboratorio Central de Estructuras (Acreditación ENAC)", resultado: "CONFORME", hash: "e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4", archivo: "Cert-Fatiga-Fijaciones.pdf" },
+        { titulo: "Certificado de Colada Siderúrgica y Propiedades Mecánicas del Acero", norma: "UNE-EN 10204 tipo 3.1", laboratorio: "Control Metalúrgico Acería Homologada", resultado: "CONFORME LOTE", hash: "f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5", archivo: "Cert-Colada-Acero.pdf" },
+        { titulo: "Protección Anticorrosión (Galvanizado)", norma: "UNE-EN ISO 1461", laboratorio: "Laboratorio de Recubrimientos Metálicos", resultado: "CONFORME", hash: "0718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f6", archivo: "Cert-Galvanizado.pdf" },
+        { titulo: "Declaración de Prestaciones (DoP) y Marcado CE", norma: "Directiva 2008/57/CE (Interoperabilidad)", laboratorio: "Organismo Notificado NoBo 0098", resultado: "CONFORME CE", hash: "18293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f607", archivo: "Marcado-CE-Fijaciones.pdf" }]
+    };
+    const visibleCertificates = doneCount >= 4 ? certsByMaterial[materialKey] : [];
+    const materialNorm = { hormigon: "EN 13230", madera: "EN 13145", fijaciones: "EN 13481" }[materialKey];
+    const materialDescs = {
+      madera: ["Tratamiento de preservación y clasificación estructural de traviesas", "Ensayos de humedad, preservante y resistencia mecánica"],
+      fijaciones: ["Fabricación y galvanizado de lote con trazabilidad de colada", "Ensayo de fatiga dinámica y fuerza de sujeción"]
+    }[materialKey];
+    if (materialDescs) { certifiedMilestones[3].desc = materialDescs[0]; certifiedMilestones[4].desc = materialDescs[1]; certifiedMilestones[4].estado = "Conforme " + materialNorm; }
 
     return `
       <section class="passport-card">
@@ -4074,31 +4137,29 @@
         <div class="passport-official-head">
           <div class="passport-official-title">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-              <span class="entity-status complete"><i></i>Documento Oficial Auditado</span>
-              <span class="dossier-chip" style="background:rgba(0,135,81,0.12);color:var(--entity-accent);font-weight:600">Sello SOFEIN Digital</span>
-              <span class="dossier-chip">Acreditación EN 13230</span>
-              <span class="dossier-chip">Trazabilidad Criptográfica</span>
+              ${isClosed
+                ? `<span class="entity-status complete"><i></i>Documento Oficial Auditado</span>`
+                : `<span class="entity-status review"><i></i>Borrador en curso · Fase ${exp.faseActual + 1} de ${PHASES.length}</span>`}
+              <span class="dossier-chip">${materialNorm}</span>
             </div>
             <h2>Pasaporte Digital de Suministro Ferroviario</h2>
             <p>
-              Dossier técnico oficial inmutable que certifica el ciclo de vida, trazabilidad cronológica, ensayos normativos y conformidad de recepción para el suministro <b>${exp.id}</b>.
+              ${isClosed ? "Registro inmutable de trazabilidad, ensayos y conformidad del suministro" : "Registro provisional: se sella y emite al cerrar el expediente. Suministro"} <b>${exp.id}</b>.
             </p>
           </div>
 
           <div class="passport-stamp">
-            <span class="stamp-label">${icon("shield", 12)} Sello de Conformidad</span>
+            <span class="stamp-label">${icon("shield", 12)} ${isClosed ? "Sello de Conformidad" : "Sello pendiente"}</span>
             <span class="stamp-id">${passportId}</span>
-            <span class="stamp-hash">${globalHash}</span>
-            <div style="margin-top:6px;font-size:0.68rem;color:var(--entity-accent);font-weight:600">
-              ✓ Cadena de Custodia Certificada
-            </div>
+            ${isClosed ? `<span class="stamp-hash">${globalHash}</span>
+            <div style="margin-top:6px;font-size:0.68rem;color:var(--entity-accent);font-weight:600">✓ Cadena de Custodia Certificada</div>`
+            : `<span class="stamp-hash">Se emitirá al completar la Fase 7</span>`}
           </div>
         </div>
 
         <!-- 1. Especificaciones del Suministro -->
         <div class="passport-section-title">
-          <h3>${icon("file", 16)} 1. Resumen Técnico y Actores del Suministro</h3>
-          <span style="font-size:0.75rem;color:var(--entity-muted)">Expediente ${exp.id}</span>
+          <h3>${icon("file", 16)} 1. Resumen del suministro</h3>
         </div>
 
         <div class="passport-spec-grid">
@@ -4136,12 +4197,18 @@
 
         <!-- 2. Cronología Certificada de las 7 Fases -->
         <div class="passport-section-title">
-          <h3>${icon("calendar", 16)} 2. Trazabilidad Cronológica Certificada (7 Fases)</h3>
-          <span style="font-size:0.75rem;color:var(--entity-accent);font-weight:600">100% Verificado</span>
+          <h3>${icon("calendar", 16)} 2. Trazabilidad (7 fases)</h3>
+          <span style="font-size:0.75rem;color:var(--entity-accent);font-weight:600">${doneCount} de ${PHASES.length} fases verificadas</span>
         </div>
 
         <div class="passport-timeline">
-          ${certifiedMilestones.map(m => `
+          ${certifiedMilestones.map((m, i) => i >= doneCount ? `
+            <div class="passport-timeline-item" style="opacity:.55">
+              <div class="passport-timeline-dot" style="background:var(--entity-line);color:var(--entity-faint)"></div>
+              <div><strong style="color:var(--entity-text);display:block;font-size:0.78rem">${m.phase}</strong><span style="font-size:0.7rem;color:var(--entity-muted)">${i === exp.faseActual ? "En curso" : "—"}</span></div>
+              <div><span style="color:var(--entity-muted);display:block">Pendiente de certificar</span></div>
+              <div style="text-align:right"><span class="entity-status ${i === exp.faseActual ? "review" : "not-required"}" style="font-size:0.68rem"><i></i>${i === exp.faseActual ? "En curso" : "Pendiente"}</span></div>
+            </div>` : `
             <div class="passport-timeline-item">
               <div class="passport-timeline-dot">
                 ${icon("check", 14)}
@@ -4163,35 +4230,32 @@
 
         <!-- 3. Auditoría de Calidad y Ensayos de Laboratorio -->
         <div class="passport-section-title">
-          <h3>${icon("award", 16)} 3. Ensayos Normativos y Certificaciones (EN 13230 / Marcado CE)</h3>
-          <span style="font-size:0.75rem;color:var(--entity-muted)">Acreditación ENAC e Interoperabilidad</span>
+          <h3>${icon("award", 16)} 3. Ensayos y certificaciones</h3>
         </div>
 
-        <div style="border:1px solid var(--entity-line);border-radius:10px;overflow:hidden;background:var(--entity-panel)">
+        <div class="passport-certs-wrap">
           <table class="passport-certs-table">
             <thead>
               <tr>
                 <th>Ensayo / Certificación</th>
-                <th>Normativa Exigible</th>
-                <th>Laboratorio Emisor</th>
+                <th>Laboratorio</th>
                 <th>Resultado</th>
-                <th>Hash Criptográfico SHA-256</th>
-                <th style="text-align:right">Auditoría</th>
+                <th>Hash SHA-256</th>
+                <th style="text-align:right"></th>
               </tr>
             </thead>
             <tbody>
-              ${certifiedCertificates.map(c => `
+              ${visibleCertificates.map(c => `
                 <tr>
                   <td>
-                    <strong style="display:block;color:var(--entity-text)">${c.titulo}</strong>
-                    <small style="color:var(--entity-muted)">${c.archivo}</small>
+                    <strong class="cert-title">${c.titulo}</strong>
+                    <small class="cert-sub">${c.norma} · ${c.archivo}</small>
                   </td>
-                  <td><span class="dossier-chip" style="font-size:0.7rem">${c.norma}</span></td>
-                  <td><span style="font-size:0.75rem;color:var(--entity-muted)">${c.laboratorio}</span></td>
+                  <td><span class="cert-lab">${c.laboratorio}</span></td>
                   <td><span class="entity-status complete"><i></i>${c.resultado}</span></td>
-                  <td><span class="passport-hash-pill" title="${c.hash}">${c.hash.slice(0, 16)}...${c.hash.slice(-8)}</span></td>
+                  <td><span class="passport-hash-pill" title="${c.hash}">${c.hash.slice(0, 8)}…${c.hash.slice(-6)}</span></td>
                   <td style="text-align:right">
-                    <button class="admin-quiet-button" type="button" data-inspect-cert="${c.hash}" data-cert-name="${c.titulo}" data-cert-file="${c.archivo}" data-cert-lab="${c.laboratorio}" data-cert-norm="${c.norma}" data-cert-res="${c.resultado}" style="padding:4px 8px;font-size:0.72rem">
+                    <button class="admin-quiet-button" type="button" data-inspect-cert="${c.hash}" data-cert-name="${c.titulo}" data-cert-file="${c.archivo}" data-cert-lab="${c.laboratorio}" data-cert-norm="${c.norma}" data-cert-res="${c.resultado}" style="padding:4px 8px;font-size:0.72rem;white-space:nowrap">
                       ${icon("shield", 12)} Verificar
                     </button>
                   </td>
@@ -4199,14 +4263,25 @@
               `).join("")}
             </tbody>
           </table>
+          ${visibleCertificates.length ? "" : `<div style="padding:16px 20px;font-size:0.8rem;color:var(--entity-muted)">Los ensayos y certificados aparecerán al completar la Fase 4 (Fabricación &amp; Calidad).</div>`}
         </div>
 
         <!-- 4. Histórico de Modificaciones y Adendas Consolidadas -->
         <div class="passport-section-title">
-          <h3>${icon("alert", 16)} 4. Histórico Oficial de Incidencias y Adendas Contractuales</h3>
-          <span style="font-size:0.75rem;color:var(--entity-muted)">Trazabilidad Jurídica Inmutable</span>
+          <h3>${icon("alert", 16)} 4. Incidencias y adendas</h3>
         </div>
 
+        ${pendingIncidents.length ? `
+          <div style="display:grid;gap:10px;margin-bottom:12px">
+            ${pendingIncidents.map(inc => `
+              <div style="padding:12px 16px;border-radius:8px;background:var(--entity-panel-2);border:1px solid var(--entity-line);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+                <div>
+                  <strong style="color:var(--entity-text);font-size:0.84rem;display:block">${inc.id}: ${inc.tipo}</strong>
+                  <span style="font-size:0.74rem;color:var(--entity-muted)">Pendiente de firma de las partes · se consolidará como adenda al aprobarse</span>
+                </div>
+                <span class="entity-status pending"><i></i>${inc.estado}</span>
+              </div>`).join("")}
+          </div>` : ""}
         ${consolidatedIncidents.length ? `
           <div style="display:grid;gap:12px">
             ${consolidatedIncidents.map(inc => `
@@ -4220,7 +4295,7 @@
                       ${inc.adendaId}: Modificación y Mediación por ${inc.titulo}
                     </strong>
                     <span style="font-size:0.74rem;color:var(--entity-muted);display:block;margin-top:2px">
-                      Consolidada el ${inc.adendaFecha} · Desvío: <b>${inc.propuestaMediacion?.impactoCoste || "0 €"}</b> · Silencio positivo aplicado (5 días hábiles).
+                      Consolidada el ${inc.adendaFecha} · Desvío: <b>${inc.propuestaMediacion?.impactoCoste || "0 €"}</b> · ${inc.silencioPositivoAplicado ? "Aprobada por silencio positivo (5 días hábiles sin oposición)." : "Firmada por las partes."}
                     </span>
                     <span class="passport-hash-pill" style="margin-top:4px;display:inline-block">Hash: ${inc.adendaHash || "SHA256: 9e8a71c0b...44"}</span>
                   </div>
@@ -4231,9 +4306,9 @@
               </div>
             `).join("")}
           </div>
-        ` : `
+        ` : pendingIncidents.length ? "" : `
           <div style="padding:16px 20px;border-radius:8px;background:var(--entity-panel-2);border:1px solid var(--entity-line);font-size:0.8rem;color:var(--entity-muted)">
-            ✓ Suministro ejecutado con pleno cumplimiento de pliegos, sin incidencias contractuales ni alteraciones de alcance.
+            ${isClosed ? "✓ Suministro ejecutado con pleno cumplimiento de pliegos, sin incidencias contractuales ni alteraciones de alcance." : "✓ Sin incidencias consolidadas hasta la fecha."}
           </div>
         `}
 
@@ -4243,6 +4318,7 @@
           SOFEIN Digital interviene exclusivamente como plataforma tecnológica y garante fehaciente de trazabilidad documental, cronológica y procedimental. La garantía de los materiales, propiedades físicas, resistencia mecánica y ensayos de laboratorio corresponde de forma exclusiva y directa al Fabricante Homologado (<b>${exp.proveedor}</b>) conforme a la legislación aplicable y normativa ferroviaria. La correcta colocación, montaje y supervisión en obra corresponde al Contratista Adjudicatario (<b>${exp.cliente}</b>).
         </div>
 
+        ${isClosed ? `
         <!-- 6. Firmas Digitales Tripartitas -->
         <div class="passport-signatures-row">
           <div class="passport-signature-card">
@@ -4253,7 +4329,7 @@
             </div>
             <div class="passport-signature-seal">
               <span>${icon("check", 12)} Sello eIDAS / FNMT</span>
-              <span>16 jun 2026</span>
+              <span>${exp.fechaCierre || "16 jun 2026"}</span>
             </div>
           </div>
           <div class="passport-signature-card">
@@ -4264,7 +4340,7 @@
             </div>
             <div class="passport-signature-seal">
               <span>${icon("check", 12)} Firma Cualificada</span>
-              <span>16 jun 2026</span>
+              <span>${exp.fechaCierre || "16 jun 2026"}</span>
             </div>
           </div>
           <div class="passport-signature-card">
@@ -4275,18 +4351,20 @@
             </div>
             <div class="passport-signature-seal">
               <span>${icon("check", 12)} Conformidad de Recepción</span>
-              <span>16 jun 2026</span>
+              <span>${exp.fechaCierre || "16 jun 2026"}</span>
             </div>
           </div>
         </div>
 
+        ` : `<div style="margin-top:18px;padding:14px 18px;border-radius:8px;border:1px dashed var(--entity-line-strong);font-size:0.78rem;color:var(--entity-muted)">Las firmas de garante, fabricante y contratista se recogerán al cierre del expediente (Fase 7).</div>`}
+
         <!-- 7. Barra de Acciones y Descarga de Certificado -->
         <div class="passport-actions-bar">
           <div style="display:flex;align-items:center;gap:10px">
-            <button class="admin-primary-button" type="button" data-print-passport>
+            <button class="admin-primary-button" type="button" data-print-passport ${isClosed ? "" : 'disabled title="Disponible al cerrar el expediente"'}>
               ${icon("award", 16)} Descargar / Imprimir Pasaporte Digital (PDF)
             </button>
-            <button class="admin-quiet-button" type="button" data-inspect-passport-crypto="${exp.id}">
+            <button class="admin-quiet-button" type="button" data-inspect-passport-crypto="${exp.id}" ${isClosed ? "" : "disabled"}>
               ${icon("shield", 16)} Inspeccionar Sellado Criptográfico SHA-256
             </button>
           </div>
@@ -5551,7 +5629,7 @@
                 { name: "Conformidad Técnica de Recepción en Obra", owner: "Cliente", state: "pending", format: "Digital", file: null, date: "Pendiente" }
               ],
               6: [
-                { name: "Pasaporte Digital SOFEIN (Trazabilidad Consolidada)", owner: "SOFEIN", state: "complete", format: "Certificado", file: `Pasaporte-Digital-${exp.id}.pdf`, date: "Hoy" }
+                { name: "Pasaporte Digital SOFEIN (Trazabilidad Consolidada)", owner: "SOFEIN", state: "pending", format: "Certificado", file: null, date: "Se emite al cerrar" }
               ]
             };
             exp.deliverables[nextIdx] = defaultByPhase[nextIdx] || [];
@@ -5573,6 +5651,51 @@
           showToast(`✓ Fase ${currentIdx + 1} completada. Expediente en ${PHASES[nextIdx].name}`);
           renderApp();
         }
+      });
+    });
+
+    // 3b. Cierre del expediente (Fase 7): emite y sella el Pasaporte Digital
+    document.querySelectorAll("[data-close-dossier]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const exp = getActiveExpediente(btn.dataset.closeDossier);
+        if (exp.cerrado || exp.faseActual !== PHASES.length - 1) return;
+
+        const openIncidents = (exp.incidencias || []).filter(i => !i.adendaId);
+        if (openIncidents.length) {
+          showToast(`No se puede cerrar: hay ${openIncidents.length} incidencia(s) sin consolidar (${openIncidents.map(i => i.id).join(", ")}).`);
+          return;
+        }
+        const missing = PHASES.reduce((n, _, idx) => n + (idx === PHASES.length - 1 ? 0 : (exp.deliverables[idx] || []).filter(d => d.state !== "complete").length), 0);
+        if (missing) {
+          showToast(`No se puede cerrar: faltan ${missing} documento(s) por validar en fases anteriores.`);
+          return;
+        }
+
+        const today = new Date().toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" }).replace(/\./g, "");
+        (exp.deliverables[PHASES.length - 1] || []).forEach(d => {
+          d.state = "complete";
+          d.date = "Hoy";
+          if (!d.file) d.file = `Pasaporte-Digital-${exp.id}.pdf`;
+        });
+        exp.cerrado = true;
+        exp.estado = "complete";
+        exp.fechaCierre = today;
+
+        NOTICES.unshift({
+          id: `AV-0${NOTICES.length + 1}`,
+          expId: exp.id,
+          categoria: "Avance de Fase",
+          tagClass: "complete",
+          titulo: `Expediente ${exp.id} cerrado · Pasaporte Digital emitido`,
+          descripcion: "SOFEIN ha cerrado el expediente y emitido el Pasaporte Digital con la trazabilidad consolidada.",
+          fecha: "Hoy, ahora",
+          roles: ["admin", "cliente", "proveedor"],
+          accion: "Ver Pasaporte",
+          enlace: `#admin/expedientes/${exp.id}?tab=passport`
+        });
+
+        showToast(`✓ Expediente ${exp.id} cerrado. Pasaporte Digital emitido.`);
+        renderApp();
       });
     });
 
@@ -5664,6 +5787,7 @@
       const form = new FormData(e.currentTarget);
       const newPhase = parseInt(form.get("faseActual"), 10);
       exp.faseActual = newPhase;
+      if (exp.cerrado && newPhase < PHASES.length - 1) { exp.cerrado = false; exp.estado = "review"; }
       activeDossierPhase = newPhase;
       exp.plazoPactado = (form.get("plazoPactado") || "").trim();
       exp.plazoRealEstimado = (form.get("plazoRealEstimado") || "").trim();

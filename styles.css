@@ -4808,3 +4808,22 @@ select:focus,
 
 
 
+
+/* Pasaporte: tabla de ensayos compacta sin desbordes */
+.passport-certs-wrap { border:1px solid var(--entity-line); border-radius:10px; background:var(--entity-panel); overflow-x:auto; }
+.passport-certs-table { min-width:640px; }
+.passport-certs-table tbody tr:last-child td { border-bottom:0; }
+.passport-certs-table .cert-title { display:block; color:var(--entity-text); font-size:.82rem; }
+.passport-certs-table .cert-sub { display:block; margin-top:2px; color:var(--entity-faint); font-size:.7rem; overflow-wrap:anywhere; }
+.passport-certs-table .cert-lab { font-size:.75rem; color:var(--entity-muted); }
+.passport-certs-table td:nth-child(3), .passport-certs-table td:nth-child(4) { white-space:nowrap; }
+.passport-timeline-item span, .passport-timeline-item strong { overflow-wrap:anywhere; }
+
+/* Pasaporte: ajustes de layout (estados, firmas, resumen) */
+.passport-timeline-item { grid-template-columns: 28px 150px minmax(0,1fr) auto; }
+.passport-timeline-item .entity-status { white-space: nowrap; }
+.passport-spec-grid { grid-template-columns: repeat(3, minmax(0,1fr)); }
+.passport-signature-card > div:first-child > span,
+.passport-signature-card > div:first-child > strong { display:block; }
+@media (max-width: 900px) { .passport-spec-grid { grid-template-columns: repeat(2, minmax(0,1fr)); } }
+@media (max-width: 768px) { .passport-spec-grid { grid-template-columns: 1fr; } .passport-timeline-item { grid-template-columns: 28px 1fr; } }
