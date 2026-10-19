@@ -3,7 +3,7 @@
 **Fecha:** 18 de Octubre de 2026  
 **Rama Git:** `procurement`  
 **Entorno de Producción:** [https://sofein-procurement.vercel.app](https://sofein-procurement.vercel.app) (Proyecto Vercel: `sofein-procurement`)  
-**Versión de Assets:** `?v=procurement-v12`
+**Versión de Assets:** `?v=procurement-v13`
 
 ---
 
@@ -77,6 +77,9 @@ Se realizó un repaso y rediseño completo de la experiencia móvil y táctil en
    - Subsanado el solapamiento de gráficos métricos y barras documentales causado por la regla rígida de dos columnas (`230px minmax(0, 1fr)`).
    - Conversión de las métricas en un grid de tarjetas KPI (`repeat(4, 1fr)` en escritorio, `repeat(2, 1fr)` en móviles/tabletas) con tipografía sólida e indicadores de filtro activo.
    - Histograma de 'Estado de ranuras documentales' integrado como panel con ancho completo, barras centradas por colores de estado (`var(--entity-accent)`, `var(--entity-blue)`, `var(--entity-warning)`, `#74867a`) y textos legibles sin colisiones.
+8. **Eliminación de Sombra Parásita en Borde Izquierdo Móvil:**
+   - Corregido el sangrado visual de sombra en `.admin-sidebar` y `.entity-sidebar`. Al estar ocultos fuera de pantalla con `translateX(-100%)`, el radio de desenfoque de 45px penetraba en el borde izquierdo del viewport.
+   - La sombra ahora se mantiene en `none` mientras el menú lateral está cerrado y solo se proyecta cuando el menú está desplegado (`.nav-open`).
 
 ---
 
