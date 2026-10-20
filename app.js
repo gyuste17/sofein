@@ -1718,6 +1718,8 @@
                 </div>
                 ${activeRole === "proveedor" ? icon("check", 14) : ""}
               </button>
+              <!-- Vista Destinatario Final (Auditor) temporalmente oculta según solicitud de usuario -->
+              <!--
               <button class="role-popover-item ${activeRole === "destinatario" ? "is-active" : ""}" type="button" data-switch-role="destinatario">
                 <span class="role-badge-dot destinatario"></span>
                 <div>
@@ -1726,6 +1728,7 @@
                 </div>
                 ${activeRole === "destinatario" ? icon("check", 14) : ""}
               </button>
+              -->
             </div>
           </div>
 
@@ -2659,8 +2662,70 @@
   }
 
   /* ============================================================
-     HELPERS DE SUMINISTROS Y VISIBILIDAD DOCUMENTAL POR EXPEDIENTE
+     HELPERS DE SUMINISTROS, ICONOS, REGISTRO Y VISIBILIDAD DOCUMENTAL
      ============================================================ */
+  function getSuministroTypeIcon(tipo = "") {
+    const t = String(tipo).toLowerCase();
+    if (t.includes("traviesa")) return "route";
+    if (t.includes("carril")) return "activity";
+    if (t.includes("sujeci") || t.includes("fijaci") || t.includes("clip") || t.includes("tirafondo") || t.includes("placa") || t.includes("arandela") || t.includes("clavaz")) return "cog";
+    if (t.includes("balasto") || t.includes("cantera") || t.includes("árido")) return "box";
+    if (t.includes("desv") || t.includes("aparato") || t.includes("cruzamiento")) return "shield";
+    return "packageCheck";
+  }
+
+  function ensureExpedienteRegistroCambios(exp) {
+    if (!exp) return [];
+    if (Array.isArray(exp.registroCambios)) return exp.registroCambios;
+
+    exp.registroCambios = [
+      {
+        id: `REG-${exp.id.slice(-4)}-03`,
+        fecha: "16 jun 2026 · 14:20",
+        autor: "SOFEIN Admin",
+        tipo: "Avance de fase",
+        suministro: "General",
+        titulo: `Actualización de fase activa a ${PHASES[Math.min(exp.faseActual, PHASES.length - 1)]?.name || "Gestión del pedido"}`,
+        detalle: "Verificación de hitos documentales y sincronización del cronograma de entregas."
+      },
+      {
+        id: `REG-${exp.id.slice(-4)}-02`,
+        fecha: "12 jun 2026 · 10:05",
+        autor: `Cliente (${exp.cliente})`,
+        tipo: "Cambio documental",
+        suministro: "SUM-001",
+        titulo: "Validación de especificaciones técnicas y pliego base",
+        detalle: "Pliego técnico revisado y permisos de lectura asignados a los actores del expediente."
+      },
+      {
+        id: `REG-${exp.id.slice(-4)}-01`,
+        fecha: exp.fechaAlta || "10 jun 2026 · 09:00",
+        autor: "SOFEIN Digital",
+        tipo: "Alta de expediente",
+        suministro: "Todos",
+        titulo: `Apertura e inicialización del expediente ${exp.id}`,
+        detalle: `Constitución de bandeja estanca para ${exp.destinatarioFinal}.`
+      }
+    ];
+    return exp.registroCambios;
+  }
+
+  function addExpedienteCambioLog(exp, { tipo = "Cambio operativo", suministro = "General", titulo, detalle = "" }) {
+    if (!exp) return;
+    const list = ensureExpedienteRegistroCambios(exp);
+    const nowStr = new Date().toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" }).replace(/\./g, "") + " · Ahora";
+    const actorLabel = activeRole === "admin" ? "SOFEIN Admin" : activeRole === "cliente" ? `Cliente (${exp.cliente})` : activeRole === "proveedor" ? `Proveedor (${exp.proveedor})` : "Auditor";
+    list.unshift({
+      id: `REG-${exp.id.slice(-4)}-0${list.length + 1}`,
+      fecha: nowStr,
+      autor: actorLabel,
+      tipo,
+      suministro,
+      titulo,
+      detalle
+    });
+  }
+
   function ensureSuministroDeliverables(exp, sum) {
     if (!sum) return exp.deliverables;
     if (sum.deliverables) return sum.deliverables;
@@ -2715,7 +2780,6 @@
     if (sum && list.length > 1) {
       return ensureSuministroDeliverables(exp, sum);
     }
-    // Asegurar estructura de 4 fases en exp.deliverables
     [0, 1, 2, 3].forEach(idx => {
       if (!exp.deliverables[idx]) exp.deliverables[idx] = [];
     });
@@ -2762,12 +2826,19 @@
   function renderDossierBuilder(expId) {
     const exp = getActiveExpediente(expId);
     const expSuministros = SUMINISTROS.filter(s => s.expId === exp.id);
+    const cambiosLog = ensureExpedienteRegistroCambios(exp);
 
     if (lastOpenedExpId !== exp.id) {
       lastOpenedExpId = exp.id;
       activeDossierSuministroId = expSuministros.length ? expSuministros[0].id : null;
       const firstSum = expSuministros[0];
       activeDossierPhase = firstSum ? Math.min(firstSum.faseActual, PHASES.length - 1) : Math.min(exp.faseActual, PHASES.length - 1);
+    }
+
+    // Si algún enlace apuntaba a passport como pestaña global, redirigirlo a la Fase 4 (Cierre) dentro de Documentación
+    if (activeDossierTab === "passport") {
+      activeDossierPhase = PHASES.length - 1;
+      activeDossierTab = "deliverables";
     }
 
     const currentSum = getActiveExpSuministro(exp);
@@ -2779,13 +2850,10 @@
       activeDossierPhase = PHASES.length - 1;
     }
 
-    const matching = ensureExpedienteMatching(exp);
     const delivMap = getActiveDeliverablesMap(exp);
     const rawPhaseDeliverables = delivMap[activeDossierPhase] || [];
     const isDestinatario = activeRole === "destinatario";
     const isRoleAdmin = activeRole === "admin";
-    const isRoleCliente = activeRole === "cliente";
-    const isRoleProveedor = activeRole === "proveedor";
 
     // Metadatos visuales resumidos del expediente (idénticos a la vista de expedientes)
     const v = getExpVisualMeta(exp);
@@ -2795,12 +2863,7 @@
       return `<i class="exp-v2-bar ${isDone ? "is-done" : isCurrent ? "is-current" : ""}" title="${p.name}"></i>`;
     }).join("");
 
-    // Desglose de presupuesto estimado por suministro
-    const budgetBySumText = expSuministros.length
-      ? expSuministros.map(s => `${s.id}: ${s.presupuesto || "Incluido"}`).join(" · ")
-      : exp.presupuestoTotal;
-
-    // 1. Tarjetas por suministro (para elegir/filtrar suministro si hay más de uno, y poder cerrarlo)
+    // 1. Tarjetas por suministro (con icono distintivo por suministro y botón discreto para cerrar/reabrir con confirmación)
     const suministrosCardsHTML = expSuministros.length > 1 ? `
       <section class="dossier-suministros-section">
         <div class="dossier-suministros-head">
@@ -2813,11 +2876,13 @@
             const sStep = isSumClosed ? PHASES.length : Math.min((s.faseActual ?? 0) + 1, PHASES.length);
             const sPhaseName = SHORT_PHASE_NAMES[Math.min(s.faseActual ?? 0, PHASES.length - 1)] || "Alcance";
             const sDotClass = isSumClosed ? "is-closed" : s.estado === "finalizado" ? "is-completed" : s.accionesPendientes > 0 ? "is-pending-pulse" : "is-active";
+            const sumIconName = getSuministroTypeIcon(s.tipo);
             return `
               <article class="dossier-sum-card ${isSelected ? "is-selected" : ""} ${isSumClosed ? "is-closed" : ""}" data-select-exp-suministro="${s.id}">
                 <div class="dossier-sum-card-top">
                   <div class="exp-v2-identity">
                     <i class="exp-v2-dot ${sDotClass}"></i>
+                    <span class="sum-type-icon-badge" title="${s.tipo}">${icon(sumIconName, 13)}</span>
                     <span class="dossier-sum-code">${s.id}</span>
                   </div>
                   <div style="display:inline-flex;align-items:center;gap:8px">
@@ -2827,14 +2892,21 @@
                     </div>
                     ${isRoleAdmin ? (
                       !isSumClosed ? `
-                        <button type="button" class="btn-close-sum-inline" data-close-suministro-anytime="${s.id}" data-exp-id="${exp.id}" title="Cerrar este suministro en cualquier momento">
+                        <button type="button" class="btn-close-sum-inline" data-toggle-suministro-closed="${s.id}" data-exp-id="${exp.id}" title="Cerrar este suministro">
                           ${icon("archive", 11)} Cerrar
                         </button>
-                      ` : `<span class="sum-closed-pill">Cerrado</span>`
+                      ` : `
+                        <button type="button" class="btn-close-sum-inline is-closed-state" data-toggle-suministro-closed="${s.id}" data-exp-id="${exp.id}" title="Haz clic para reabrir este suministro">
+                          ${icon("check", 11)} Cerrado · Reabrir
+                        </button>
+                      `
                     ) : (isSumClosed ? `<span class="sum-closed-pill">Cerrado</span>` : "")}
                   </div>
                 </div>
-                <h4 class="dossier-sum-title">${s.tipo}</h4>
+                <h4 class="dossier-sum-title">
+                  <span class="sum-title-icon-inline">${icon(sumIconName, 14)}</span>
+                  <span>${s.tipo}</span>
+                </h4>
                 <div class="dossier-sum-meta-rows">
                   <div class="dossier-sum-meta-row">
                     <span>Código de suministro</span>
@@ -2876,7 +2948,43 @@
       `;
     }).join("");
 
-    // 3. Selector y Matching de Proveedores ENCIMA del menú y SÓLO en la Fase 2 (Proveedores, idx === 1)
+    // 3. Barra de Estado, Fase, Nombre y Botones (Completar fase, + Requerir, Subir) DEBAJO de las fases y ENCIMA de las secciones
+    const phaseStateLabel = (activeDossierPhase < activeEntityPhaseActual || isCurrentContextClosed)
+      ? `<span class="entity-status complete"><i></i>Completada</span>`
+      : activeDossierPhase === activeEntityPhaseActual
+        ? `<span class="entity-status review"><i></i>En curso</span>`
+        : `<span class="entity-status pending"><i></i>Pendiente</span>`;
+
+    const currentSumIconName = currentSum ? getSuministroTypeIcon(currentSum.tipo) : getSuministroTypeIcon(exp.producto);
+
+    const phaseOpsPanelBelowStepperHTML = !isDestinatario ? `
+      <div class="phase-ops-panel is-simplified">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          ${phaseStateLabel}
+          <strong style="font-size:0.86rem;color:var(--entity-text)">Fase ${PHASES[activeDossierPhase].num}: ${PHASES[activeDossierPhase].name}</strong>
+          ${currentSum && expSuministros.length > 1 ? `
+            <span class="dossier-chip" style="font-size:0.71rem;display:inline-flex;align-items:center;gap:5px">
+              ${icon(currentSumIconName, 12)} ${currentSum.id} · ${currentSum.tipo}
+            </span>
+          ` : ""}
+        </div>
+        <div class="phase-ops-controls">
+          ${isRoleAdmin && !isCurrentContextClosed ? `
+            <button class="admin-primary-button" type="button" data-advance-dossier-phase="${exp.id}">
+              ${icon("check", 14)} Completar fase
+            </button>
+            <button class="admin-quiet-button" type="button" data-open-add-slot-modal="${exp.id}">
+              ${icon("plus", 14)} + Requerir
+            </button>
+          ` : ""}
+          <button class="admin-quiet-button" type="button" data-open-upload-free-doc="${exp.id}">
+            ${icon("upload", 14)} Subir
+          </button>
+        </div>
+      </div>
+    ` : "";
+
+    // 4. Selector y Matching de Proveedores ENCIMA del menú y SÓLO en la Fase 2 (Proveedores, idx === 1)
     const selectorAboveMenuHTML = activeDossierPhase === 1 ? `
       <div class="selector-above-menu-bar">
         <div style="display:flex;align-items:center;gap:12px">
@@ -2894,39 +3002,9 @@
       </div>
     ` : "";
 
-    // 4. Contenido de la pestaña activa
+    // 5. Contenido de la pestaña activa
     let tabContent = "";
     if (activeDossierTab === "deliverables") {
-      const phaseStateLabel = (activeDossierPhase < activeEntityPhaseActual || isCurrentContextClosed)
-        ? `<span class="entity-status complete"><i></i>Completada</span>`
-        : activeDossierPhase === activeEntityPhaseActual
-          ? `<span class="entity-status review"><i></i>En curso</span>`
-          : `<span class="entity-status pending"><i></i>Pendiente</span>`;
-
-      // Gestión Operativa simplificada: dejar sólo botón de "Completar fase", "+Requerir" y "Subir" documentación
-      const phaseOpsPanelHTML = !isDestinatario ? `
-        <div class="phase-ops-panel is-simplified">
-          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-            ${phaseStateLabel}
-            <strong style="font-size:0.84rem;color:var(--entity-text)">${PHASES[activeDossierPhase].num}. ${PHASES[activeDossierPhase].name}</strong>
-            ${currentSum && expSuministros.length > 1 ? `<span class="dossier-chip" style="font-size:0.7rem">${currentSum.id} · ${currentSum.tipo}</span>` : ""}
-          </div>
-          <div class="phase-ops-controls">
-            ${isRoleAdmin && !isCurrentContextClosed ? `
-              <button class="admin-primary-button" type="button" data-advance-dossier-phase="${exp.id}">
-                ${icon("check", 14)} Completar fase
-              </button>
-              <button class="admin-quiet-button" type="button" data-open-add-slot-modal="${exp.id}">
-                ${icon("plus", 14)} + Requerir
-              </button>
-            ` : ""}
-            <button class="admin-quiet-button" type="button" data-open-upload-free-doc="${exp.id}">
-              ${icon("upload", 14)} Subir
-            </button>
-          </div>
-        </div>
-      ` : "";
-
       // Recopilar documentos visibles para el actor actual
       const allExpDocs = [];
       PHASES.forEach((pObj, pIdx) => {
@@ -2964,7 +3042,7 @@
         ? baseDocs
         : baseDocs.filter(x => x.del.state === docStatusFilter);
 
-      // Filtro de Alcance Documental (intacto como pidió el usuario)
+      // Filtro de Alcance Documental
       const docManagerBarHTML = `
         <div class="doc-manager-bar">
           <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
@@ -3001,13 +3079,14 @@
         </div>
       `;
 
-      // Tabla limpia "Documentación" con 7 columnas:
+      // Tabla limpia "Documentación" con 7 columnas y Notas editables:
       // Nombre | Fecha de Requerimiento | Origen | Fase | Estado | Acciones | Notas
       const tableRowsHTML = filteredDocs.length ? filteredDocs.map(({ del, phaseIdx, phaseName, slotIdx }) => {
         const reqDateText = del.reqDate || del.date || "12 jun 2026";
         const notesText = del.rejectReason
           ? `⚠️ ${del.rejectReason}`
-          : (del.notes || "—");
+          : (del.notes || "Añadir nota...");
+        const hasRealNote = Boolean(del.rejectReason || (del.notes && del.notes.trim()));
         const visLabel = formatVisibleToLabel(del.visibleTo);
 
         return `
@@ -3047,7 +3126,10 @@
               </div>
             </td>
             <td>
-              <span class="doc-tbl-notes" title="${String(notesText).replace(/"/g, "&quot;")}">${notesText}</span>
+              <button type="button" class="doc-tbl-notes-edit-btn ${hasRealNote ? "" : "is-empty"}" data-edit-doc-note="${exp.id}" data-phase="${phaseIdx}" data-slot="${slotIdx}" title="Haz clic para editar la nota">
+                <span class="doc-tbl-notes-text">${notesText}</span>
+                <span class="doc-tbl-notes-edit-icon">✎</span>
+              </button>
             </td>
           </tr>
         `;
@@ -3063,7 +3145,7 @@
         <section class="doc-clean-table-card">
           <div class="doc-clean-table-head">
             <h3>Documentación</h3>
-            <span>${filteredDocs.length} documento(s)</span>
+            <span>${filteredDocs.length} documento(s) · Haz clic en cualquier nota para editarla</span>
           </div>
           <div class="doc-clean-table-wrap">
             <table class="doc-clean-table">
@@ -3086,13 +3168,27 @@
         </section>
       `;
 
-      tabContent = `${phaseOpsPanelHTML}${docManagerBarHTML}${docTableHTML}`;
-    } else if (activeDossierTab === "incidents") {    } else if (activeDossierTab === "incidents") {
-      // Pantalla 5: Registro Inmutable de Incidencias, Mediación SOFEIN y Adendas Oficiales
+      // Si estamos en la Fase 4 (Cierre, activeDossierPhase === 3), el Pasaporte Digital SOFEIN forma parte del cierre
+      const passportInClosureHTML = activeDossierPhase === (PHASES.length - 1) ? `
+        <div class="closure-passport-wrapper" style="margin-top:16px">
+          <div class="closure-passport-divider">
+            <span>${icon("award", 15)} Pasaporte Digital SOFEIN · Parte del Cierre (Fase 4)</span>
+          </div>
+          ${renderPassportSection(exp, isDestinatario)}
+        </div>
+      ` : "";
+
+      tabContent = `${docManagerBarHTML}${docTableHTML}${passportInClosureHTML}`;
+    } else if (activeDossierTab === "incidents") {
+      // Sección "Registro": Incidencias y Cambios del expediente (se reflejan y se pueden añadir ambos)
       const totalInc = exp.incidencias.length;
+      const totalCambios = cambiosLog.length;
+      const totalRegistros = totalInc + totalCambios;
       const inMediationInc = exp.incidencias.filter(i => (!i.adendaId && !i.estado.includes("Consolidada") && !i.estado.includes("formalizada")) && (i.estado.includes("mediación") || i.estado.includes("Registrada"))).length;
-      const pendingSignsInc = exp.incidencias.filter(i => (!i.adendaId && !i.estado.includes("Consolidada") && !i.estado.includes("formalizada")) && i.propuestaMediacion && (!i.firmaCliente || !i.firmaProveedor)).length;
       const consolidatedInc = exp.incidencias.filter(i => !!i.adendaId || i.estado.includes("Consolidada") || i.estado.includes("formalizada")).length;
+
+      const showIncidentsBlock = incidentStatusFilter !== "changes_only";
+      const showChangesBlock = incidentStatusFilter === "all" || incidentStatusFilter === "changes_only";
 
       let filteredIncidents = exp.incidencias;
       if (incidentStatusFilter === "in_mediation") {
@@ -3103,7 +3199,47 @@
         filteredIncidents = exp.incidencias.filter(i => !!i.adendaId || i.estado.includes("Consolidada") || i.estado.includes("formalizada"));
       }
 
-      const incidentsCardsHTML = filteredIncidents.length ? filteredIncidents.map((inc) => {
+      const changesTableHTML = showChangesBlock ? `
+        <section class="doc-clean-table-card" style="margin-bottom:14px">
+          <div class="doc-clean-table-head">
+            <h3>${icon("activity", 15)} Registro de Cambios y Actividad del Expediente</h3>
+            <span>${cambiosLog.length} cambio(s) registrado(s)</span>
+          </div>
+          <div class="doc-clean-table-wrap">
+            <table class="doc-clean-table">
+              <thead>
+                <tr>
+                  <th>Código</th>
+                  <th>Fecha</th>
+                  <th>Tipo de Cambio</th>
+                  <th>Suministro</th>
+                  <th>Descripción / Cambio registrado</th>
+                  <th>Autor</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${cambiosLog.map(c => `
+                  <tr>
+                    <td><span class="dossier-sum-code">${c.id}</span></td>
+                    <td><span class="doc-tbl-date">${c.fecha}</span></td>
+                    <td><span class="dossier-chip" style="font-size:0.68rem">${c.tipo}</span></td>
+                    <td><span class="doc-tbl-phase">${c.suministro || "General"}</span></td>
+                    <td>
+                      <div class="doc-tbl-name-wrap">
+                        <strong class="doc-tbl-name">${c.titulo}</strong>
+                        ${c.detalle ? `<span style="font-size:0.72rem;color:var(--entity-muted)">${c.detalle}</span>` : ""}
+                      </div>
+                    </td>
+                    <td><span class="doc-tbl-origin">${c.autor}</span></td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      ` : "";
+
+      const incidentsCardsHTML = showIncidentsBlock ? (filteredIncidents.length ? filteredIncidents.map((inc) => {
         const isConsolidated = !!inc.adendaId || inc.estado.includes("Consolidada") || inc.estado.includes("formalizada");
         const isPendingSigns = !isConsolidated && inc.propuestaMediacion && (!inc.firmaCliente || !inc.firmaProveedor);
         const cardClass = isConsolidated ? "is-consolidated" : isPendingSigns ? "is-pending-signs" : inc.estado.includes("mediación") ? "is-mediated" : "is-open";
@@ -3116,7 +3252,6 @@
 
         return `
           <article class="incident-card ${cardClass}" id="card-${inc.id}">
-            <!-- Topbar de la Incidencia -->
             <div class="incident-card-top">
               <div>
                 <div class="incident-card-meta">
@@ -3138,12 +3273,10 @@
               </div>
             </div>
 
-            <!-- Descripción de los hechos -->
             <p style="margin:0;font-size:0.83rem;color:var(--entity-text);line-height:1.55">
               ${inc.descripcion || "Registro formal de alteración operativa sobrevenido en la cadena de suministro de vía."}
             </p>
 
-            <!-- Grid de Impacto Reportado -->
             <div class="incident-impact-grid">
               <div class="incident-impact-item">
                 <span class="impact-label">Impacto en Plazo</span>
@@ -3165,7 +3298,6 @@
               </div>
             </div>
 
-            <!-- Panel de Mediación SOFEIN -->
             ${inc.propuestaMediacion ? `
               <div class="incident-mediation-panel">
                 <div class="incident-mediation-head">
@@ -3189,7 +3321,6 @@
                   </div>
                 </div>
 
-                <!-- Cláusula de Silencio Positivo (5 Días Hábiles - Apuntes 06) -->
                 <div class="incident-silence-box">
                   <div class="incident-silence-icon">${icon("activity", 18)}</div>
                   <div class="incident-silence-text">
@@ -3222,9 +3353,7 @@
               </div>
             `}
 
-            <!-- Grid de Firmas Bilaterales Cruzadas -->
             <div class="incident-signers-grid">
-              <!-- Columna 1: Garante SOFEIN -->
               <div class="incident-signer-card">
                 <div class="incident-signer-head">
                   <span class="incident-signer-role">Mediador SOFEIN</span>
@@ -3236,7 +3365,6 @@
                 <div class="incident-signer-date">${inc.firmaSofeinFecha || inc.fecha}</div>
               </div>
 
-              <!-- Columna 2: Proveedor (Taller) -->
               <div class="incident-signer-card">
                 <div class="incident-signer-head">
                   <span class="incident-signer-role">Proveedor (Taller)</span>
@@ -3260,7 +3388,6 @@
                 `}
               </div>
 
-              <!-- Columna 3: Cliente Constructor -->
               <div class="incident-signer-card">
                 <div class="incident-signer-head">
                   <span class="incident-signer-role">Cliente (Constructor)</span>
@@ -3285,7 +3412,6 @@
               </div>
             </div>
 
-            <!-- Barra de Acciones de Consolidación de Adenda -->
             ${isConsolidated ? `
               <div class="incident-consolidation-bar" style="background:rgba(16, 185, 129, 0.05);border-color:rgba(16, 185, 129, 0.28)">
                 <div class="incident-consolidated-seal">
@@ -3340,72 +3466,46 @@
           </article>
         `;
       }).join("") : `
-        <div style="padding:40px;background:var(--entity-panel);border:1px solid var(--entity-line);border-radius:12px;text-align:center;color:var(--entity-muted)">
-          <p style="margin:0 0 10px;font-size:0.9rem;font-weight:500;color:var(--entity-text)">No hay incidencias que coincidan con el filtro seleccionado.</p>
-          <span style="font-size:0.8rem">Toda la operativa del suministro transcurre conforme al pliego y cronograma original.</span>
+        <div style="padding:32px;background:var(--entity-panel);border:1px solid var(--entity-line);border-radius:12px;text-align:center;color:var(--entity-muted)">
+          <p style="margin:0 0 6px;font-size:0.88rem;font-weight:500;color:var(--entity-text)">No hay incidencias que coincidan con el filtro seleccionado.</p>
+          <span style="font-size:0.78rem">Toda la operativa del suministro transcurre conforme al pliego y cronograma.</span>
         </div>
-      `;
+      `) : "";
 
       tabContent = `
         <div class="incident-container">
-          <!-- Banner Hero de Mediación SOFEIN -->
-          <section class="incident-hero-banner">
-            <div class="incident-hero-header">
-              <div class="incident-hero-title">
-                <h3>${icon("shield", 20)} Mediación Oficial de Incidencias & Adendas Contractuales</h3>
-                <p>
-                  Protocolo de salvaguarda jurídica y operativa de SOFEIN para obras de vía: Cada incidencia de taller, retraso fabril o modificación de alcance se gestiona con resolución técnica imparcial, fecha límite vinculante (<b>5 días hábiles con silencio positivo</b>) y firma bilateral digital antes de incorporarse al Pasaporte Digital.
-                </p>
-              </div>
-            </div>
-            <div class="incident-kpi-grid">
-              <div class="incident-kpi-card">
-                <span class="label">Total Incidencias</span>
-                <strong class="value">${totalInc}</strong>
-                <small class="sub">${totalInc === 1 ? "1 caso registrado" : `${totalInc} casos registrados`}</small>
-              </div>
-              <div class="incident-kpi-card">
-                <span class="label">En Mediación Activa</span>
-                <strong class="value" style="color:var(--entity-blue)">${inMediationInc}</strong>
-                <small class="sub">Resolución en curso</small>
-              </div>
-              <div class="incident-kpi-card">
-                <span class="label">Pendientes de Firma</span>
-                <strong class="value" style="color:var(--entity-warning)">${pendingSignsInc}</strong>
-                <small class="sub">Plazo 5 días hábiles</small>
-              </div>
-              <div class="incident-kpi-card">
-                <span class="label">Adendas Consolidadas</span>
-                <strong class="value" style="color:#10B981">${consolidatedInc}</strong>
-                <small class="sub">Validadas en Pasaporte</small>
-              </div>
-            </div>
-          </section>
-
-          <!-- Barra de Filtros y Acción de Alta -->
+          <!-- Barra de Filtros y Acciones de Registro (Incidencias + Cambios) -->
           <div class="incident-filter-bar">
             <div class="incident-filter-pills">
               <button type="button" class="incident-filter-pill ${incidentStatusFilter === "all" ? "is-active" : ""}" data-incident-filter="all">
-                Todas <span class="pill-count">${totalInc}</span>
+                Todo el Registro <span class="pill-count">${totalRegistros}</span>
+              </button>
+              <button type="button" class="incident-filter-pill ${incidentStatusFilter === "changes_only" ? "is-active" : ""}" data-incident-filter="changes_only">
+                Cambios y Actividad <span class="pill-count">${totalCambios}</span>
               </button>
               <button type="button" class="incident-filter-pill ${incidentStatusFilter === "in_mediation" ? "is-active" : ""}" data-incident-filter="in_mediation">
-                En Mediación <span class="pill-count">${inMediationInc}</span>
-              </button>
-              <button type="button" class="incident-filter-pill ${incidentStatusFilter === "pending_signs" ? "is-active" : ""}" data-incident-filter="pending_signs">
-                Pendientes de Firma <span class="pill-count">${pendingSignsInc}</span>
+                Incidencias en Mediación <span class="pill-count">${inMediationInc}</span>
               </button>
               <button type="button" class="incident-filter-pill ${incidentStatusFilter === "consolidated" ? "is-active" : ""}" data-incident-filter="consolidated">
                 Adendas Consolidadas <span class="pill-count">${consolidatedInc}</span>
               </button>
             </div>
             ${activeRole !== "destinatario" ? `
-              <button class="admin-primary-button" type="button" data-open-incident-modal="${exp.id}">
-                ${icon("plus", 14)} Notificar Incidencia / Modificación
-              </button>
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                <button class="admin-quiet-button" type="button" data-open-change-log-modal="${exp.id}">
+                  ${icon("plus", 14)} + Añadir cambio
+                </button>
+                <button class="admin-primary-button" type="button" data-open-incident-modal="${exp.id}">
+                  ${icon("plus", 14)} + Añadir incidencia
+                </button>
+              </div>
             ` : ""}
           </div>
 
-          <!-- Muro de Tarjetas de Incidencia -->
+          <!-- Tabla de Cambios y Actividad del Expediente -->
+          ${changesTableHTML}
+
+          <!-- Tarjetas de Incidencias y Adendas -->
           ${incidentsCardsHTML}
         </div>
       `;
@@ -3520,12 +3620,10 @@
           ` : ""}
         </div>
       `;
-    } else if (activeDossierTab === "passport") {
-      // Pantalla 7: Pasaporte Digital SOFEIN
-      tabContent = renderPassportSection(exp, isDestinatario);
     }
 
     const expNotices = NOTICES.filter(n => n.expId === exp.id && n.roles.includes(activeRole) && !discardedNotices.has(n.id));
+    const totalRegistroBadge = exp.incidencias.length + cambiosLog.length;
 
     return `
       <div class="dossier-builder">
@@ -3554,7 +3652,7 @@
           </div>
         ` : ""}
 
-        <!-- 1. Tarjeta de Expediente (Datos resumidos como en la vista de expedientes + botón de cierre Admin) -->
+        <!-- 1. Tarjeta de Expediente (Datos resumidos + botón discreto de cerrar/reabrir con confirmación) -->
         <section class="dossier-exp-summary-card">
           <div class="dossier-exp-summary-top">
             <div class="dossier-exp-summary-left">
@@ -3575,16 +3673,16 @@
             <div class="dossier-exp-summary-actions">
               ${isRoleAdmin ? (
                 !exp.cerrado ? `
-                  <button type="button" class="admin-quiet-button btn-close-exp-anytime" data-close-exp-anytime="${exp.id}">
-                    ${icon("archive", 14)} Cerrar expediente
+                  <button type="button" class="btn-close-exp-anytime" data-toggle-exp-closed="${exp.id}" title="Cerrar expediente">
+                    ${icon("archive", 13)} Cerrar expediente
                   </button>
                 ` : `
-                  <span class="dossier-chip" style="background:rgba(100,116,139,0.14);color:#64748b;font-weight:700">
-                    ${icon("check", 12)} Expediente cerrado (${exp.fechaCierre || "Cerrado"})
-                  </span>
+                  <button type="button" class="btn-close-exp-anytime is-closed-state" data-toggle-exp-closed="${exp.id}" title="Haz clic para reabrir el expediente">
+                    ${icon("check", 13)} Expediente cerrado (${exp.fechaCierre || "Cerrado"}) · Reabrir
+                  </button>
                 `
               ) : (exp.cerrado ? `
-                <span class="dossier-chip" style="background:rgba(100,116,139,0.14);color:#64748b;font-weight:700">
+                <span class="dossier-chip" style="background:rgba(100,116,139,0.12);color:var(--entity-muted);font-weight:600">
                   ${icon("check", 12)} Expediente cerrado
                 </span>
               ` : "")}
@@ -3599,8 +3697,8 @@
               <strong class="exp-v2-val">${expSuministros.length || v.numSuministros} suministros</strong>
             </div>
             <div class="dossier-exp-summary-item">
-              <span class="exp-v2-label">Presupuesto est. por suministro</span>
-              <strong class="exp-v2-val" title="${!isDestinatario ? budgetBySumText : "[Reservado]"}">${!isDestinatario ? `${exp.presupuestoTotal} (${budgetBySumText})` : "[Reservado]"}</strong>
+              <span class="exp-v2-label">Presupuesto estimado</span>
+              <strong class="exp-v2-val">${!isDestinatario ? exp.presupuestoTotal : "[Reservado]"}</strong>
             </div>
             <div class="dossier-exp-summary-item">
               <span class="exp-v2-label">Destino</span>
@@ -3620,14 +3718,15 @@
           </div>
         </section>
 
-        <!-- 2. Tarjetas por suministro (si hay más de uno, permite filtrar y cerrar suministro) -->
+        <!-- 2. Tarjetas por suministro (si hay más de uno, con su icono, filtro y cierre/reapertura) -->
         ${suministrosCardsHTML}
 
-        <!-- 3. Stepper de las 4 Fases (Alcance, Proveedores, Gestión del pedido, Cierre) -->
+        <!-- 3. Stepper de las 4 Fases (con el icono del suministro elegido al lado del título) -->
         <div>
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px">
-            <span style="font-size:0.74rem;font-weight:600;color:var(--entity-faint);text-transform:uppercase;letter-spacing:0.06em">
-              Fases${currentSum && expSuministros.length > 1 ? ` del suministro ${currentSum.id} (${currentSum.tipo})` : " del expediente"}
+            <span class="dossier-phases-heading-with-icon">
+              <span class="sum-type-icon-badge is-small">${icon(currentSumIconName, 13)}</span>
+              <span>Fases${currentSum && expSuministros.length > 1 ? ` del suministro ${currentSum.id} (${currentSum.tipo})` : " del expediente"}</span>
             </span>
             <span style="font-size:0.75rem;color:var(--entity-accent);font-weight:600">
               ${isCurrentContextClosed ? `Cerrado · 4/4 fases completadas` : `Fase activa: ${PHASES[activeEntityPhaseActual].num}. ${PHASES[activeEntityPhaseActual].name}`}
@@ -3638,28 +3737,28 @@
           </div>
         </div>
 
-        <!-- 4. Selector y Matching ENCIMA del menú (sólo visible en Fase 2: Proveedores) -->
+        <!-- 4. Barra de Estado, Fase, Nombre y Botones (Completar, + Requerir, Subir) DEBAJO de las fases y ENCIMA de las secciones -->
+        ${phaseOpsPanelBelowStepperHTML}
+
+        <!-- 5. Selector y Matching ENCIMA del menú (sólo visible en Fase 2: Proveedores) -->
         ${selectorAboveMenuHTML}
 
-        <!-- 5. Menú de Pestañas Internas del Expediente -->
+        <!-- 6. Menú de Secciones del Expediente (sin Pasaporte global, ya integrado en Fase 4: Cierre) -->
         <div class="dossier-tabs">
           <button class="dossier-tab-btn ${activeDossierTab === "deliverables" ? "is-active" : ""}" type="button" data-switch-dossier-tab="deliverables">
             ${icon("file", 16)} Documentación
           </button>
           <button class="dossier-tab-btn ${activeDossierTab === "incidents" ? "is-active" : ""}" type="button" data-switch-dossier-tab="incidents">
             ${icon("alert", 16)} Registro
-            ${exp.incidencias.length ? `<b class="badge">${exp.incidencias.length}</b>` : ""}
+            ${totalRegistroBadge ? `<b class="badge">${totalRegistroBadge}</b>` : ""}
           </button>
           <button class="dossier-tab-btn ${activeDossierTab === "comms" ? "is-active" : ""}" type="button" data-switch-dossier-tab="comms">
             ${icon("inbox", 16)} Avisos & Hitos
             ${expNotices.length ? `<b class="badge">${expNotices.length}</b>` : ""}
           </button>
-          <button class="dossier-tab-btn ${activeDossierTab === "passport" ? "is-active" : ""}" type="button" data-switch-dossier-tab="passport">
-            ${icon("award", 16)} Pasaporte Digital SOFEIN
-          </button>
         </div>
 
-        <!-- Contenido de la Pestaña -->
+        <!-- Contenido de la Sección -->
         ${tabContent}
       </div>
     `;
@@ -5855,7 +5954,7 @@
     // Selección de suministro dentro del expediente (filtra fases y documentación)
     document.querySelectorAll("[data-select-exp-suministro]").forEach(card => {
       card.addEventListener("click", e => {
-        if (e.target.closest("[data-close-suministro-anytime]")) return;
+        if (e.target.closest("[data-toggle-suministro-closed]")) return;
         const sumId = card.dataset.selectExpSuministro;
         if (sumId && activeDossierSuministroId !== sumId) {
           activeDossierSuministroId = sumId;
@@ -5868,60 +5967,40 @@
       });
     });
 
-    // Cerrar expediente en cualquier momento (SOFEIN Admin)
-    document.querySelectorAll("[data-close-exp-anytime]").forEach(btn => {
+    // Cerrar o Reabrir expediente con confirmación (SOFEIN Admin)
+    document.querySelectorAll("[data-toggle-exp-closed]").forEach(btn => {
       btn.addEventListener("click", e => {
         e.stopPropagation();
-        const expId = btn.dataset.closeExpAnytime;
-        const exp = getActiveExpediente(expId);
-        if (!exp) return;
-        const today = new Date().toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" }).replace(/\./g, "");
-        exp.cerrado = true;
-        exp.estado = "complete";
-        exp.faseActual = PHASES.length - 1;
-        exp.fechaCierre = today;
-        activeDossierPhase = PHASES.length - 1;
-
-        SUMINISTROS.filter(s => s.expId === exp.id).forEach(s => {
-          s.estado = "cerrado";
-          s.faseActual = PHASES.length - 1;
-          s.faseNombre = `${PHASES.length}. ${PHASES[PHASES.length - 1].name}`;
-          s.accionesPendientes = 0;
-        });
-
-        showToast(`✓ Expediente ${exp.id} cerrado por SOFEIN Admin.`);
-        renderApp();
+        const expId = btn.dataset.toggleExpClosed;
+        openConfirmToggleExpClosedModal(expId);
       });
     });
 
-    // Cerrar suministro individual dentro de un expediente en cualquier momento (SOFEIN Admin)
-    document.querySelectorAll("[data-close-suministro-anytime]").forEach(btn => {
+    // Cerrar o Reabrir suministro individual con confirmación (SOFEIN Admin)
+    document.querySelectorAll("[data-toggle-suministro-closed]").forEach(btn => {
       btn.addEventListener("click", e => {
         e.stopPropagation();
-        const sumId = btn.dataset.closeSuministroAnytime;
+        const sumId = btn.dataset.toggleSuministroClosed;
         const expId = btn.dataset.expId;
-        const sum = SUMINISTROS.find(s => s.id === sumId);
-        if (!sum) return;
-        sum.estado = "cerrado";
-        sum.faseActual = PHASES.length - 1;
-        sum.faseNombre = `${PHASES.length}. ${PHASES[PHASES.length - 1].name}`;
-        sum.accionesPendientes = 0;
+        openConfirmToggleSuministroClosedModal(sumId, expId);
+      });
+    });
 
-        if (activeDossierSuministroId === sum.id) {
-          activeDossierPhase = PHASES.length - 1;
-        }
+    // Editar nota directamente desde la tabla "Documentación"
+    document.querySelectorAll("[data-edit-doc-note]").forEach(btn => {
+      btn.addEventListener("click", e => {
+        e.stopPropagation();
+        const expId = btn.dataset.editDocNote;
+        const phaseIdx = Number(btn.dataset.phase);
+        const slotIdx = Number(btn.dataset.slot);
+        openEditDocNoteModal(expId, phaseIdx, slotIdx);
+      });
+    });
 
-        const exp = getActiveExpediente(expId || sum.expId);
-        const allSum = SUMINISTROS.filter(s => s.expId === exp.id);
-        if (allSum.length > 0 && allSum.every(s => s.estado === "cerrado")) {
-          exp.cerrado = true;
-          exp.estado = "complete";
-          exp.faseActual = PHASES.length - 1;
-          exp.fechaCierre = "Hoy";
-        }
-
-        showToast(`✓ Suministro ${sum.id} cerrado por SOFEIN Admin.`);
-        renderApp();
+    // Añadir nuevo cambio / anotación en la sección "Registro"
+    document.querySelectorAll("[data-open-change-log-modal]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        openAddCambioLogModal(btn.dataset.openChangeLogModal);
       });
     });
 
@@ -5952,7 +6031,6 @@
         openRejectDeliverableModal(expId, phaseIdx, slot);
       });
     });
-
 
     // Validación de Expediente Pendiente (Admin valida solicitud de Cliente - Apuntes 06)
     document.querySelectorAll("[data-validate-exp]").forEach(btn => {
@@ -7073,6 +7151,12 @@
             delivMap[nextIdx] = defaultByPhase[nextIdx] || [];
           }
 
+          addExpedienteCambioLog(exp, {
+            tipo: "Avance de fase",
+            suministro: currentSum && expSuministros.length > 1 ? currentSum.id : "Expediente",
+            titulo: `Fase ${currentIdx + 1} (${PHASES[currentIdx].name}) completada · Avance a ${PHASES[nextIdx].name}`,
+            detalle: "Hitos de la fase validados por SOFEIN Admin."
+          });
           showToast(`✓ Fase ${currentIdx + 1} completada. Avanzado a ${PHASES[nextIdx].num}. ${PHASES[nextIdx].name}`);
           renderApp();
         } else {
@@ -7593,6 +7677,353 @@
       renderApp();
     });
   }
+  function openConfirmToggleExpClosedModal(expId) {
+    const exp = getActiveExpediente(expId);
+    if (!exp) return;
+    const isReopen = !!exp.cerrado;
+    const modalWrap = document.getElementById("modalContainer");
+    if (!modalWrap) return;
+
+    modalWrap.innerHTML = `
+      <div class="procurement-modal-backdrop" id="toggleExpClosedBackdrop">
+        <div class="procurement-modal" style="width:min(460px,100%)">
+          <div class="procurement-modal-head">
+            <div>
+              <h3>${isReopen ? "Reabrir expediente" : "Confirmar cierre de expediente"}</h3>
+              <p style="margin:2px 0 0;font-size:0.75rem;color:var(--entity-muted)">Expediente <b>${exp.id}</b></p>
+            </div>
+            <button type="button" id="closeToggleExpModalBtn">×</button>
+          </div>
+          <form id="modalToggleExpForm">
+            <div class="procurement-modal-body" style="gap:12px">
+              <p style="margin:0;font-size:0.83rem;color:var(--entity-text);line-height:1.5">
+                ${isReopen
+                  ? `¿Deseas <b>reabrir</b> el expediente <b>${exp.id}</b> para volver a habilitar la gestión operativa de sus fases y suministros?`
+                  : `¿Confirmas que deseas <b>cerrar</b> el expediente <b>${exp.id}</b> en este momento? Podrás volver a hacer clic cuando quieras si necesitas reabrirlo.`
+                }
+              </p>
+              <label style="display:grid;gap:6px;font-size:0.74rem;font-weight:600;color:var(--entity-muted)">
+                Motivo o anotación para el Registro (opcional)
+                <input name="motivo" placeholder="${isReopen ? "Ej: Reapertura para adjuntar adenda complementaria" : "Ej: Cierre administrativo validado por SOFEIN"}" style="height:36px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.8rem" />
+              </label>
+            </div>
+            <div class="procurement-modal-footer">
+              <button class="admin-quiet-button" type="button" id="cancelToggleExpModalBtn">Cancelar</button>
+              <button class="admin-primary-button" type="submit">
+                ${isReopen ? "Sí, reabrir expediente" : "Sí, cerrar expediente"}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    `;
+
+    const close = () => { modalWrap.innerHTML = ""; };
+    document.getElementById("closeToggleExpModalBtn")?.addEventListener("click", close);
+    document.getElementById("cancelToggleExpModalBtn")?.addEventListener("click", close);
+    document.getElementById("toggleExpClosedBackdrop")?.addEventListener("click", e => {
+      if (e.target.id === "toggleExpClosedBackdrop") close();
+    });
+
+    document.getElementById("modalToggleExpForm")?.addEventListener("submit", e => {
+      e.preventDefault();
+      const form = new FormData(e.currentTarget);
+      const motivo = (form.get("motivo") || "").trim();
+      const today = new Date().toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" }).replace(/\./g, "");
+
+      if (isReopen) {
+        exp.cerrado = false;
+        exp.finalizado = false;
+        exp.estado = "review";
+        exp.fechaCierre = null;
+        if (exp.faseActual >= PHASES.length - 1) {
+          exp.faseActual = PHASES.length - 2; // Gestión del pedido
+        }
+        SUMINISTROS.filter(s => s.expId === exp.id).forEach(s => {
+          if (s.estado === "cerrado") {
+            s.estado = "activo";
+            if (s.faseActual >= PHASES.length - 1) s.faseActual = PHASES.length - 2;
+            s.faseNombre = `${s.faseActual + 1}. ${PHASES[s.faseActual].name}`;
+          }
+        });
+        addExpedienteCambioLog(exp, {
+          tipo: "Reapertura",
+          suministro: "Expediente",
+          titulo: `Expediente ${exp.id} reabierto por SOFEIN Admin`,
+          detalle: motivo || "Reapertura administrativa del expediente."
+        });
+        close();
+        showToast(`✓ Expediente ${exp.id} reabierto correctamente.`);
+      } else {
+        exp.cerrado = true;
+        exp.estado = "complete";
+        exp.faseActual = PHASES.length - 1;
+        exp.fechaCierre = today;
+        activeDossierPhase = PHASES.length - 1;
+        SUMINISTROS.filter(s => s.expId === exp.id).forEach(s => {
+          s.estado = "cerrado";
+          s.faseActual = PHASES.length - 1;
+          s.faseNombre = `${PHASES.length}. ${PHASES[PHASES.length - 1].name}`;
+          s.accionesPendientes = 0;
+        });
+        addExpedienteCambioLog(exp, {
+          tipo: "Cierre de expediente",
+          suministro: "Todos",
+          titulo: `Expediente ${exp.id} cerrado por SOFEIN Admin`,
+          detalle: motivo || "Cierre formal del expediente y sus suministros."
+        });
+        close();
+        showToast(`✓ Expediente ${exp.id} cerrado por SOFEIN Admin.`);
+      }
+      renderApp();
+    });
+  }
+
+  function openConfirmToggleSuministroClosedModal(sumId, expId) {
+    const sum = SUMINISTROS.find(s => s.id === sumId);
+    if (!sum) return;
+    const exp = getActiveExpediente(expId || sum.expId);
+    const isReopen = sum.estado === "cerrado" || (exp && exp.cerrado);
+    const modalWrap = document.getElementById("modalContainer");
+    if (!modalWrap) return;
+
+    modalWrap.innerHTML = `
+      <div class="procurement-modal-backdrop" id="toggleSumClosedBackdrop">
+        <div class="procurement-modal" style="width:min(460px,100%)">
+          <div class="procurement-modal-head">
+            <div>
+              <h3>${isReopen ? "Reabrir suministro" : "Confirmar cierre de suministro"}</h3>
+              <p style="margin:2px 0 0;font-size:0.75rem;color:var(--entity-muted)">${sum.id} · ${sum.tipo}</p>
+            </div>
+            <button type="button" id="closeToggleSumModalBtn">×</button>
+          </div>
+          <form id="modalToggleSumForm">
+            <div class="procurement-modal-body" style="gap:12px">
+              <p style="margin:0;font-size:0.83rem;color:var(--entity-text);line-height:1.5">
+                ${isReopen
+                  ? `¿Deseas <b>reabrir</b> el suministro <b>${sum.id} (${sum.tipo})</b> para continuar su gestión por fases?`
+                  : `¿Confirmas que deseas <b>cerrar</b> el suministro <b>${sum.id} (${sum.tipo})</b>? Si vuelves a hacer clic sobre él podrás reabrirlo.`
+                }
+              </p>
+              <label style="display:grid;gap:6px;font-size:0.74rem;font-weight:600;color:var(--entity-muted)">
+                Motivo o anotación para el Registro (opcional)
+                <input name="motivo" placeholder="${isReopen ? "Ej: Reapertura de suministro por ajuste de lote" : "Ej: Recepción completada y validada"}" style="height:36px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.8rem" />
+              </label>
+            </div>
+            <div class="procurement-modal-footer">
+              <button class="admin-quiet-button" type="button" id="cancelToggleSumModalBtn">Cancelar</button>
+              <button class="admin-primary-button" type="submit">
+                ${isReopen ? "Sí, reabrir suministro" : "Sí, cerrar suministro"}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    `;
+
+    const close = () => { modalWrap.innerHTML = ""; };
+    document.getElementById("closeToggleSumModalBtn")?.addEventListener("click", close);
+    document.getElementById("cancelToggleSumModalBtn")?.addEventListener("click", close);
+    document.getElementById("toggleSumClosedBackdrop")?.addEventListener("click", e => {
+      if (e.target.id === "toggleSumClosedBackdrop") close();
+    });
+
+    document.getElementById("modalToggleSumForm")?.addEventListener("submit", e => {
+      e.preventDefault();
+      const form = new FormData(e.currentTarget);
+      const motivo = (form.get("motivo") || "").trim();
+
+      if (isReopen) {
+        sum.estado = "activo";
+        if (sum.faseActual >= PHASES.length - 1) {
+          sum.faseActual = PHASES.length - 2;
+        }
+        sum.faseNombre = `${sum.faseActual + 1}. ${PHASES[sum.faseActual].name}`;
+        if (exp && exp.cerrado) {
+          exp.cerrado = false;
+          exp.estado = "review";
+          exp.fechaCierre = null;
+        }
+        if (activeDossierSuministroId === sum.id) {
+          activeDossierPhase = sum.faseActual;
+        }
+        addExpedienteCambioLog(exp, {
+          tipo: "Reapertura de suministro",
+          suministro: sum.id,
+          titulo: `Suministro ${sum.id} (${sum.tipo}) reabierto`,
+          detalle: motivo || "Suministro reabierto por SOFEIN Admin."
+        });
+        close();
+        showToast(`✓ Suministro ${sum.id} reabierto correctamente.`);
+      } else {
+        sum.estado = "cerrado";
+        sum.faseActual = PHASES.length - 1;
+        sum.faseNombre = `${PHASES.length}. ${PHASES[PHASES.length - 1].name}`;
+        sum.accionesPendientes = 0;
+
+        if (activeDossierSuministroId === sum.id) {
+          activeDossierPhase = PHASES.length - 1;
+        }
+
+        const allSum = SUMINISTROS.filter(s => s.expId === exp.id);
+        if (allSum.length > 0 && allSum.every(s => s.estado === "cerrado")) {
+          exp.cerrado = true;
+          exp.estado = "complete";
+          exp.faseActual = PHASES.length - 1;
+          exp.fechaCierre = "Hoy";
+        }
+        addExpedienteCambioLog(exp, {
+          tipo: "Cierre de suministro",
+          suministro: sum.id,
+          titulo: `Suministro ${sum.id} (${sum.tipo}) cerrado`,
+          detalle: motivo || "Suministro cerrado formalmente por SOFEIN Admin."
+        });
+        close();
+        showToast(`✓ Suministro ${sum.id} cerrado por SOFEIN Admin.`);
+      }
+      renderApp();
+    });
+  }
+
+  function openEditDocNoteModal(expId, phaseIdx, slotIdx) {
+    const exp = getActiveExpediente(expId);
+    const delivMap = getActiveDeliverablesMap(exp);
+    const del = delivMap[phaseIdx] && delivMap[phaseIdx][slotIdx];
+    if (!del) return;
+    const modalWrap = document.getElementById("modalContainer");
+    if (!modalWrap) return;
+
+    const currentNote = del.rejectReason || del.notes || "";
+
+    modalWrap.innerHTML = `
+      <div class="procurement-modal-backdrop" id="editDocNoteBackdrop">
+        <div class="procurement-modal" style="width:min(480px,100%)">
+          <div class="procurement-modal-head">
+            <div>
+              <h3>Editar Nota del Documento</h3>
+              <p style="margin:2px 0 0;font-size:0.75rem;color:var(--entity-muted)">${del.name} (${exp.id})</p>
+            </div>
+            <button type="button" id="closeEditDocNoteBtn">×</button>
+          </div>
+          <form id="modalEditDocNoteForm">
+            <div class="procurement-modal-body" style="gap:12px">
+              <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
+                Nota / Comentario en tabla de Documentación
+                <textarea name="notes" rows="3" placeholder="Escribe una nota o indicación para este documento..." style="padding:9px 11px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;line-height:1.45">${currentNote}</textarea>
+              </label>
+            </div>
+            <div class="procurement-modal-footer">
+              <button class="admin-quiet-button" type="button" id="cancelEditDocNoteBtn">Cancelar</button>
+              <button class="admin-primary-button" type="submit">${icon("check", 14)} Guardar nota</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    `;
+
+    const close = () => { modalWrap.innerHTML = ""; };
+    document.getElementById("closeEditDocNoteBtn")?.addEventListener("click", close);
+    document.getElementById("cancelEditDocNoteBtn")?.addEventListener("click", close);
+    document.getElementById("editDocNoteBackdrop")?.addEventListener("click", e => {
+      if (e.target.id === "editDocNoteBackdrop") close();
+    });
+
+    document.getElementById("modalEditDocNoteForm")?.addEventListener("submit", e => {
+      e.preventDefault();
+      const form = new FormData(e.currentTarget);
+      const newNote = (form.get("notes") || "").trim();
+      del.notes = newNote;
+      if (del.rejectReason && newNote) {
+        del.rejectReason = newNote;
+      }
+      addExpedienteCambioLog(exp, {
+        tipo: "Nota documental",
+        suministro: activeDossierSuministroId || "General",
+        titulo: `Nota actualizada en "${del.name}"`,
+        detalle: newNote || "Nota limpiada."
+      });
+      close();
+      showToast(`✓ Nota actualizada en "${del.name}"`);
+      renderApp();
+    });
+  }
+
+  function openAddCambioLogModal(expId) {
+    const exp = getActiveExpediente(expId);
+    if (!exp) return;
+    const expSuministros = SUMINISTROS.filter(s => s.expId === exp.id);
+    const modalWrap = document.getElementById("modalContainer");
+    if (!modalWrap) return;
+
+    modalWrap.innerHTML = `
+      <div class="procurement-modal-backdrop" id="addCambioLogBackdrop">
+        <div class="procurement-modal" style="width:min(520px,100%)">
+          <div class="procurement-modal-head">
+            <div>
+              <h3>+ Añadir Cambio al Registro</h3>
+              <p style="margin:2px 0 0;font-size:0.75rem;color:var(--entity-muted)">Registra un cambio operativo, ajuste técnico o anotación en ${exp.id}</p>
+            </div>
+            <button type="button" id="closeAddCambioLogBtn">×</button>
+          </div>
+          <form id="modalAddCambioLogForm">
+            <div class="procurement-modal-body" style="gap:12px">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
+                  Tipo de cambio
+                  <select name="tipo" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem">
+                    <option value="Cambio operativo">Cambio operativo</option>
+                    <option value="Ajuste de entrega">Ajuste de fecha / entrega</option>
+                    <option value="Modificación de alcance">Modificación de alcance</option>
+                    <option value="Validación técnica">Validación técnica</option>
+                  </select>
+                </label>
+                <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
+                  Suministro afectado
+                  <select name="suministro" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem">
+                    <option value="General">Todo el expediente</option>
+                    ${expSuministros.map(s => `<option value="${s.id}" ${activeDossierSuministroId === s.id ? "selected" : ""}>${s.id} · ${s.tipo}</option>`).join("")}
+                  </select>
+                </label>
+              </div>
+              <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
+                Título del cambio
+                <input name="titulo" required placeholder="Ej: Actualización de ventana de descarga en tajo de vía" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem" />
+              </label>
+              <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
+                Detalle / Observaciones
+                <textarea name="detalle" rows="3" placeholder="Describe el cambio acordado o registrado..." style="padding:9px 11px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;line-height:1.45"></textarea>
+              </label>
+            </div>
+            <div class="procurement-modal-footer">
+              <button class="admin-quiet-button" type="button" id="cancelAddCambioLogBtn">Cancelar</button>
+              <button class="admin-primary-button" type="submit">${icon("check", 14)} Guardar en Registro</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    `;
+
+    const close = () => { modalWrap.innerHTML = ""; };
+    document.getElementById("closeAddCambioLogBtn")?.addEventListener("click", close);
+    document.getElementById("cancelAddCambioLogBtn")?.addEventListener("click", close);
+    document.getElementById("addCambioLogBackdrop")?.addEventListener("click", e => {
+      if (e.target.id === "addCambioLogBackdrop") close();
+    });
+
+    document.getElementById("modalAddCambioLogForm")?.addEventListener("submit", e => {
+      e.preventDefault();
+      const form = new FormData(e.currentTarget);
+      const tipo = form.get("tipo") || "Cambio operativo";
+      const suministro = form.get("suministro") || "General";
+      const titulo = (form.get("titulo") || "").trim();
+      const detalle = (form.get("detalle") || "").trim();
+      addExpedienteCambioLog(exp, { tipo, suministro, titulo, detalle });
+      close();
+      showToast(`✓ Cambio añadido al Registro de ${exp.id}`);
+      renderApp();
+    });
+  }
+
   function openRejectDeliverableModal(expId, phaseIdx, slotIdx) {
     const exp = getActiveExpediente(expId);
     const del = exp.deliverables[phaseIdx] && exp.deliverables[phaseIdx][slotIdx];
