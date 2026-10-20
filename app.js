@@ -43,7 +43,8 @@
     x: '<path d="M18 6 6 18M6 6l12 12"/>',
     table: '<path d="M12 3v18M3 9h18M3 15h18M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/>',
     calendar: '<rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/>',
-    archive: '<rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/>'
+    archive: '<rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/>',
+    box: '<path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>'
   };
 
   const icon = (name, size = 18) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${I[name] || ""}</svg>`;
@@ -60,6 +61,7 @@
       defaultNav: "expedientes",
       nav: [
         { id: "expedientes", label: "Expedientes", icon: "folder", count: 5 },
+        { id: "suministros", label: "Suministros", icon: "box", count: 8 },
         { id: "directorio", label: "Clientes y Proveedores", icon: "users" },
         { id: "avisos", label: "Avisos", icon: "inbox", count: 2 }
       ]
@@ -74,6 +76,7 @@
       defaultNav: "expedientes",
       nav: [
         { id: "expedientes", label: "Mis expedientes", icon: "folder", count: 3 },
+        { id: "suministros", label: "Suministros", icon: "box", count: 3 },
         { id: "avisos", label: "Avisos", icon: "inbox", count: 1 }
       ]
     },
@@ -87,6 +90,7 @@
       defaultNav: "expedientes",
       nav: [
         { id: "expedientes", label: "Mis expedientes", icon: "folder", count: 2 },
+        { id: "suministros", label: "Suministros", icon: "box", count: 3 },
         { id: "cotizaciones", label: "Cotizaciones", icon: "file", count: 1 },
         { id: "avisos", label: "Avisos", icon: "inbox", count: 1 }
       ]
@@ -447,6 +451,228 @@
       }
     }
   ];
+
+  /* ---------- Datos Maestros de Suministros Ferroviarios ---------- */
+  const INITIAL_SUMINISTROS = [
+    {
+      id: "SUM-01",
+      num: "01",
+      tipo: "Traviesas de hormigón monobloque PR-22",
+      unidades: "14.500 uds (7.250 m)",
+      unidadesNum: 14500,
+      expId: "RFQ-2026-014",
+      proveedor: "IberRail Components, S.L.",
+      cliente: "Infraestructuras del Norte, S.A.",
+      destino: "Factoría Volkswagen (Acceso Red Adif)",
+      ano: 2026,
+      faseActual: 3,
+      faseNombre: "Fase 4: Fabricación",
+      accionesPendientes: 2,
+      fechaEntrega: "14 oct 2026",
+      fechaEntregaIso: "2026-10-14",
+      estado: "activo"
+    },
+    {
+      id: "SUM-02",
+      num: "02",
+      tipo: "Sujeciones elásticas y placas de asiento PR-22",
+      unidades: "29.000 cjtos",
+      unidadesNum: 29000,
+      expId: "RFQ-2026-014",
+      proveedor: "IberRail Components, S.L.",
+      cliente: "Infraestructuras del Norte, S.A.",
+      destino: "Factoría Volkswagen (Acceso Red Adif)",
+      ano: 2026,
+      faseActual: 3,
+      faseNombre: "Fase 4: Fabricación",
+      accionesPendientes: 1,
+      fechaEntrega: "14 oct 2026",
+      fechaEntregaIso: "2026-10-14",
+      estado: "activo"
+    },
+    {
+      id: "SUM-03",
+      num: "03",
+      tipo: "Balasto silíceo certificado Tipo 1",
+      unidades: "8.500 t",
+      unidadesNum: 8500,
+      expId: "RFQ-2026-014",
+      proveedor: "Por determinar",
+      cliente: "Infraestructuras del Norte, S.A.",
+      destino: "Factoría Volkswagen (Acceso Red Adif)",
+      ano: 2026,
+      faseActual: 3,
+      faseNombre: "Fase 4: Fabricación",
+      accionesPendientes: 0,
+      fechaEntrega: "28 oct 2026",
+      fechaEntregaIso: "2026-10-28",
+      estado: "activo"
+    },
+    {
+      id: "SUM-04",
+      num: "04",
+      tipo: "Carril laminado 54E1 Grado R260",
+      unidades: "1.200 t (18 km)",
+      unidadesNum: 1200,
+      expId: "RFQ-2026-011",
+      proveedor: "Por determinar",
+      cliente: "Metro de Bilbao",
+      destino: "Consorcio Transportes Bizkaia (Línea 4)",
+      ano: 2026,
+      faseActual: 1,
+      faseNombre: "Fase 2: Cotización",
+      accionesPendientes: 1,
+      fechaEntrega: "04 nov 2026",
+      fechaEntregaIso: "2026-11-04",
+      estado: "activo"
+    },
+    {
+      id: "SUM-05",
+      num: "05",
+      tipo: "Aparatos de dilatación y bridas aislantes 54E1",
+      unidades: "24 parejas",
+      unidadesNum: 24,
+      expId: "RFQ-2026-011",
+      proveedor: "Por determinar",
+      cliente: "Metro de Bilbao",
+      destino: "Consorcio Transportes Bizkaia (Línea 4)",
+      ano: 2026,
+      faseActual: 1,
+      faseNombre: "Fase 2: Cotización",
+      accionesPendientes: 1,
+      fechaEntrega: "12 nov 2026",
+      fechaEntregaIso: "2026-11-12",
+      estado: "activo"
+    },
+    {
+      id: "SUM-06",
+      num: "06",
+      tipo: "Traviesas de madera tratada creosotada",
+      unidades: "3.200 uds",
+      unidadesNum: 3200,
+      expId: "RFQ-2026-022",
+      proveedor: "Madera Vía Ibérica, S.A.",
+      cliente: "Adif Mantenimiento Red Convencional",
+      destino: "ADIF Red Convencional (Medina del Campo)",
+      ano: 2026,
+      faseActual: 2,
+      faseNombre: "Fase 3: Formalización",
+      accionesPendientes: 1,
+      fechaEntrega: "25 oct 2026",
+      fechaEntregaIso: "2026-10-25",
+      estado: "activo"
+    },
+    {
+      id: "SUM-07",
+      num: "07",
+      tipo: "Desvíos y cruzamientos monobloque tipo C",
+      unidades: "4 desvíos cjtos",
+      unidadesNum: 4,
+      expId: "RFQ-2026-022",
+      proveedor: "IberRail Components, S.L.",
+      cliente: "Adif Mantenimiento Red Convencional",
+      destino: "ADIF Red Convencional (Medina del Campo)",
+      ano: 2026,
+      faseActual: 2,
+      faseNombre: "Fase 3: Formalización",
+      accionesPendientes: 0,
+      fechaEntrega: "15 nov 2026",
+      fechaEntregaIso: "2026-11-15",
+      estado: "activo"
+    },
+    {
+      id: "SUM-08",
+      num: "08",
+      tipo: "Placas de asiento para traviesa de madera",
+      unidades: "6.400 uds",
+      unidadesNum: 6400,
+      expId: "RFQ-2026-022",
+      proveedor: "Por determinar",
+      cliente: "Adif Mantenimiento Red Convencional",
+      destino: "ADIF Red Convencional (Medina del Campo)",
+      ano: 2026,
+      faseActual: 2,
+      faseNombre: "Fase 3: Formalización",
+      accionesPendientes: 0,
+      fechaEntrega: "20 nov 2026",
+      fechaEntregaIso: "2026-11-20",
+      estado: "activo"
+    },
+    {
+      id: "SUM-09",
+      num: "09",
+      tipo: "Sujeciones elásticas y fijaciones SKL-14",
+      unidades: "29.000 cjtos",
+      unidadesNum: 29000,
+      expId: "RFQ-2026-009",
+      proveedor: "IberRail Components, S.L.",
+      cliente: "Ferrocarrils de la Generalitat de Catalunya",
+      destino: "FGC Infraestructures (Terrassa - Sabadell)",
+      ano: 2025,
+      faseActual: 5,
+      faseNombre: "Fase 6: Recepción",
+      accionesPendientes: 0,
+      fechaEntrega: "18 oct 2026",
+      fechaEntregaIso: "2026-10-18",
+      estado: "finalizado"
+    },
+    {
+      id: "SUM-10",
+      num: "10",
+      tipo: "Suelas bajo traviesa y elastómeros antivibratorios",
+      unidades: "14.500 uds",
+      unidadesNum: 14500,
+      expId: "RFQ-2026-009",
+      proveedor: "IberRail Components, S.L.",
+      cliente: "Ferrocarrils de la Generalitat de Catalunya",
+      destino: "FGC Infraestructures (Terrassa - Sabadell)",
+      ano: 2025,
+      faseActual: 5,
+      faseNombre: "Fase 6: Recepción",
+      accionesPendientes: 0,
+      fechaEntrega: "18 oct 2026",
+      fechaEntregaIso: "2026-10-18",
+      estado: "finalizado"
+    },
+    {
+      id: "SUM-11",
+      num: "11",
+      tipo: "Tirafondos de acero tratado TF-24",
+      unidades: "62.000 uds",
+      unidadesNum: 62000,
+      expId: "RFQ-2026-003",
+      proveedor: "IberRail Components, S.L.",
+      cliente: "Infraestructuras del Norte, S.A.",
+      destino: "ADIF Red Convencional (Miranda de Ebro)",
+      ano: 2025,
+      faseActual: 6,
+      faseNombre: "Fase 7: Cierre & Pasaporte",
+      accionesPendientes: 0,
+      fechaEntrega: "29 abr 2026",
+      fechaEntregaIso: "2026-04-29",
+      estado: "cerrado"
+    },
+    {
+      id: "SUM-12",
+      num: "12",
+      tipo: "Arandelas elásticas dobles Fe6",
+      unidades: "124.000 uds",
+      unidadesNum: 124000,
+      expId: "RFQ-2026-003",
+      proveedor: "IberRail Components, S.L.",
+      cliente: "Infraestructuras del Norte, S.A.",
+      destino: "ADIF Red Convencional (Miranda de Ebro)",
+      ano: 2025,
+      faseActual: 6,
+      faseNombre: "Fase 7: Cierre & Pasaporte",
+      accionesPendientes: 0,
+      fechaEntrega: "29 abr 2026",
+      fechaEntregaIso: "2026-04-29",
+      estado: "cerrado"
+    }
+  ];
+
+  let SUMINISTROS = [...INITIAL_SUMINISTROS];
 
   /* ---------- Avisos Categorizados (Apuntes 06 — Inbox Central) ---------- */
   const NOTICES = [
@@ -930,6 +1156,11 @@
   // Nuevos Estados Interactivos
   let overviewFilter = null; // "validados" | "review" | "pending" | "futuras" | "expedientes" | "incidencias" | "proveedores"
   let expSearchQuery = "";
+  let suministrosGroup = "none"; // "none" | "suministro" | "fase" | "estado" | "expediente"
+  let suministrosSortCol = "num"; // "num" | "tipo" | "unidades" | "expediente" | "proveedor" | "cliente" | "destino" | "ano" | "fase" | "acciones" | "fechaEntrega"
+  let suministrosSortDir = "asc"; // "asc" | "desc"
+  let showCerradosSuministros = false;
+  let suministrosSearchQuery = "";
   let avisosGroup = "none"; // "none" | "expediente" | "categoria" | "fecha"
   let discardedNotices = new Set();
   let showDiscardedAvisos = false;
@@ -1396,7 +1627,7 @@
       <a class="admin-nav-link ${activeSection === item.id ? "is-active" : ""}" data-go="#${activeRole}/${item.id}">
         ${icon(item.icon, 18)}
         <span>${item.label}</span>
-        ${item.count ? `<b>${item.count}</b>` : item.badge ? `<b style="background:rgba(0,135,81,0.2);color:#86efac;font-size:0.6rem;padding:0 6px">${item.badge}</b>` : ""}
+        ${(item.id === "suministros" ? getRoleActiveSuministrosCount(activeRole) : item.count) ? `<b>${item.id === "suministros" ? getRoleActiveSuministrosCount(activeRole) : item.count}</b>` : item.badge ? `<b style="background:rgba(0,135,81,0.2);color:#86efac;font-size:0.6rem;padding:0 6px">${item.badge}</b>` : ""}
       </a>
     `).join("");
 
@@ -3535,6 +3766,438 @@
   /* ============================================================
      VISTAS: SOFEIN ADMIN
      ============================================================ */
+  /* ============================================================
+     SECCIÓN REUTILIZABLE: SUMINISTROS (TABLA B2B, AGRUPABLE Y ORDENABLE)
+     ============================================================ */
+  function getSuministrosForRole(role) {
+    if (role === "cliente") {
+      return SUMINISTROS.filter(s => s.cliente.toLowerCase().includes("infraestructuras"));
+    }
+    if (role === "proveedor") {
+      return SUMINISTROS.filter(s => s.proveedor.toLowerCase().includes("iberrail"));
+    }
+    return SUMINISTROS;
+  }
+
+  function getRoleActiveSuministrosCount(role) {
+    return getSuministrosForRole(role).filter(s => s.estado === "activo").length;
+  }
+
+  function renderSuministrosSection(role) {
+    const roleAll = getSuministrosForRole(role);
+    const countCerradosFinalizados = roleAll.filter(s => s.estado !== "activo").length;
+    const baseList = showCerradosSuministros ? roleAll : roleAll.filter(s => s.estado === "activo");
+
+    const q = suministrosSearchQuery.trim().toLowerCase();
+    const filtered = baseList.filter(s => {
+      if (!q) return true;
+      const haystack = `${s.num} ${s.tipo} ${s.unidades} ${s.expId} ${s.proveedor} ${s.cliente} ${s.destino} ${s.ano} ${s.faseNombre} ${s.estado} ${s.fechaEntrega}`.toLowerCase();
+      return haystack.includes(q);
+    });
+
+    const sortList = (items) => {
+      const mult = suministrosSortDir === "desc" ? -1 : 1;
+      return [...items].sort((a, b) => {
+        let valA, valB;
+        switch (suministrosSortCol) {
+          case "num":
+            return (parseInt(a.num, 10) - parseInt(b.num, 10)) * mult;
+          case "tipo":
+            return a.tipo.localeCompare(b.tipo, "es") * mult;
+          case "unidades":
+            valA = a.unidadesNum || 0;
+            valB = b.unidadesNum || 0;
+            return (valA - valB) * mult;
+          case "expediente":
+            return a.expId.localeCompare(b.expId, "es") * mult;
+          case "proveedor":
+            return a.proveedor.localeCompare(b.proveedor, "es") * mult;
+          case "cliente":
+            return a.cliente.localeCompare(b.cliente, "es") * mult;
+          case "destino":
+            return a.destino.localeCompare(b.destino, "es") * mult;
+          case "ano":
+            return ((a.ano || 0) - (b.ano || 0)) * mult;
+          case "fase":
+            return ((a.faseActual ?? 0) - (b.faseActual ?? 0)) * mult;
+          case "acciones":
+            return ((a.accionesPendientes || 0) - (b.accionesPendientes || 0)) * mult;
+          case "fechaEntrega":
+            valA = new Date(a.fechaEntregaIso || a.fechaEntrega).getTime() || 0;
+            valB = new Date(b.fechaEntregaIso || b.fechaEntrega).getTime() || 0;
+            return (valA - valB) * mult;
+          default:
+            return 0;
+        }
+      });
+    };
+
+    const getSortIndicator = (col) => {
+      if (suministrosSortCol !== col) return '<span class="suministros-sort-icon">↕</span>';
+      return `<span class="suministros-sort-icon is-active">${suministrosSortDir === "asc" ? "↑" : "↓"}</span>`;
+    };
+
+    const renderTableHeadHTML = () => `
+      <thead>
+        <tr>
+          <th class="suministros-th ${suministrosSortCol === 'num' ? 'is-sorted' : ''}" data-sort-suministro="num" style="width:75px">
+            <div class="suministros-th-inner">
+              <span>Suministro</span>
+              ${getSortIndicator('num')}
+            </div>
+          </th>
+          <th class="suministros-th ${suministrosSortCol === 'tipo' ? 'is-sorted' : ''}" data-sort-suministro="tipo" style="min-width:230px">
+            <div class="suministros-th-inner">
+              <span>Tipo</span>
+              ${getSortIndicator('tipo')}
+            </div>
+          </th>
+          <th class="suministros-th ${suministrosSortCol === 'unidades' ? 'is-sorted' : ''}" data-sort-suministro="unidades" style="min-width:130px">
+            <div class="suministros-th-inner">
+              <span>Unidades</span>
+              ${getSortIndicator('unidades')}
+            </div>
+          </th>
+          <th class="suministros-th ${suministrosSortCol === 'expediente' ? 'is-sorted' : ''}" data-sort-suministro="expediente" style="min-width:135px">
+            <div class="suministros-th-inner">
+              <span>Expediente</span>
+              ${getSortIndicator('expediente')}
+            </div>
+          </th>
+          <th class="suministros-th ${suministrosSortCol === 'proveedor' ? 'is-sorted' : ''}" data-sort-suministro="proveedor" style="min-width:170px">
+            <div class="suministros-th-inner">
+              <span>Proveedor</span>
+              ${getSortIndicator('proveedor')}
+            </div>
+          </th>
+          <th class="suministros-th ${suministrosSortCol === 'cliente' ? 'is-sorted' : ''}" data-sort-suministro="cliente" style="min-width:170px">
+            <div class="suministros-th-inner">
+              <span>Cliente</span>
+              ${getSortIndicator('cliente')}
+            </div>
+          </th>
+          <th class="suministros-th ${suministrosSortCol === 'destino' ? 'is-sorted' : ''}" data-sort-suministro="destino" style="min-width:180px">
+            <div class="suministros-th-inner">
+              <span>Destino</span>
+              ${getSortIndicator('destino')}
+            </div>
+          </th>
+          <th class="suministros-th ${suministrosSortCol === 'ano' ? 'is-sorted' : ''}" data-sort-suministro="ano" style="width:75px;text-align:center">
+            <div class="suministros-th-inner" style="justify-content:center">
+              <span>Año</span>
+              ${getSortIndicator('ano')}
+            </div>
+          </th>
+          <th class="suministros-th ${suministrosSortCol === 'fase' ? 'is-sorted' : ''}" data-sort-suministro="fase" style="min-width:145px">
+            <div class="suministros-th-inner">
+              <span>Fase</span>
+              ${getSortIndicator('fase')}
+            </div>
+          </th>
+          <th class="suministros-th ${suministrosSortCol === 'acciones' ? 'is-sorted' : ''}" data-sort-suministro="acciones" style="width:125px;text-align:center">
+            <div class="suministros-th-inner" style="justify-content:center">
+              <span>Acciones pend.</span>
+              ${getSortIndicator('acciones')}
+            </div>
+          </th>
+          <th class="suministros-th ${suministrosSortCol === 'fechaEntrega' ? 'is-sorted' : ''}" data-sort-suministro="fechaEntrega" style="min-width:130px">
+            <div class="suministros-th-inner">
+              <span>Fecha entrega</span>
+              ${getSortIndicator('fechaEntrega')}
+            </div>
+          </th>
+        </tr>
+      </thead>
+    `;
+
+    const renderRowHTML = (s) => `
+      <tr class="suministros-tr status-${s.estado}">
+        <td>
+          <span class="suministro-badge-num">${s.num}</span>
+        </td>
+        <td>
+          <div class="suministro-tipo-cell">
+            <strong>${s.tipo}</strong>
+          </div>
+        </td>
+        <td>
+          <span class="suministro-units">${s.unidades}</span>
+        </td>
+        <td>
+          <button class="avisos-exp-chip-link" type="button" data-go="#${role}/expedientes/${s.expId}" title="Abrir expediente ${s.expId}">
+            ${icon("folder", 12)} ${s.expId}
+          </button>
+        </td>
+        <td>
+          ${s.proveedor === "Por determinar" ? `
+            <span class="suministro-prv-tbd">${icon("users", 12)} Por determinar</span>
+          ` : `
+            <span class="suministro-supplier-name">${s.proveedor}</span>
+          `}
+        </td>
+        <td>
+          <span class="suministro-client-name">${s.cliente}</span>
+        </td>
+        <td>
+          <span class="suministro-dest-name" title="${s.destino}">${s.destino}</span>
+        </td>
+        <td style="text-align:center">
+          <span class="suministro-year-badge">${s.ano}</span>
+        </td>
+        <td>
+          <span class="suministro-phase-tag fase-${s.faseActual}">
+            ${s.faseNombre || "Fase " + (s.faseActual + 1)}
+          </span>
+        </td>
+        <td style="text-align:center">
+          ${s.accionesPendientes > 0 ? `
+            <button class="suministro-actions-chip has-pending" type="button" data-go="#${role}/expedientes/${s.expId}" title="Ver ${s.accionesPendientes} acción(es) pendiente(s) en ${s.expId}">
+              ${icon("alert", 11)} <span>${s.accionesPendientes}</span>
+            </button>
+          ` : `
+            <span class="suministro-actions-chip is-zero">0</span>
+          `}
+        </td>
+        <td>
+          <div class="suministro-date-cell">
+            ${icon("calendar", 12)}
+            <span>${s.fechaEntrega}</span>
+          </div>
+        </td>
+      </tr>
+    `;
+
+    let mainContentHTML = "";
+
+    if (filtered.length === 0) {
+      mainContentHTML = `
+        <div class="suministros-empty-state">
+          ${icon("box", 32)}
+          <h3>No se han encontrado suministros</h3>
+          <p>${q ? `No hay resultados para "<b>${q}</b>"` : "No hay suministros que cumplan los criterios de visualización seleccionados."}</p>
+          ${!showCerradosSuministros && countCerradosFinalizados > 0 ? `
+            <button class="admin-quiet-button" type="button" id="btnActivarVerCerrados" style="margin-top:12px;color:var(--entity-accent)">
+              ${icon("check", 14)} Activar "Ver cerrados" para ver ${countCerradosFinalizados} lote(s) finalizados o cerrados
+            </button>
+          ` : ""}
+        </div>
+      `;
+    } else if (suministrosGroup === "none") {
+      const sorted = sortList(filtered);
+      mainContentHTML = `
+        <div class="suministros-table-wrap">
+          <table class="suministros-table">
+            ${renderTableHeadHTML()}
+            <tbody>
+              ${sorted.map(s => renderRowHTML(s)).join("")}
+            </tbody>
+          </table>
+        </div>
+      `;
+    } else if (suministrosGroup === "suministro") {
+      const groups = {};
+      filtered.forEach(s => {
+        if (!groups[s.tipo]) groups[s.tipo] = [];
+        groups[s.tipo].push(s);
+      });
+      mainContentHTML = Object.keys(groups).sort().map(tipo => {
+        const sorted = sortList(groups[tipo]);
+        return `
+          <section class="suministros-group-card">
+            <div class="suministros-group-card-head">
+              <div class="suministros-group-card-title">
+                ${icon("box", 16)}
+                <span>${tipo}</span>
+              </div>
+              <span class="avisos-group-count-pill">${sorted.length} ${sorted.length === 1 ? "lote" : "lotes"}</span>
+            </div>
+            <div class="suministros-table-wrap" style="border:0;border-radius:0;box-shadow:none;margin-bottom:0">
+              <table class="suministros-table">
+                ${renderTableHeadHTML()}
+                <tbody>
+                  ${sorted.map(s => renderRowHTML(s)).join("")}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        `;
+      }).join("");
+    } else if (suministrosGroup === "fase") {
+      const groups = {};
+      filtered.forEach(s => {
+        const key = s.faseActual ?? 0;
+        if (!groups[key]) groups[key] = [];
+        groups[key].push(s);
+      });
+      mainContentHTML = Object.keys(groups).sort((a, b) => parseInt(a, 10) - parseInt(b, 10)).map(faseKey => {
+        const sorted = sortList(groups[faseKey]);
+        const faseNum = parseInt(faseKey, 10);
+        const faseInfo = PHASES[faseNum] || { name: `Fase ${faseNum + 1}` };
+        return `
+          <section class="suministros-group-card">
+            <div class="suministros-group-card-head">
+              <div class="suministros-group-card-title">
+                ${icon("folder", 16)}
+                <span>Fase ${faseNum + 1}: ${SHORT_PHASE_NAMES[faseNum] || faseInfo.name}</span>
+              </div>
+              <span class="avisos-group-count-pill">${sorted.length} ${sorted.length === 1 ? "suministro" : "suministros"}</span>
+            </div>
+            <div class="suministros-table-wrap" style="border:0;border-radius:0;box-shadow:none;margin-bottom:0">
+              <table class="suministros-table">
+                ${renderTableHeadHTML()}
+                <tbody>
+                  ${sorted.map(s => renderRowHTML(s)).join("")}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        `;
+      }).join("");
+    } else if (suministrosGroup === "estado") {
+      const estadoOrder = ["activo", "finalizado", "cerrado"];
+      const estadoMeta = {
+        activo: { label: "Activo (En curso)", iconDot: "active", desc: "Lotes en proceso de cotización, fabricación o transporte" },
+        finalizado: { label: "Finalizado", iconDot: "info", desc: "Lotes entregados y recepcionados conforme a pliego" },
+        cerrado: { label: "Cerrado", iconDot: "default", desc: "Lotes liquidados y auditados con Pasaporte Digital SOFEIN" }
+      };
+      const groups = {};
+      filtered.forEach(s => {
+        if (!groups[s.estado]) groups[s.estado] = [];
+        groups[s.estado].push(s);
+      });
+      mainContentHTML = estadoOrder.filter(st => groups[st] && groups[st].length).map(st => {
+        const sorted = sortList(groups[st]);
+        const meta = estadoMeta[st] || { label: st, iconDot: "default", desc: "" };
+        return `
+          <section class="suministros-group-card">
+            <div class="suministros-group-card-head">
+              <div class="suministros-group-card-title">
+                <span class="scope-dot ${meta.iconDot}"></span>
+                <span>Estado: ${meta.label}</span>
+                <span class="suministros-group-card-sub">· ${meta.desc}</span>
+              </div>
+              <span class="avisos-group-count-pill">${sorted.length} ${sorted.length === 1 ? "suministro" : "suministros"}</span>
+            </div>
+            <div class="suministros-table-wrap" style="border:0;border-radius:0;box-shadow:none;margin-bottom:0">
+              <table class="suministros-table">
+                ${renderTableHeadHTML()}
+                <tbody>
+                  ${sorted.map(s => renderRowHTML(s)).join("")}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        `;
+      }).join("");
+    } else if (suministrosGroup === "expediente") {
+      const groups = {};
+      filtered.forEach(s => {
+        if (!groups[s.expId]) groups[s.expId] = [];
+        groups[s.expId].push(s);
+      });
+      mainContentHTML = Object.keys(groups).sort().map(expId => {
+        const sorted = sortList(groups[expId]);
+        const exp = getActiveExpediente(expId) || {};
+        const phaseName = exp.faseActual !== undefined && PHASES[exp.faseActual] ? PHASES[exp.faseActual].name : "";
+        return `
+          <section class="suministros-group-card">
+            <div class="suministros-group-card-head">
+              <div class="suministros-group-card-title" data-go="#${role}/expedientes/${expId}" style="cursor:pointer" title="Abrir expediente ${expId}">
+                ${icon("folder", 16)}
+                <span style="text-decoration:underline;text-underline-offset:3px">${expId} · ${exp.producto || "Expediente"}</span>
+                <span class="suministros-group-card-sub">· ${exp.cliente || ""} ${phaseName ? `(${phaseName})` : ""}</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px">
+                <span class="avisos-group-count-pill">${sorted.length} ${sorted.length === 1 ? "suministro" : "suministros"}</span>
+                <button class="admin-quiet-button" type="button" data-go="#${role}/expedientes/${expId}" style="padding:3px 9px;font-size:0.72rem">
+                  Abrir expediente ${icon("arrow", 12)}
+                </button>
+              </div>
+            </div>
+            <div class="suministros-table-wrap" style="border:0;border-radius:0;box-shadow:none;margin-bottom:0">
+              <table class="suministros-table">
+                ${renderTableHeadHTML()}
+                <tbody>
+                  ${sorted.map(s => renderRowHTML(s)).join("")}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        `;
+      }).join("");
+    }
+
+    const titles = {
+      admin: {
+        h1: "Suministros",
+        p: "Registro integral de lotes de material ferroviario, unidades, expedientes vinculados y plazos de entrega."
+      },
+      cliente: {
+        h1: "Mis Suministros",
+        p: "Seguimiento operativo de los lotes de material contratados para tus obras, unidades y fechas de recepción a pie de vía."
+      },
+      proveedor: {
+        h1: "Suministros Adjudicados",
+        p: "Control de producción y expedición de tus lotes homologados, plazos de entrega y estado de fabricación."
+      }
+    };
+    const headerInfo = titles[role] || titles.admin;
+
+    return `
+      <div class="admin-view-head">
+        <div>
+          <h1>${headerInfo.h1}</h1>
+          <p>${headerInfo.p}</p>
+        </div>
+        ${role === "admin" ? `
+          <button class="admin-primary-button" type="button" data-go="#admin/nuevo">
+            ${icon("plus", 14)} Nuevo Expediente
+          </button>
+        ` : role === "cliente" ? `
+          <button class="admin-primary-button" type="button" data-go="#cliente/nuevo">
+            ${icon("plus", 14)} Solicitar Expediente
+          </button>
+        ` : ""}
+      </div>
+
+      <!-- Toolbar de Controles de Suministros -->
+      <div class="suministros-controls-bar">
+        <div class="suministros-controls-left">
+          <div class="suministros-group-wrap">
+            <span class="suministros-ctrl-label">Agrupar por:</span>
+            <div class="avisos-group-buttons">
+              <button class="avisos-group-btn ${suministrosGroup === 'none' ? 'is-active' : ''}" type="button" data-group-suministros="none">Sin agrupar</button>
+              <button class="avisos-group-btn ${suministrosGroup === 'suministro' ? 'is-active' : ''}" type="button" data-group-suministros="suministro">Suministro</button>
+              <button class="avisos-group-btn ${suministrosGroup === 'fase' ? 'is-active' : ''}" type="button" data-group-suministros="fase">Fase</button>
+              <button class="avisos-group-btn ${suministrosGroup === 'estado' ? 'is-active' : ''}" type="button" data-group-suministros="estado">Estado</button>
+              <button class="avisos-group-btn ${suministrosGroup === 'expediente' ? 'is-active' : ''}" type="button" data-group-suministros="expediente">Expediente</button>
+            </div>
+          </div>
+
+          <!-- Casilla Ver Cerrados -->
+          <label class="suministros-cerrados-toggle" title="Incluir lotes finalizados y cerrados en la tabla">
+            <input type="checkbox" id="toggleVerCerradosSuministros" ${showCerradosSuministros ? "checked" : ""}>
+            <span class="suministros-toggle-title">Ver cerrados</span>
+            <span class="suministros-closed-counter">(${countCerradosFinalizados} cerrados/finalizados)</span>
+          </label>
+        </div>
+
+        <div class="suministros-controls-right">
+          <div class="suministros-search-box">
+            ${icon("search", 14)}
+            <input type="search" id="suministrosSearchInput" placeholder="Filtrar por suministro, exp., taller..." value="${suministrosSearchQuery}">
+            ${suministrosSearchQuery ? `<button type="button" id="clearSuministrosSearchBtn" class="admin-quiet-button" style="padding:0 4px">${icon("x", 12)}</button>` : ""}
+          </div>
+          <span class="suministros-count-badge">
+            <b>${filtered.length}</b> de ${roleAll.length} suministros
+          </span>
+        </div>
+      </div>
+
+      ${mainContentHTML}
+    `;
+  }
+
   const OVERVIEW_FILTER_LABELS = {
     validados: "Entregables técnicos validados y conformes (18)",
     review: "Entregables en revisión por SOFEIN (5)",
@@ -3946,6 +4609,10 @@
       `;
     }
 
+    if (section === "suministros") {
+      return renderSuministrosSection("admin");
+    }
+
     if (section === "avisos" || section === "inbox") {
       return renderAvisosSection("admin");
     }
@@ -4277,6 +4944,9 @@
         </div>
       `;
     }
+    if (section === "suministros") {
+      return renderSuministrosSection("cliente");
+    }
 
     if (section === "avisos" || section === "inbox") {
       return renderAvisosSection("cliente");
@@ -4443,6 +5113,9 @@
           </div>
         </article>
       `;
+    }
+    if (section === "suministros") {
+      return renderSuministrosSection("proveedor");
     }
 
     if (section === "avisos" || section === "inbox") {
@@ -5506,6 +6179,29 @@
 
         EXPEDIENTES.unshift(newExpediente);
 
+        suministrosList.forEach((s) => {
+          const nextIndex = SUMINISTROS.length + 1;
+          const numStr = String(nextIndex).padStart(2, "0");
+          SUMINISTROS.unshift({
+            id: `SUM-${numStr}`,
+            num: numStr,
+            tipo: s.material,
+            unidades: s.unidades,
+            unidadesNum: parseInt(s.unidades.replace(/\D/g, ""), 10) || 1,
+            expId: newId,
+            proveedor: "Por determinar",
+            cliente: cliente,
+            destino: dest,
+            ano: 2026,
+            faseActual: isRoleAdmin ? 1 : 0,
+            faseNombre: isRoleAdmin ? "Fase 2: Cotización" : "Fase 1: Alcance",
+            accionesPendientes: isRoleAdmin ? 1 : 0,
+            fechaEntrega: fechaObj ? new Date(fechaObj).toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" }) : "10 nov 2026",
+            fechaEntregaIso: fechaObj || "2026-11-10",
+            estado: "activo"
+          });
+        });
+
         if (isRoleAdmin) {
           NOTICES.unshift({
             id: `AV-0${NOTICES.length + 1}`,
@@ -5723,6 +6419,68 @@
         renderApp();
       });
     });
+
+    // Agrupación en Suministros
+    document.querySelectorAll("[data-group-suministros]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        suministrosGroup = btn.dataset.groupSuministros;
+        renderApp();
+      });
+    });
+
+    // Ordenación por columnas en Suministros
+    document.querySelectorAll("[data-sort-suministro]").forEach(th => {
+      th.addEventListener("click", () => {
+        const col = th.dataset.sortSuministro;
+        if (suministrosSortCol === col) {
+          suministrosSortDir = suministrosSortDir === "asc" ? "desc" : "asc";
+        } else {
+          suministrosSortCol = col;
+          suministrosSortDir = "asc";
+        }
+        renderApp();
+      });
+    });
+
+    // Casilla "Ver cerrados" en Suministros
+    const toggleCerradosSuministrosEl = document.getElementById("toggleVerCerradosSuministros");
+    if (toggleCerradosSuministrosEl) {
+      toggleCerradosSuministrosEl.addEventListener("change", e => {
+        showCerradosSuministros = e.target.checked;
+        renderApp();
+      });
+    }
+
+    const btnActivarCerrados = document.getElementById("btnActivarVerCerrados");
+    if (btnActivarCerrados) {
+      btnActivarCerrados.addEventListener("click", () => {
+        showCerradosSuministros = true;
+        renderApp();
+      });
+    }
+
+    // Buscador en directo de Suministros
+    const sumSearchInput = document.getElementById("suministrosSearchInput");
+    if (sumSearchInput) {
+      sumSearchInput.addEventListener("input", e => {
+        suministrosSearchQuery = e.target.value;
+        renderApp();
+        const inputNow = document.getElementById("suministrosSearchInput");
+        if (inputNow) {
+          inputNow.focus();
+          const len = inputNow.value.length;
+          inputNow.setSelectionRange(len, len);
+        }
+      });
+    }
+
+    const clearSumSearchBtn = document.getElementById("clearSuministrosSearchBtn");
+    if (clearSumSearchBtn) {
+      clearSumSearchBtn.addEventListener("click", () => {
+        suministrosSearchQuery = "";
+        renderApp();
+      });
+    }
 
     // Agrupación en Avisos
     document.querySelectorAll("[data-group-avisos]").forEach(btn => {
