@@ -701,6 +701,8 @@
     {
       id: "AV-01",
       expId: "SFN-2026-H6T4",
+      sumId: "SUM-01",
+      suministro: "SUM-01 · Traviesas PR-22",
       categoria: "Incidencia / Mediación",
       tagClass: "warning",
       titulo: "Propuesta de mediación de plazo pendiente de firma",
@@ -713,6 +715,8 @@
     {
       id: "AV-02",
       expId: "SFN-2026-H6T4",
+      sumId: "SUM-01",
+      suministro: "SUM-01 · Traviesas PR-22",
       categoria: "Documentación",
       tagClass: "review",
       titulo: "Nuevo ensayo mecánico EN 13230 recibido",
@@ -725,6 +729,8 @@
     {
       id: "AV-03",
       expId: "SFN-2026-K9M2",
+      sumId: "SUM-04",
+      suministro: "SUM-04 · Carril laminado 54E1",
       categoria: "Cotización",
       tagClass: "complete",
       titulo: "Preselección de 3 laminadores completada",
@@ -737,6 +743,8 @@
     {
       id: "AV-04",
       expId: "SFN-2026-B3R8",
+      sumId: "SUM-09",
+      suministro: "SUM-09 · Fijaciones SKL-14",
       categoria: "Logística / Plazo",
       tagClass: "info",
       titulo: "Albarán de salida y despacho confirmado",
@@ -749,6 +757,8 @@
     {
       id: "AV-05",
       expId: "SFN-2026-W4P7",
+      sumId: "SUM-06",
+      suministro: "SUM-06 · Traviesas de madera creosotada",
       categoria: "Formalización",
       tagClass: "review",
       titulo: "Póliza de suministro y hoja de pedido emitida",
@@ -761,6 +771,8 @@
     {
       id: "AV-06",
       expId: "SFN-2026-H6T4",
+      sumId: "SUM-02",
+      suministro: "SUM-02 · Sujeciones PR-22",
       categoria: "Calidad / Ensayo",
       tagClass: "complete",
       titulo: "Ficha de lote y análisis de material aprobados",
@@ -1249,9 +1261,112 @@
       }));
     } catch (e) {}
   }
-  let avisosGroup = "none"; // "none" | "expediente" | "categoria" | "fecha"
-  let discardedNotices = new Set();
-  let showDiscardedAvisos = false;
+  let avisosGroup = "none"; // "none" | "expediente" | "suministro" | "categoria" | "fecha"
+  let avisosSortCol = "fecha"; // "tipo" | "titulo" | "expId" | "suministro" | "categoria" | "fecha"
+  let avisosSortDir = "desc"; // "asc" | "desc"
+  let completedNotices = new Set();
+  let discardedNotices = completedNotices; // Alias retrocompatible
+  let showCompletedAvisos = false;
+  let showDiscardedAvisos = false; // Alias retrocompatible
+
+  /* ---------- Avisos: Tonalidades de Categorías y Ordenación ---------- */
+  function getCategoryToneInfo(cat) {
+    const c = (cat || "").toLowerCase();
+    if (c.includes("incidencia") || c.includes("mediación") || c.includes("mediacion")) {
+      return { slug: "amber", iconName: "alert", color: "var(--cat-amber)", bg: "var(--cat-amber-bg)", border: "var(--cat-amber-border)" };
+    }
+    if (c.includes("docum") || c.includes("requerimiento")) {
+      return { slug: "blue", iconName: "file", color: "var(--cat-blue)", bg: "var(--cat-blue-bg)", border: "var(--cat-blue-border)" };
+    }
+    if (c.includes("cotiz") || c.includes("precio") || c.includes("oferta")) {
+      return { slug: "purple", iconName: "award", color: "var(--cat-purple)", bg: "var(--cat-purple-bg)", border: "var(--cat-purple-border)" };
+    }
+    if (c.includes("logíst") || c.includes("logist") || c.includes("plazo") || c.includes("calendario")) {
+      return { slug: "teal", iconName: "truck", color: "var(--cat-teal)", bg: "var(--cat-teal-bg)", border: "var(--cat-teal-border)" };
+    }
+    if (c.includes("formaliz") || c.includes("pedido") || c.includes("póliza") || c.includes("poliza")) {
+      return { slug: "green", iconName: "check", color: "var(--cat-green)", bg: "var(--cat-green-bg)", border: "var(--cat-green-border)" };
+    }
+    if (c.includes("calidad") || c.includes("ensayo") || c.includes("técnic") || c.includes("tecnic")) {
+      return { slug: "rose", iconName: "shield", color: "var(--cat-rose)", bg: "var(--cat-rose-bg)", border: "var(--cat-rose-border)" };
+    }
+    if (c.includes("convocatoria") || c.includes("coordinación") || c.includes("coordinacion")) {
+      return { slug: "gold", iconName: "calendar", color: "var(--cat-gold)", bg: "var(--cat-gold-bg)", border: "var(--cat-gold-border)" };
+    }
+    return { slug: "slate", iconName: "box", color: "var(--cat-slate)", bg: "var(--cat-slate-bg)", border: "var(--cat-slate-border)" };
+  }
+
+  function getNoticeDateScore(n) {
+    if (n.timestamp) return n.timestamp;
+    const f = (n.fecha || "").toLowerCase();
+    const now = Date.now();
+    if (f.includes("recién") || f.includes("recien") || f.includes("ahora")) return now;
+    if (f.includes("hoy")) {
+      const m = f.match(/(\d{1,2}):(\d{2})/);
+      if (m) {
+        const d = new Date();
+        d.setHours(parseInt(m[1], 10), parseInt(m[2], 10), 0, 0);
+        return d.getTime();
+      }
+      return now - 3600000;
+    }
+    if (f.includes("ayer")) {
+      const m = f.match(/(\d{1,2}):(\d{2})/);
+      const d = new Date(now - 86400000);
+      if (m) {
+        d.setHours(parseInt(m[1], 10), parseInt(m[2], 10), 0, 0);
+        return d.getTime();
+      }
+      return d.getTime();
+    }
+    if (f.includes("jun")) {
+      return new Date(2026, 5, 18, 11, 0).getTime();
+    }
+    return 0;
+  }
+
+  function sortNotices(list) {
+    if (!avisosSortCol) return list;
+    const mult = avisosSortDir === "desc" ? -1 : 1;
+    return [...list].sort((a, b) => {
+      let valA, valB;
+      switch (avisosSortCol) {
+        case "tipo":
+          valA = a.tagClass || "";
+          valB = b.tagClass || "";
+          return valA.localeCompare(valB, "es") * mult;
+        case "titulo":
+          valA = a.titulo || "";
+          valB = b.titulo || "";
+          return valA.localeCompare(valB, "es") * mult;
+        case "expId":
+          valA = a.expId || "";
+          valB = b.expId || "";
+          return valA.localeCompare(valB, "es") * mult;
+        case "suministro":
+          valA = a.suministro || "";
+          valB = b.suministro || "";
+          return valA.localeCompare(valB, "es") * mult;
+        case "categoria":
+          valA = a.categoria || "";
+          valB = b.categoria || "";
+          return valA.localeCompare(valB, "es") * mult;
+        case "fecha":
+          valA = getNoticeDateScore(a);
+          valB = getNoticeDateScore(b);
+          return (valA - valB) * mult;
+        default:
+          return 0;
+      }
+    });
+  }
+
+  function getAvisosSortIndicator(col) {
+    if (avisosSortCol !== col) {
+      return `<span class="avisos-sort-icon">↕</span>`;
+    }
+    return `<span class="avisos-sort-icon is-active">${avisosSortDir === "asc" ? "▲" : "▼"}</span>`;
+  }
   let directorioViewMode = "table"; // "table" | "grid"
   let previousRouteKey = null;
   let stagedPliegoFile = null;

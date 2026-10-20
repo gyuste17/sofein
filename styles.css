@@ -2090,14 +2090,109 @@ select:focus,
   border: 1px solid var(--entity-line);
 }
 
-/* ========== AVISOS: TABLA ALINEADA, AGRUPACIÓN Y DESCARTADOS ========== */
+/* ========== AVISOS: TABLA ALINEADA, AGRUPACIÓN Y COMPLETADOS ========== */
+:root[data-theme="dark"] {
+  --cat-amber: #f2bf57;
+  --cat-amber-bg: rgba(242, 191, 87, 0.12);
+  --cat-amber-border: rgba(242, 191, 87, 0.28);
+  
+  --cat-blue: #70b4ff;
+  --cat-blue-bg: rgba(112, 180, 255, 0.12);
+  --cat-blue-border: rgba(112, 180, 255, 0.28);
+  
+  --cat-purple: #c4a5fd;
+  --cat-purple-bg: rgba(196, 165, 253, 0.12);
+  --cat-purple-border: rgba(196, 165, 253, 0.28);
+  
+  --cat-teal: #2dd4bf;
+  --cat-teal-bg: rgba(45, 212, 191, 0.12);
+  --cat-teal-border: rgba(45, 212, 191, 0.28);
+  
+  --cat-green: #7cdd65;
+  --cat-green-bg: rgba(124, 221, 101, 0.12);
+  --cat-green-border: rgba(124, 221, 101, 0.28);
+  
+  --cat-rose: #fb7185;
+  --cat-rose-bg: rgba(251, 113, 133, 0.12);
+  --cat-rose-border: rgba(251, 113, 133, 0.28);
+
+  --cat-gold: #fde047;
+  --cat-gold-bg: rgba(253, 224, 71, 0.12);
+  --cat-gold-border: rgba(253, 224, 71, 0.28);
+  
+  --cat-slate: #94a3b8;
+  --cat-slate-bg: rgba(148, 163, 184, 0.12);
+  --cat-slate-border: rgba(148, 163, 184, 0.28);
+}
+
+:root[data-theme="light"] {
+  --cat-amber: #b45309;
+  --cat-amber-bg: rgba(217, 119, 6, 0.10);
+  --cat-amber-border: rgba(217, 119, 6, 0.24);
+  
+  --cat-blue: #1d4ed8;
+  --cat-blue-bg: rgba(29, 78, 216, 0.08);
+  --cat-blue-border: rgba(29, 78, 216, 0.20);
+  
+  --cat-purple: #6d28d9;
+  --cat-purple-bg: rgba(109, 40, 217, 0.08);
+  --cat-purple-border: rgba(109, 40, 217, 0.20);
+  
+  --cat-teal: #0f766e;
+  --cat-teal-bg: rgba(15, 118, 110, 0.08);
+  --cat-teal-border: rgba(15, 118, 110, 0.20);
+  
+  --cat-green: #15803d;
+  --cat-green-bg: rgba(21, 128, 61, 0.08);
+  --cat-green-border: rgba(21, 128, 61, 0.20);
+  
+  --cat-rose: #be123c;
+  --cat-rose-bg: rgba(190, 18, 60, 0.08);
+  --cat-rose-border: rgba(190, 18, 60, 0.20);
+
+  --cat-gold: #a16207;
+  --cat-gold-bg: rgba(161, 98, 7, 0.08);
+  --cat-gold-border: rgba(161, 98, 7, 0.20);
+  
+  --cat-slate: #475569;
+  --cat-slate-bg: rgba(71, 85, 105, 0.08);
+  --cat-slate-border: rgba(71, 85, 105, 0.20);
+}
+
 .admin-doc-table-head.avisos-grid,
 .admin-doc-row.avisos-grid {
   display: grid;
-  grid-template-columns: 36px minmax(200px, 1.8fr) 125px 150px 100px 245px;
   align-items: center;
   gap: 14px;
 }
+/* Por defecto y sin agrupar: 7 columnas con Suministro */
+.admin-doc-table-head.avisos-grid,
+.admin-doc-row.avisos-grid,
+.admin-doc-table-head.avisos-grid.group-none,
+.admin-doc-row.avisos-grid.group-none {
+  grid-template-columns: 36px minmax(190px, 1.8fr) 120px 165px 145px 95px 230px;
+}
+/* Al agrupar por Expediente: desaparece la columna Expediente */
+.admin-doc-table-head.avisos-grid.group-expediente,
+.admin-doc-row.avisos-grid.group-expediente {
+  grid-template-columns: 36px minmax(190px, 2fr) 180px 160px 105px 230px;
+}
+/* Al agrupar por Suministro: desaparece la columna Suministro */
+.admin-doc-table-head.avisos-grid.group-suministro,
+.admin-doc-row.avisos-grid.group-suministro {
+  grid-template-columns: 36px minmax(190px, 2fr) 130px 160px 105px 230px;
+}
+/* Al agrupar por Categoría: desaparece la columna Categoría */
+.admin-doc-table-head.avisos-grid.group-categoria,
+.admin-doc-row.avisos-grid.group-categoria {
+  grid-template-columns: 36px minmax(190px, 2fr) 130px 180px 105px 230px;
+}
+/* Al agrupar por Fecha: desaparece la columna Fecha */
+.admin-doc-table-head.avisos-grid.group-fecha,
+.admin-doc-row.avisos-grid.group-fecha {
+  grid-template-columns: 36px minmax(190px, 2fr) 130px 180px 155px 230px;
+}
+
 .admin-doc-table-head.avisos-grid span:first-child {
   grid-column: auto;
 }
@@ -2123,6 +2218,117 @@ select:focus,
 .admin-doc-row.avisos-grid:last-child {
   border-bottom: 0;
 }
+
+/* Cabeceras ordenables en Avisos */
+.avisos-th {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.15s ease;
+}
+.avisos-th:hover {
+  color: var(--entity-text);
+}
+.avisos-th.is-sorted {
+  color: var(--entity-accent);
+  font-weight: 700;
+}
+.avisos-sort-icon {
+  font-size: 0.65rem;
+  opacity: 0.35;
+  transition: opacity 0.15s ease;
+}
+.avisos-th:hover .avisos-sort-icon,
+.avisos-th.is-sorted .avisos-sort-icon {
+  opacity: 1;
+}
+
+/* Chip de Suministro en Avisos */
+.avisos-sum-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: var(--entity-panel-2);
+  border: 1px solid var(--entity-line);
+  font-size: 0.72rem;
+  color: var(--entity-text);
+  font-weight: 550;
+  white-space: nowrap;
+  max-width: 165px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+.avisos-sum-chip:hover {
+  border-color: var(--entity-accent);
+  color: var(--entity-accent);
+}
+.avisos-sum-chip svg {
+  flex-shrink: 0;
+  color: var(--entity-muted);
+}
+
+/* Chips de Categoría con Tono Específico */
+.avisos-cat-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 0.69rem;
+  font-weight: 600;
+  white-space: nowrap;
+  letter-spacing: -0.01em;
+}
+.avisos-cat-chip svg {
+  flex-shrink: 0;
+}
+.avisos-cat-chip.cat-amber { background: var(--cat-amber-bg); color: var(--cat-amber); border: 1px solid var(--cat-amber-border); }
+.avisos-cat-chip.cat-blue { background: var(--cat-blue-bg); color: var(--cat-blue); border: 1px solid var(--cat-blue-border); }
+.avisos-cat-chip.cat-purple { background: var(--cat-purple-bg); color: var(--cat-purple); border: 1px solid var(--cat-purple-border); }
+.avisos-cat-chip.cat-teal { background: var(--cat-teal-bg); color: var(--cat-teal); border: 1px solid var(--cat-teal-border); }
+.avisos-cat-chip.cat-green { background: var(--cat-green-bg); color: var(--cat-green); border: 1px solid var(--cat-green-border); }
+.avisos-cat-chip.cat-rose { background: var(--cat-rose-bg); color: var(--cat-rose); border: 1px solid var(--cat-rose-border); }
+.avisos-cat-chip.cat-gold { background: var(--cat-gold-bg); color: var(--cat-gold); border: 1px solid var(--cat-gold-border); }
+.avisos-cat-chip.cat-slate { background: var(--cat-slate-bg); color: var(--cat-slate); border: 1px solid var(--cat-slate-border); }
+
+/* Tarjetas de Agrupación por Categoría */
+.avisos-group-card.cat-card-amber .avisos-group-card-head { border-left-color: var(--cat-amber); }
+.avisos-group-card.cat-card-amber .avisos-group-card-title svg { color: var(--cat-amber); }
+.avisos-group-card.cat-card-amber .avisos-group-count-pill { color: var(--cat-amber); border-color: var(--cat-amber-border); background: var(--cat-amber-bg); }
+
+.avisos-group-card.cat-card-blue .avisos-group-card-head { border-left-color: var(--cat-blue); }
+.avisos-group-card.cat-card-blue .avisos-group-card-title svg { color: var(--cat-blue); }
+.avisos-group-card.cat-card-blue .avisos-group-count-pill { color: var(--cat-blue); border-color: var(--cat-blue-border); background: var(--cat-blue-bg); }
+
+.avisos-group-card.cat-card-purple .avisos-group-card-head { border-left-color: var(--cat-purple); }
+.avisos-group-card.cat-card-purple .avisos-group-card-title svg { color: var(--cat-purple); }
+.avisos-group-card.cat-card-purple .avisos-group-count-pill { color: var(--cat-purple); border-color: var(--cat-purple-border); background: var(--cat-purple-bg); }
+
+.avisos-group-card.cat-card-teal .avisos-group-card-head { border-left-color: var(--cat-teal); }
+.avisos-group-card.cat-card-teal .avisos-group-card-title svg { color: var(--cat-teal); }
+.avisos-group-card.cat-card-teal .avisos-group-count-pill { color: var(--cat-teal); border-color: var(--cat-teal-border); background: var(--cat-teal-bg); }
+
+.avisos-group-card.cat-card-green .avisos-group-card-head { border-left-color: var(--cat-green); }
+.avisos-group-card.cat-card-green .avisos-group-card-title svg { color: var(--cat-green); }
+.avisos-group-card.cat-card-green .avisos-group-count-pill { color: var(--cat-green); border-color: var(--cat-green-border); background: var(--cat-green-bg); }
+
+.avisos-group-card.cat-card-rose .avisos-group-card-head { border-left-color: var(--cat-rose); }
+.avisos-group-card.cat-card-rose .avisos-group-card-title svg { color: var(--cat-rose); }
+.avisos-group-card.cat-card-rose .avisos-group-count-pill { color: var(--cat-rose); border-color: var(--cat-rose-border); background: var(--cat-rose-bg); }
+
+.avisos-group-card.cat-card-gold .avisos-group-card-head { border-left-color: var(--cat-gold); }
+.avisos-group-card.cat-card-gold .avisos-group-card-title svg { color: var(--cat-gold); }
+.avisos-group-card.cat-card-gold .avisos-group-count-pill { color: var(--cat-gold); border-color: var(--cat-gold-border); background: var(--cat-gold-bg); }
+
+.avisos-group-card.cat-card-slate .avisos-group-card-head { border-left-color: var(--cat-slate); }
+.avisos-group-card.cat-card-slate .avisos-group-card-title svg { color: var(--cat-slate); }
+.avisos-group-card.cat-card-slate .avisos-group-count-pill { color: var(--cat-slate); border-color: var(--cat-slate-border); background: var(--cat-slate-bg); }
 
 .avisos-controls {
   display: flex;
