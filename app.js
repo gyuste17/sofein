@@ -3977,50 +3977,94 @@
      ============================================================ */
   function renderAvisosSection(role) {
     const roleNotices = NOTICES.filter(n => n.roles.includes(role));
-    const activeNotices = roleNotices.filter(n => !discardedNotices.has(n.id));
-    const discardedList = roleNotices.filter(n => discardedNotices.has(n.id));
+    const activeNotices = roleNotices.filter(n => !completedNotices.has(n.id));
+    const completedList = roleNotices.filter(n => completedNotices.has(n.id));
 
-    const tableHeaderHTML = `
-      <div class="admin-doc-table-head avisos-grid">
-        <span>Tipo</span>
-        <span>Aviso / Actividad</span>
-        <span>Expediente</span>
-        <span>Categoría</span>
-        <span>Fecha</span>
+    const renderTableHeaderHTML = (groupMode = "none") => `
+      <div class="admin-doc-table-head avisos-grid group-${groupMode}">
+        <span class="avisos-th ${avisosSortCol === 'tipo' ? 'is-sorted' : ''}" data-sort-aviso="tipo" title="Ordenar por tipo/prioridad">
+          Tipo ${getAvisosSortIndicator('tipo')}
+        </span>
+        <span class="avisos-th ${avisosSortCol === 'titulo' ? 'is-sorted' : ''}" data-sort-aviso="titulo" title="Ordenar por aviso/actividad">
+          Aviso / Actividad ${getAvisosSortIndicator('titulo')}
+        </span>
+        ${groupMode !== 'expediente' ? `
+          <span class="avisos-th ${avisosSortCol === 'expId' ? 'is-sorted' : ''}" data-sort-aviso="expId" title="Ordenar por expediente">
+            Expediente ${getAvisosSortIndicator('expId')}
+          </span>
+        ` : ""}
+        ${groupMode !== 'suministro' ? `
+          <span class="avisos-th ${avisosSortCol === 'suministro' ? 'is-sorted' : ''}" data-sort-aviso="suministro" title="Ordenar por suministro">
+            Suministro ${getAvisosSortIndicator('suministro')}
+          </span>
+        ` : ""}
+        ${groupMode !== 'categoria' ? `
+          <span class="avisos-th ${avisosSortCol === 'categoria' ? 'is-sorted' : ''}" data-sort-aviso="categoria" title="Ordenar por categoría">
+            Categoría ${getAvisosSortIndicator('categoria')}
+          </span>
+        ` : ""}
+        ${groupMode !== 'fecha' ? `
+          <span class="avisos-th ${avisosSortCol === 'fecha' ? 'is-sorted' : ''}" data-sort-aviso="fecha" title="Ordenar por fecha">
+            Fecha ${getAvisosSortIndicator('fecha')}
+          </span>
+        ` : ""}
         <span style="text-align:right">Acciones</span>
       </div>
     `;
 
-    const renderNoticeRow = (n, isDiscarded = false) => `
-      <article class="admin-doc-row avisos-grid">
-        <span style="display:grid;place-items:center;width:34px;height:34px;border-radius:6px;background:var(--entity-panel-2)">
-          ${icon(n.tagClass === "warning" ? "alert" : n.tagClass === "review" ? "file" : "check", 16)}
-        </span>
-        <div style="min-width:0">
-          <strong style="display:block;margin-bottom:2px;cursor:pointer" data-go="${n.enlace}">${n.titulo}</strong>
-          <small style="color:var(--entity-muted);display:block;line-height:1.4">${n.descripcion}</small>
-        </div>
-        <div>
-          <button class="avisos-exp-chip-link" type="button" data-go="#${role}/expedientes/${n.expId}" title="Abrir expediente ${n.expId}">
-            ${icon("folder", 12)} ${n.expId}
-          </button>
-        </div>
-        <div>
-          <span class="dossier-chip" style="font-size:0.68rem;white-space:nowrap">${n.categoria}</span>
-        </div>
-        <div style="white-space:nowrap">
-          <time style="font-size:0.72rem;color:var(--entity-faint)">${n.fecha}</time>
-        </div>
-        <div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;white-space:nowrap">
-          ${!isDiscarded ? `
-            <button class="admin-quiet-button" type="button" data-go="${n.enlace}">${n.accion}</button>
-            <button class="admin-quiet-button" type="button" data-dismiss-notice="${n.id}" title="Descartar aviso">${icon("x", 12)} Descartar</button>
-          ` : `
-            <button class="admin-quiet-button" type="button" data-restore-notice="${n.id}" style="color:var(--entity-accent)">${icon("check", 12)} Restaurar</button>
-          `}
-        </div>
-      </article>
-    `;
+    const renderNoticeRow = (n, isCompleted = false, groupMode = "none") => {
+      const tone = getCategoryToneInfo(n.categoria);
+      const sumLabel = n.suministro || "General del Lote";
+      return `
+        <article class="admin-doc-row avisos-grid group-${groupMode}">
+          <span style="display:grid;place-items:center;width:34px;height:34px;border-radius:6px;background:${tone.bg};color:${tone.color};border:1px solid ${tone.border}" title="${n.categoria}">
+            ${icon(n.tagClass === "warning" ? "alert" : n.tagClass === "review" ? "file" : "check", 16)}
+          </span>
+          <div style="min-width:0">
+            <strong style="display:block;margin-bottom:2px;cursor:pointer" data-go="${n.enlace}">${n.titulo}</strong>
+            <small style="color:var(--entity-muted);display:block;line-height:1.4">${n.descripcion}</small>
+          </div>
+          ${groupMode !== 'expediente' ? `
+            <div>
+              <button class="avisos-exp-chip-link" type="button" data-go="#${role}/expedientes/${n.expId}" title="Abrir expediente ${n.expId}">
+                ${icon("folder", 12)} ${n.expId}
+              </button>
+            </div>
+          ` : ""}
+          ${groupMode !== 'suministro' ? `
+            <div>
+              <button class="avisos-sum-chip" type="button" data-go="#${role}/expedientes/${n.expId}?tab=overview" title="Suministro: ${sumLabel}">
+                ${icon("box", 12)} <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${sumLabel}</span>
+              </button>
+            </div>
+          ` : ""}
+          ${groupMode !== 'categoria' ? `
+            <div>
+              <span class="avisos-cat-chip cat-${tone.slug}" title="Categoría: ${n.categoria}">
+                ${icon(tone.iconName || "tag", 11)} ${n.categoria}
+              </span>
+            </div>
+          ` : ""}
+          ${groupMode !== 'fecha' ? `
+            <div style="white-space:nowrap">
+              <time style="font-size:0.72rem;color:var(--entity-faint)">${n.fecha}</time>
+            </div>
+          ` : ""}
+          <div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;white-space:nowrap">
+            ${!isCompleted ? `
+              <button class="admin-quiet-button" type="button" data-go="${n.enlace}">${n.accion}</button>
+              <button class="admin-quiet-button" type="button" data-complete-notice="${n.id}" data-dismiss-notice="${n.id}" title="Marcar aviso como completado" style="color:var(--entity-accent)">
+                ${icon("check", 12)} Completado
+              </button>
+            ` : `
+              <button class="admin-quiet-button" type="button" data-restore-notice="${n.id}" style="color:var(--entity-accent)" title="Reabrir aviso">
+                ${icon("check", 12)} Reabrir
+              </button>
+            `}
+          </div>
+        </article>
+      `;
+    };
 
     let mainAvisosHTML = "";
     if (activeNotices.length === 0) {
@@ -4030,10 +4074,11 @@
         </div>
       `;
     } else if (avisosGroup === "none") {
+      const sortedNotices = sortNotices(activeNotices);
       mainAvisosHTML = `
         <section class="admin-document-list" style="border:1px solid var(--entity-line);border-radius:10px;overflow:hidden;background:var(--entity-panel)">
-          ${tableHeaderHTML}
-          ${activeNotices.map(n => renderNoticeRow(n)).join("")}
+          ${renderTableHeaderHTML("none")}
+          ${sortedNotices.map(n => renderNoticeRow(n, false, "none")).join("")}
         </section>
       `;
     } else if (avisosGroup === "expediente") {
@@ -4045,6 +4090,7 @@
       mainAvisosHTML = Object.keys(groups).map(expId => {
         const exp = getActiveExpediente(expId);
         const phaseName = PHASES[exp.faseActual] ? PHASES[exp.faseActual].name : "";
+        const groupNotices = sortNotices(groups[expId]);
         return `
           <section class="avisos-group-card">
             <div class="avisos-group-card-head">
@@ -4054,36 +4100,71 @@
                 <span class="avisos-group-card-sub">· ${exp.cliente} (${phaseName})</span>
               </div>
               <div style="display:flex;align-items:center;gap:10px">
-                <span class="avisos-group-count-pill">${groups[expId].length} ${groups[expId].length === 1 ? "aviso" : "avisos"}</span>
+                <span class="avisos-group-count-pill">${groupNotices.length} ${groupNotices.length === 1 ? "aviso" : "avisos"}</span>
                 <button class="admin-quiet-button" type="button" data-go="#${role}/expedientes/${expId}" style="padding:3px 9px;font-size:0.72rem">
                   Abrir expediente ${icon("arrow", 12)}
                 </button>
               </div>
             </div>
-            ${tableHeaderHTML}
-            ${groups[expId].map(n => renderNoticeRow(n)).join("")}
+            ${renderTableHeaderHTML("expediente")}
+            ${groupNotices.map(n => renderNoticeRow(n, false, "expediente")).join("")}
+          </section>
+        `;
+      }).join("");
+    } else if (avisosGroup === "suministro") {
+      const groups = {};
+      activeNotices.forEach(n => {
+        const sumKey = n.suministro || "General del Lote";
+        if (!groups[sumKey]) groups[sumKey] = [];
+        groups[sumKey].push(n);
+      });
+      mainAvisosHTML = Object.keys(groups).map(sumKey => {
+        const groupNotices = sortNotices(groups[sumKey]);
+        const sampleNotice = groupNotices[0];
+        return `
+          <section class="avisos-group-card">
+            <div class="avisos-group-card-head">
+              <div class="avisos-group-card-title" data-go="#${role}/suministros" style="cursor:pointer" title="Ver suministros">
+                ${icon("box", 16)}
+                <span style="text-decoration:underline;text-underline-offset:3px">${sumKey}</span>
+                <span class="avisos-group-card-sub">· Expediente ${sampleNotice.expId}</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px">
+                <span class="avisos-group-count-pill">${groupNotices.length} ${groupNotices.length === 1 ? "aviso" : "avisos"}</span>
+                <button class="admin-quiet-button" type="button" data-go="#${role}/suministros" style="padding:3px 9px;font-size:0.72rem">
+                  Ver suministros ${icon("arrow", 12)}
+                </button>
+              </div>
+            </div>
+            ${renderTableHeaderHTML("suministro")}
+            ${groupNotices.map(n => renderNoticeRow(n, false, "suministro")).join("")}
           </section>
         `;
       }).join("");
     } else if (avisosGroup === "categoria") {
       const groups = {};
       activeNotices.forEach(n => {
-        if (!groups[n.categoria]) groups[n.categoria] = [];
-        groups[n.categoria].push(n);
+        const cat = n.categoria || "General";
+        if (!groups[cat]) groups[cat] = [];
+        groups[cat].push(n);
       });
-      mainAvisosHTML = Object.keys(groups).map(cat => `
-        <section class="avisos-group-card">
-          <div class="avisos-group-card-head">
-            <div class="avisos-group-card-title">
-              ${icon("file", 16)}
-              <span>Categoría: ${cat}</span>
+      mainAvisosHTML = Object.keys(groups).map(cat => {
+        const tone = getCategoryToneInfo(cat);
+        const groupNotices = sortNotices(groups[cat]);
+        return `
+          <section class="avisos-group-card cat-card-${tone.slug}">
+            <div class="avisos-group-card-head">
+              <div class="avisos-group-card-title">
+                ${icon(tone.iconName || "file", 16)}
+                <span>Categoría: ${cat}</span>
+              </div>
+              <span class="avisos-group-count-pill">${groupNotices.length} ${groupNotices.length === 1 ? "aviso" : "avisos"}</span>
             </div>
-            <span class="avisos-group-count-pill">${groups[cat].length} ${groups[cat].length === 1 ? "aviso" : "avisos"}</span>
-          </div>
-          ${tableHeaderHTML}
-          ${groups[cat].map(n => renderNoticeRow(n)).join("")}
-        </section>
-      `).join("");
+            ${renderTableHeaderHTML("categoria")}
+            ${groupNotices.map(n => renderNoticeRow(n, false, "categoria")).join("")}
+          </section>
+        `;
+      }).join("");
     } else if (avisosGroup === "fecha") {
       const groups = {};
       activeNotices.forEach(n => {
@@ -4091,19 +4172,22 @@
         if (!groups[dateKey]) groups[dateKey] = [];
         groups[dateKey].push(n);
       });
-      mainAvisosHTML = Object.keys(groups).map(dateKey => `
-        <section class="avisos-group-card">
-          <div class="avisos-group-card-head">
-            <div class="avisos-group-card-title">
-              ${icon("calendar", 16)}
-              <span>Periodo: ${dateKey}</span>
+      mainAvisosHTML = Object.keys(groups).map(dateKey => {
+        const groupNotices = sortNotices(groups[dateKey]);
+        return `
+          <section class="avisos-group-card">
+            <div class="avisos-group-card-head">
+              <div class="avisos-group-card-title">
+                ${icon("calendar", 16)}
+                <span>Periodo: ${dateKey}</span>
+              </div>
+              <span class="avisos-group-count-pill">${groupNotices.length} ${groupNotices.length === 1 ? "aviso" : "avisos"}</span>
             </div>
-            <span class="avisos-group-count-pill">${groups[dateKey].length} ${groups[dateKey].length === 1 ? "aviso" : "avisos"}</span>
-          </div>
-          ${tableHeaderHTML}
-          ${groups[dateKey].map(n => renderNoticeRow(n)).join("")}
-        </section>
-      `).join("");
+            ${renderTableHeaderHTML("fecha")}
+            ${groupNotices.map(n => renderNoticeRow(n, false, "fecha")).join("")}
+          </section>
+        `;
+      }).join("");
     }
 
     return `
@@ -4125,6 +4209,7 @@
           <div class="avisos-group-buttons">
             <button class="avisos-group-btn ${avisosGroup === 'none' ? 'is-active' : ''}" type="button" data-group-avisos="none">Sin agrupar</button>
             <button class="avisos-group-btn ${avisosGroup === 'expediente' ? 'is-active' : ''}" type="button" data-group-avisos="expediente">Expediente</button>
+            <button class="avisos-group-btn ${avisosGroup === 'suministro' ? 'is-active' : ''}" type="button" data-group-avisos="suministro">Suministro</button>
             <button class="avisos-group-btn ${avisosGroup === 'categoria' ? 'is-active' : ''}" type="button" data-group-avisos="categoria">Categoría</button>
             <button class="avisos-group-btn ${avisosGroup === 'fecha' ? 'is-active' : ''}" type="button" data-group-avisos="fecha">Fecha</button>
           </div>
@@ -4134,14 +4219,14 @@
 
       ${mainAvisosHTML}
 
-      <details class="admin-discarded-details" ${showDiscardedAvisos ? "open" : ""}>
-        <summary id="toggleDiscardedSummary">
-          <span>${icon("archive", 14)} Ver descartados (${discardedList.length})</span>
-          <span style="font-size:0.72rem;color:var(--entity-faint)">${showDiscardedAvisos ? "Ocultar descartados" : "Desplegar para restaurar"}</span>
+      <details class="admin-discarded-details" ${showCompletedAvisos ? "open" : ""}>
+        <summary id="toggleCompletedSummary">
+          <span>${icon("check", 14)} Ver completados (${completedList.length})</span>
+          <span style="font-size:0.72rem;color:var(--entity-faint)">${showCompletedAvisos ? "Ocultar completados" : "Desplegar para revisar o reabrir"}</span>
         </summary>
         <div class="admin-discarded-list">
-          ${discardedList.length ? discardedList.map(n => renderNoticeRow(n, true)).join("") : `
-            <div style="padding:24px;text-align:center;font-size:0.8rem;color:var(--entity-muted)">No hay avisos descartados en esta sesión.</div>
+          ${completedList.length ? sortNotices(completedList).map(n => renderNoticeRow(n, true, avisosGroup)).join("") : `
+            <div style="padding:24px;text-align:center;font-size:0.8rem;color:var(--entity-muted)">No hay avisos completados en esta sesión.</div>
           `}
         </div>
       </details>
