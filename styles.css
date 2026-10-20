@@ -288,8 +288,8 @@ select:focus,
 /* ============================================================
    ENTIDAD · client portal override
    ============================================================ */
-:root[data-theme="dark"] { color-scheme:dark; --entity-bg:#07100c; --entity-panel:#0b1711; --entity-panel-2:#0f2018; --entity-sidebar:#06130d; --entity-text:#edf6ef; --entity-muted:#92a79a; --entity-faint:#668073; --entity-line:rgba(208,239,218,.12); --entity-line-strong:rgba(208,239,218,.2); --entity-accent:#7cdd65; --entity-accent-ink:#092010; --entity-accent-soft:rgba(124,221,101,.12); --entity-shadow:0 24px 60px rgba(0,0,0,.18); --entity-warning:#f2bf57; --entity-warning-bg:rgba(242,191,87,.12); --entity-blue:#83b7ef; --entity-blue-bg:rgba(131,183,239,.13); --entity-purple:#b5a1fa; --entity-purple-bg:rgba(181,161,250,.14); }
-:root[data-theme="light"] { color-scheme:light; --entity-bg:#f5f8f5; --entity-panel:#ffffff; --entity-panel-2:#f0f7f1; --entity-sidebar:#0c3020; --entity-text:#12251a; --entity-muted:#63776a; --entity-faint:#819287; --entity-line:rgba(15,62,34,.13); --entity-line-strong:rgba(15,62,34,.2); --entity-accent:#3d9f51; --entity-accent-ink:#fff; --entity-accent-soft:rgba(61,159,81,.12); --entity-shadow:0 18px 46px rgba(21,62,36,.09); --entity-warning:#b87511; --entity-warning-bg:rgba(220,158,33,.13); --entity-blue:#377ed0; --entity-blue-bg:rgba(55,126,208,.12); --entity-purple:#7259bd; --entity-purple-bg:rgba(114,89,189,.12); }
+:root[data-theme="dark"] { --screen-title-color:#75cf60; color-scheme:dark; --entity-bg:#07100c; --entity-panel:#0b1711; --entity-panel-2:#0f2018; --entity-sidebar:#06130d; --entity-text:#edf6ef; --entity-muted:#92a79a; --entity-faint:#668073; --entity-line:rgba(208,239,218,.12); --entity-line-strong:rgba(208,239,218,.2); --entity-accent:#7cdd65; --entity-accent-ink:#092010; --entity-accent-soft:rgba(124,221,101,.12); --entity-shadow:0 24px 60px rgba(0,0,0,.18); --entity-warning:#f2bf57; --entity-warning-bg:rgba(242,191,87,.12); --entity-blue:#83b7ef; --entity-blue-bg:rgba(131,183,239,.13); --entity-purple:#b5a1fa; --entity-purple-bg:rgba(181,161,250,.14); }
+:root[data-theme="light"] { --screen-title-color:#10451D; color-scheme:light; --entity-bg:#f5f8f5; --entity-panel:#ffffff; --entity-panel-2:#f0f7f1; --entity-sidebar:#0c3020; --entity-text:#12251a; --entity-muted:#63776a; --entity-faint:#819287; --entity-line:rgba(15,62,34,.13); --entity-line-strong:rgba(15,62,34,.2); --entity-accent:#3d9f51; --entity-accent-ink:#fff; --entity-accent-soft:rgba(61,159,81,.12); --entity-shadow:0 18px 46px rgba(21,62,36,.09); --entity-warning:#b87511; --entity-warning-bg:rgba(220,158,33,.13); --entity-blue:#377ed0; --entity-blue-bg:rgba(55,126,208,.12); --entity-purple:#7259bd; --entity-purple-bg:rgba(114,89,189,.12); }
 .app { display:grid; grid-template-columns:250px minmax(0,1fr); min-height:100vh; background:var(--entity-bg); color:var(--entity-text); }
 .entity-sidebar { position:sticky; top:0; display:flex; flex-direction:column; height:100vh; padding:22px 14px 14px; background:var(--entity-sidebar); border-right:1px solid var(--entity-line); overflow-y:auto; }
 .entity-logo { display:flex; flex-direction:column; align-items:flex-start; gap:8px; width:max-content; margin:0 10px 44px; color:#f6fff8; }
@@ -5476,4 +5476,12 @@ select:focus,
     flex-direction: column;
     align-items: flex-start;
   }
+}
+
+
+/* Titulos generales de las pantallas en verde corporativo SOFEIN (verde oscuro en modo claro) */
+.admin-view-head h1,
+.entity-view-head h1,
+.admin-view-head.exp-head-clean h1 {
+  color: var(--screen-title-color, #10451D) !important;
 }
