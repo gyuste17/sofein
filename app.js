@@ -1749,8 +1749,7 @@
 
       <div class="admin-view-head" style="margin-bottom:${isRoleAdmin ? '22px' : '14px'}">
         <div>
-          <h1>${isRoleAdmin ? "Crear Expediente de Suministro Ferroviario" : "Solicitar Nuevo Expediente"}</h1>
-          <p>Constructor de expedientes estancos. Define la obra, los suministros ferroviarios y adjunta los pliegos técnicos para iniciar el ciclo de homologación y compras.</p>
+          <h1>Crear Expediente</h1>
         </div>
       </div>
 
@@ -1763,14 +1762,12 @@
       ` : ""}
 
       <form id="createExpedienteFullForm" class="create-exp-wrap">
-        <!-- Bloque 1: Datos de Obra y Emplazamiento -->
+        <!-- Bloque 1: General -->
         <section class="create-exp-card">
           <div class="create-exp-card-head">
             <div>
-              <h3>${icon("folder", 18)} 1. Obra Ferroviaria & Emplazamiento</h3>
-              <p>Identificación del proyecto, entidad contratista adjudicataria y tramo de instalación de vía.</p>
+              <h3>${icon("folder", 18)} 1. General</h3>
             </div>
-            <span class="dossier-chip">Paso 1 de 3</span>
           </div>
 
           <div style="display:grid;gap:14px">
@@ -1781,7 +1778,7 @@
 
             <div class="create-exp-grid-2">
               <label class="create-exp-label">
-                Constructor / Contratista
+                Cliente
                 ${isRoleAdmin ? `
                   <select name="cliente" class="create-exp-select" required>
                     ${DIRECTORIO_CLIENTES.map(c => `<option value="${c.nombre}">${c.nombre} (${c.cif})</option>`).join("")}
@@ -1806,26 +1803,24 @@
 
             <div class="create-exp-grid-2">
               <label class="create-exp-label">
-                Plazo Objetivo de Entrega a Pie de Vía
+                Fecha Objetivo
                 <input type="date" name="fechaObjetivo" class="create-exp-input" required value="2026-11-30" />
               </label>
 
               <label class="create-exp-label">
-                Presupuesto Estimado de Suministro (Opcional)
+                Presupuesto Estimado (Opcional)
                 <input name="presupuestoTotal" class="create-exp-input" placeholder="Ej: 450.000 € (En licitación)" />
               </label>
             </div>
           </div>
         </section>
 
-        <!-- Bloque 2: Suministros y Lotes de Material (Moodle Estanco Multi-Lote) -->
+        <!-- Bloque 2: Suministros -->
         <section class="create-exp-card">
           <div class="create-exp-card-head">
             <div>
-              <h3>${icon("box", 18)} 2. Suministros Ferroviarios & Lotes Requeridos</h3>
-              <p>Indica uno o varios componentes de vía. Para cada suministro se habilitará trazabilidad y control de plazos.</p>
+              <h3>${icon("box", 18)} 2. Suministros</h3>
             </div>
-            <span class="dossier-chip">Paso 2 de 3</span>
           </div>
 
           <div id="suministrosContainer" style="display:grid;gap:12px">
@@ -1833,18 +1828,18 @@
               <div class="suministro-item-top">
                 <span class="suministro-item-title">${icon("route", 14)} Lote de Suministro 1</span>
               </div>
-              <div class="create-exp-grid-3">
+              <div class="create-exp-grid-3" style="margin-bottom:10px">
                 <label class="create-exp-label">
-                  Tipo de Componente Ferroviario
+                  Tipo de Suministro
                   <select name="suministro_material_0" class="create-exp-select" required>
-                    <option value="Traviesas de hormigón monobloque PR-22">Traviesas de Hormigón Monobloque PR-22 (Superestructura)</option>
-                    <option value="Carril laminado 54E1 / 60E1">Carril Laminado 54E1 / 60E1 (Grado R260 / R350HT)</option>
-                    <option value="Traviesas de madera tratada creosotada">Traviesas de Madera Tratada Creosotada (3 subtipos)</option>
-                    <option value="Sujeciones y clips elásticos SKL-14">Clips y Fijaciones Elásticas (SKL-14 / Pandrol Fastclip)</option>
-                    <option value="Placas de asiento y suelas elastómero">Placas de Asiento Metálicas / Suelas Bajo Traviesa</option>
-                    <option value="Aparatos de vía y corazones monobloque">Aparatos de Vía, Desvíos y Corazones Monobloque</option>
-                    <option value="Balasto silíceo tipo 1">Balasto Silíceo Certificado Tipo 1</option>
-                    <option value="Otro elemento especial a medida">Otro Elemento de Vía a Medida</option>
+                    <option value="Traviesas de madera">Traviesas de madera</option>
+                    <option value="Traviesas de hormigón">Traviesas de hormigón</option>
+                    <option value="Carril ferroviario">Carril ferroviario</option>
+                    <option value="Sujeciones y fijaciones">Sujeciones y fijaciones</option>
+                    <option value="Placas de asiento">Placas de asiento</option>
+                    <option value="Aparatos de vía">Aparatos de vía</option>
+                    <option value="Balasto">Balasto</option>
+                    <option value="Otro suministro">Otro suministro</option>
                   </select>
                 </label>
                 <label class="create-exp-label">
@@ -1852,8 +1847,27 @@
                   <input name="suministro_unidades_0" class="create-exp-input" required placeholder="Ej: 14.500 unidades" />
                 </label>
                 <label class="create-exp-label">
-                  Tramo de Instalación
-                  <input name="suministro_tramo_0" class="create-exp-input" required placeholder="Ej: P.K. 12+400 a 24+800" />
+                  Especificaciones
+                  <input name="suministro_especificaciones_0" class="create-exp-input" placeholder="Ej: Madera de roble tratada, 2,60 m" />
+                </label>
+              </div>
+              <div class="create-exp-grid-3">
+                <label class="create-exp-label">
+                  Presupuesto Estimado (Opcional)
+                  <input name="suministro_presupuesto_0" class="create-exp-input" placeholder="Ej: 120.000 €" />
+                </label>
+                <label class="create-exp-label">
+                  Fecha Objetivo (Opcional, si es diferente a la del expediente)
+                  <input type="date" name="suministro_fecha_0" class="create-exp-input" />
+                </label>
+                <label class="create-exp-label">
+                  Adjunto (Opcional)
+                  <div style="display:flex;align-items:center;gap:8px">
+                    <input type="file" class="suministro-file-input" style="display:none" accept=".pdf,.dwg,.xlsx,.docx" multiple />
+                    <button type="button" class="slot-upload-btn suministro-file-trigger" style="height:38px;width:100%;justify-content:center">
+                      ${icon("upload", 14)} <span class="suministro-file-label">Subir docs</span>
+                    </button>
+                  </div>
                 </label>
               </div>
             </div>
@@ -1864,43 +1878,46 @@
           </button>
         </section>
 
-        <!-- Bloque 3: Documentación Técnica Inicial (Drag & Drop Moodle) -->
+        <!-- Bloque 3: Notas y adjuntos -->
         <section class="create-exp-card">
           <div class="create-exp-card-head">
             <div>
-              <h3>${icon("file", 18)} 3. Pliego de Prescripciones Técnicas & Planos de Replanteo</h3>
-              <p>Adjunta las especificaciones técnicas iniciales. Se registrarán automáticamente en la Fase 0 (Alcance & Requisitos).</p>
+              <h3>${icon("file", 18)} 3. Notas y adjuntos</h3>
             </div>
-            <span class="dossier-chip">Paso 3 de 3</span>
           </div>
 
-          <input type="file" id="createExpFileInput" style="display:none" accept=".pdf,.dwg,.xlsx" />
-          
-          <div class="slot-dropzone" id="createExpDropzone">
-            <div class="slot-dropzone-copy">
-              ${icon("upload", 24)}
-              <div>
-                <div><b>Arrastra aquí el Pliego Técnico (PPTP) o planos de vía</b> o haz clic para seleccionarlo</div>
-                <span class="sub">Formatos admitidos: .pdf, .dwg, .xlsx (Máximo 25 MB)</span>
+          <div style="display:grid;gap:14px">
+            <label class="create-exp-label">
+              Notas (Opcional)
+              <textarea name="notasExpediente" class="create-exp-input" rows="2" style="height:auto;padding:10px 12px;resize:vertical" placeholder="Añade notas o comentarios adicionales del expediente..."></textarea>
+            </label>
+
+            <input type="file" id="createExpFileInput" style="display:none" accept=".pdf,.dwg,.xlsx" />
+            
+            <div class="slot-dropzone" id="createExpDropzone">
+              <div class="slot-dropzone-copy">
+                ${icon("upload", 24)}
+                <div>
+                  <div><b>Añadir adjuntos</b></div>
+                  <span class="sub">Formatos admitidos: .pdf, .dwg, .xlsx (Máximo 25 MB)</span>
+                </div>
               </div>
+              <button class="slot-upload-btn" type="button" id="triggerFileSelectBtn">
+                ${icon("plus", 14)} Añadir adjuntos
+              </button>
             </div>
-            <button class="slot-upload-btn" type="button" id="triggerFileSelectBtn">
-              ${icon("plus", 14)} Seleccionar pliego
-            </button>
-          </div>
 
-          <div id="fileUploadedPreview" style="display:none;margin-top:4px"></div>
+            <div id="fileUploadedPreview" style="display:none;margin-top:4px"></div>
+          </div>
         </section>
 
         <!-- Acciones Finales -->
         <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;padding-top:10px">
           <button class="admin-quiet-button" type="button" data-go="${isRoleAdmin ? '#admin/expedientes' : '#cliente/expedientes'}">
-            ← Cancelar y volver a bandeja
+            ← Expedientes
           </button>
           <button class="admin-primary-button" type="submit" id="submitCreateExpBtn" style="padding:10px 22px;font-size:0.85rem">
-            ${isRoleAdmin
-              ? `${icon("check", 16)} Crear Expediente y Activar Matching`
-              : `${icon("arrow", 16)} Enviar Expediente a Validación SOFEIN`}
+            ${icon("check", 16)} Crear Expediente
           </button>
         </div>
       </form>
@@ -4128,7 +4145,7 @@
           </div>
 
           <div class="suministros-filters-wrap">
-            <select class="exp-filter-select" data-suministro-filter="fase" aria-label="Filtrar por fase">
+            <select class="exp-filter-select" id="suministroFilterFase" name="filter_fase" data-suministro-filter="fase" aria-label="Filtrar por fase">
               <option value="all" ${suministrosFilters.fase === "all" ? "selected" : ""}>Fase: Todas</option>
               ${uniquePhaseIndices.map(fIdx => {
                 const fInfo = PHASES[fIdx] || {};
@@ -4137,7 +4154,7 @@
               }).join("")}
             </select>
 
-            <select class="exp-filter-select" data-suministro-filter="estado" aria-label="Filtrar por estado">
+            <select class="exp-filter-select" id="suministroFilterEstado" name="filter_estado" data-suministro-filter="estado" aria-label="Filtrar por estado">
               <option value="all" ${suministrosFilters.estado === "all" ? "selected" : ""}>Estado: ${showCerradosSuministros ? "Todos" : "Activos (por defecto)"}</option>
               <option value="activo" ${suministrosFilters.estado === "activo" ? "selected" : ""}>Activos</option>
               <option value="finalizado" ${suministrosFilters.estado === "finalizado" ? "selected" : ""}>Finalizados</option>
@@ -4146,25 +4163,25 @@
             </select>
 
             ${role !== "proveedor" ? `
-              <select class="exp-filter-select" data-suministro-filter="proveedor" aria-label="Filtrar por proveedor">
+              <select class="exp-filter-select" id="suministroFilterProveedor" name="filter_proveedor" data-suministro-filter="proveedor" aria-label="Filtrar por proveedor">
                 <option value="all" ${suministrosFilters.proveedor === "all" ? "selected" : ""}>Proveedor: Todos</option>
                 ${uniqueProveedores.map(p => `<option value="${p}" ${suministrosFilters.proveedor === p ? "selected" : ""}>${p}</option>`).join("")}
               </select>
             ` : ""}
 
             ${role !== "cliente" ? `
-              <select class="exp-filter-select" data-suministro-filter="cliente" aria-label="Filtrar por cliente">
+              <select class="exp-filter-select" id="suministroFilterCliente" name="filter_cliente" data-suministro-filter="cliente" aria-label="Filtrar por cliente">
                 <option value="all" ${suministrosFilters.cliente === "all" ? "selected" : ""}>Cliente: Todos</option>
                 ${uniqueClientes.map(c => `<option value="${c}" ${suministrosFilters.cliente === c ? "selected" : ""}>${c}</option>`).join("")}
               </select>
             ` : ""}
 
-            <select class="exp-filter-select" data-suministro-filter="ano" aria-label="Filtrar por año">
+            <select class="exp-filter-select" id="suministroFilterAno" name="filter_ano" data-suministro-filter="ano" aria-label="Filtrar por año">
               <option value="all" ${suministrosFilters.ano === "all" ? "selected" : ""}>Año: Todos</option>
               ${uniqueAnos.map(a => `<option value="${a}" ${suministrosFilters.ano === String(a) ? "selected" : ""}>Año ${a}</option>`).join("")}
             </select>
 
-            <select class="exp-filter-select" data-suministro-filter="acciones" aria-label="Filtrar por acciones">
+            <select class="exp-filter-select" id="suministroFilterAcciones" name="filter_acciones" data-suministro-filter="acciones" aria-label="Filtrar por acciones">
               <option value="all" ${suministrosFilters.acciones === "all" ? "selected" : ""}>Acciones: Todas</option>
               <option value="has_pending" ${suministrosFilters.acciones === "has_pending" ? "selected" : ""}>Con acciones pendientes</option>
               <option value="none" ${suministrosFilters.acciones === "none" ? "selected" : ""}>Sin acciones pendientes</option>
@@ -5823,6 +5840,25 @@
     });
 
     // Constructor de Expediente: Añadir Fila de Suministro Dinámico
+    function bindSuministroFileInputs(root = document) {
+      root.querySelectorAll(".suministro-item").forEach(row => {
+        const trigger = row.querySelector(".suministro-file-trigger");
+        const input = row.querySelector(".suministro-file-input");
+        const label = row.querySelector(".suministro-file-label");
+        if (trigger && input && !trigger.dataset.bound) {
+          trigger.dataset.bound = "1";
+          trigger.addEventListener("click", () => input.click());
+          input.addEventListener("change", e => {
+            const files = e.target.files;
+            if (files && files.length > 0 && label) {
+              label.textContent = files.length === 1 ? files[0].name : `${files.length} archivos`;
+            }
+          });
+        }
+      });
+    }
+    bindSuministroFileInputs();
+
     const addSuministroBtn = document.getElementById("addSuministroRowBtn");
     const suministrosWrap = document.getElementById("suministrosContainer");
     if (addSuministroBtn && suministrosWrap) {
@@ -5836,31 +5872,51 @@
             <span class="suministro-item-title">${icon("route", 14)} Lote de Suministro ${suministroRowCount}</span>
             <button type="button" class="suministro-remove-btn" data-remove-suministro>${icon("x", 12)} Eliminar lote</button>
           </div>
-          <div class="create-exp-grid-3">
+          <div class="create-exp-grid-3" style="margin-bottom:10px">
             <label class="create-exp-label">
-              Tipo de Componente Ferroviario
-              <select class="create-exp-select" required>
-                <option value="Carril laminado 54E1 / 60E1">Carril Laminado 54E1 / 60E1 (Grado R260 / R350HT)</option>
-                <option value="Traviesas de hormigón monobloque PR-22">Traviesas de Hormigón Monobloque PR-22 (Superestructura)</option>
-                <option value="Traviesas de madera tratada creosotada">Traviesas de Madera Tratada Creosotada (3 subtipos)</option>
-                <option value="Sujeciones y clips elásticos SKL-14">Clips y Fijaciones Elásticas (SKL-14 / Pandrol Fastclip)</option>
-                <option value="Placas de asiento y suelas elastómero">Placas de Asiento Metálicas / Suelas Bajo Traviesa</option>
-                <option value="Aparatos de vía y corazones monobloque">Aparatos de Vía, Desvíos y Corazones Monobloque</option>
-                <option value="Balasto silíceo tipo 1">Balasto Silíceo Certificado Tipo 1</option>
-                <option value="Otro elemento especial a medida">Otro Elemento de Vía a Medida</option>
+              Tipo de Suministro
+              <select name="suministro_material_${suministroRowCount}" class="create-exp-select" required>
+                <option value="Traviesas de madera">Traviesas de madera</option>
+                <option value="Traviesas de hormigón">Traviesas de hormigón</option>
+                <option value="Carril ferroviario">Carril ferroviario</option>
+                <option value="Sujeciones y fijaciones">Sujeciones y fijaciones</option>
+                <option value="Placas de asiento">Placas de asiento</option>
+                <option value="Aparatos de vía">Aparatos de vía</option>
+                <option value="Balasto">Balasto</option>
+                <option value="Otro suministro">Otro suministro</option>
               </select>
             </label>
             <label class="create-exp-label">
               Volumen / Unidades
-              <input class="create-exp-input" required placeholder="Ej: 5.000 unidades o 12 km" />
+              <input name="suministro_unidades_${suministroRowCount}" class="create-exp-input" required placeholder="Ej: 5.000 unidades o 12 km" />
             </label>
             <label class="create-exp-label">
-              Tramo de Instalación
-              <input class="create-exp-input" required placeholder="Ej: P.K. 24+800 a 36+000" />
+              Especificaciones
+              <input name="suministro_especificaciones_${suministroRowCount}" class="create-exp-input" placeholder="Ej: Madera de roble tratada, 2,60 m" />
+            </label>
+          </div>
+          <div class="create-exp-grid-3">
+            <label class="create-exp-label">
+              Presupuesto Estimado (Opcional)
+              <input name="suministro_presupuesto_${suministroRowCount}" class="create-exp-input" placeholder="Ej: 120.000 €" />
+            </label>
+            <label class="create-exp-label">
+              Fecha Objetivo (Opcional, si es diferente a la del expediente)
+              <input type="date" name="suministro_fecha_${suministroRowCount}" class="create-exp-input" />
+            </label>
+            <label class="create-exp-label">
+              Adjunto (Opcional)
+              <div style="display:flex;align-items:center;gap:8px">
+                <input type="file" class="suministro-file-input" style="display:none" accept=".pdf,.dwg,.xlsx,.docx" multiple />
+                <button type="button" class="slot-upload-btn suministro-file-trigger" style="height:38px;width:100%;justify-content:center">
+                  ${icon("upload", 14)} <span class="suministro-file-label">Subir docs</span>
+                </button>
+              </div>
             </label>
           </div>
         `;
         suministrosWrap.appendChild(item);
+        bindSuministroFileInputs(item);
         item.querySelector("[data-remove-suministro]")?.addEventListener("click", () => {
           item.remove();
         });
@@ -5948,14 +6004,25 @@
         const items = document.querySelectorAll("#suministrosContainer .suministro-item");
         const suministrosList = [];
         items.forEach(it => {
-          const mat = it.querySelector("select")?.value || "Componente Ferroviario";
-          const units = it.querySelector('input[placeholder*="unidades"]')?.value.trim() || "Cantidad según pliego";
-          const tramo = it.querySelector('input[placeholder*="P.K."]')?.value.trim() || "Vía principal";
-          suministrosList.push({ material: mat, unidades: units, tramo: tramo });
+          const mat = it.querySelector("select")?.value || "Traviesas de madera";
+          const units = it.querySelector('input[name^="suministro_unidades"]')?.value.trim() || "Cantidad según pliego";
+          const espec = it.querySelector('input[name^="suministro_especificaciones"]')?.value.trim() || "Especificación estándar";
+          const pres = it.querySelector('input[name^="suministro_presupuesto"]')?.value.trim() || "";
+          const fechaSum = it.querySelector('input[name^="suministro_fecha"]')?.value || "";
+          const fileSum = it.querySelector('.suministro-file-input')?.files?.[0]?.name || null;
+          suministrosList.push({
+            material: mat,
+            unidades: units,
+            tramo: espec,
+            especificaciones: espec,
+            presupuesto: pres,
+            fechaObjetivo: fechaSum,
+            adjunto: fileSum
+          });
         });
 
         const primaryMat = suministrosList[0] ? suministrosList[0].material : "Material Ferroviario";
-        const unitsSummary = suministrosList.map(s => `${s.unidades} (${s.tramo})`).join(" + ");
+        const unitsSummary = suministrosList.map(s => `${s.unidades} (${s.especificaciones})`).join(" + ");
         const fileName = stagedPliegoFile || "Pliego-Prescripciones-Tecnicas-PPTP.pdf";
 
         // Generar ID correlativo
@@ -6013,12 +6080,16 @@
         suministrosList.forEach((s) => {
           const nextIndex = SUMINISTROS.length + 1;
           const numStr = String(nextIndex).padStart(2, "0");
+          const effectiveDate = s.fechaObjetivo || fechaObj;
           SUMINISTROS.unshift({
             id: `SUM-${numStr}`,
             num: numStr,
             tipo: s.material,
             unidades: s.unidades,
             unidadesNum: parseInt(s.unidades.replace(/\D/g, ""), 10) || 1,
+            especificaciones: s.especificaciones,
+            presupuesto: s.presupuesto || null,
+            adjunto: s.adjunto || null,
             expId: newId,
             proveedor: "Por determinar",
             cliente: cliente,
@@ -6027,8 +6098,8 @@
             faseActual: isRoleAdmin ? 1 : 0,
             faseNombre: isRoleAdmin ? "Fase 2: Cotización" : "Fase 1: Alcance",
             accionesPendientes: isRoleAdmin ? 1 : 0,
-            fechaEntrega: fechaObj ? new Date(fechaObj).toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" }) : "10 nov 2026",
-            fechaEntregaIso: fechaObj || "2026-11-10",
+            fechaEntrega: effectiveDate ? new Date(effectiveDate).toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" }) : "10 nov 2026",
+            fechaEntregaIso: effectiveDate || "2026-11-10",
             estado: "activo"
           });
         });
