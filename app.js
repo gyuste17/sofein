@@ -523,7 +523,7 @@
     },
     {
       id: "SUM-04",
-      num: "04",
+      num: "01",
       tipo: "Carril laminado 54E1 Grado R260",
       unidades: "1.200 t (18 km)",
       unidadesNum: 1200,
@@ -542,7 +542,7 @@
     },
     {
       id: "SUM-05",
-      num: "05",
+      num: "02",
       tipo: "Aparatos de dilatación y bridas aislantes 54E1",
       unidades: "24 parejas",
       unidadesNum: 24,
@@ -561,7 +561,7 @@
     },
     {
       id: "SUM-06",
-      num: "06",
+      num: "01",
       tipo: "Traviesas de madera tratada creosotada",
       unidades: "3.200 uds",
       unidadesNum: 3200,
@@ -580,7 +580,7 @@
     },
     {
       id: "SUM-07",
-      num: "07",
+      num: "02",
       tipo: "Desvíos y cruzamientos monobloque tipo C",
       unidades: "4 desvíos cjtos",
       unidadesNum: 4,
@@ -599,7 +599,7 @@
     },
     {
       id: "SUM-08",
-      num: "08",
+      num: "03",
       tipo: "Placas de asiento para traviesa de madera",
       unidades: "6.400 uds",
       unidadesNum: 6400,
@@ -618,7 +618,7 @@
     },
     {
       id: "SUM-09",
-      num: "09",
+      num: "01",
       tipo: "Sujeciones elásticas y fijaciones SKL-14",
       unidades: "29.000 cjtos",
       unidadesNum: 29000,
@@ -637,7 +637,7 @@
     },
     {
       id: "SUM-10",
-      num: "10",
+      num: "02",
       tipo: "Suelas bajo traviesa y elastómeros antivibratorios",
       unidades: "14.500 uds",
       unidadesNum: 14500,
@@ -656,7 +656,7 @@
     },
     {
       id: "SUM-11",
-      num: "11",
+      num: "01",
       tipo: "Tirafondos de acero tratado TF-24",
       unidades: "62.000 uds",
       unidadesNum: 62000,
@@ -675,7 +675,7 @@
     },
     {
       id: "SUM-12",
-      num: "12",
+      num: "02",
       tipo: "Arandelas elásticas dobles Fe6",
       unidades: "124.000 uds",
       unidadesNum: 124000,
@@ -1180,16 +1180,75 @@
   let expSearchQuery = "";
   let suministrosFilters = {
     fase: "all",
-    estado: "all",
     proveedor: "all",
     cliente: "all",
     ano: "all",
     acciones: "all"
   };
-  let suministrosSortCol = "num"; // "num" | "tipo" | "unidades" | "expediente" | "proveedor" | "cliente" | "destino" | "ano" | "fase" | "acciones" | "fechaEntrega"
-  let suministrosSortDir = "asc"; // "asc" | "desc"
-  let showCerradosSuministros = false;
+  let suministrosSortCol = "suministro";
+  let suministrosSortDir = "asc";
   let suministrosSearchQuery = "";
+  let isColsMenuOpen = false;
+
+  const ALL_SUMINISTROS_COL_DEFS = {
+    suministro: { id: "suministro", label: "Suministro", minWidth: "90px" },
+    tipo: { id: "tipo", label: "Tipo", minWidth: "220px" },
+    unidades: { id: "unidades", label: "Unidades", minWidth: "125px" },
+    expediente: { id: "expediente", label: "Expediente", minWidth: "135px" },
+    proveedor: { id: "proveedor", label: "Proveedor", minWidth: "165px" },
+    cliente: { id: "cliente", label: "Cliente", minWidth: "165px" },
+    destino: { id: "destino", label: "Destino", minWidth: "180px" },
+    ano: { id: "ano", label: "Año", minWidth: "75px" },
+    fase: { id: "fase", label: "Fase", minWidth: "145px" },
+    acciones: { id: "acciones", label: "Acciones pendientes", minWidth: "125px" },
+    fechaEntrega: { id: "fechaEntrega", label: "Fecha entrega", minWidth: "130px" }
+  };
+
+  const DEFAULT_SUMINISTROS_COL_ORDER = [
+    "suministro",
+    "tipo",
+    "unidades",
+    "expediente",
+    "proveedor",
+    "cliente",
+    "destino",
+    "ano",
+    "fase",
+    "acciones",
+    "fechaEntrega"
+  ];
+
+  let suministrosColumnOrder = [...DEFAULT_SUMINISTROS_COL_ORDER];
+  let suministrosHiddenCols = new Set();
+
+  function loadSuministrosColPrefs() {
+    try {
+      const saved = localStorage.getItem("sofein_suministros_columns_cfg");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed.order) && parsed.order.length > 0) {
+          const validOrder = parsed.order.filter(id => DEFAULT_SUMINISTROS_COL_ORDER.includes(id));
+          DEFAULT_SUMINISTROS_COL_ORDER.forEach(id => {
+            if (!validOrder.includes(id)) validOrder.push(id);
+          });
+          suministrosColumnOrder = validOrder;
+        }
+        if (Array.isArray(parsed.hidden)) {
+          suministrosHiddenCols = new Set(parsed.hidden.filter(id => DEFAULT_SUMINISTROS_COL_ORDER.includes(id)));
+        }
+      }
+    } catch (e) {}
+  }
+  loadSuministrosColPrefs();
+
+  function saveSuministrosColPrefs() {
+    try {
+      localStorage.setItem("sofein_suministros_columns_cfg", JSON.stringify({
+        order: suministrosColumnOrder,
+        hidden: Array.from(suministrosHiddenCols)
+      }));
+    } catch (e) {}
+  }
   let avisosGroup = "none"; // "none" | "expediente" | "categoria" | "fecha"
   let discardedNotices = new Set();
   let showDiscardedAvisos = false;
@@ -3993,25 +4052,18 @@
   function renderSuministrosSection(role) {
     const roleAll = getSuministrosForRole(role);
 
-    // Contadores para resumen KPI
-    const countActivos = roleAll.filter(s => s.estado === "activo").length;
-    const countAccionPendiente = roleAll.filter(s => s.accionesPendientes > 0).length;
-    const countFinalizados = roleAll.filter(s => s.estado === "finalizado").length;
-    const countCerrados = roleAll.filter(s => s.estado === "cerrado").length;
-    const countCerradosFinalizados = countFinalizados + countCerrados;
-
-    // Opciones dinamicas para los filtros selectores
+    // Opciones dinámicas para los filtros selectores
     const uniquePhaseIndices = Array.from(new Set(roleAll.map(s => s.faseActual))).sort((a, b) => a - b);
     const uniqueProveedores = Array.from(new Set(roleAll.map(s => s.proveedor))).sort();
     const uniqueClientes = Array.from(new Set(roleAll.map(s => s.cliente))).sort();
     const uniqueAnos = Array.from(new Set(roleAll.map(s => s.ano))).sort((a, b) => b - a);
 
-    // Filtrar segun busqueda y selectores
+    // Filtrar según búsqueda y selectores
     const q = suministrosSearchQuery.trim().toLowerCase();
     const filtered = roleAll.filter(s => {
       // 1. Buscador libre
       if (q) {
-        const haystack = `${s.num} ${s.tipo} ${s.unidades} ${s.expId} ${s.proveedor} ${s.cliente} ${s.destino} ${s.ano} ${s.faseNombre} ${s.estado} ${s.fechaEntrega}`.toLowerCase();
+        const haystack = `${s.num} ${s.tipo} ${s.unidades} ${s.expId} ${s.proveedor} ${s.cliente} ${s.destino} ${s.ano} ${s.faseNombre} ${s.fechaEntrega}`.toLowerCase();
         if (!haystack.includes(q)) return false;
       }
 
@@ -4020,33 +4072,22 @@
         return false;
       }
 
-      // 3. Filtro por Estado
-      if (suministrosFilters.estado === "all") {
-        if (!showCerradosSuministros && s.estado !== "activo") return false;
-      } else if (suministrosFilters.estado === "activo") {
-        if (s.estado !== "activo") return false;
-      } else if (suministrosFilters.estado === "finalizado") {
-        if (s.estado !== "finalizado") return false;
-      } else if (suministrosFilters.estado === "cerrado") {
-        if (s.estado !== "cerrado") return false;
-      } // "todos": muestra todos
-
-      // 4. Filtro por Proveedor
+      // 3. Filtro por Proveedor
       if (suministrosFilters.proveedor !== "all" && s.proveedor !== suministrosFilters.proveedor) {
         return false;
       }
 
-      // 5. Filtro por Cliente
+      // 4. Filtro por Cliente
       if (suministrosFilters.cliente !== "all" && s.cliente !== suministrosFilters.cliente) {
         return false;
       }
 
-      // 6. Filtro por Ano
+      // 5. Filtro por Año
       if (suministrosFilters.ano !== "all" && String(s.ano) !== suministrosFilters.ano) {
         return false;
       }
 
-      // 7. Filtro por Acciones pendientes
+      // 6. Filtro por Acciones pendientes
       if (suministrosFilters.acciones === "has_pending" && s.accionesPendientes === 0) {
         return false;
       }
@@ -4059,14 +4100,14 @@
 
     const hasActiveFilters =
       suministrosSearchQuery.trim() !== "" ||
-      showCerradosSuministros ||
       Object.values(suministrosFilters).some(v => v !== "all");
 
-    // Ordenacion por columnas
+    // Ordenación por columnas
     const mult = suministrosSortDir === "desc" ? -1 : 1;
     const sorted = [...filtered].sort((a, b) => {
       let valA, valB;
       switch (suministrosSortCol) {
+        case "suministro":
         case "num":
           return (parseInt(a.num, 10) - parseInt(b.num, 10)) * mult;
         case "tipo":
@@ -4076,7 +4117,9 @@
           valB = b.unidadesNum || 0;
           return (valA - valB) * mult;
         case "expediente":
-          return a.expId.localeCompare(b.expId, "es") * mult;
+          valA = a.expId.localeCompare(b.expId, "es");
+          if (valA !== 0) return valA * mult;
+          return (parseInt(a.num, 10) - parseInt(b.num, 10)) * mult;
         case "proveedor":
           return a.proveedor.localeCompare(b.proveedor, "es") * mult;
         case "cliente":
@@ -4098,138 +4141,134 @@
       }
     });
 
-    const getSortIndicator = (col) => {
-      if (suministrosSortCol !== col) return '<span class="suministros-sort-icon">↕</span>';
-      return `<span class="suministros-sort-icon is-active">${suministrosSortDir === "asc" ? "↑" : "↓"}</span>`;
-    };
+    // Columnas visibles calculadas
+    const visibleCols = suministrosColumnOrder.filter(cId => !suministrosHiddenCols.has(cId));
+    if (visibleCols.length === 0) {
+      visibleCols.push("suministro", "tipo");
+    }
 
     const renderTableHeadHTML = () => `
       <thead>
         <tr>
-          <th class="suministros-th ${suministrosSortCol === 'num' ? 'is-sorted' : ''}" data-sort-suministro="num" style="width:75px">
-            <div class="suministros-th-inner">
-              <span>Suministro</span>
-              ${getSortIndicator('num')}
-            </div>
-          </th>
-          <th class="suministros-th ${suministrosSortCol === 'tipo' ? 'is-sorted' : ''}" data-sort-suministro="tipo" style="min-width:230px">
-            <div class="suministros-th-inner">
-              <span>Tipo</span>
-              ${getSortIndicator('tipo')}
-            </div>
-          </th>
-          <th class="suministros-th ${suministrosSortCol === 'unidades' ? 'is-sorted' : ''}" data-sort-suministro="unidades" style="min-width:130px">
-            <div class="suministros-th-inner">
-              <span>Unidades</span>
-              ${getSortIndicator('unidades')}
-            </div>
-          </th>
-          <th class="suministros-th ${suministrosSortCol === 'expediente' ? 'is-sorted' : ''}" data-sort-suministro="expediente" style="min-width:135px">
-            <div class="suministros-th-inner">
-              <span>Expediente</span>
-              ${getSortIndicator('expediente')}
-            </div>
-          </th>
-          <th class="suministros-th ${suministrosSortCol === 'proveedor' ? 'is-sorted' : ''}" data-sort-suministro="proveedor" style="min-width:170px">
-            <div class="suministros-th-inner">
-              <span>Proveedor</span>
-              ${getSortIndicator('proveedor')}
-            </div>
-          </th>
-          <th class="suministros-th ${suministrosSortCol === 'cliente' ? 'is-sorted' : ''}" data-sort-suministro="cliente" style="min-width:170px">
-            <div class="suministros-th-inner">
-              <span>Cliente</span>
-              ${getSortIndicator('cliente')}
-            </div>
-          </th>
-          <th class="suministros-th ${suministrosSortCol === 'destino' ? 'is-sorted' : ''}" data-sort-suministro="destino" style="min-width:180px">
-            <div class="suministros-th-inner">
-              <span>Destino</span>
-              ${getSortIndicator('destino')}
-            </div>
-          </th>
-          <th class="suministros-th ${suministrosSortCol === 'ano' ? 'is-sorted' : ''}" data-sort-suministro="ano" style="width:75px;text-align:center">
-            <div class="suministros-th-inner" style="justify-content:center">
-              <span>Año</span>
-              ${getSortIndicator('ano')}
-            </div>
-          </th>
-          <th class="suministros-th ${suministrosSortCol === 'fase' ? 'is-sorted' : ''}" data-sort-suministro="fase" style="min-width:145px">
-            <div class="suministros-th-inner">
-              <span>Fase</span>
-              ${getSortIndicator('fase')}
-            </div>
-          </th>
-          <th class="suministros-th ${suministrosSortCol === 'acciones' ? 'is-sorted' : ''}" data-sort-suministro="acciones" style="width:125px;text-align:center">
-            <div class="suministros-th-inner" style="justify-content:center">
-              <span>Acciones pend.</span>
-              ${getSortIndicator('acciones')}
-            </div>
-          </th>
-          <th class="suministros-th ${suministrosSortCol === 'fechaEntrega' ? 'is-sorted' : ''}" data-sort-suministro="fechaEntrega" style="min-width:130px">
-            <div class="suministros-th-inner">
-              <span>Fecha entrega</span>
-              ${getSortIndicator('fechaEntrega')}
-            </div>
-          </th>
+          ${visibleCols.map(colId => {
+            const colDef = ALL_SUMINISTROS_COL_DEFS[colId] || { label: colId };
+            const isSorted = suministrosSortCol === colId || (colId === "suministro" && suministrosSortCol === "num");
+            const sortIndicator = isSorted
+              ? `<span class="suministros-sort-icon is-active">${suministrosSortDir === "asc" ? "↑" : "↓"}</span>`
+              : '<span class="suministros-sort-icon">↕</span>';
+            return `
+              <th class="suministros-th ${isSorted ? 'is-sorted' : ''}"
+                  data-sort-suministro="${colId}"
+                  data-col-id="${colId}"
+                  draggable="true"
+                  title="Clic para ordenar · Arrastra para reordenar columna"
+                  style="min-width:${colDef.minWidth || '100px'}">
+                <div class="suministros-th-inner">
+                  <span class="suministros-th-drag-grip" title="Arrastrar para mover">⠿</span>
+                  <span class="suministros-th-label">${colDef.label}</span>
+                  ${sortIndicator}
+                </div>
+              </th>
+            `;
+          }).join("")}
         </tr>
       </thead>
     `;
 
+    const renderCellHTML = (s, colId) => {
+      switch (colId) {
+        case "suministro":
+          return `
+            <td class="suministro-num-cell">
+              <span class="suministro-badge-num" title="Suministro ${s.num} del expediente ${s.expId}">${s.num}</span>
+            </td>
+          `;
+        case "tipo":
+          return `
+            <td class="suministro-tipo-cell">
+              <strong title="${s.tipo}">${s.tipo}</strong>
+            </td>
+          `;
+        case "unidades":
+          return `
+            <td class="suministro-units">
+              <span>${s.unidades}</span>
+            </td>
+          `;
+        case "expediente":
+          return `
+            <td>
+              <a href="#${role}/expedientes/${s.expId}" class="suministro-exp-link" title="Abrir expediente ${s.expId}">
+                ${icon("folder", 12)}
+                <span>${s.expId}</span>
+              </a>
+            </td>
+          `;
+        case "proveedor":
+          return `
+            <td>
+              ${s.proveedor === "Por determinar" ? `
+                <span class="suministro-prv-tbd">Por determinar</span>
+              ` : `
+                <span class="suministro-supplier-name" title="${s.proveedor}">${s.proveedor}</span>
+              `}
+            </td>
+          `;
+        case "cliente":
+          return `
+            <td>
+              <span class="suministro-client-name" title="${s.cliente}">${s.cliente}</span>
+            </td>
+          `;
+        case "destino":
+          return `
+            <td>
+              <span class="suministro-dest-name" title="${s.destino}">${s.destino}</span>
+            </td>
+          `;
+        case "ano":
+          return `
+            <td style="text-align:center">
+              <span class="suministro-year-badge">${s.ano}</span>
+            </td>
+          `;
+        case "fase":
+          return `
+            <td>
+              <span class="suministro-phase-tag fase-${s.faseActual}">
+                ${s.faseNombre || `Fase ${s.faseActual + 1}`}
+              </span>
+            </td>
+          `;
+        case "acciones":
+          return `
+            <td style="text-align:center">
+              ${s.accionesPendientes > 0 ? `
+                <button class="suministro-actions-chip has-pending" type="button" data-go="#${role}/expedientes/${s.expId}" title="Ver ${s.accionesPendientes} acción(es) pendiente(s) en ${s.expId}">
+                  ${icon("alert", 11)} <span>${s.accionesPendientes}</span>
+                </button>
+              ` : `
+                <span class="suministro-actions-chip is-zero">0</span>
+              `}
+            </td>
+          `;
+        case "fechaEntrega":
+          return `
+            <td>
+              <div class="suministro-date-cell">
+                ${icon("calendar", 12)}
+                <span>${s.fechaEntrega}</span>
+              </div>
+            </td>
+          `;
+        default:
+          return `<td></td>`;
+      }
+    };
+
     const renderRowHTML = (s) => `
-      <tr class="suministros-tr status-${s.estado}">
-        <td>
-          <span class="suministro-badge-num">${s.num}</span>
-        </td>
-        <td>
-          <div class="suministro-tipo-cell">
-            <strong>${s.tipo}</strong>
-          </div>
-        </td>
-        <td>
-          <span class="suministro-units">${s.unidades}</span>
-        </td>
-        <td>
-          <button class="avisos-exp-chip-link" type="button" data-go="#${role}/expedientes/${s.expId}" title="Abrir expediente ${s.expId}">
-            ${icon("folder", 12)} ${s.expId}
-          </button>
-        </td>
-        <td>
-          ${s.proveedor === "Por determinar" ? `
-            <span class="suministro-prv-tbd">${icon("users", 12)} Por determinar</span>
-          ` : `
-            <span class="suministro-supplier-name">${s.proveedor}</span>
-          `}
-        </td>
-        <td>
-          <span class="suministro-client-name">${s.cliente}</span>
-        </td>
-        <td>
-          <span class="suministro-dest-name" title="${s.destino}">${s.destino}</span>
-        </td>
-        <td style="text-align:center">
-          <span class="suministro-year-badge">${s.ano}</span>
-        </td>
-        <td>
-          <span class="suministro-phase-tag fase-${s.faseActual}">
-            ${s.faseNombre || "Fase " + (s.faseActual + 1)}
-          </span>
-        </td>
-        <td style="text-align:center">
-          ${s.accionesPendientes > 0 ? `
-            <button class="suministro-actions-chip has-pending" type="button" data-go="#${role}/expedientes/${s.expId}" title="Ver ${s.accionesPendientes} acción(es) pendiente(s) en ${s.expId}">
-              ${icon("alert", 11)} <span>${s.accionesPendientes}</span>
-            </button>
-          ` : `
-            <span class="suministro-actions-chip is-zero">0</span>
-          `}
-        </td>
-        <td>
-          <div class="suministro-date-cell">
-            ${icon("calendar", 12)}
-            <span>${s.fechaEntrega}</span>
-          </div>
-        </td>
+      <tr class="suministros-tr status-${s.estado || 'activo'}" data-suministro-id="${s.id}">
+        ${visibleCols.map(colId => renderCellHTML(s, colId)).join("")}
       </tr>
     `;
 
@@ -4294,32 +4333,7 @@
         ` : ""}
       </div>
 
-      <!-- Resumen KPI / Filtros directos de 1 clic -->
-      <div class="entity-scope-strip exp-kpi-strip suministros-kpi-strip" role="region" aria-label="Resumen y filtros de suministros">
-        <button type="button" class="entity-scope-pill exp-kpi-btn ${suministrosFilters.estado === 'activo' || (suministrosFilters.estado === 'all' && !showCerradosSuministros && suministrosFilters.acciones === 'all') ? 'is-active' : ''}" data-suministro-kpi="activo">
-          <span class="scope-dot active"></span>
-          <span><b>${countActivos}</b> Activos</span>
-        </button>
-        <button type="button" class="entity-scope-pill exp-kpi-btn ${suministrosFilters.acciones === 'has_pending' ? 'is-active' : ''}" data-suministro-kpi="has_pending">
-          <span class="scope-dot is-pending-pulse"></span>
-          <span><b>${countAccionPendiente}</b> Con acción pendiente</span>
-        </button>
-        <button type="button" class="entity-scope-pill exp-kpi-btn ${suministrosFilters.estado === 'finalizado' ? 'is-active' : ''}" data-suministro-kpi="finalizado">
-          <span class="scope-dot info"></span>
-          <span><b>${countFinalizados}</b> Finalizados</span>
-        </button>
-        <button type="button" class="entity-scope-pill exp-kpi-btn ${suministrosFilters.estado === 'cerrado' ? 'is-active' : ''}" data-suministro-kpi="cerrado">
-          <span class="scope-dot closed"></span>
-          <span><b>${countCerrados}</b> Cerrados</span>
-        </button>
-        ${hasActiveFilters ? `
-          <button type="button" class="exp-kpi-reset-link" data-reset-suministros-filters>
-            ${icon("x", 12)} Mostrar todos
-          </button>
-        ` : ""}
-      </div>
-
-      <!-- Barra de Filtros y Busqueda -->
+      <!-- Barra de Filtros, Búsqueda y Columnas -->
       <div class="suministros-controls-bar">
         <div class="suministros-toolbar-left">
           <div class="suministros-search-box">
@@ -4329,8 +4343,8 @@
           </div>
 
           <div class="suministros-filters-wrap">
-            <select class="exp-filter-select" id="suministroFilterFase" name="filter_fase" data-suministro-filter="fase" aria-label="Filtrar por fase">
-              <option value="all" ${suministrosFilters.fase === "all" ? "selected" : ""}>Fase: Todas</option>
+            <select class="exp-filter-select ${suministrosFilters.fase !== 'all' ? 'is-filtered' : ''}" id="suministroFilterFase" name="filter_fase" data-suministro-filter="fase" aria-label="Fase">
+              <option value="all" ${suministrosFilters.fase === "all" ? "selected" : ""}>Fase</option>
               ${uniquePhaseIndices.map(fIdx => {
                 const fInfo = PHASES[fIdx] || {};
                 const name = SHORT_PHASE_NAMES[fIdx] || fInfo.name || `Fase ${fIdx + 1}`;
@@ -4338,48 +4352,33 @@
               }).join("")}
             </select>
 
-            <select class="exp-filter-select" id="suministroFilterEstado" name="filter_estado" data-suministro-filter="estado" aria-label="Filtrar por estado">
-              <option value="all" ${suministrosFilters.estado === "all" ? "selected" : ""}>Estado: ${showCerradosSuministros ? "Todos" : "Activos (por defecto)"}</option>
-              <option value="activo" ${suministrosFilters.estado === "activo" ? "selected" : ""}>Activos</option>
-              <option value="finalizado" ${suministrosFilters.estado === "finalizado" ? "selected" : ""}>Finalizados</option>
-              <option value="cerrado" ${suministrosFilters.estado === "cerrado" ? "selected" : ""}>Cerrados</option>
-              <option value="todos" ${suministrosFilters.estado === "todos" ? "selected" : ""}>Todos (inc. cerrados)</option>
-            </select>
-
             ${role !== "proveedor" ? `
-              <select class="exp-filter-select" id="suministroFilterProveedor" name="filter_proveedor" data-suministro-filter="proveedor" aria-label="Filtrar por proveedor">
-                <option value="all" ${suministrosFilters.proveedor === "all" ? "selected" : ""}>Proveedor: Todos</option>
+              <select class="exp-filter-select ${suministrosFilters.proveedor !== 'all' ? 'is-filtered' : ''}" id="suministroFilterProveedor" name="filter_proveedor" data-suministro-filter="proveedor" aria-label="Proveedor">
+                <option value="all" ${suministrosFilters.proveedor === "all" ? "selected" : ""}>Proveedor</option>
                 ${uniqueProveedores.map(p => `<option value="${p}" ${suministrosFilters.proveedor === p ? "selected" : ""}>${p}</option>`).join("")}
               </select>
             ` : ""}
 
             ${role !== "cliente" ? `
-              <select class="exp-filter-select" id="suministroFilterCliente" name="filter_cliente" data-suministro-filter="cliente" aria-label="Filtrar por cliente">
-                <option value="all" ${suministrosFilters.cliente === "all" ? "selected" : ""}>Cliente: Todos</option>
+              <select class="exp-filter-select ${suministrosFilters.cliente !== 'all' ? 'is-filtered' : ''}" id="suministroFilterCliente" name="filter_cliente" data-suministro-filter="cliente" aria-label="Cliente">
+                <option value="all" ${suministrosFilters.cliente === "all" ? "selected" : ""}>Cliente</option>
                 ${uniqueClientes.map(c => `<option value="${c}" ${suministrosFilters.cliente === c ? "selected" : ""}>${c}</option>`).join("")}
               </select>
             ` : ""}
 
-            <select class="exp-filter-select" id="suministroFilterAno" name="filter_ano" data-suministro-filter="ano" aria-label="Filtrar por año">
-              <option value="all" ${suministrosFilters.ano === "all" ? "selected" : ""}>Año: Todos</option>
+            <select class="exp-filter-select ${suministrosFilters.ano !== 'all' ? 'is-filtered' : ''}" id="suministroFilterAno" name="filter_ano" data-suministro-filter="ano" aria-label="Año">
+              <option value="all" ${suministrosFilters.ano === "all" ? "selected" : ""}>Año</option>
               ${uniqueAnos.map(a => `<option value="${a}" ${suministrosFilters.ano === String(a) ? "selected" : ""}>Año ${a}</option>`).join("")}
             </select>
 
-            <select class="exp-filter-select" id="suministroFilterAcciones" name="filter_acciones" data-suministro-filter="acciones" aria-label="Filtrar por acciones">
-              <option value="all" ${suministrosFilters.acciones === "all" ? "selected" : ""}>Acciones: Todas</option>
+            <select class="exp-filter-select ${suministrosFilters.acciones !== 'all' ? 'is-filtered' : ''}" id="suministroFilterAcciones" name="filter_acciones" data-suministro-filter="acciones" aria-label="Acciones pendientes">
+              <option value="all" ${suministrosFilters.acciones === "all" ? "selected" : ""}>Acciones pendientes</option>
               <option value="has_pending" ${suministrosFilters.acciones === "has_pending" ? "selected" : ""}>Con acciones pendientes</option>
               <option value="none" ${suministrosFilters.acciones === "none" ? "selected" : ""}>Sin acciones pendientes</option>
             </select>
 
-            <!-- Casilla Ver Cerrados rapida -->
-            <label class="suministros-cerrados-toggle" title="Incluir lotes finalizados y cerrados en la tabla">
-              <input type="checkbox" id="toggleVerCerradosSuministros" ${showCerradosSuministros || suministrosFilters.estado === "todos" ? "checked" : ""}>
-              <span class="suministros-toggle-title">Ver cerrados</span>
-              <span class="suministros-closed-counter">(${countCerradosFinalizados})</span>
-            </label>
-
             ${hasActiveFilters ? `
-              <button type="button" class="admin-quiet-button" data-reset-suministros-filters style="color:var(--entity-accent);padding:4px 8px;font-size:0.75rem;white-space:nowrap">
+              <button type="button" class="admin-quiet-button" data-reset-suministros-filters style="color:var(--entity-accent);padding:4px 8px;font-size:0.75rem;white-space:nowrap" title="Limpiar todos los filtros">
                 ${icon("x", 12)} Limpiar filtros
               </button>
             ` : ""}
@@ -4387,6 +4386,45 @@
         </div>
 
         <div class="suministros-toolbar-right">
+          <!-- Gestor de Columnas (Ocultar y Reordenar) -->
+          <div class="suministros-cols-wrap" id="suministrosColsWrap">
+            <button type="button" class="suministros-cols-btn ${suministrosHiddenCols.size > 0 ? 'is-active' : ''}" id="btnToggleColsMenu" aria-expanded="${isColsMenuOpen}">
+              ${icon("columns", 13)}
+              <span>Columnas</span>
+              <span class="suministros-cols-count">(${visibleCols.length}/${DEFAULT_SUMINISTROS_COL_ORDER.length})</span>
+              ${icon("chevronDown", 11)}
+            </button>
+            <div class="suministros-cols-popover" id="suministrosColsPopover" ${isColsMenuOpen ? '' : 'hidden'}>
+              <div class="suministros-cols-popover-head">
+                <div>
+                  <strong>Personalizar columnas</strong>
+                  <p>Arrastra cabeceras o usa flechas para ordenar; desmarca para ocultar.</p>
+                </div>
+                <button type="button" class="admin-quiet-button" id="btnResetColsConfig" title="Restablecer visibilidad y orden por defecto" style="font-size:0.72rem;color:var(--entity-accent)">
+                  Restablecer
+                </button>
+              </div>
+              <div class="suministros-cols-list">
+                ${suministrosColumnOrder.map((colId, idx) => {
+                  const colDef = ALL_SUMINISTROS_COL_DEFS[colId] || { label: colId };
+                  const isVis = !suministrosHiddenCols.has(colId);
+                  return `
+                    <div class="suministros-col-row" data-popover-col-id="${colId}">
+                      <label class="suministros-col-check-label">
+                        <input type="checkbox" data-col-toggle="${colId}" ${isVis ? "checked" : ""}>
+                        <span>${colDef.label}</span>
+                      </label>
+                      <div class="suministros-col-arrows">
+                        <button type="button" class="col-arrow-btn" data-col-move="up" data-col-id="${colId}" title="Mover hacia arriba" ${idx === 0 ? "disabled" : ""}>↑</button>
+                        <button type="button" class="col-arrow-btn" data-col-move="down" data-col-id="${colId}" title="Mover hacia abajo" ${idx === suministrosColumnOrder.length - 1 ? "disabled" : ""}>↓</button>
+                      </div>
+                    </div>
+                  `;
+                }).join("")}
+              </div>
+            </div>
+          </div>
+
           <span class="suministros-count-badge">
             <b>${sorted.length}</b> de ${roleAll.length} suministros
           </span>
@@ -4396,7 +4434,6 @@
       ${mainContentHTML}
     `;
   }
-
 
   const OVERVIEW_FILTER_LABELS = {
     validados: "Entregables técnicos validados y conformes (18)",
@@ -6557,45 +6594,12 @@
       });
     });
 
-    // Filtros rápidos KPI en Suministros (1 clic)
-    document.querySelectorAll("[data-suministro-kpi]").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const kpi = btn.dataset.suministroKpi;
-        if (kpi === "activo") {
-          suministrosFilters.estado = "activo";
-          suministrosFilters.acciones = "all";
-          showCerradosSuministros = false;
-        } else if (kpi === "has_pending") {
-          suministrosFilters.acciones = "has_pending";
-          if (suministrosFilters.estado === "finalizado" || suministrosFilters.estado === "cerrado") {
-            suministrosFilters.estado = "all";
-          }
-        } else if (kpi === "finalizado") {
-          suministrosFilters.estado = "finalizado";
-          suministrosFilters.acciones = "all";
-          showCerradosSuministros = true;
-        } else if (kpi === "cerrado") {
-          suministrosFilters.estado = "cerrado";
-          suministrosFilters.acciones = "all";
-          showCerradosSuministros = true;
-        }
-        renderApp();
-      });
-    });
-
-    // Selectores de Filtro en Suministros (Fase, Estado, Proveedor, Cliente, Año, Acciones)
+    // Selectores de Filtro en Suministros (Fase, Proveedor, Cliente, Año, Acciones)
     document.querySelectorAll("[data-suministro-filter]").forEach(sel => {
       sel.addEventListener("change", () => {
         const key = sel.dataset.suministroFilter;
         if (key && suministrosFilters.hasOwnProperty(key)) {
           suministrosFilters[key] = sel.value;
-          if (key === "estado") {
-            if (sel.value === "finalizado" || sel.value === "cerrado" || sel.value === "todos") {
-              showCerradosSuministros = true;
-            } else if (sel.value === "activo") {
-              showCerradosSuministros = false;
-            }
-          }
           renderApp();
         }
       });
@@ -6606,21 +6610,153 @@
       btn.addEventListener("click", () => {
         suministrosFilters = {
           fase: "all",
-          estado: "all",
           proveedor: "all",
           cliente: "all",
           ano: "all",
           acciones: "all"
         };
         suministrosSearchQuery = "";
-        showCerradosSuministros = false;
         renderApp();
       });
     });
 
-    // Ordenación por columnas en Suministros
-    document.querySelectorAll("[data-sort-suministro]").forEach(th => {
-      th.addEventListener("click", () => {
+    // Toggle Popover Gestor de Columnas
+    const btnToggleCols = document.getElementById("btnToggleColsMenu");
+    if (btnToggleCols) {
+      btnToggleCols.addEventListener("click", (e) => {
+        e.stopPropagation();
+        isColsMenuOpen = !isColsMenuOpen;
+        const popover = document.getElementById("suministrosColsPopover");
+        if (popover) {
+          popover.hidden = !isColsMenuOpen;
+          btnToggleCols.setAttribute("aria-expanded", String(isColsMenuOpen));
+        }
+      });
+    }
+
+    // Ocultar/Mostrar Columnas con Checkbox
+    document.querySelectorAll("[data-col-toggle]").forEach(chk => {
+      chk.addEventListener("change", () => {
+        const colId = chk.dataset.colToggle;
+        if (!chk.checked) {
+          const visibleCount = suministrosColumnOrder.filter(c => !suministrosHiddenCols.has(c)).length;
+          if (visibleCount <= 1) {
+            showToast("Al menos una columna debe permanecer visible");
+            chk.checked = true;
+            return;
+          }
+          suministrosHiddenCols.add(colId);
+        } else {
+          suministrosHiddenCols.delete(colId);
+        }
+        saveSuministrosColPrefs();
+        renderApp();
+      });
+    });
+
+    // Reordenar Columnas con Botones Arriba/Abajo
+    document.querySelectorAll("[data-col-move]").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const dir = btn.dataset.colMove;
+        const colId = btn.dataset.colId;
+        const idx = suministrosColumnOrder.indexOf(colId);
+        if (idx === -1) return;
+
+        if (dir === "up" && idx > 0) {
+          const temp = suministrosColumnOrder[idx - 1];
+          suministrosColumnOrder[idx - 1] = colId;
+          suministrosColumnOrder[idx] = temp;
+          saveSuministrosColPrefs();
+          renderApp();
+        } else if (dir === "down" && idx < suministrosColumnOrder.length - 1) {
+          const temp = suministrosColumnOrder[idx + 1];
+          suministrosColumnOrder[idx + 1] = colId;
+          suministrosColumnOrder[idx] = temp;
+          saveSuministrosColPrefs();
+          renderApp();
+        }
+      });
+    });
+
+    // Restablecer Columnas a Valores por Defecto
+    const btnResetCols = document.getElementById("btnResetColsConfig");
+    if (btnResetCols) {
+      btnResetCols.addEventListener("click", (e) => {
+        e.stopPropagation();
+        suministrosColumnOrder = [...DEFAULT_SUMINISTROS_COL_ORDER];
+        suministrosHiddenCols.clear();
+        saveSuministrosColPrefs();
+        renderApp();
+      });
+    }
+
+    // Drag and Drop & Ordenación en Cabeceras de Suministros
+    let draggedColId = null;
+    let isDraggingColumn = false;
+
+    document.querySelectorAll(".suministros-th[draggable]").forEach(th => {
+      th.addEventListener("dragstart", (e) => {
+        draggedColId = th.dataset.colId;
+        isDraggingColumn = true;
+        e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData("text/plain", draggedColId);
+        th.classList.add("is-dragging");
+      });
+
+      th.addEventListener("dragend", () => {
+        th.classList.remove("is-dragging");
+        document.querySelectorAll(".suministros-th").forEach(t => t.classList.remove("drag-over-left", "drag-over-right"));
+        setTimeout(() => { isDraggingColumn = false; }, 80);
+      });
+
+      th.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+        const targetId = th.dataset.colId;
+        if (!draggedColId || targetId === draggedColId) return;
+
+        const rect = th.getBoundingClientRect();
+        const isLeft = e.clientX < rect.left + rect.width / 2;
+        if (isLeft) {
+          th.classList.add("drag-over-left");
+          th.classList.remove("drag-over-right");
+        } else {
+          th.classList.add("drag-over-right");
+          th.classList.remove("drag-over-left");
+        }
+      });
+
+      th.addEventListener("dragleave", () => {
+        th.classList.remove("drag-over-left", "drag-over-right");
+      });
+
+      th.addEventListener("drop", (e) => {
+        e.preventDefault();
+        th.classList.remove("drag-over-left", "drag-over-right");
+        const targetId = th.dataset.colId;
+        if (!draggedColId || !targetId || draggedColId === targetId) return;
+
+        const rect = th.getBoundingClientRect();
+        const isInsertAfter = e.clientX >= rect.left + rect.width / 2;
+
+        const fromIdx = suministrosColumnOrder.indexOf(draggedColId);
+        if (fromIdx === -1) return;
+        suministrosColumnOrder.splice(fromIdx, 1);
+
+        let toIdx = suministrosColumnOrder.indexOf(targetId);
+        if (toIdx === -1) toIdx = suministrosColumnOrder.length;
+        if (isInsertAfter) toIdx += 1;
+
+        suministrosColumnOrder.splice(toIdx, 0, draggedColId);
+        saveSuministrosColPrefs();
+        renderApp();
+      });
+
+      // Clic para ordenar columna (solo si no se estaba arrastrando)
+      th.addEventListener("click", (e) => {
+        if (isDraggingColumn) return;
+        if (e.target.closest(".suministros-th-drag-grip")) return;
         const col = th.dataset.sortSuministro;
         if (suministrosSortCol === col) {
           suministrosSortDir = suministrosSortDir === "asc" ? "desc" : "asc";
@@ -6632,25 +6768,18 @@
       });
     });
 
-    // Casilla "Ver cerrados" en Suministros
-    const toggleCerradosSuministrosEl = document.getElementById("toggleVerCerradosSuministros");
-    if (toggleCerradosSuministrosEl) {
-      toggleCerradosSuministrosEl.addEventListener("change", e => {
-        showCerradosSuministros = e.target.checked;
-        if (!showCerradosSuministros && (suministrosFilters.estado === "cerrado" || suministrosFilters.estado === "finalizado" || suministrosFilters.estado === "todos")) {
-          suministrosFilters.estado = "all";
+    // Cerrar menú de columnas al hacer clic fuera
+    document.addEventListener("click", (e) => {
+      const wrap = document.getElementById("suministrosColsWrap");
+      const popover = document.getElementById("suministrosColsPopover");
+      if (wrap && popover && !popover.hidden) {
+        if (!wrap.contains(e.target)) {
+          isColsMenuOpen = false;
+          popover.hidden = true;
+          document.getElementById("btnToggleColsMenu")?.setAttribute("aria-expanded", "false");
         }
-        renderApp();
-      });
-    }
-
-    const btnActivarCerrados = document.getElementById("btnActivarVerCerrados");
-    if (btnActivarCerrados) {
-      btnActivarCerrados.addEventListener("click", () => {
-        showCerradosSuministros = true;
-        renderApp();
-      });
-    }
+      }
+    });
 
     // Buscador en directo de Suministros
     const sumSearchInput = document.getElementById("suministrosSearchInput");
