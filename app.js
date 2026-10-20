@@ -5823,13 +5823,80 @@
       }
     });
 
-    // Cambio de Player / Rol
+    // Cambio de Player / Rol con preservación contextual de página equivalente
+    function getEquivalentPath(targetRole) {
+      if (targetRole === activeRole) {
+        return location.hash || `#${targetRole}`;
+      }
+      // Mantener query params existentes (ej. tab, phase)
+      const rawHash = location.hash.replace(/^#\/?/, "");
+      const qIdx = rawHash.indexOf("?");
+      const querySuffix = qIdx !== -1 ? rawHash.slice(qIdx) : "";
+
+      // 1. Destinatario Final (solo tiene vista de pasaporte de expediente)
+      if (targetRole === "destinatario") {
+        return activeParam ? `#destinatario/pasaporte/${activeParam}${querySuffix}` : `#destinatario/pasaporte/RFQ-2026-014${querySuffix}`;
+      }
+      if (activeRole === "destinatario") {
+        return `#${targetRole}/expedientes/${activeParam || "RFQ-2026-014"}${querySuffix}`;
+      }
+
+      // 2. Ficha o detalle de expediente
+      if (activeSection === "expedientes" && activeParam) {
+        return `#${targetRole}/expedientes/${activeParam}${querySuffix}`;
+      }
+
+      // 3. Selector & Matching de ofertas de un expediente
+      if (activeSection === "selector" && activeParam) {
+        return `#${targetRole}/selector/${activeParam}${querySuffix}`;
+      }
+
+      // 4. Creación de nuevo expediente
+      if (activeSection === "nuevo" || (activeSection === "expedientes" && activeParam === "nuevo")) {
+        return (targetRole === "admin" || targetRole === "cliente") ? `#${targetRole}/nuevo` : `#${targetRole}/expedientes`;
+      }
+
+      // 5. Bandeja de Avisos / Inbox
+      if (activeSection === "avisos" || activeSection === "inbox") {
+        return `#${targetRole}/avisos`;
+      }
+
+      // 6. Perfil corporativo
+      if (activeSection === "perfil") {
+        return (targetRole === "cliente" || targetRole === "proveedor") ? `#${targetRole}/perfil` : `#${targetRole}/expedientes`;
+      }
+
+      // 7. Visión global (exclusiva de admin)
+      if (activeSection === "overview") {
+        return targetRole === "admin" ? `#admin/overview` : `#${targetRole}/expedientes`;
+      }
+
+      // 8. Directorio (exclusivo de admin)
+      if (activeSection === "directorio") {
+        return targetRole === "admin" ? `#admin/directorio` : `#${targetRole}/expedientes`;
+      }
+
+      // 9. Cotizaciones (exclusivo de proveedor)
+      if (activeSection === "cotizaciones") {
+        return targetRole === "proveedor" ? `#proveedor/cotizaciones` : `#${targetRole}/expedientes`;
+      }
+
+      // 10. Listado general de expedientes
+      if (activeSection === "expedientes") {
+        return `#${targetRole}/expedientes`;
+      }
+
+      // Fallback predeterminado del rol destino
+      const defaultNav = (PLAYERS[targetRole] && PLAYERS[targetRole].defaultNav) || "expedientes";
+      return `#${targetRole}/${defaultNav}`;
+    }
+
     document.querySelectorAll("[data-switch-role]").forEach(btn => {
       btn.addEventListener("click", () => {
         const targetRole = btn.dataset.switchRole;
         document.getElementById("roleDropdownMenu")?.setAttribute("hidden", "");
         document.getElementById("roleDropdownBtn")?.setAttribute("aria-expanded", "false");
-        location.hash = `#${targetRole}`;
+        location.hash = getEquivalentPath(targetRole);
       });
     });
 
