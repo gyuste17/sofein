@@ -3686,50 +3686,78 @@
     } else if (activeDossierTab === "comms") {
       // Pantalla 6: Comunicaciones & Avisos del Expediente
       const roleNotices = NOTICES.filter(n => n.expId === exp.id && n.roles.includes(activeRole));
-      const activeNotices = roleNotices.filter(n => !discardedNotices.has(n.id));
-      const discardedList = roleNotices.filter(n => discardedNotices.has(n.id));
+      const activeNotices = roleNotices.filter(n => !completedNotices.has(n.id));
+      const completedList = roleNotices.filter(n => completedNotices.has(n.id));
 
       const tableHeaderHTML = `
-        <div class="admin-doc-table-head avisos-grid">
-          <span>Tipo</span>
-          <span>Aviso / Actividad</span>
-          <span>Expediente</span>
-          <span>Categoría</span>
-          <span>Fecha</span>
+        <div class="admin-doc-table-head avisos-grid group-none">
+          <span class="avisos-th ${avisosSortCol === 'tipo' ? 'is-sorted' : ''}" data-sort-aviso="tipo" title="Ordenar por tipo/prioridad">
+            Tipo ${getAvisosSortIndicator('tipo')}
+          </span>
+          <span class="avisos-th ${avisosSortCol === 'titulo' ? 'is-sorted' : ''}" data-sort-aviso="titulo" title="Ordenar por aviso/actividad">
+            Aviso / Actividad ${getAvisosSortIndicator('titulo')}
+          </span>
+          <span class="avisos-th ${avisosSortCol === 'expId' ? 'is-sorted' : ''}" data-sort-aviso="expId" title="Ordenar por expediente">
+            Expediente ${getAvisosSortIndicator('expId')}
+          </span>
+          <span class="avisos-th ${avisosSortCol === 'suministro' ? 'is-sorted' : ''}" data-sort-aviso="suministro" title="Ordenar por suministro">
+            Suministro ${getAvisosSortIndicator('suministro')}
+          </span>
+          <span class="avisos-th ${avisosSortCol === 'categoria' ? 'is-sorted' : ''}" data-sort-aviso="categoria" title="Ordenar por categoría">
+            Categoría ${getAvisosSortIndicator('categoria')}
+          </span>
+          <span class="avisos-th ${avisosSortCol === 'fecha' ? 'is-sorted' : ''}" data-sort-aviso="fecha" title="Ordenar por fecha">
+            Fecha ${getAvisosSortIndicator('fecha')}
+          </span>
           <span style="text-align:right">Acciones</span>
         </div>
       `;
 
-      const renderNoticeRow = (n, isDiscarded = false) => `
-        <article class="admin-doc-row avisos-grid">
-          <span style="display:grid;place-items:center;width:34px;height:34px;border-radius:6px;background:var(--entity-panel-2)">
-            ${icon(n.tagClass === "warning" ? "alert" : n.tagClass === "review" ? "file" : "check", 16)}
-          </span>
-          <div style="min-width:0">
-            <strong style="display:block;margin-bottom:2px;cursor:pointer" data-go="${n.enlace}">${n.titulo}</strong>
-            <small style="color:var(--entity-muted);display:block;line-height:1.4">${n.descripcion}</small>
-          </div>
-          <div>
-            <button class="avisos-exp-chip-link" type="button" data-go="#${activeRole}/expedientes/${n.expId}" title="Expediente ${n.expId}">
-              ${icon("folder", 12)} ${n.expId}
-            </button>
-          </div>
-          <div>
-            <span class="dossier-chip" style="font-size:0.68rem;white-space:nowrap">${n.categoria}</span>
-          </div>
-          <div style="white-space:nowrap">
-            <time style="font-size:0.72rem;color:var(--entity-faint)">${n.fecha}</time>
-          </div>
-          <div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;white-space:nowrap">
-            ${!isDiscarded ? `
-              <button class="admin-quiet-button" type="button" data-go="${n.enlace}">${n.accion || "Ver"}</button>
-              <button class="admin-quiet-button" type="button" data-dismiss-notice="${n.id}" title="Descartar aviso">${icon("x", 12)} Descartar</button>
-            ` : `
-              <button class="admin-quiet-button" type="button" data-restore-notice="${n.id}" style="color:var(--entity-accent)">${icon("check", 12)} Restaurar</button>
-            `}
-          </div>
-        </article>
-      `;
+      const renderDossierNoticeRow = (n, isCompleted = false) => {
+        const tone = getCategoryToneInfo(n.categoria);
+        const sumLabel = n.suministro || "General del Lote";
+        return `
+          <article class="admin-doc-row avisos-grid group-none">
+            <span style="display:grid;place-items:center;width:34px;height:34px;border-radius:6px;background:${tone.bg};color:${tone.color};border:1px solid ${tone.border}" title="${n.categoria}">
+              ${icon(n.tagClass === "warning" ? "alert" : n.tagClass === "review" ? "file" : "check", 16)}
+            </span>
+            <div style="min-width:0">
+              <strong style="display:block;margin-bottom:2px;cursor:pointer" data-go="${n.enlace}">${n.titulo}</strong>
+              <small style="color:var(--entity-muted);display:block;line-height:1.4">${n.descripcion}</small>
+            </div>
+            <div>
+              <button class="avisos-exp-chip-link" type="button" data-go="#${activeRole}/expedientes/${n.expId}" title="Expediente ${n.expId}">
+                ${icon("folder", 12)} ${n.expId}
+              </button>
+            </div>
+            <div>
+              <button class="avisos-sum-chip" type="button" data-go="#${activeRole}/expedientes/${n.expId}?tab=overview" title="Suministro: ${sumLabel}">
+                ${icon("box", 12)} <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${sumLabel}</span>
+              </button>
+            </div>
+            <div>
+              <span class="avisos-cat-chip cat-${tone.slug}" title="Categoría: ${n.categoria}">
+                ${icon(tone.iconName || "tag", 11)} ${n.categoria}
+              </span>
+            </div>
+            <div style="white-space:nowrap">
+              <time style="font-size:0.72rem;color:var(--entity-faint)">${n.fecha}</time>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;white-space:nowrap">
+              ${!isCompleted ? `
+                <button class="admin-quiet-button" type="button" data-go="${n.enlace}">${n.accion || "Ver"}</button>
+                <button class="admin-quiet-button" type="button" data-complete-notice="${n.id}" data-dismiss-notice="${n.id}" title="Marcar aviso como completado" style="color:var(--entity-accent)">
+                  ${icon("check", 12)} Completado
+                </button>
+              ` : `
+                <button class="admin-quiet-button" type="button" data-restore-notice="${n.id}" style="color:var(--entity-accent)" title="Reabrir aviso">
+                  ${icon("check", 12)} Reabrir
+                </button>
+              `}
+            </div>
+          </article>
+        `;
+      };
 
       tabContent = `
         <div class="incident-container">
@@ -3757,7 +3785,7 @@
               <div class="incident-kpi-card">
                 <span class="label">Avisos de este Lote</span>
                 <strong class="value">${roleNotices.length}</strong>
-                <small class="sub">${activeNotices.length} activos · ${discardedList.length} descartados</small>
+                <small class="sub">${activeNotices.length} activos · ${completedList.length} completados</small>
               </div>
               <div class="incident-kpi-card">
                 <span class="label">Partes Vinculadas</span>
@@ -3774,21 +3802,21 @@
 
           <section class="admin-document-list" style="border:1px solid var(--entity-line);border-radius:10px;overflow:hidden;background:var(--entity-panel)">
             ${tableHeaderHTML}
-            ${activeNotices.length ? activeNotices.map(n => renderNoticeRow(n)).join("") : `
+            ${activeNotices.length ? sortNotices(activeNotices).map(n => renderDossierNoticeRow(n)).join("") : `
               <div style="padding:36px;text-align:center;color:var(--entity-muted)">
                 No hay avisos pendientes para este expediente. Toda la operativa avanza conforme al pliego.
               </div>
             `}
           </section>
 
-          ${discardedList.length ? `
+          ${completedList.length ? `
             <details class="admin-discarded-details">
               <summary id="toggleDiscardedSummary">
-                <span>${icon("archive", 14)} Ver descartados de este expediente (${discardedList.length})</span>
-                <span style="font-size:0.72rem;color:var(--entity-faint)">Desplegar para restaurar</span>
+                <span>${icon("check", 14)} Ver completados de este expediente (${completedList.length})</span>
+                <span style="font-size:0.72rem;color:var(--entity-faint)">Desplegar para revisar o reabrir</span>
               </summary>
               <div class="admin-discarded-list">
-                ${discardedList.map(n => renderNoticeRow(n, true)).join("")}
+                ${sortNotices(completedList).map(n => renderDossierNoticeRow(n, true)).join("")}
               </div>
             </details>
           ` : ""}
