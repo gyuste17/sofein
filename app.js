@@ -1519,7 +1519,7 @@
     return `
       <div class="dir-popover-wrapper">
         <span class="dossier-chip is-active-chip dir-popover-trigger" tabindex="0">
-          ${icon("box", 12)} <b>${activos.length}</b> ${activos.length === 1 ? 'suministro activo' : 'suministros activos'}
+          ${icon("box", 12)} <b>${activos.length}</b> ${activos.length === 1 ? 'activo' : 'activos'}
         </span>
         <div class="dir-hover-popover ${isUpward ? 'dir-popover-up' : ''}">
           <div class="dir-popover-head">
@@ -1558,7 +1558,7 @@
     return `
       <div class="dir-popover-wrapper">
         <span class="dossier-chip is-active-chip dir-popover-trigger" tabindex="0">
-          ${icon("folder", 12)} <b>${activos.length}</b> ${activos.length === 1 ? 'expediente activo' : 'expedientes activos'}
+          ${icon("folder", 12)} <b>${activos.length}</b> ${activos.length === 1 ? 'activo' : 'activos'}
         </span>
         <div class="dir-hover-popover ${isUpward ? 'dir-popover-up' : ''}">
           <div class="dir-popover-head">
@@ -1615,14 +1615,14 @@
   }
 
   function renderEmailCell(email) {
-    if (!email) return `<span style="color:var(--entity-faint);font-size:0.75rem">—</span>`;
-    return `<a href="mailto:${email}" class="dir-contact-link" style="font-size:0.78rem;display:inline-flex;align-items:center;gap:5px">${icon("mail", 13)} <span>${email}</span></a>`;
+    if (!email) return `<span style="color:var(--entity-faint);font-size:0.72rem">—</span>`;
+    return `<a href="mailto:${email}" class="dir-contact-link" title="${email}" style="font-size:0.72rem;display:inline-flex;align-items:center;gap:4px;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${icon("mail", 12)} <span>${email}</span></a>`;
   }
 
   function renderTelefonoCell(tel) {
-    if (!tel) return `<span style="color:var(--entity-faint);font-size:0.75rem">—</span>`;
+    if (!tel) return `<span style="color:var(--entity-faint);font-size:0.72rem">—</span>`;
     const cleanTel = tel.replace(/[^+\d]/g, "");
-    return `<a href="tel:${cleanTel}" class="dir-contact-link" style="font-size:0.78rem;display:inline-flex;align-items:center;gap:5px;white-space:nowrap">${icon("phone", 13)} <span>${tel}</span></a>`;
+    return `<a href="tel:${cleanTel}" class="dir-contact-link" style="font-size:0.72rem;display:inline-flex;align-items:center;gap:4px;white-space:nowrap">${icon("phone", 12)} <span>${tel}</span></a>`;
   }
   let previousRouteKey = null;
   let stagedPliegoFile = null;
@@ -5322,7 +5322,7 @@
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
               <h3 style="margin:0;font-size:0.95rem;color:var(--entity-text);display:flex;align-items:center;gap:8px">
                 Proveedores homologados
-                <span class="dossier-chip" style="font-size:0.7rem">${prvActiveList.length} ${prvActiveList.length === 1 ? 'taller' : 'talleres'}</span>
+                <span class="dossier-chip" style="font-size:0.7rem">${prvActiveList.length} ${prvActiveList.length === 1 ? 'proveedor' : 'proveedores'}</span>
               </h3>
             </div>
             <div class="b2b-dir-table-wrap">
@@ -5331,7 +5331,7 @@
                   <tr>
                     <th class="is-sortable ${directorioPrvSortCol === 'nombre' ? 'is-sorted' : ''}" data-sort-dir-prv="nombre">
                       <div class="th-sort-wrap">
-                        <span>Proveedor / Razón Social</span>
+                        <span>Nombre</span>
                         ${getDirectorioSortIcon('nombre', directorioPrvSortCol, directorioPrvSortDir)}
                       </div>
                     </th>
@@ -5349,13 +5349,13 @@
                     </th>
                     <th class="is-sortable ${directorioPrvSortCol === 'suministros' ? 'is-sorted' : ''}" data-sort-dir-prv="suministros">
                       <div class="th-sort-wrap">
-                        <span>Suministros Acreditados</span>
+                        <span>Suministros</span>
                         ${getDirectorioSortIcon('suministros', directorioPrvSortCol, directorioPrvSortDir)}
                       </div>
                     </th>
                     <th class="is-sortable ${directorioPrvSortCol === 'activos' ? 'is-sorted' : ''}" data-sort-dir-prv="activos">
                       <div class="th-sort-wrap">
-                        <span>Suministros Activos</span>
+                        <span>Activos</span>
                         ${getDirectorioSortIcon('activos', directorioPrvSortCol, directorioPrvSortDir)}
                       </div>
                     </th>
@@ -5391,8 +5391,8 @@
                     <tr>
                       <td>
                         <div style="display:flex;align-items:center;gap:10px">
-                          <span class="admin-client-initials" style="width:32px;height:32px;font-size:0.8rem">${p.nombre.slice(0, 2).toUpperCase()}</span>
-                          <strong>${p.nombre}</strong>
+                          <span class="admin-client-initials" style="width:26px;height:26px;min-width:26px;min-height:26px;max-width:26px;max-height:26px;flex:0 0 26px;flex-shrink:0;border-radius:50%;font-size:0.68rem;aspect-ratio:1">${p.nombre.slice(0, 2).toUpperCase()}</span>
+                          <strong style="font-size:0.78rem">${p.nombre}</strong>
                         </div>
                       </td>
                       <td><span class="entity-code" style="font-size:0.75rem">${p.cif}</span></td>
@@ -5429,7 +5429,7 @@
                   <tr>
                     <th class="is-sortable ${directorioCliSortCol === 'nombre' ? 'is-sorted' : ''}" data-sort-dir-cli="nombre">
                       <div class="th-sort-wrap">
-                        <span>Cliente / Contratista</span>
+                        <span>Nombre</span>
                         ${getDirectorioSortIcon('nombre', directorioCliSortCol, directorioCliSortDir)}
                       </div>
                     </th>
@@ -5447,13 +5447,13 @@
                     </th>
                     <th class="is-sortable ${directorioCliSortCol === 'actividad' ? 'is-sorted' : ''}" data-sort-dir-cli="actividad">
                       <div class="th-sort-wrap">
-                        <span>Actividad / Especialidad</span>
+                        <span>Actividad</span>
                         ${getDirectorioSortIcon('actividad', directorioCliSortCol, directorioCliSortDir)}
                       </div>
                     </th>
                     <th class="is-sortable ${directorioCliSortCol === 'activos' ? 'is-sorted' : ''}" data-sort-dir-cli="activos">
                       <div class="th-sort-wrap">
-                        <span>Expedientes Activos</span>
+                        <span>Activos</span>
                         ${getDirectorioSortIcon('activos', directorioCliSortCol, directorioCliSortDir)}
                       </div>
                     </th>
@@ -5483,8 +5483,8 @@
                     <tr>
                       <td>
                         <div style="display:flex;align-items:center;gap:10px">
-                          <span class="admin-client-initials" style="width:32px;height:32px;font-size:0.8rem;background:#1d426b">${c.nombre.slice(0, 2).toUpperCase()}</span>
-                          <strong>${c.nombre}</strong>
+                          <span class="admin-client-initials" style="width:26px;height:26px;min-width:26px;min-height:26px;max-width:26px;max-height:26px;flex:0 0 26px;flex-shrink:0;border-radius:50%;font-size:0.68rem;aspect-ratio:1;background:#1d426b">${c.nombre.slice(0, 2).toUpperCase()}</span>
+                          <strong style="font-size:0.78rem">${c.nombre}</strong>
                         </div>
                       </td>
                       <td><span class="entity-code" style="font-size:0.75rem">${c.cif}</span></td>
@@ -5586,7 +5586,7 @@
             <div style="margin-bottom:28px">
               <h3 style="margin:0 0 14px;font-size:0.95rem;color:var(--entity-text);display:flex;align-items:center;gap:8px">
                 Proveedores homologados
-                <span class="dossier-chip" style="font-size:0.7rem">${prvActiveList.length} talleres</span>
+                <span class="dossier-chip" style="font-size:0.7rem">${prvActiveList.length} proveedores</span>
               </h3>
               <div class="admin-client-grid">${prvCards || '<p style="color:var(--entity-muted);font-size:0.8rem">No hay proveedores que coincidan.</p>'}</div>
             </div>
@@ -5604,56 +5604,66 @@
         `;
       }
 
+      const currentTotalCount = (directorioTypeFilter === "proveedores") 
+        ? prvActiveList.length 
+        : (directorioTypeFilter === "clientes") 
+          ? cliActiveList.length 
+          : (prvActiveList.length + cliActiveList.length);
+
       return `
-        <div class="admin-view-head">
-          <div>
-            <h1>Clientes y proveedores</h1>
-            <p>Directorio homologado de contratistas de vía y talleres industriales con trazabilidad acreditada.</p>
+        <div class="b2b-dir-header-bar">
+          <div class="b2b-dir-header-title">
+            <h1>
+              Listado
+              <span class="dir-count-pill" style="font-size:0.8rem;height:24px;padding:0 8px;border-radius:12px;background:var(--entity-panel-2);border:1px solid var(--entity-line);color:var(--entity-text);font-weight:600">
+                ${currentTotalCount}
+              </span>
+            </h1>
           </div>
-          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-            <div class="view-mode-toggle">
-              <button class="view-mode-btn ${directorioViewMode === 'table' ? 'is-active' : ''}" type="button" data-dir-mode="table">
-                ${icon("table", 14)} Tabla
+
+          <div class="b2b-dir-header-actions">
+            <div class="b2b-dir-type-tabs">
+              <button type="button" class="dir-type-btn ${directorioTypeFilter === 'all' ? 'is-active' : ''}" data-dir-type="all">
+                Todos <span class="dir-count-pill">${DIRECTORIO_PROVEEDORES.length + DIRECTORIO_CLIENTES.length}</span>
               </button>
-              <button class="view-mode-btn ${directorioViewMode === 'grid' ? 'is-active' : ''}" type="button" data-dir-mode="grid">
-                ${icon("grid", 14)} Mosaico
+              <button type="button" class="dir-type-btn ${directorioTypeFilter === 'proveedores' ? 'is-active' : ''}" data-dir-type="proveedores">
+                Proveedores <span class="dir-count-pill">${DIRECTORIO_PROVEEDORES.length}</span>
+              </button>
+              <button type="button" class="dir-type-btn ${directorioTypeFilter === 'clientes' ? 'is-active' : ''}" data-dir-type="clientes">
+                Clientes <span class="dir-count-pill">${DIRECTORIO_CLIENTES.length}</span>
               </button>
             </div>
-            <button class="admin-primary-button" type="button" data-open-add-dir-modal>
-              ${icon("plus", 14)} Añadir
-            </button>
-          </div>
-        </div>
 
-        <!-- Barra de Filtros Superior: Tipos (Proveedores, Clientes) y Buscador por Campos -->
-        <div class="b2b-dir-filter-bar">
-          <div class="b2b-dir-type-tabs">
-            <button type="button" class="dir-type-btn ${directorioTypeFilter === 'all' ? 'is-active' : ''}" data-dir-type="all">
-              Todos <span class="dir-count-pill">${DIRECTORIO_PROVEEDORES.length + DIRECTORIO_CLIENTES.length}</span>
-            </button>
-            <button type="button" class="dir-type-btn ${directorioTypeFilter === 'proveedores' ? 'is-active' : ''}" data-dir-type="proveedores">
-              Proveedores <span class="dir-count-pill">${DIRECTORIO_PROVEEDORES.length}</span>
-            </button>
-            <button type="button" class="dir-type-btn ${directorioTypeFilter === 'clientes' ? 'is-active' : ''}" data-dir-type="clientes">
-              Clientes <span class="dir-count-pill">${DIRECTORIO_CLIENTES.length}</span>
-            </button>
-          </div>
+            <div class="b2b-dir-search-wrap" style="max-width:240px;min-width:180px">
+              <span class="dir-search-icon" style="left:9px">${icon("search", 13)}</span>
+              <input 
+                type="search" 
+                id="directorioSearchInput" 
+                class="b2b-dir-search-input" 
+                placeholder="Buscar..." 
+                value="${directorioSearchQuery.replace(/"/g, '&quot;')}"
+                autocomplete="off"
+                style="height:32px;font-size:0.77rem;padding-left:30px"
+              />
+              ${directorioSearchQuery ? `
+                <button type="button" id="clearDirectorioSearchBtn" class="dir-search-clear" title="Limpiar búsqueda">
+                  ${icon("x", 12)}
+                </button>
+              ` : ''}
+            </div>
 
-          <div class="b2b-dir-search-wrap">
-            <span class="dir-search-icon">${icon("search", 15)}</span>
-            <input 
-              type="search" 
-              id="directorioSearchInput" 
-              class="b2b-dir-search-input" 
-              placeholder="Buscar por nombre, CIF, sede, suministro o conformidad..." 
-              value="${directorioSearchQuery.replace(/"/g, '&quot;')}"
-              autocomplete="off"
-            />
-            ${directorioSearchQuery ? `
-              <button type="button" id="clearDirectorioSearchBtn" class="dir-search-clear" title="Limpiar búsqueda">
-                ${icon("x", 13)}
+            <div class="view-mode-toggle" style="height:32px">
+              <button class="view-mode-btn ${directorioViewMode === 'table' ? 'is-active' : ''}" type="button" data-dir-mode="table" style="padding:0 8px;font-size:0.74rem">
+                ${icon("table", 13)} Tabla
               </button>
-            ` : ''}
+              <button class="view-mode-btn ${directorioViewMode === 'grid' ? 'is-active' : ''}" type="button" data-dir-mode="grid" style="padding:0 8px;font-size:0.74rem">
+                ${icon("grid", 13)} Mosaico
+              </button>
+            </div>
+
+            <button class="admin-primary-button" type="button" data-open-add-dir-modal style="height:32px;padding:0 12px;font-size:0.74rem">
+              ${icon("plus", 13)} Añadir
+            </button>
           </div>
         </div>
 
@@ -9895,7 +9905,7 @@
             <div>
               <h3>${isEdit ? `Editar ${targetType === 'proveedor' ? 'Proveedor' : 'Cliente'}` : 'Añadir al Directorio'}</h3>
               <p style="margin:2px 0 0;font-size:0.75rem;color:var(--entity-muted)">
-                ${isEdit ? `Actualización de datos técnicos y operativos de ${entityToEdit.nombre}` : 'Alta de nuevo taller homologado o cliente constructor de vía'}
+                ${isEdit ? `Actualización de datos técnicos y operativos de ${entityToEdit.nombre}` : 'Alta de nuevo proveedor homologado o cliente constructor de vía'}
               </p>
             </div>
             <button type="button" id="closeAddEntityModalBtn" aria-label="Cerrar">×</button>
@@ -9905,7 +9915,7 @@
               <div style="display:grid;gap:6px">
                 <label style="font-size:0.75rem;font-weight:600;color:var(--entity-muted)">Tipo de entidad</label>
                 <select id="entityTypeSelect" name="tipo" ${isEdit ? "disabled" : ""} style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem">
-                  <option value="proveedor" ${targetType === "proveedor" ? "selected" : ""}>Proveedor Homologado (Taller / Fabricante)</option>
+                  <option value="proveedor" ${targetType === "proveedor" ? "selected" : ""}>Proveedor Homologado (Fabricante / Distribuidor)</option>
                   <option value="cliente" ${targetType === "cliente" ? "selected" : ""}>Cliente (Constructor de vía / Contratista)</option>
                 </select>
                 ${isEdit ? `<input type="hidden" name="tipo" value="${targetType}">` : ''}
