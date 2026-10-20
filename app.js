@@ -708,7 +708,7 @@
       id: "AV-01",
       expId: "SFN-2026-H6T4",
       sumId: "SUM-01",
-      suministro: "SUM-01 · Traviesas PR-22",
+      suministro: "01 · Traviesas PR-22",
       categoria: "Incidencia / Mediación",
       tagClass: "warning",
       titulo: "Propuesta de mediación de plazo pendiente de firma",
@@ -722,7 +722,7 @@
       id: "AV-02",
       expId: "SFN-2026-H6T4",
       sumId: "SUM-01",
-      suministro: "SUM-01 · Traviesas PR-22",
+      suministro: "01 · Traviesas PR-22",
       categoria: "Documentación",
       tagClass: "review",
       titulo: "Nuevo ensayo mecánico EN 13230 recibido",
@@ -736,7 +736,7 @@
       id: "AV-03",
       expId: "SFN-2026-K9M2",
       sumId: "SUM-04",
-      suministro: "SUM-04 · Carril laminado 54E1",
+      suministro: "04 · Carril 54E1",
       categoria: "Cotización",
       tagClass: "complete",
       titulo: "Preselección de 3 laminadores completada",
@@ -750,7 +750,7 @@
       id: "AV-04",
       expId: "SFN-2026-B3R8",
       sumId: "SUM-09",
-      suministro: "SUM-09 · Fijaciones SKL-14",
+      suministro: "09 · Fijaciones SKL-14",
       categoria: "Logística / Plazo",
       tagClass: "info",
       titulo: "Albarán de salida y despacho confirmado",
@@ -764,7 +764,7 @@
       id: "AV-05",
       expId: "SFN-2026-W4P7",
       sumId: "SUM-06",
-      suministro: "SUM-06 · Traviesas de madera creosotada",
+      suministro: "06 · Traviesas de madera",
       categoria: "Formalización",
       tagClass: "review",
       titulo: "Póliza de suministro y hoja de pedido emitida",
@@ -778,7 +778,7 @@
       id: "AV-06",
       expId: "SFN-2026-H6T4",
       sumId: "SUM-02",
-      suministro: "SUM-02 · Sujeciones PR-22",
+      suministro: "02 · Sujeciones PR-22",
       categoria: "Calidad / Ensayo",
       tagClass: "complete",
       titulo: "Ficha de lote y análisis de material aprobados",
@@ -3970,11 +3970,10 @@
       `;
 
       const renderDossierNoticeRow = (n, isCompleted = false) => {
-        const tone = getCategoryToneInfo(n.categoria);
-        const sumLabel = n.suministro || "General del Lote";
+        const sumLabel = (n.suministro || "General").replace(/^SUM-?/i, "");
         return `
           <article class="admin-doc-row avisos-grid group-none">
-            <span style="display:grid;place-items:center;width:34px;height:34px;border-radius:6px;background:${tone.bg};color:${tone.color};border:1px solid ${tone.border}" title="${n.categoria}">
+            <span style="display:grid;place-items:center;width:34px;height:34px;border-radius:6px;background:var(--entity-panel-2)">
               ${icon(n.tagClass === "warning" ? "alert" : n.tagClass === "review" ? "file" : "check", 16)}
             </span>
             <div style="min-width:0">
@@ -3992,9 +3991,7 @@
               </button>
             </div>
             <div>
-              <span class="avisos-cat-chip cat-${tone.slug}" title="Categoría: ${n.categoria}">
-                ${icon(tone.iconName || "tag", 11)} ${n.categoria}
-              </span>
+              <span class="dossier-chip" style="font-size:0.68rem;white-space:nowrap">${n.categoria}</span>
             </div>
             <div style="white-space:nowrap">
               <time style="font-size:0.72rem;color:var(--entity-faint)">${n.fecha}</time>
@@ -4263,11 +4260,10 @@
     `;
 
     const renderNoticeRow = (n, isCompleted = false, groupMode = "none") => {
-      const tone = getCategoryToneInfo(n.categoria);
-      const sumLabel = n.suministro || "General del Lote";
+      const sumLabel = (n.suministro || "General").replace(/^SUM-?/i, "");
       return `
         <article class="admin-doc-row avisos-grid group-${groupMode}">
-          <span style="display:grid;place-items:center;width:34px;height:34px;border-radius:6px;background:${tone.bg};color:${tone.color};border:1px solid ${tone.border}" title="${n.categoria}">
+          <span style="display:grid;place-items:center;width:34px;height:34px;border-radius:6px;background:var(--entity-panel-2)">
             ${icon(n.tagClass === "warning" ? "alert" : n.tagClass === "review" ? "file" : "check", 16)}
           </span>
           <div style="min-width:0">
@@ -4290,9 +4286,7 @@
           ` : ""}
           ${groupMode !== 'categoria' ? `
             <div>
-              <span class="avisos-cat-chip cat-${tone.slug}" title="Categoría: ${n.categoria}">
-                ${icon(tone.iconName || "tag", 11)} ${n.categoria}
-              </span>
+              <span class="dossier-chip" style="font-size:0.68rem;white-space:nowrap">${n.categoria}</span>
             </div>
           ` : ""}
           ${groupMode !== 'fecha' ? `
@@ -4364,7 +4358,8 @@
     } else if (avisosGroup === "suministro") {
       const groups = {};
       activeNotices.forEach(n => {
-        const sumKey = n.suministro || "General del Lote";
+        const rawKey = n.suministro || "General del Lote";
+        const sumKey = rawKey.replace(/^SUM-?/i, "");
         if (!groups[sumKey]) groups[sumKey] = [];
         groups[sumKey].push(n);
       });
@@ -4399,13 +4394,12 @@
         groups[cat].push(n);
       });
       mainAvisosHTML = Object.keys(groups).map(cat => {
-        const tone = getCategoryToneInfo(cat);
         const groupNotices = sortNotices(groups[cat]);
         return `
-          <section class="avisos-group-card cat-card-${tone.slug}">
+          <section class="avisos-group-card">
             <div class="avisos-group-card-head">
               <div class="avisos-group-card-title">
-                ${icon(tone.iconName || "file", 16)}
+                ${icon("file", 16)}
                 <span>Categoría: ${cat}</span>
               </div>
               <span class="avisos-group-count-pill">${groupNotices.length} ${groupNotices.length === 1 ? "aviso" : "avisos"}</span>
@@ -9760,8 +9754,8 @@
                   <select name="suministro" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem">
                     <option value="General del Expediente">General del Expediente</option>
                     ${SUMINISTROS.map(s => `
-                      <option value="SUM-${s.num} · ${s.tipo.split(' ')[0]} ${s.tipo.split(' ')[1] || ''}">
-                        SUM-${s.num} · ${s.tipo} (${s.expId})
+                      <option value="${s.num} · ${s.tipo.split(' ')[0]} ${s.tipo.split(' ')[1] || ''}">
+                        ${s.num} · ${s.tipo} (${s.expId})
                       </option>
                     `).join("")}
                   </select>
