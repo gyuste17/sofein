@@ -1867,8 +1867,8 @@
                   <input name="suministro_presupuesto_0" class="create-exp-input" placeholder="Ej: 120.000 €" />
                 </label>
                 <label class="create-exp-label">
-                  Fecha Objetivo (Opcional, si es diferente a la del expediente)
-                  <input type="date" name="suministro_fecha_0" class="create-exp-input" />
+                  Fecha Objetivo (Opcional)
+                  <input type="date" name="suministro_fecha_0" class="create-exp-input suministro-fecha-input" value="2026-11-30" data-custom-date="0" style="color:#9ca3af" />
                 </label>
                 <label class="create-exp-label">
                   Adjunto (Opcional)
@@ -5980,6 +5980,8 @@
     });
 
     // Constructor de Expediente: Añadir Fila de Suministro Dinámico
+    const mainFechaInput = document.querySelector('#createExpedienteFullForm input[name="fechaObjetivo"]');
+
     function bindSuministroFileInputs(root = document) {
       root.querySelectorAll(".suministro-item").forEach(row => {
         const trigger = row.querySelector(".suministro-file-trigger");
@@ -5995,15 +5997,44 @@
             }
           });
         }
+
+        const fechaInput = row.querySelector(".suministro-fecha-input");
+        if (fechaInput && !fechaInput.dataset.bound) {
+          fechaInput.dataset.bound = "1";
+          fechaInput.addEventListener("input", () => {
+            fechaInput.dataset.customDate = "1";
+            fechaInput.style.color = "var(--entity-text)";
+          });
+          fechaInput.addEventListener("change", () => {
+            fechaInput.dataset.customDate = "1";
+            fechaInput.style.color = "var(--entity-text)";
+          });
+        }
       });
     }
     bindSuministroFileInputs();
+
+    if (mainFechaInput && !mainFechaInput.dataset.syncBound) {
+      mainFechaInput.dataset.syncBound = "1";
+      const syncInheritedDates = () => {
+        const val = mainFechaInput.value;
+        document.querySelectorAll("#suministrosContainer .suministro-fecha-input").forEach(inp => {
+          if (inp.dataset.customDate !== "1") {
+            inp.value = val;
+            inp.style.color = "#9ca3af";
+          }
+        });
+      };
+      mainFechaInput.addEventListener("input", syncInheritedDates);
+      mainFechaInput.addEventListener("change", syncInheritedDates);
+    }
 
     const addSuministroBtn = document.getElementById("addSuministroRowBtn");
     const suministrosWrap = document.getElementById("suministrosContainer");
     if (addSuministroBtn && suministrosWrap) {
       addSuministroBtn.addEventListener("click", () => {
         suministroRowCount++;
+        const defaultDate = mainFechaInput ? mainFechaInput.value : "2026-11-30";
         const item = document.createElement("div");
         item.className = "suministro-item";
         item.dataset.suministroIndex = suministroRowCount;
@@ -6041,8 +6072,8 @@
               <input name="suministro_presupuesto_${suministroRowCount}" class="create-exp-input" placeholder="Ej: 120.000 €" />
             </label>
             <label class="create-exp-label">
-              Fecha Objetivo (Opcional, si es diferente a la del expediente)
-              <input type="date" name="suministro_fecha_${suministroRowCount}" class="create-exp-input" />
+              Fecha Objetivo (Opcional)
+              <input type="date" name="suministro_fecha_${suministroRowCount}" class="create-exp-input suministro-fecha-input" value="${defaultDate}" data-custom-date="0" style="color:#9ca3af" />
             </label>
             <label class="create-exp-label">
               Adjunto (Opcional)
