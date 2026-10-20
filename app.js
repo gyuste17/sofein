@@ -798,9 +798,11 @@
       cif: "B-48192837",
       sede: "Amurrio (Álava) / Bilbao",
       categorias: ["Traviesas — Superestructura", "Fijaciones — Superestructura"],
+      suministros: ["Traviesas", "Fijaciones"],
       materiales: "Traviesas de Hormigón Monobloque PR-22 · Sujeciones SKL-14",
       homologado: true,
       homologaciones: ["Adif NAV-2026", "AENOR EN 13230", "Certificado CE"],
+      conformidades: ["ISO 9001", "ISO 14001", "AENOR EN 13230", "Adif NAV-2026"],
       leadTimeMedio: "42 días",
       precioEstimado: "32 - 35 €/ud",
       condicionesPago: "60 días confirmada",
@@ -811,6 +813,8 @@
         "Garantía anticorrosión 10 años"
       ],
       score: "98% Conforme",
+      email: "carlos.m@iberrail.es",
+      telefono: "+34 945 393 210",
       contacto: "carlos.m@iberrail.es"
     },
     {
@@ -819,9 +823,11 @@
       cif: "A-33291845",
       sede: "Gijón (Asturias)",
       categorias: ["Carril — Superestructura", "Aparatos de Vía"],
+      suministros: ["Carril", "Aparatos de vía"],
       materiales: "Carril Laminado 54E1 / 60E1 · Aparatos de Vía",
       homologado: true,
       homologaciones: ["Adif 03.360.501", "EN 13674-1", "ISO 9001 / 14001"],
+      conformidades: ["ISO 9001", "ISO 14001", "EN 13674-1", "Adif 03.360.501"],
       leadTimeMedio: "58 días",
       precioEstimado: "940 - 970 €/t",
       condicionesPago: "60 días fecha factura",
@@ -832,6 +838,8 @@
         "Cumplimiento estricto perfil 54E1 Grado R260"
       ],
       score: "99% Conforme",
+      email: "ventas@nortevia.es",
+      telefono: "+34 985 301 440",
       contacto: "ventas@nortevia.es"
     },
     {
@@ -840,9 +848,11 @@
       cif: "A-47102938",
       sede: "Valladolid",
       categorias: ["Traviesas de Madera — Especial"],
+      suministros: ["Traviesas de madera", "Creosota"],
       materiales: "Traviesas de Madera Tratada Creosotada (3 subtipos)",
       homologado: true,
       homologaciones: ["Adif Normativa Vía", "Tratamiento UNE-EN 13145", "Cadena FSC/PEFC"],
+      conformidades: ["Tratamiento UNE-EN 13145", "Tratamiento autoclave", "Cadena FSC/PEFC", "Adif Normativa Vía"],
       leadTimeMedio: "35 días",
       precioEstimado: "62 - 68 €/ud",
       condicionesPago: "60 días fecha factura",
@@ -853,6 +863,8 @@
         "Garantía de durabilidad biológica 25 años"
       ],
       score: "94% Conforme",
+      email: "pedidos@maderavia.es",
+      telefono: "+34 983 451 220",
       contacto: "pedidos@maderavia.es"
     },
     {
@@ -861,9 +873,11 @@
       cif: "B-46091244",
       sede: "Sagunto (Valencia)",
       categorias: ["Carril — Superestructura"],
+      suministros: ["Carril 54E1", "Carril 60E1"],
       materiales: "Carril Laminado 54E1 / 60E1 · Acero R260 / R350HT",
       homologado: true,
       homologaciones: ["Adif 03.360.501", "EN 13674-1", "Certificado Lloyd's"],
+      conformidades: ["ISO 9001", "Certificado Lloyd's", "EN 13674-1", "Adif 03.360.501"],
       leadTimeMedio: "52 días",
       precioEstimado: "950 - 980 €/t",
       condicionesPago: "60 días confirming",
@@ -874,6 +888,8 @@
         "Garantía técnica de fatiga de rodadura"
       ],
       score: "96% Conforme",
+      email: "proyectos@siderurgicaferroviaria.es",
+      telefono: "+34 962 698 100",
       contacto: "proyectos@siderurgicaferroviaria.es"
     },
     {
@@ -882,9 +898,11 @@
       cif: "A-28190342",
       sede: "Madrid / Bilbao",
       categorias: ["Carril — Superestructura"],
+      suministros: ["Carril", "Desvíos"],
       materiales: "Carril Laminado 54E1 / 60E1 · Aparatos y desvíos",
       homologado: true,
       homologaciones: ["Adif 03.360.501", "EN 13674-1"],
+      conformidades: ["ISO 9001", "EN 13674-1", "Adif 03.360.501"],
       leadTimeMedio: "62 días",
       precioEstimado: "925 - 950 €/t",
       condicionesPago: "90 días confirming",
@@ -894,6 +912,8 @@
         "Acopio intermedio en parque logístico propio"
       ],
       score: "95% Conforme",
+      email: "comercial@railsandtracks.es",
+      telefono: "+34 918 420 530",
       contacto: "comercial@railsandtracks.es"
     },
     {
@@ -902,9 +922,11 @@
       cif: "A-50129384",
       sede: "Zaragoza",
       categorias: ["Traviesas — Superestructura"],
+      suministros: ["Traviesas"],
       materiales: "Traviesas de Hormigón Monobloque y Bibloque",
       homologado: true,
       homologaciones: ["Adif NAV-2026", "AENOR EN 13230", "Certificado CE"],
+      conformidades: ["ISO 9001", "AENOR EN 13230", "Certificado CE", "Adif NAV-2026"],
       leadTimeMedio: "46 días",
       precioEstimado: "33 - 36 €/ud",
       condicionesPago: "60 días fecha factura",
@@ -915,6 +937,8 @@
         "Transporte especial en bateas homologadas"
       ],
       score: "97% Conforme",
+      email: "ventas@prefarail.es",
+      telefono: "+34 976 572 810",
       contacto: "ventas@prefarail.es"
     },
     {
@@ -923,9 +947,11 @@
       cif: "B-24109823",
       sede: "León",
       categorias: ["Traviesas — Superestructura"],
+      suministros: ["Traviesas monobloque"],
       materiales: "Traviesas de Hormigón Monobloque PR-22 y Ancho Mixto",
       homologado: true,
       homologaciones: ["Adif NAV-2026", "EN 13230-2"],
+      conformidades: ["ISO 9001", "EN 13230-2", "Adif NAV-2026"],
       leadTimeMedio: "40 días",
       precioEstimado: "34 - 37 €/ud",
       condicionesPago: "60 días confirmada",
@@ -935,6 +961,8 @@
         "Suministro escalonado según avance de acopio en vía"
       ],
       score: "95% Conforme",
+      email: "contacto@traviesasdelnorte.es",
+      telefono: "+34 987 231 900",
       contacto: "contacto@traviesasdelnorte.es"
     },
     {
@@ -943,9 +971,11 @@
       cif: "B-31298451",
       sede: "Pamplona (Navarra)",
       categorias: ["Traviesas de Madera — Especial"],
+      suministros: ["Traviesas de madera", "Roble"],
       materiales: "Traviesas de Roble y Haya Impregnada",
       homologado: true,
       homologaciones: ["Adif Homologada", "UNE-EN 13145"],
+      conformidades: ["Tratamiento UNE-EN 13145", "PEFC Sostenible", "Adif Homologada"],
       leadTimeMedio: "38 días",
       precioEstimado: "64 - 70 €/ud",
       condicionesPago: "60 días fecha factura",
@@ -955,6 +985,8 @@
         "Mecanizado de placas según planos Adif"
       ],
       score: "93% Conforme",
+      email: "info@forestalesebro.es",
+      telefono: "+34 948 214 750",
       contacto: "info@forestalesebro.es"
     },
     {
@@ -963,9 +995,11 @@
       cif: "A-40192837",
       sede: "Segovia",
       categorias: ["Traviesas de Madera — Especial"],
+      suministros: ["Traviesas especiales"],
       materiales: "Traviesas de Madera para Puentes y Desvíos",
       homologado: true,
       homologaciones: ["Adif Homologada", "UNE-EN 13145"],
+      conformidades: ["Tratamiento UNE-EN 13145", "ISO 9001", "Adif Homologada"],
       leadTimeMedio: "42 días",
       precioEstimado: "65 - 72 €/ud",
       condicionesPago: "60 días confirming",
@@ -975,6 +1009,8 @@
         "Ensayos de absorción y penetración"
       ],
       score: "92% Conforme",
+      email: "comercial@maderasguadarrama.es",
+      telefono: "+34 921 430 880",
       contacto: "comercial@maderasguadarrama.es"
     },
     {
@@ -983,9 +1019,11 @@
       cif: "A-01283746",
       sede: "Vitoria (Álava)",
       categorias: ["Fijaciones — Superestructura"],
+      suministros: ["Fijaciones", "Tirafondos"],
       materiales: "Clips Elásticos · Tirafondos · Placas Antivibratorias",
       homologado: true,
       homologaciones: ["Adif Homologada", "EN 13481"],
+      conformidades: ["ISO 9001", "ISO 45001", "EN 13481", "Adif Homologada"],
       leadTimeMedio: "30 días",
       precioEstimado: "7,20 - 7,80 €/conjunto",
       condicionesPago: "60 días fecha factura",
@@ -995,6 +1033,8 @@
         "Embalaje en cajas paletizadas retractiladas"
       ],
       score: "97% Conforme",
+      email: "pedidos@fijacionesvoss.es",
+      telefono: "+34 945 281 600",
       contacto: "pedidos@fijacionesvoss.es"
     },
     {
@@ -1003,9 +1043,11 @@
       cif: "B-50982341",
       sede: "Zaragoza",
       categorias: ["Fijaciones — Superestructura"],
+      suministros: ["Fijaciones SKL-14"],
       materiales: "Sujeciones SKL-14 / W-14 · Placas elásticas",
       homologado: true,
       homologaciones: ["Adif Homologada", "EN 13481"],
+      conformidades: ["ISO 9001", "EN 13481", "Adif Homologada"],
       leadTimeMedio: "28 días",
       precioEstimado: "7,10 - 7,60 €/conjunto",
       condicionesPago: "60 días confirming",
@@ -1015,6 +1057,8 @@
         "Suministro conjunto con tornillería y arandelas"
       ],
       score: "96% Conforme",
+      email: "ventas@cliprail.es",
+      telefono: "+34 976 441 320",
       contacto: "ventas@cliprail.es"
     },
     {
@@ -1023,9 +1067,11 @@
       cif: "A-45192834",
       sede: "Toledo",
       categorias: ["Balasto Silíceo Certificado"],
+      suministros: ["Balasto"],
       materiales: "Balasto Silíceo Tipo 1 según Pliego Adif",
       homologado: true,
       homologaciones: ["Adif Tipo 1", "UNE-EN 13450", "Marcado CE 2+"],
+      conformidades: ["ISO 9001", "UNE-EN 13450", "Marcado CE 2+", "Adif Tipo 1"],
       leadTimeMedio: "20 días",
       precioEstimado: "18 - 22 €/t",
       condicionesPago: "60 días confirmada",
@@ -1036,6 +1082,8 @@
         "Transporte en tren tolva propio o camión bañera"
       ],
       score: "98% Conforme",
+      email: "aridos@canterascentro.es",
+      telefono: "+34 925 210 940",
       contacto: "aridos@canterascentro.es"
     },
     {
@@ -1044,9 +1092,11 @@
       cif: "B-33190283",
       sede: "Oviedo (Asturias)",
       categorias: ["Balasto Silíceo Certificado"],
+      suministros: ["Balasto"],
       materiales: "Balasto Silíceo Cuarcítico Tipo 1",
       homologado: true,
       homologaciones: ["Adif Tipo 1", "UNE-EN 13450"],
+      conformidades: ["ISO 14001", "UNE-EN 13450", "Adif Tipo 1"],
       leadTimeMedio: "22 días",
       precioEstimado: "19 - 23 €/t",
       condicionesPago: "60 días fecha factura",
@@ -1056,6 +1106,8 @@
         "Acopios en tolvas cubiertas"
       ],
       score: "95% Conforme",
+      email: "comercial@aridoscantabrico.es",
+      telefono: "+34 985 241 110",
       contacto: "comercial@aridoscantabrico.es"
     },
     {
@@ -1064,9 +1116,11 @@
       cif: "A-13098234",
       sede: "Ciudad Real",
       categorias: ["Balasto Silíceo Certificado"],
+      suministros: ["Balasto AV"],
       materiales: "Balasto Ofítico / Basáltico Alta Velocidad",
       homologado: true,
       homologaciones: ["Adif Tipo 1 AV", "UNE-EN 13450"],
+      conformidades: ["ISO 9001", "UNE-EN 13450", "Adif Tipo 1 AV"],
       leadTimeMedio: "18 días",
       precioEstimado: "21 - 25 €/t",
       condicionesPago: "60 días confirming",
@@ -1076,6 +1130,8 @@
         "Capacidad de suministro 3.000 t/día"
       ],
       score: "99% Conforme",
+      email: "ventas@balastosibericos.es",
+      telefono: "+34 926 230 470",
       contacto: "ventas@balastosibericos.es"
     }
   ];
@@ -1086,9 +1142,11 @@
       nombre: "Infraestructuras del Norte, S.A.",
       cif: "A-48092311",
       sede: "Madrid / Bilbao",
-      expedientesActivos: 3,
+      expedientesActivos: 2,
       actividad: "Constructora Ferroviaria (Licitaciones Adif / Metro)",
       homologado: true,
+      email: "proyectos@infraestructurasnorte.es",
+      telefono: "+34 914 200 110",
       contacto: "proyectos@infraestructurasnorte.es"
     },
     {
@@ -1099,7 +1157,33 @@
       expedientesActivos: 1,
       actividad: "Operador y Gestor Ferroviario Autonómico",
       homologado: true,
+      email: "infraestructures@fgc.cat",
+      telefono: "+34 933 663 000",
       contacto: "infraestructures@fgc.cat"
+    },
+    {
+      id: "CLI-03",
+      nombre: "Metro de Bilbao",
+      cif: "A-48493021",
+      sede: "Bilbao (Bizkaia)",
+      expedientesActivos: 1,
+      actividad: "Operador de Ferrocarril Metropolitano",
+      homologado: true,
+      email: "obras@metrobilbao.eus",
+      telefono: "+34 944 252 000",
+      contacto: "obras@metrobilbao.eus"
+    },
+    {
+      id: "CLI-04",
+      nombre: "Adif Mantenimiento Red Convencional",
+      cif: "Q-2801660H",
+      sede: "Madrid",
+      expedientesActivos: 1,
+      actividad: "Administrador de Infraestructuras Ferroviarias",
+      homologado: true,
+      email: "mantenimiento@adif.es",
+      telefono: "+34 917 744 000",
+      contacto: "mantenimiento@adif.es"
     }
   ];
 
@@ -1374,6 +1458,172 @@
     return `<span class="avisos-sort-icon is-active">${avisosSortDir === "asc" ? "▲" : "▼"}</span>`;
   }
   let directorioViewMode = "table"; // "table" | "grid"
+  let directorioTypeFilter = "all"; // "all" | "proveedores" | "clientes"
+  let directorioSearchQuery = "";
+  let directorioPrvSortCol = "nombre";
+  let directorioPrvSortDir = "asc";
+  let directorioCliSortCol = "nombre";
+  let directorioCliSortDir = "asc";
+
+  function getProveedorActiveExpedientes(prvName) {
+    if (!prvName) return [];
+    const query = prvName.toLowerCase().trim();
+    return EXPEDIENTES.filter(e => {
+      if (e.proveedor && (e.proveedor.toLowerCase().includes(query) || query.includes(e.proveedor.toLowerCase()))) return true;
+      if (e.matching && e.matching.proveedorAdjudicado && (e.matching.proveedorAdjudicado.toLowerCase().includes(query) || query.includes(e.matching.proveedorAdjudicado.toLowerCase()))) return true;
+      return false;
+    }).map(e => ({
+      id: e.id,
+      titulo: e.tituloGenerico || e.producto,
+      subtipo: e.subtipo || e.producto,
+      unidades: e.unidades || "",
+      fase: typeof e.faseActual === "number" ? e.faseActual : 0,
+      cliente: e.cliente || "Constructor",
+      presupuesto: e.presupuestoTotal || ""
+    }));
+  }
+
+  function getClienteActiveExpedientes(cliName) {
+    if (!cliName) return [];
+    const query = cliName.toLowerCase().trim();
+    const basePrv = query.split(",")[0].trim();
+    return EXPEDIENTES.filter(e => {
+      if (!e.cliente) return false;
+      const c = e.cliente.toLowerCase();
+      const baseExp = c.split(",")[0].trim();
+      return c.includes(query) || query.includes(c) || c.includes(basePrv) || baseExp.includes(basePrv);
+    }).map(e => ({
+      id: e.id,
+      titulo: e.tituloGenerico || e.producto,
+      subtipo: e.subtipo || e.producto,
+      unidades: e.unidades || "",
+      fase: typeof e.faseActual === "number" ? e.faseActual : 0,
+      proveedor: e.proveedor || (e.matching && e.matching.proveedorAdjudicado) || "En preselección",
+      presupuesto: e.presupuestoTotal || ""
+    }));
+  }
+
+  function getDirectorioSortIcon(col, currentCol, currentDir) {
+    if (col !== currentCol) {
+      return `<span class="th-sort-icon">${icon("arrowsSort", 12)}</span>`;
+    }
+    return `<span class="th-sort-icon is-active">${currentDir === "asc" ? icon("arrowUp", 12) : icon("arrowDown", 12)}</span>`;
+  }
+
+  function renderProveedorActivosCell(p, rowIndex, totalRows) {
+    const activos = getProveedorActiveExpedientes(p.nombre);
+    if (!activos.length) {
+      return `<span style="color:var(--entity-faint);font-size:0.75rem">— Sin activos —</span>`;
+    }
+    const isUpward = rowIndex >= totalRows - 2 && totalRows > 3;
+    return `
+      <div class="dir-popover-wrapper">
+        <span class="dossier-chip is-active-chip dir-popover-trigger" tabindex="0">
+          ${icon("box", 12)} <b>${activos.length}</b> ${activos.length === 1 ? 'suministro activo' : 'suministros activos'}
+        </span>
+        <div class="dir-hover-popover ${isUpward ? 'dir-popover-up' : ''}">
+          <div class="dir-popover-head">
+            <strong>Suministros en expedientes en curso</strong>
+            <span class="dossier-chip">${activos.length} activos</span>
+          </div>
+          <div class="dir-popover-list">
+            ${activos.map(exp => `
+              <div class="dir-popover-item">
+                <div class="dir-popover-item-top">
+                  <span class="entity-code" style="font-size:0.72rem">${exp.id}</span>
+                  <span class="entity-status-badge phase-${exp.fase}" style="font-size:0.65rem;padding:2px 6px">${SHORT_PHASE_NAMES[exp.fase] || ('Fase ' + exp.fase)}</span>
+                </div>
+                <div class="dir-popover-item-title">${exp.titulo}</div>
+                <div class="dir-popover-item-sub">${exp.unidades || exp.subtipo}</div>
+                <div class="dir-popover-item-footer">
+                  <small style="color:var(--entity-muted)">Cliente: ${exp.cliente}</small>
+                  <a href="#admin/expedientes/${exp.id}" class="dir-link-action" data-go="#admin/expedientes/${exp.id}">
+                    Ver expediente ${icon("arrow", 11)}
+                  </a>
+                </div>
+              </div>
+            `).join("")}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderClienteActivosCell(c, rowIndex, totalRows) {
+    const activos = getClienteActiveExpedientes(c.nombre);
+    if (!activos.length) {
+      return `<span style="color:var(--entity-faint);font-size:0.75rem">— Sin activos —</span>`;
+    }
+    const isUpward = rowIndex >= totalRows - 2 && totalRows > 3;
+    return `
+      <div class="dir-popover-wrapper">
+        <span class="dossier-chip is-active-chip dir-popover-trigger" tabindex="0">
+          ${icon("folder", 12)} <b>${activos.length}</b> ${activos.length === 1 ? 'expediente activo' : 'expedientes activos'}
+        </span>
+        <div class="dir-hover-popover ${isUpward ? 'dir-popover-up' : ''}">
+          <div class="dir-popover-head">
+            <strong>Expedientes en curso</strong>
+            <span class="dossier-chip">${activos.length} activos</span>
+          </div>
+          <div class="dir-popover-list">
+            ${activos.map(exp => `
+              <div class="dir-popover-item">
+                <div class="dir-popover-item-top">
+                  <span class="entity-code" style="font-size:0.72rem">${exp.id}</span>
+                  <span class="entity-status-badge phase-${exp.fase}" style="font-size:0.65rem;padding:2px 6px">${SHORT_PHASE_NAMES[exp.fase] || ('Fase ' + exp.fase)}</span>
+                </div>
+                <div class="dir-popover-item-title">${exp.titulo}</div>
+                <div class="dir-popover-item-sub">${exp.subtipo || exp.unidades}</div>
+                <div class="dir-popover-item-footer">
+                  <small style="color:var(--entity-muted)">Proveedor: ${exp.proveedor}</small>
+                  <a href="#admin/expedientes/${exp.id}" class="dir-link-action" data-go="#admin/expedientes/${exp.id}">
+                    Ver expediente ${icon("arrow", 11)}
+                  </a>
+                </div>
+              </div>
+            `).join("")}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderSuministrosTags(suministrosList) {
+    if (!suministrosList || !suministrosList.length) return `<span style="color:var(--entity-faint);font-size:0.75rem">—</span>`;
+    const items = Array.isArray(suministrosList) ? suministrosList : suministrosList.split(/[·,]/).map(s => s.trim()).filter(Boolean);
+    return `
+      <div class="dir-tags-wrap">
+        ${items.map(s => `<span class="dir-tag dir-tag-sum">${s}</span>`).join("")}
+      </div>
+    `;
+  }
+
+  function renderConformidadesTags(conformidadesList) {
+    if (!conformidadesList || !conformidadesList.length) return `<span style="color:var(--entity-faint);font-size:0.75rem">—</span>`;
+    const items = Array.isArray(conformidadesList) ? conformidadesList : conformidadesList.split(/[·,]/).map(c => c.trim()).filter(Boolean);
+    return `
+      <div class="dir-tags-wrap">
+        ${items.map(c => {
+          const cl = c.toLowerCase();
+          let tagClass = "";
+          if (cl.includes("tratamiento") || cl.includes("creosota") || cl.includes("autoclave")) tagClass = "dir-tag-treatment";
+          else if (cl.includes("iso") || cl.includes("ce") || cl.includes("aenor") || cl.includes("en ") || cl.includes("nav-") || cl.includes("tipo 1")) tagClass = "dir-tag-iso";
+          return `<span class="dir-tag ${tagClass}">${c}</span>`;
+        }).join("")}
+      </div>
+    `;
+  }
+
+  function renderEmailCell(email) {
+    if (!email) return `<span style="color:var(--entity-faint);font-size:0.75rem">—</span>`;
+    return `<a href="mailto:${email}" class="dir-contact-link" style="font-size:0.78rem;display:inline-flex;align-items:center;gap:5px">${icon("mail", 13)} <span>${email}</span></a>`;
+  }
+
+  function renderTelefonoCell(tel) {
+    if (!tel) return `<span style="color:var(--entity-faint);font-size:0.75rem">—</span>`;
+    const cleanTel = tel.replace(/[^+\d]/g, "");
+    return `<a href="tel:${cleanTel}" class="dir-contact-link" style="font-size:0.78rem;display:inline-flex;align-items:center;gap:5px;white-space:nowrap">${icon("phone", 13)} <span>${tel}</span></a>`;
+  }
   let previousRouteKey = null;
   let stagedPliegoFile = null;
   let suministroRowCount = 1;
@@ -5017,27 +5267,133 @@
     }
 
     if (section === "directorio") {
+      const q = (directorioSearchQuery || "").toLowerCase().trim();
+
+      const prvActiveList = DIRECTORIO_PROVEEDORES.filter(p => {
+        if (!q) return true;
+        return (
+          (p.nombre && p.nombre.toLowerCase().includes(q)) ||
+          (p.cif && p.cif.toLowerCase().includes(q)) ||
+          (p.sede && p.sede.toLowerCase().includes(q)) ||
+          (p.suministros && p.suministros.some(s => s.toLowerCase().includes(q))) ||
+          (p.conformidades && p.conformidades.some(c => c.toLowerCase().includes(q))) ||
+          (p.email && p.email.toLowerCase().includes(q)) ||
+          (p.contacto && p.contacto.toLowerCase().includes(q)) ||
+          (p.telefono && p.telefono.toLowerCase().includes(q))
+        );
+      }).sort((a, b) => {
+        let diff = 0;
+        if (directorioPrvSortCol === "nombre") diff = (a.nombre || "").localeCompare(b.nombre || "", "es");
+        else if (directorioPrvSortCol === "cif") diff = (a.cif || "").localeCompare(b.cif || "", "es");
+        else if (directorioPrvSortCol === "sede") diff = (a.sede || "").localeCompare(b.sede || "", "es");
+        else if (directorioPrvSortCol === "suministros") diff = (a.suministros || []).join(", ").localeCompare((b.suministros || []).join(", "), "es");
+        else if (directorioPrvSortCol === "activos") diff = getProveedorActiveExpedientes(a.nombre).length - getProveedorActiveExpedientes(b.nombre).length;
+        else if (directorioPrvSortCol === "conformidades") diff = (a.conformidades || []).join(", ").localeCompare((b.conformidades || []).join(", "), "es");
+        else if (directorioPrvSortCol === "email") diff = (a.email || a.contacto || "").localeCompare(b.email || b.contacto || "", "es");
+        else if (directorioPrvSortCol === "telefono") diff = (a.telefono || "").localeCompare(b.telefono || "", "es");
+        return directorioPrvSortDir === "asc" ? diff : -diff;
+      });
+
+      const cliActiveList = DIRECTORIO_CLIENTES.filter(c => {
+        if (!q) return true;
+        return (
+          (c.nombre && c.nombre.toLowerCase().includes(q)) ||
+          (c.cif && c.cif.toLowerCase().includes(q)) ||
+          (c.sede && c.sede.toLowerCase().includes(q)) ||
+          (c.actividad && c.actividad.toLowerCase().includes(q)) ||
+          (c.email && c.email.toLowerCase().includes(q)) ||
+          (c.contacto && c.contacto.toLowerCase().includes(q)) ||
+          (c.telefono && c.telefono.toLowerCase().includes(q))
+        );
+      }).sort((a, b) => {
+        let diff = 0;
+        if (directorioCliSortCol === "nombre") diff = (a.nombre || "").localeCompare(b.nombre || "", "es");
+        else if (directorioCliSortCol === "cif") diff = (a.cif || "").localeCompare(b.cif || "", "es");
+        else if (directorioCliSortCol === "sede") diff = (a.sede || "").localeCompare(b.sede || "", "es");
+        else if (directorioCliSortCol === "actividad") diff = (a.actividad || "").localeCompare(b.actividad || "", "es");
+        else if (directorioCliSortCol === "activos") diff = getClienteActiveExpedientes(a.nombre).length - getClienteActiveExpedientes(b.nombre).length;
+        else if (directorioCliSortCol === "email") diff = (a.email || a.contacto || "").localeCompare(b.email || b.contacto || "", "es");
+        else if (directorioCliSortCol === "telefono") diff = (a.telefono || "").localeCompare(b.telefono || "", "es");
+        return directorioCliSortDir === "asc" ? diff : -diff;
+      });
+
+      const showProveedores = directorioTypeFilter === "all" || directorioTypeFilter === "proveedores";
+      const showClientes = directorioTypeFilter === "all" || directorioTypeFilter === "clientes";
+
       let contentHTML = "";
 
       if (directorioViewMode === "table") {
-        contentHTML = `
+        const prvTableHTML = showProveedores ? `
           <div style="margin-bottom:28px">
-            <h3 style="margin:0 0 12px;font-size:0.95rem;color:var(--entity-text)">Proveedores homologados</h3>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+              <h3 style="margin:0;font-size:0.95rem;color:var(--entity-text);display:flex;align-items:center;gap:8px">
+                Proveedores homologados
+                <span class="dossier-chip" style="font-size:0.7rem">${prvActiveList.length} ${prvActiveList.length === 1 ? 'taller' : 'talleres'}</span>
+              </h3>
+            </div>
             <div class="b2b-dir-table-wrap">
               <table class="b2b-dir-table">
                 <thead>
                   <tr>
-                    <th>Proveedor / Razón Social</th>
-                    <th>CIF & Sede</th>
-                    <th>Suministros Acreditados</th>
-                    <th>Lead Time</th>
-                    <th>Fiabilidad</th>
-                    <th>Contacto</th>
+                    <th class="is-sortable ${directorioPrvSortCol === 'nombre' ? 'is-sorted' : ''}" data-sort-dir-prv="nombre">
+                      <div class="th-sort-wrap">
+                        <span>Proveedor / Razón Social</span>
+                        ${getDirectorioSortIcon('nombre', directorioPrvSortCol, directorioPrvSortDir)}
+                      </div>
+                    </th>
+                    <th class="is-sortable ${directorioPrvSortCol === 'cif' ? 'is-sorted' : ''}" data-sort-dir-prv="cif">
+                      <div class="th-sort-wrap">
+                        <span>CIF</span>
+                        ${getDirectorioSortIcon('cif', directorioPrvSortCol, directorioPrvSortDir)}
+                      </div>
+                    </th>
+                    <th class="is-sortable ${directorioPrvSortCol === 'sede' ? 'is-sorted' : ''}" data-sort-dir-prv="sede">
+                      <div class="th-sort-wrap">
+                        <span>Sede</span>
+                        ${getDirectorioSortIcon('sede', directorioPrvSortCol, directorioPrvSortDir)}
+                      </div>
+                    </th>
+                    <th class="is-sortable ${directorioPrvSortCol === 'suministros' ? 'is-sorted' : ''}" data-sort-dir-prv="suministros">
+                      <div class="th-sort-wrap">
+                        <span>Suministros Acreditados</span>
+                        ${getDirectorioSortIcon('suministros', directorioPrvSortCol, directorioPrvSortDir)}
+                      </div>
+                    </th>
+                    <th class="is-sortable ${directorioPrvSortCol === 'activos' ? 'is-sorted' : ''}" data-sort-dir-prv="activos">
+                      <div class="th-sort-wrap">
+                        <span>Suministros Activos</span>
+                        ${getDirectorioSortIcon('activos', directorioPrvSortCol, directorioPrvSortDir)}
+                      </div>
+                    </th>
+                    <th class="is-sortable ${directorioPrvSortCol === 'conformidades' ? 'is-sorted' : ''}" data-sort-dir-prv="conformidades">
+                      <div class="th-sort-wrap">
+                        <span>Conformidades</span>
+                        ${getDirectorioSortIcon('conformidades', directorioPrvSortCol, directorioPrvSortDir)}
+                      </div>
+                    </th>
+                    <th class="is-sortable ${directorioPrvSortCol === 'email' ? 'is-sorted' : ''}" data-sort-dir-prv="email">
+                      <div class="th-sort-wrap">
+                        <span>Email</span>
+                        ${getDirectorioSortIcon('email', directorioPrvSortCol, directorioPrvSortDir)}
+                      </div>
+                    </th>
+                    <th class="is-sortable ${directorioPrvSortCol === 'telefono' ? 'is-sorted' : ''}" data-sort-dir-prv="telefono">
+                      <div class="th-sort-wrap">
+                        <span>Teléfono</span>
+                        ${getDirectorioSortIcon('telefono', directorioPrvSortCol, directorioPrvSortDir)}
+                      </div>
+                    </th>
                     <th style="text-align:right">Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
-                  ${DIRECTORIO_PROVEEDORES.map(p => `
+                  ${prvActiveList.length === 0 ? `
+                    <tr>
+                      <td colspan="9" style="text-align:center;padding:32px;color:var(--entity-muted)">
+                        No se encontraron proveedores que coincidan con la búsqueda.
+                      </td>
+                    </tr>
+                  ` : prvActiveList.map((p, idx) => `
                     <tr>
                       <td>
                         <div style="display:flex;align-items:center;gap:10px">
@@ -5045,13 +5401,17 @@
                           <strong>${p.nombre}</strong>
                         </div>
                       </td>
-                      <td><small style="color:var(--entity-muted)">${p.cif} · ${p.sede}</small></td>
-                      <td><span style="font-size:0.75rem;color:var(--entity-muted)">${p.materiales}</span></td>
-                      <td><strong>${p.leadTimeMedio}</strong></td>
-                      <td><span style="color:var(--entity-accent);font-weight:600">${p.score}</span></td>
-                      <td><small style="color:var(--entity-faint)">${p.contacto}</small></td>
+                      <td><span class="entity-code" style="font-size:0.75rem">${p.cif}</span></td>
+                      <td><span style="color:var(--entity-muted);font-size:0.78rem">${p.sede}</span></td>
+                      <td>${renderSuministrosTags(p.suministros || [p.materiales])}</td>
+                      <td>${renderProveedorActivosCell(p, idx, prvActiveList.length)}</td>
+                      <td>${renderConformidadesTags(p.conformidades || p.homologaciones)}</td>
+                      <td>${renderEmailCell(p.email || p.contacto)}</td>
+                      <td>${renderTelefonoCell(p.telefono)}</td>
                       <td style="text-align:right">
-                        <button class="admin-quiet-button" type="button" data-toast="Ficha técnica de ${p.nombre} abierta">Ver ficha</button>
+                        <button class="admin-quiet-button" type="button" data-edit-dir="proveedor" data-id="${p.id}">
+                          ${icon("edit", 13)} Editar
+                        </button>
                       </td>
                     </tr>
                   `).join("")}
@@ -5059,23 +5419,73 @@
               </table>
             </div>
           </div>
+        ` : "";
 
+        const cliTableHTML = showClientes ? `
           <div>
-            <h3 style="margin:0 0 12px;font-size:0.95rem;color:var(--entity-text)">Clientes (Constructores de vía)</h3>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+              <h3 style="margin:0;font-size:0.95rem;color:var(--entity-text);display:flex;align-items:gap:8px">
+                Clientes (Constructores de vía)
+                <span class="dossier-chip" style="font-size:0.7rem">${cliActiveList.length} ${cliActiveList.length === 1 ? 'cliente' : 'clientes'}</span>
+              </h3>
+            </div>
             <div class="b2b-dir-table-wrap">
               <table class="b2b-dir-table">
                 <thead>
                   <tr>
-                    <th>Cliente / Contratista</th>
-                    <th>CIF & Sede</th>
-                    <th>Actividad / Especialidad</th>
-                    <th>Expedientes Activos</th>
-                    <th>Contacto</th>
+                    <th class="is-sortable ${directorioCliSortCol === 'nombre' ? 'is-sorted' : ''}" data-sort-dir-cli="nombre">
+                      <div class="th-sort-wrap">
+                        <span>Cliente / Contratista</span>
+                        ${getDirectorioSortIcon('nombre', directorioCliSortCol, directorioCliSortDir)}
+                      </div>
+                    </th>
+                    <th class="is-sortable ${directorioCliSortCol === 'cif' ? 'is-sorted' : ''}" data-sort-dir-cli="cif">
+                      <div class="th-sort-wrap">
+                        <span>CIF</span>
+                        ${getDirectorioSortIcon('cif', directorioCliSortCol, directorioCliSortDir)}
+                      </div>
+                    </th>
+                    <th class="is-sortable ${directorioCliSortCol === 'sede' ? 'is-sorted' : ''}" data-sort-dir-cli="sede">
+                      <div class="th-sort-wrap">
+                        <span>Sede</span>
+                        ${getDirectorioSortIcon('sede', directorioCliSortCol, directorioCliSortDir)}
+                      </div>
+                    </th>
+                    <th class="is-sortable ${directorioCliSortCol === 'actividad' ? 'is-sorted' : ''}" data-sort-dir-cli="actividad">
+                      <div class="th-sort-wrap">
+                        <span>Actividad / Especialidad</span>
+                        ${getDirectorioSortIcon('actividad', directorioCliSortCol, directorioCliSortDir)}
+                      </div>
+                    </th>
+                    <th class="is-sortable ${directorioCliSortCol === 'activos' ? 'is-sorted' : ''}" data-sort-dir-cli="activos">
+                      <div class="th-sort-wrap">
+                        <span>Expedientes Activos</span>
+                        ${getDirectorioSortIcon('activos', directorioCliSortCol, directorioCliSortDir)}
+                      </div>
+                    </th>
+                    <th class="is-sortable ${directorioCliSortCol === 'email' ? 'is-sorted' : ''}" data-sort-dir-cli="email">
+                      <div class="th-sort-wrap">
+                        <span>Email</span>
+                        ${getDirectorioSortIcon('email', directorioCliSortCol, directorioCliSortDir)}
+                      </div>
+                    </th>
+                    <th class="is-sortable ${directorioCliSortCol === 'telefono' ? 'is-sorted' : ''}" data-sort-dir-cli="telefono">
+                      <div class="th-sort-wrap">
+                        <span>Teléfono</span>
+                        ${getDirectorioSortIcon('telefono', directorioCliSortCol, directorioCliSortDir)}
+                      </div>
+                    </th>
                     <th style="text-align:right">Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
-                  ${DIRECTORIO_CLIENTES.map(c => `
+                  ${cliActiveList.length === 0 ? `
+                    <tr>
+                      <td colspan="8" style="text-align:center;padding:32px;color:var(--entity-muted)">
+                        No se encontraron clientes que coincidan con la búsqueda.
+                      </td>
+                    </tr>
+                  ` : cliActiveList.map((c, idx) => `
                     <tr>
                       <td>
                         <div style="display:flex;align-items:center;gap:10px">
@@ -5083,12 +5493,16 @@
                           <strong>${c.nombre}</strong>
                         </div>
                       </td>
-                      <td><small style="color:var(--entity-muted)">${c.cif} · ${c.sede}</small></td>
+                      <td><span class="entity-code" style="font-size:0.75rem">${c.cif}</span></td>
+                      <td><span style="color:var(--entity-muted);font-size:0.78rem">${c.sede}</span></td>
                       <td><span style="font-size:0.75rem;color:var(--entity-muted)">${c.actividad}</span></td>
-                      <td><span class="dossier-chip">${c.expedientesActivos} activos</span></td>
-                      <td><small style="color:var(--entity-faint)">${c.contacto}</small></td>
+                      <td>${renderClienteActivosCell(c, idx, cliActiveList.length)}</td>
+                      <td>${renderEmailCell(c.email || c.contacto)}</td>
+                      <td>${renderTelefonoCell(c.telefono)}</td>
                       <td style="text-align:right">
-                        <button class="admin-quiet-button" type="button" data-toast="Detalle de ${c.nombre} abierto">Ver actividad</button>
+                        <button class="admin-quiet-button" type="button" data-edit-dir="cliente" data-id="${c.id}">
+                          ${icon("edit", 13)} Editar
+                        </button>
                       </td>
                     </tr>
                   `).join("")}
@@ -5096,70 +5510,103 @@
               </table>
             </div>
           </div>
-        `;
+        ` : "";
+
+        contentHTML = prvTableHTML + cliTableHTML;
       } else {
-        const prvCards = DIRECTORIO_PROVEEDORES.map(p => `
+        // Modo Mosaico
+        const prvCards = prvActiveList.map((p, idx) => `
           <article class="admin-client-card">
             <div style="display:flex;justify-content:space-between;align-items:center">
               <span class="admin-client-initials">${p.nombre.slice(0, 2).toUpperCase()}</span>
               <span class="admin-verified">${icon("shield", 14)} Homologado</span>
             </div>
             <h2 style="margin:16px 0 4px">${p.nombre}</h2>
-            <p style="margin:0 0 14px;color:var(--entity-muted);font-size:0.75rem">${p.sede} · CIF: ${p.cif}</p>
+            <div style="display:flex;gap:8px;font-size:0.75rem;color:var(--entity-muted);margin-bottom:12px">
+              <span><b>CIF:</b> ${p.cif}</span>
+              <span>·</span>
+              <span><b>Sede:</b> ${p.sede}</span>
+            </div>
             <dl>
               <div>
                 <dt>Suministros</dt>
-                <dd style="font-size:0.72rem;text-align:right;max-width:140px;color:var(--entity-muted)">${p.materiales}</dd>
+                <dd>${renderSuministrosTags(p.suministros || [p.materiales])}</dd>
               </div>
               <div>
-                <dt>Lead Time medio</dt>
-                <dd>${p.leadTimeMedio}</dd>
+                <dt>Suministros activos</dt>
+                <dd>${renderProveedorActivosCell(p, idx, prvActiveList.length)}</dd>
               </div>
               <div>
-                <dt>Fiabilidad</dt>
-                <dd style="color:var(--entity-accent)">${p.score}</dd>
+                <dt>Conformidades</dt>
+                <dd>${renderConformidadesTags(p.conformidades || p.homologaciones)}</dd>
               </div>
             </dl>
-            <footer>
-              <small>${p.contacto}</small>
+            <footer style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:12px;border-top:1px solid var(--entity-line)">
+              <div style="display:flex;flex-direction:column;gap:3px;font-size:0.75rem">
+                ${renderEmailCell(p.email || p.contacto)}
+                ${p.telefono ? renderTelefonoCell(p.telefono) : ''}
+              </div>
+              <button class="admin-quiet-button" type="button" data-edit-dir="proveedor" data-id="${p.id}">
+                ${icon("edit", 13)} Editar
+              </button>
             </footer>
           </article>
         `).join("");
 
-        const cliCards = DIRECTORIO_CLIENTES.map(c => `
+        const cliCards = cliActiveList.map((c, idx) => `
           <article class="admin-client-card">
             <div style="display:flex;justify-content:space-between;align-items:center">
               <span class="admin-client-initials" style="background:#1d426b">${c.nombre.slice(0, 2).toUpperCase()}</span>
               <span class="admin-verified" style="color:#60a5fa">${icon("shield", 14)} Contratista Activo</span>
             </div>
             <h2 style="margin:16px 0 4px">${c.nombre}</h2>
-            <p style="margin:0 0 14px;color:var(--entity-muted);font-size:0.75rem">${c.sede} · CIF: ${c.cif}</p>
+            <div style="display:flex;gap:8px;font-size:0.75rem;color:var(--entity-muted);margin-bottom:12px">
+              <span><b>CIF:</b> ${c.cif}</span>
+              <span>·</span>
+              <span><b>Sede:</b> ${c.sede}</span>
+            </div>
             <dl>
               <div>
                 <dt>Actividad</dt>
-                <dd style="font-size:0.72rem;text-align:right;max-width:140px;color:var(--entity-muted)">${c.actividad}</dd>
+                <dd style="font-size:0.74rem;color:var(--entity-muted)">${c.actividad}</dd>
               </div>
               <div>
                 <dt>Expedientes en curso</dt>
-                <dd>${c.expedientesActivos} activos</dd>
+                <dd>${renderClienteActivosCell(c, idx, cliActiveList.length)}</dd>
               </div>
             </dl>
-            <footer>
-              <small>${c.contacto}</small>
+            <footer style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:12px;border-top:1px solid var(--entity-line)">
+              <div style="display:flex;flex-direction:column;gap:3px;font-size:0.75rem">
+                ${renderEmailCell(c.email || c.contacto)}
+                ${c.telefono ? renderTelefonoCell(c.telefono) : ''}
+              </div>
+              <button class="admin-quiet-button" type="button" data-edit-dir="cliente" data-id="${c.id}">
+                ${icon("edit", 13)} Editar
+              </button>
             </footer>
           </article>
         `).join("");
 
         contentHTML = `
-          <div style="margin-bottom:28px">
-            <h3 style="margin:0 0 14px;font-size:0.95rem;color:var(--entity-text)">Proveedores homologados</h3>
-            <div class="admin-client-grid">${prvCards}</div>
-          </div>
+          ${showProveedores ? `
+            <div style="margin-bottom:28px">
+              <h3 style="margin:0 0 14px;font-size:0.95rem;color:var(--entity-text);display:flex;align-items:center;gap:8px">
+                Proveedores homologados
+                <span class="dossier-chip" style="font-size:0.7rem">${prvActiveList.length} talleres</span>
+              </h3>
+              <div class="admin-client-grid">${prvCards || '<p style="color:var(--entity-muted);font-size:0.8rem">No hay proveedores que coincidan.</p>'}</div>
+            </div>
+          ` : ''}
 
-          <div>
-            <h3 style="margin:0 0 14px;font-size:0.95rem;color:var(--entity-text)">Clientes (Constructores de vía)</h3>
-            <div class="admin-client-grid" style="grid-template-columns:repeat(2,1fr)">${cliCards}</div>
-          </div>
+          ${showClientes ? `
+            <div>
+              <h3 style="margin:0 0 14px;font-size:0.95rem;color:var(--entity-text);display:flex;align-items:center;gap:8px">
+                Clientes (Constructores de vía)
+                <span class="dossier-chip" style="font-size:0.7rem">${cliActiveList.length} clientes</span>
+              </h3>
+              <div class="admin-client-grid" style="grid-template-columns:repeat(2,1fr)">${cliCards || '<p style="color:var(--entity-muted);font-size:0.8rem">No hay clientes que coincidan.</p>'}</div>
+            </div>
+          ` : ''}
         `;
       }
 
@@ -5183,6 +5630,39 @@
             </button>
           </div>
         </div>
+
+        <!-- Barra de Filtros Superior: Tipos (Proveedores, Clientes) y Buscador por Campos -->
+        <div class="b2b-dir-filter-bar">
+          <div class="b2b-dir-type-tabs">
+            <button type="button" class="dir-type-btn ${directorioTypeFilter === 'all' ? 'is-active' : ''}" data-dir-type="all">
+              Todos <span class="dir-count-pill">${DIRECTORIO_PROVEEDORES.length + DIRECTORIO_CLIENTES.length}</span>
+            </button>
+            <button type="button" class="dir-type-btn ${directorioTypeFilter === 'proveedores' ? 'is-active' : ''}" data-dir-type="proveedores">
+              Proveedores <span class="dir-count-pill">${DIRECTORIO_PROVEEDORES.length}</span>
+            </button>
+            <button type="button" class="dir-type-btn ${directorioTypeFilter === 'clientes' ? 'is-active' : ''}" data-dir-type="clientes">
+              Clientes <span class="dir-count-pill">${DIRECTORIO_CLIENTES.length}</span>
+            </button>
+          </div>
+
+          <div class="b2b-dir-search-wrap">
+            <span class="dir-search-icon">${icon("search", 15)}</span>
+            <input 
+              type="search" 
+              id="directorioSearchInput" 
+              class="b2b-dir-search-input" 
+              placeholder="Buscar por nombre, CIF, sede, suministro o conformidad..." 
+              value="${directorioSearchQuery.replace(/"/g, '&quot;')}"
+              autocomplete="off"
+            />
+            ${directorioSearchQuery ? `
+              <button type="button" id="clearDirectorioSearchBtn" class="dir-search-clear" title="Limpiar búsqueda">
+                ${icon("x", 13)}
+              </button>
+            ` : ''}
+          </div>
+        </div>
+
         ${contentHTML}
       `;
     }
@@ -7046,13 +7526,27 @@
       });
     });
 
-    // Descartar y Restaurar Avisos
-    document.querySelectorAll("[data-dismiss-notice]").forEach(btn => {
+    // Ordenación por columnas en Avisos
+    document.querySelectorAll("[data-sort-aviso]").forEach(th => {
+      th.addEventListener("click", () => {
+        const col = th.dataset.sortAviso;
+        if (avisosSortCol === col) {
+          avisosSortDir = avisosSortDir === "asc" ? "desc" : "asc";
+        } else {
+          avisosSortCol = col;
+          avisosSortDir = col === "fecha" ? "desc" : "asc";
+        }
+        renderApp();
+      });
+    });
+
+    // Completar y Reabrir Avisos
+    document.querySelectorAll("[data-complete-notice], [data-dismiss-notice]").forEach(btn => {
       btn.addEventListener("click", e => {
         e.stopPropagation();
-        const id = btn.dataset.dismissNotice;
-        discardedNotices.add(id);
-        showToast(`Aviso ${id} descartado`);
+        const id = btn.dataset.completeNotice || btn.dataset.dismissNotice;
+        completedNotices.add(id);
+        showToast(`Aviso ${id} completado`);
         renderApp();
       });
     });
@@ -7061,8 +7555,8 @@
       btn.addEventListener("click", e => {
         e.stopPropagation();
         const id = btn.dataset.restoreNotice;
-        discardedNotices.delete(id);
-        showToast(`Aviso ${id} restaurado`);
+        completedNotices.delete(id);
+        showToast(`Aviso ${id} reabierto`);
         renderApp();
       });
     });
@@ -7072,6 +7566,79 @@
       btn.addEventListener("click", () => {
         directorioViewMode = btn.dataset.dirMode;
         renderApp();
+      });
+    });
+
+    // Filtros de Tipo en Directorio (Todos, Proveedores, Clientes)
+    document.querySelectorAll("[data-dir-type]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        directorioTypeFilter = btn.dataset.dirType;
+        renderApp();
+      });
+    });
+
+    // Clic en Cabeceras para ordenar Proveedores
+    document.querySelectorAll("[data-sort-dir-prv]").forEach(th => {
+      th.addEventListener("click", () => {
+        const col = th.dataset.sortDirPrv;
+        if (directorioPrvSortCol === col) {
+          directorioPrvSortDir = directorioPrvSortDir === "asc" ? "desc" : "asc";
+        } else {
+          directorioPrvSortCol = col;
+          directorioPrvSortDir = "asc";
+        }
+        renderApp();
+      });
+    });
+
+    // Clic en Cabeceras para ordenar Clientes
+    document.querySelectorAll("[data-sort-dir-cli]").forEach(th => {
+      th.addEventListener("click", () => {
+        const col = th.dataset.sortDirCli;
+        if (directorioCliSortCol === col) {
+          directorioCliSortDir = directorioCliSortDir === "asc" ? "desc" : "asc";
+        } else {
+          directorioCliSortCol = col;
+          directorioCliSortDir = "asc";
+        }
+        renderApp();
+      });
+    });
+
+    // Buscador en directo de Directorio (manteniendo el foco y posición del cursor)
+    const dirSearchInput = document.getElementById("directorioSearchInput");
+    if (dirSearchInput) {
+      dirSearchInput.addEventListener("input", e => {
+        directorioSearchQuery = e.target.value;
+        const pos = e.target.selectionStart || directorioSearchQuery.length;
+        renderApp();
+        const newInput = document.getElementById("directorioSearchInput");
+        if (newInput) {
+          newInput.focus();
+          newInput.setSelectionRange(pos, pos);
+        }
+      });
+    }
+
+    const clearDirSearchBtn = document.getElementById("clearDirectorioSearchBtn");
+    if (clearDirSearchBtn) {
+      clearDirSearchBtn.addEventListener("click", () => {
+        directorioSearchQuery = "";
+        renderApp();
+      });
+    }
+
+    // Botones de Editar en Directorio
+    document.querySelectorAll("[data-edit-dir]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const type = btn.dataset.editDir;
+        const id = btn.dataset.id;
+        const entity = type === "proveedor" 
+          ? DIRECTORIO_PROVEEDORES.find(p => p.id === id)
+          : DIRECTORIO_CLIENTES.find(c => c.id === id);
+        if (entity) {
+          openAddOrEditEntityModal(entity, type);
+        }
       });
     });
 
@@ -7597,7 +8164,8 @@
 
     // Recordar apertura/cierre de descartados en Avisos
     document.querySelector(".admin-discarded-details")?.addEventListener("toggle", e => {
-      showDiscardedAvisos = e.currentTarget.open;
+      showCompletedAvisos = e.currentTarget.open;
+      showDiscardedAvisos = showCompletedAvisos;
     });
 
     // Toasts genéricos
@@ -9175,7 +9743,7 @@
           <form id="modalCreateNoticeForm">
             <div class="procurement-modal-body" style="gap:14px;max-height:calc(85vh - 140px);overflow-y:auto;padding-right:12px">
               
-              <!-- Expediente Vinculado y Destinatarios -->
+              <!-- Expediente Vinculado y Suministro -->
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
                 <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
                   Expediente Vinculado
@@ -9187,6 +9755,21 @@
                     `).join("")}
                   </select>
                 </label>
+                <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
+                  Suministro Vinculado
+                  <select name="suministro" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem">
+                    <option value="General del Expediente">General del Expediente</option>
+                    ${SUMINISTROS.map(s => `
+                      <option value="SUM-${s.num} · ${s.tipo.split(' ')[0]} ${s.tipo.split(' ')[1] || ''}">
+                        SUM-${s.num} · ${s.tipo} (${s.expId})
+                      </option>
+                    `).join("")}
+                  </select>
+                </label>
+              </div>
+
+              <!-- Destinatarios -->
+              <div>
                 <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
                   Destinatarios
                   <select name="targetRoles" required style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem">
@@ -9281,9 +9864,12 @@
       else if (categoriaVal === "Incidencia / Mediación") targetTab = "incidents";
       else if (categoriaVal === "Aviso de Plazo / Calendario") targetTab = "deliverables";
 
+      const suministroVal = form.get("suministro") || "General del Expediente";
+
       const newNotice = {
         id: `AV-${Date.now()}`,
         expId: targetExpId,
+        suministro: suministroVal,
         categoria: categoriaVal,
         tagClass: tagClass,
         titulo: tituloVal,
@@ -9301,17 +9887,22 @@
     });
   }
 
-  function openAddEntityModal() {
+  function openAddOrEditEntityModal(entityToEdit = null, defaultType = "proveedor") {
     const modalWrap = document.getElementById("modalContainer");
     if (!modalWrap) return;
 
+    const isEdit = !!entityToEdit;
+    const targetType = isEdit ? (entityToEdit.id && entityToEdit.id.startsWith("CLI") ? "cliente" : "proveedor") : defaultType;
+
     modalWrap.innerHTML = `
       <div class="procurement-modal-backdrop" id="addEntityModalBackdrop">
-        <div class="procurement-modal" style="width:min(560px,100%)">
+        <div class="procurement-modal" style="width:min(580px,100%)">
           <div class="procurement-modal-head">
             <div>
-              <h3>Añadir al Directorio</h3>
-              <p style="margin:2px 0 0;font-size:0.75rem;color:var(--entity-muted)">Alta de nuevo taller homologado o cliente constructor de vía</p>
+              <h3>${isEdit ? `Editar ${targetType === 'proveedor' ? 'Proveedor' : 'Cliente'}` : 'Añadir al Directorio'}</h3>
+              <p style="margin:2px 0 0;font-size:0.75rem;color:var(--entity-muted)">
+                ${isEdit ? `Actualización de datos técnicos y operativos de ${entityToEdit.nombre}` : 'Alta de nuevo taller homologado o cliente constructor de vía'}
+              </p>
             </div>
             <button type="button" id="closeAddEntityModalBtn" aria-label="Cerrar">×</button>
           </div>
@@ -9319,66 +9910,65 @@
             <div class="procurement-modal-body" style="gap:14px;max-height:calc(85vh - 140px);overflow-y:auto;padding-right:18px">
               <div style="display:grid;gap:6px">
                 <label style="font-size:0.75rem;font-weight:600;color:var(--entity-muted)">Tipo de entidad</label>
-                <select id="entityTypeSelect" name="tipo" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem">
-                  <option value="proveedor">Proveedor Homologado (Taller / Fabricante)</option>
-                  <option value="cliente">Cliente (Constructor de vía / Contratista)</option>
+                <select id="entityTypeSelect" name="tipo" ${isEdit ? "disabled" : ""} style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem">
+                  <option value="proveedor" ${targetType === "proveedor" ? "selected" : ""}>Proveedor Homologado (Taller / Fabricante)</option>
+                  <option value="cliente" ${targetType === "cliente" ? "selected" : ""}>Cliente (Constructor de vía / Contratista)</option>
                 </select>
+                ${isEdit ? `<input type="hidden" name="tipo" value="${targetType}">` : ''}
               </div>
 
               <div style="display:grid;grid-template-columns:1fr 130px;gap:12px">
                 <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
                   Razón Social / Nombre
-                  <input name="nombre" required placeholder="Ej: Aceros Ferroviarios del Cantábrico, S.L." style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem" />
+                  <input name="nombre" required value="${(entityToEdit?.nombre || '').replace(/"/g, '&quot;')}" placeholder="Ej: Aceros Ferroviarios del Cantábrico, S.L." style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem" />
                 </label>
                 <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
                   CIF
-                  <input name="cif" required placeholder="Ej: B-48192837" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem" />
+                  <input name="cif" required value="${(entityToEdit?.cif || '').replace(/"/g, '&quot;')}" placeholder="Ej: B-48192837" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem" />
                 </label>
               </div>
 
               <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
                 Sede / Fábrica principal
-                <input name="sede" required placeholder="Ej: Amurrio (Álava) / Bilbao" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem" />
+                <input name="sede" required value="${(entityToEdit?.sede || '').replace(/"/g, '&quot;')}" placeholder="Ej: Amurrio (Álava) / Bilbao" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem" />
               </label>
 
-              <!-- Campos específicos para Proveedor -->
-              <div id="proveedorFields" style="display:grid;gap:14px">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
                 <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
-                  Suministros / Componentes acreditados
-                  <input name="materiales" placeholder="Ej: Carril 54E1 / 60E1 · Desvíos y Corazones Monobloque" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem" />
+                  Email de contacto
+                  <input name="email" type="email" required value="${(entityToEdit?.email || entityToEdit?.contacto || '').replace(/"/g, '&quot;')}" placeholder="contacto@empresa.es" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem" />
                 </label>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-                  <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
-                    Lead Time medio habitual
-                    <input name="leadTimeMedio" value="40 días" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem" />
-                  </label>
-                  <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
-                    Score de fiabilidad inicial
-                    <input name="score" value="98% Conforme" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem" />
-                  </label>
-                </div>
+                <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
+                  Teléfono de contacto
+                  <input name="telefono" type="tel" value="${(entityToEdit?.telefono || '').replace(/"/g, '&quot;')}" placeholder="Ej: +34 945 393 210" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem" />
+                </label>
+              </div>
+
+              <!-- Campos específicos para Proveedor -->
+              <div id="proveedorFields" style="display:${targetType === 'proveedor' ? 'grid' : 'none'};gap:14px">
+                <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
+                  Suministros acreditados (etiquetas breves separadas por coma)
+                  <input name="suministros" value="${(entityToEdit?.suministros ? entityToEdit.suministros.join(', ') : (entityToEdit?.materiales || '')).replace(/"/g, '&quot;')}" placeholder="Ej: Traviesas, Fijaciones, Carril" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem" />
+                  <span style="font-size:0.7rem;color:var(--entity-muted)">Etiquetas breves: Traviesas, Fijaciones, Carril 54E1, Balasto</span>
+                </label>
+                <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
+                  Conformidades y certificaciones (etiquetas separadas por coma)
+                  <input name="conformidades" value="${(entityToEdit?.conformidades ? entityToEdit.conformidades.join(', ') : (entityToEdit?.homologaciones ? entityToEdit.homologaciones.join(', ') : 'ISO 9001, ISO 14001, Adif NAV-2026')).replace(/"/g, '&quot;')}" placeholder="Ej: ISO 9001, ISO 14001, Tratamiento UNE-EN 13145, Marcado CE" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem" />
+                  <span style="font-size:0.7rem;color:var(--entity-muted)">Ejemplos: ISO 9001, Tratamiento UNE-EN 13145, AENOR EN 13230, Adif NAV-2026</span>
+                </label>
               </div>
 
               <!-- Campos específicos para Cliente -->
-              <div id="clienteFields" style="display:none;gap:14px">
+              <div id="clienteFields" style="display:${targetType === 'cliente' ? 'grid' : 'none'};gap:14px">
                 <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
                   Actividad / Especialidad ferroviaria
-                  <input name="actividad" placeholder="Ej: Constructora Ferroviaria (Licitaciones Adif / FGC)" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem" />
-                </label>
-                <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
-                  Expedientes iniciales en curso
-                  <input name="expedientesActivos" type="number" min="0" value="1" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem" />
+                  <input name="actividad" value="${(entityToEdit?.actividad || '').replace(/"/g, '&quot;')}" placeholder="Ej: Constructora Ferroviaria (Licitaciones Adif / Metro)" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem" />
                 </label>
               </div>
-
-              <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
-                Email de contacto operativo
-                <input name="contacto" type="email" required placeholder="contacto@empresa.es" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem" />
-              </label>
             </div>
             <div class="procurement-modal-footer">
               <button class="admin-quiet-button" type="button" id="cancelAddEntityBtn">Cancelar</button>
-              <button class="admin-primary-button" type="submit">Dar de alta en directorio</button>
+              <button class="admin-primary-button" type="submit">${isEdit ? 'Guardar cambios' : 'Dar de alta en directorio'}</button>
             </div>
           </form>
         </div>
@@ -9413,40 +10003,89 @@
       const nombre = (form.get("nombre") || "").trim();
       const cif = (form.get("cif") || "").trim();
       const sede = (form.get("sede") || "").trim();
-      const contacto = (form.get("contacto") || "").trim();
+      const email = (form.get("email") || "").trim();
+      const telefono = (form.get("telefono") || "").trim();
+
+      const parseTags = str => (str || "").split(",").map(t => t.trim()).filter(Boolean);
 
       if (tipo === "proveedor") {
-        const newPrv = {
-          id: `PRV-0${DIRECTORIO_PROVEEDORES.length + 1}`,
-          nombre,
-          cif,
-          sede,
-          materiales: (form.get("materiales") || "").trim() || "Suministros ferroviarios homologados",
-          homologado: true,
-          leadTimeMedio: (form.get("leadTimeMedio") || "").trim() || "35 días",
-          score: (form.get("score") || "").trim() || "98% Conforme",
-          contacto
-        };
-        DIRECTORIO_PROVEEDORES.unshift(newPrv);
-        close();
-        showToast(`✓ Proveedor "${newPrv.nombre}" añadido al directorio homologado`);
+        const rawSum = form.get("suministros") || "";
+        const rawConf = form.get("conformidades") || "";
+        let suministros = parseTags(rawSum);
+        if (!suministros.length) suministros = ["Suministros homologados"];
+        let conformidades = parseTags(rawConf);
+        if (!conformidades.length) conformidades = ["ISO 9001"];
+
+        if (isEdit && entityToEdit) {
+          const prv = DIRECTORIO_PROVEEDORES.find(p => p.id === entityToEdit.id);
+          if (prv) {
+            prv.nombre = nombre;
+            prv.cif = cif;
+            prv.sede = sede;
+            prv.email = email;
+            prv.contacto = email;
+            prv.telefono = telefono;
+            prv.suministros = suministros;
+            prv.conformidades = conformidades;
+            prv.materiales = suministros.join(" · ");
+            showToast(`✓ Proveedor "${prv.nombre}" actualizado correctamente`);
+          }
+        } else {
+          const newPrv = {
+            id: `PRV-0${DIRECTORIO_PROVEEDORES.length + 1}`,
+            nombre,
+            cif,
+            sede,
+            suministros,
+            conformidades,
+            materiales: suministros.join(" · "),
+            homologado: true,
+            email,
+            telefono,
+            contacto: email
+          };
+          DIRECTORIO_PROVEEDORES.unshift(newPrv);
+          showToast(`✓ Proveedor "${newPrv.nombre}" añadido al directorio homologado`);
+        }
       } else {
-        const newCli = {
-          id: `CLI-0${DIRECTORIO_CLIENTES.length + 1}`,
-          nombre,
-          cif,
-          sede,
-          actividad: (form.get("actividad") || "").trim() || "Constructora Ferroviaria",
-          expedientesActivos: parseInt(form.get("expedientesActivos") || "1", 10),
-          homologado: true,
-          contacto
-        };
-        DIRECTORIO_CLIENTES.unshift(newCli);
-        close();
-        showToast(`✓ Cliente "${newCli.nombre}" añadido al directorio`);
+        const actividad = (form.get("actividad") || "").trim() || "Constructora Ferroviaria";
+
+        if (isEdit && entityToEdit) {
+          const cli = DIRECTORIO_CLIENTES.find(c => c.id === entityToEdit.id);
+          if (cli) {
+            cli.nombre = nombre;
+            cli.cif = cif;
+            cli.sede = sede;
+            cli.actividad = actividad;
+            cli.email = email;
+            cli.contacto = email;
+            cli.telefono = telefono;
+            showToast(`✓ Cliente "${cli.nombre}" actualizado correctamente`);
+          }
+        } else {
+          const newCli = {
+            id: `CLI-0${DIRECTORIO_CLIENTES.length + 1}`,
+            nombre,
+            cif,
+            sede,
+            actividad,
+            expedientesActivos: 0,
+            homologado: true,
+            email,
+            telefono,
+            contacto: email
+          };
+          DIRECTORIO_CLIENTES.unshift(newCli);
+          showToast(`✓ Cliente "${newCli.nombre}" añadido al directorio`);
+        }
       }
+      close();
       renderApp();
     });
+  }
+
+  function openAddEntityModal() {
+    openAddOrEditEntityModal(null, directorioTypeFilter === "clientes" ? "cliente" : "proveedor");
   }
 
   // Navegación y acciones delegadas globales
