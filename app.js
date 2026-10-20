@@ -76,7 +76,6 @@
       defaultNav: "expedientes",
       nav: [
         { id: "expedientes", label: "Mis expedientes", icon: "folder", count: 3 },
-        { id: "perfil", label: "Perfil", icon: "profile" },
         { id: "avisos", label: "Avisos", icon: "inbox", count: 1 }
       ]
     },
@@ -91,7 +90,6 @@
       nav: [
         { id: "expedientes", label: "Mis expedientes", icon: "folder", count: 2 },
         { id: "cotizaciones", label: "Cotizaciones", icon: "file", count: 1 },
-        { id: "perfil", label: "Perfil", icon: "profile" },
         { id: "avisos", label: "Avisos", icon: "inbox", count: 1 }
       ]
     },
@@ -998,12 +996,13 @@
         </a>
         <nav>${navItems}</nav>
         <div class="admin-sidebar-foot">
-          <div class="admin-admin-user">
+          <div class="admin-admin-user${(activeRole === "cliente" || activeRole === "proveedor") ? " has-profile-link" + (activeSection === "perfil" ? " is-active" : "") : ""}" ${(activeRole === "cliente" || activeRole === "proveedor") ? `data-go="#${activeRole}/perfil" style="cursor:pointer" title="Ver perfil corporativo"` : ""}>
             <span>${player.avatar}</span>
-            <div>
-              <strong>${player.entity}</strong>
+            <div style="min-width:0;flex:1">
+              <strong style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${player.entity}</strong>
               <small>${player.label}</small>
             </div>
+            ${(activeRole === "cliente" || activeRole === "proveedor") ? `<span class="profile-link-chevron" style="margin-left:auto;color:var(--entity-faint);display:grid;place-items:center">${icon("chevronRight", 14)}</span>` : ""}
           </div>
         </div>
       </aside>
@@ -1013,7 +1012,7 @@
   /* ---------- Componente: Topbar Interna con Switcher Sutil ---------- */
   function renderTopbar() {
     const player = PLAYERS[activeRole];
-    const sectionName = (player.nav.find(n => n.id === activeSection) || {}).label || activeSection;
+    const sectionName = activeSection === "perfil" ? "Perfil corporativo" : ((player.nav.find(n => n.id === activeSection) || {}).label || activeSection);
     const currentTheme = document.documentElement.dataset.theme || "dark";
 
     return `
