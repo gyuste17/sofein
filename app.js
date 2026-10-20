@@ -1651,7 +1651,7 @@
               <strong style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${player.entity}</strong>
               <small>${player.label}</small>
             </div>
-            <span class="profile-link-chevron" style="margin-left:auto;color:var(--entity-faint);display:grid;place-items:center">${icon("chevronRight", 14)}</span>
+            <span class="profile-link-chevron" style="margin-left:auto;flex-shrink:0;color:var(--entity-faint);display:grid;place-items:center">${icon("chevronRight", 14)}</span>
           </div>
         </div>
       </aside>
