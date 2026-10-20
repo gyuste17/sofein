@@ -2252,31 +2252,34 @@ select:focus,
   opacity: 0.82;
 }
 
-/* ========== SUMINISTROS: TABLA B2B, AGRUPACIÓN, ORDENACIÓN Y FILTROS ========== */
+/* ========== SUMINISTROS: TABLA B2B, ORDENACIÓN Y FILTROS ========== */
+.suministros-kpi-strip {
+  margin-bottom: 16px;
+}
 .suministros-controls-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 14px;
-  margin-bottom: 20px;
+  margin-bottom: 18px;
 }
-.suministros-controls-left {
+.suministros-toolbar-left {
   display: flex;
-  align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-.suministros-controls-right {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-.suministros-group-wrap {
-  display: inline-flex;
   align-items: center;
   gap: 10px;
+  flex-wrap: wrap;
+  flex: 1;
+}
+.suministros-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.suministros-filters-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   flex-wrap: wrap;
 }
 .suministros-ctrl-label {
@@ -4473,62 +4476,15 @@ select:focus,
 }
 
 /* ============================================================
-   NUEVO DISEÑO DE EXPEDIENTES (ANTES / NUEVO DISEÑO TOGGLE)
+   VISTA FINAL DE EXPEDIENTES (DISEÑO UNIFICADO B2B)
    Bandeja minimalista B2B con KPIs clicables, pulso sutil 2s,
-   barra de búsqueda compacta + filtros, tarjeta de 8 datos
+   barra de búsqueda compacta + filtros en 1 sola fila,
+   tarjeta limpia con puntito de color, fase en 1 fila con tono
+   progresivamente más oscuro, título reducido, presupuesto est.
    y dos desplegables inferiores (finalizados y cerrados).
    ============================================================ */
 
-/* 1. Selector Antes / Nuevo diseño */
-.exp-design-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  padding: 3px;
-  border-radius: 8px;
-  background: var(--entity-panel-2);
-  border: 1px solid var(--entity-line-strong);
-}
-
-.exp-design-toggle-label {
-  font-size: 0.68rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--entity-faint);
-  padding: 0 7px 0 6px;
-}
-
-.exp-design-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 5px 11px;
-  border-radius: 6px;
-  border: 0;
-  background: transparent;
-  color: var(--entity-muted);
-  font-size: 0.74rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  white-space: nowrap;
-}
-
-.exp-design-btn:hover {
-  color: var(--entity-text);
-}
-
-.exp-design-btn.is-active {
-  background: var(--entity-accent);
-  color: #ffffff;
-}
-
-[data-theme="dark"] .exp-design-btn.is-active {
-  color: #06140b;
-}
-
-/* 2. Cabecera limpia sin subtítulo */
+/* 1. Cabecera limpia sin subtítulo */
 .admin-view-head.exp-head-clean {
   margin-bottom: 16px;
   align-items: center;
@@ -4538,7 +4494,7 @@ select:focus,
   margin: 0;
 }
 
-/* 3. Mini resumen de KPIs como filtro clicable */
+/* 2. Mini resumen de KPIs como filtro clicable */
 .entity-scope-strip.exp-kpi-strip {
   margin: 0 0 14px;
   padding: 7px 10px;
@@ -4630,49 +4586,56 @@ select:focus,
   background: #64748b;
 }
 
-/* 4. Barra de búsqueda acortada + filtros de los datos de la tarjeta */
+/* 3. Barra de búsqueda acortada + filtros de la tarjeta en UNA SOLA FILA */
 .exp-toolbar-row {
   display: flex;
   align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
+  gap: 8px;
+  flex-wrap: nowrap;
   margin-bottom: 18px;
+  width: 100%;
 }
 
 .exp-search-wrapper.is-compact {
   margin-bottom: 0;
-  flex: 0 1 280px;
-  min-width: 210px;
-  height: 36px;
-  padding: 0 11px;
+  flex: 1 1 220px;
+  min-width: 160px;
+  max-width: 260px;
+  height: 34px;
+  padding: 0 10px;
   border-radius: 7px;
 }
 
 .exp-search-wrapper.is-compact .exp-search-input {
-  font-size: 0.8rem;
+  font-size: 0.76rem;
 }
 
 .exp-card-filters {
   display: flex;
   align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  flex: 1;
+  gap: 6px;
+  flex-wrap: nowrap;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .exp-filter-select {
-  height: 36px;
-  padding: 0 26px 0 10px;
+  height: 34px;
+  padding: 0 22px 0 9px;
   border-radius: 7px;
   border: 1px solid var(--entity-line);
   background-color: var(--entity-panel);
   color: var(--entity-text);
   font-family: inherit;
-  font-size: 0.76rem;
+  font-size: 0.74rem;
   font-weight: 550;
   cursor: pointer;
-  max-width: 195px;
+  flex: 1 1 0;
+  min-width: 96px;
+  max-width: 165px;
   text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
   transition: border-color 0.15s ease;
 }
 
@@ -4683,9 +4646,10 @@ select:focus,
 }
 
 .exp-clear-filters-btn {
-  height: 36px !important;
-  padding: 0 10px !important;
-  font-size: 0.74rem !important;
+  height: 34px !important;
+  padding: 0 9px !important;
+  font-size: 0.72rem !important;
+  flex-shrink: 0;
 }
 
 .exp-filter-banner {
@@ -4706,16 +4670,16 @@ select:focus,
   border-color: rgba(245, 158, 11, 0.35);
 }
 
-/* 5. Tarjeta de Expediente (Nuevo Diseño Limpio — 8 datos clave) */
+/* 4. Tarjeta de Expediente (Diseño Final) */
 .admin-exp-card.exp-v2-card {
-  padding: 16px 18px;
+  padding: 15px 17px;
   min-height: 0;
   border-radius: 10px;
   border: 1px solid var(--entity-line);
   background: var(--entity-panel);
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 9px;
   transition: border-color 0.16s ease, transform 0.16s ease, box-shadow 0.16s ease;
 }
 
@@ -4725,7 +4689,7 @@ select:focus,
   box-shadow: 0 8px 22px rgba(0, 0, 0, 0.06);
 }
 
-/* Fila 1: Estado + Código */
+/* Fila superior: Puntito de estado + Código a la izquierda y Fase en 1 fila a la derecha */
 .exp-v2-top {
   display: flex;
   align-items: center;
@@ -4733,27 +4697,11 @@ select:focus,
   gap: 8px;
 }
 
-.exp-v2-status-badge {
+.exp-v2-identity {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  font-size: 0.72rem;
-  font-weight: 650;
-  color: var(--entity-text);
-  padding: 3px 9px;
-  border-radius: 99px;
-  background: var(--entity-panel-2);
-  border: 1px solid var(--entity-line);
-}
-
-.exp-v2-status-badge.accion_pendiente {
-  color: #d97706;
-  background: rgba(245, 158, 11, 0.08);
-  border-color: rgba(245, 158, 11, 0.28);
-}
-
-[data-theme="dark"] .exp-v2-status-badge.accion_pendiente {
-  color: #fbbf24;
+  min-width: 0;
 }
 
 .exp-v2-dot {
@@ -4784,40 +4732,49 @@ select:focus,
   letter-spacing: 0.02em;
 }
 
-/* Fila 2: Fase + Mini gráfico minimalista (ej. 4/7) */
+/* Fase en una sola fila, sin fondo ni borde, y color progresivamente más oscuro */
 .exp-v2-phase-row {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 7px 10px;
-  border-radius: 7px;
-  background: var(--entity-panel-2);
-  border: 1px solid var(--entity-line);
+  gap: 6px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  min-width: 0;
+  --phase-color: #2f9e66;
 }
 
-.exp-v2-phase-info {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  min-width: 0;
-}
+/* Escala progresiva: cada fase más oscura conforme avanza */
+.exp-v2-phase-row.phase-tone-1 { --phase-color: #52b788; }
+.exp-v2-phase-row.phase-tone-2 { --phase-color: #3ca374; }
+.exp-v2-phase-row.phase-tone-3 { --phase-color: #2b8a5e; }
+.exp-v2-phase-row.phase-tone-4 { --phase-color: #1f724b; }
+.exp-v2-phase-row.phase-tone-5 { --phase-color: #165b3a; }
+.exp-v2-phase-row.phase-tone-6 { --phase-color: #0f452b; }
+.exp-v2-phase-row.phase-tone-7 { --phase-color: #09301d; }
+
+[data-theme="dark"] .exp-v2-phase-row.phase-tone-1 { --phase-color: #95d5b2; }
+[data-theme="dark"] .exp-v2-phase-row.phase-tone-2 { --phase-color: #74c69d; }
+[data-theme="dark"] .exp-v2-phase-row.phase-tone-3 { --phase-color: #52b788; }
+[data-theme="dark"] .exp-v2-phase-row.phase-tone-4 { --phase-color: #40916c; }
+[data-theme="dark"] .exp-v2-phase-row.phase-tone-5 { --phase-color: #2d7a56; }
+[data-theme="dark"] .exp-v2-phase-row.phase-tone-6 { --phase-color: #236345; }
+[data-theme="dark"] .exp-v2-phase-row.phase-tone-7 { --phase-color: #1b4d35; }
 
 .exp-v2-phase-num {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 0.68rem;
+  font-size: 0.67rem;
   font-weight: 700;
-  color: var(--entity-accent);
-  background: var(--entity-accent-soft);
-  padding: 1px 6px;
-  border-radius: 4px;
+  color: var(--phase-color);
+  background: transparent;
+  padding: 0;
   flex-shrink: 0;
 }
 
 .exp-v2-phase-name {
-  font-size: 0.73rem;
-  font-weight: 600;
-  color: var(--entity-text);
+  font-size: 0.71rem;
+  font-weight: 700;
+  color: var(--phase-color);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -4825,47 +4782,47 @@ select:focus,
 
 .exp-v2-minichart {
   display: inline-grid;
-  grid-template-columns: repeat(7, 7px);
-  gap: 3px;
+  grid-template-columns: repeat(7, 5px);
+  gap: 2px;
   align-items: center;
   flex-shrink: 0;
 }
 
 .exp-v2-bar {
   display: block;
-  width: 7px;
-  height: 10px;
-  border-radius: 2px;
+  width: 5px;
+  height: 8px;
+  border-radius: 1.5px;
   background: var(--entity-line-strong);
-  opacity: 0.45;
+  opacity: 0.4;
 }
 
 .exp-v2-bar.is-done {
-  background: var(--entity-accent);
-  opacity: 0.85;
+  background: var(--phase-color);
+  opacity: 0.82;
 }
 
 .exp-v2-bar.is-current {
-  background: var(--entity-accent);
+  background: var(--phase-color);
   opacity: 1;
-  height: 12px;
+  height: 10px;
 }
 
-/* Fila 3: Título genérico */
+/* Título reducido */
 .admin-exp-card.exp-v2-card .exp-v2-title {
   margin: 0;
-  font-size: 0.93rem;
-  font-weight: 700;
-  line-height: 1.35;
+  font-size: 0.82rem;
+  font-weight: 650;
+  line-height: 1.32;
   color: var(--entity-text);
-  letter-spacing: -0.01em;
+  letter-spacing: -0.005em;
 }
 
-/* Fila 4: Lista limpia de datos (Suministros, Destino, Cliente, Próxima entrega) */
+/* Lista limpia de datos (Suministros, Destino, Cliente, Presupuesto est., Próxima entrega) */
 .exp-v2-data-grid {
   display: grid;
-  gap: 7px;
-  padding-top: 10px;
+  gap: 6px;
+  padding-top: 9px;
   margin-top: auto;
   border-top: 1px solid var(--entity-line);
 }
@@ -4875,13 +4832,13 @@ select:focus,
   align-items: baseline;
   justify-content: space-between;
   gap: 10px;
-  font-size: 0.75rem;
+  font-size: 0.74rem;
   min-width: 0;
 }
 
 .exp-v2-label {
   color: var(--entity-faint);
-  font-size: 0.69rem;
+  font-size: 0.67rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -4914,15 +4871,15 @@ select:focus,
 }
 
 .exp-v2-delivery-date {
-  font-size: 0.75rem;
+  font-size: 0.74rem;
   font-weight: 700;
   color: var(--entity-text);
 }
 
 .exp-v2-delivery-diff {
-  font-size: 0.68rem;
+  font-size: 0.67rem;
   font-weight: 650;
-  padding: 2px 7px;
+  padding: 2px 6px;
   border-radius: 4px;
   white-space: nowrap;
 }
@@ -4958,7 +4915,7 @@ select:focus,
   border: 1px solid var(--entity-line);
 }
 
-/* 6. Dos desplegables inferiores: Expedientes finalizados y cerrados */
+/* 5. Dos desplegables inferiores: Expedientes finalizados y cerrados */
 .exp-bottom-collapsibles {
   display: grid;
   gap: 12px;
@@ -5005,18 +4962,12 @@ select:focus,
   color: var(--entity-text);
 }
 
-.exp-collapsible-hint {
-  font-size: 0.74rem;
-  color: var(--entity-muted);
-}
-
 .exp-collapsible-toggle-text {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  font-size: 0.74rem;
-  font-weight: 600;
+  justify-content: center;
   color: var(--entity-muted);
+  transition: transform 0.18s ease;
 }
 
 .exp-collapsible-details[open] .exp-collapsible-toggle-text svg {
@@ -5030,14 +4981,18 @@ select:focus,
 }
 
 @media (max-width: 900px) {
+  .exp-toolbar-row {
+    flex-wrap: wrap;
+  }
   .exp-search-wrapper.is-compact {
     flex: 1 1 100%;
+    max-width: none;
+  }
+  .exp-card-filters {
+    flex-wrap: wrap;
   }
   .exp-filter-select {
-    flex: 1 1 calc(50% - 8px);
+    flex: 1 1 calc(50% - 6px);
     max-width: none;
   }
 }
-
-
-

@@ -4533,79 +4533,7 @@
 
     if (section === "expedientes") {
       if (param) return renderDossierBuilder(param);
-
-      if (expDesignMode === "visual") {
-        return renderExpedientesBandejaVisual("admin", EXPEDIENTES);
-      }
-
-      const q = expSearchQuery.trim().toLowerCase();
-      const filteredExp = EXPEDIENTES.filter(exp => {
-        if (!q) return true;
-        return exp.id.toLowerCase().includes(q) ||
-               exp.producto.toLowerCase().includes(q) ||
-               exp.cliente.toLowerCase().includes(q) ||
-               exp.proveedor.toLowerCase().includes(q) ||
-               exp.destinatarioFinal.toLowerCase().includes(q) ||
-               (PHASES[exp.faseActual] && PHASES[exp.faseActual].name.toLowerCase().includes(q));
-      });
-
-      const cards = filteredExp.length ? filteredExp.map(exp => `
-        <article class="admin-exp-card" data-go="#admin/expedientes/${exp.id}" style="cursor:pointer">
-          <div class="admin-exp-card-top">
-            <span class="admin-exp-id">${exp.id}</span>
-            <span class="admin-phase-mini">${icon("folder", 12)} Fase ${exp.faseActual + 1}: ${PHASES[exp.faseActual].name}</span>
-          </div>
-          <h3>${exp.producto}</h3>
-          <p>${exp.unidades} · Destino: <b>${exp.destinatarioFinal}</b></p>
-          <div class="admin-exp-card-meta">
-            <div>
-              <span>Constructor</span>
-              <strong>${exp.cliente}</strong>
-            </div>
-            <div>
-              <span>Proveedor</span>
-              <strong>${exp.proveedor}</strong>
-            </div>
-          </div>
-          <div class="admin-exp-actions" style="margin-top:14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
-            <span style="font-size:0.72rem;color:${exp.desviacionDias.includes("+") ? "var(--entity-warning)" : "var(--entity-muted)"}">${exp.plazoRealEstimado} (${exp.desviacionDias})</span>
-            <div style="display:flex;gap:6px">
-              ${exp.faseActual === 1 ? `
-                <button class="admin-quiet-button" type="button" data-go="#admin/selector/${exp.id}" style="color:var(--entity-accent);font-size:0.75rem">
-                  ${icon("users", 13)} Selector & Matching
-                </button>
-              ` : ""}
-              <button class="admin-quiet-button" type="button">Abrir expediente ${icon("arrow", 14)}</button>
-            </div>
-          </div>
-        </article>
-      `).join("") : `<div style="grid-column:1/-1;padding:48px 24px;text-align:center;color:var(--entity-muted);background:var(--entity-panel);border-radius:10px;border:1px solid var(--entity-line)">No se han encontrado expedientes que coincidan con "<b>${expSearchQuery}</b>".</div>`;
-
-      return `
-        <div class="admin-view-head">
-          <div>
-            <h1>Expedientes</h1>
-            <p>Bandeja operativa central. Supervisa el avance por fases, aprueba entregables técnicos y gestiona el suministro.</p>
-          </div>
-          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-            ${renderDesignTogglePill()}
-            <button class="admin-primary-button" type="button" data-go="#admin/nuevo">
-              ${icon("plus", 16)} Crear Expediente
-            </button>
-          </div>
-        </div>
-
-        <div class="exp-search-wrapper">
-          ${icon("search", 16)}
-          <input type="search" class="exp-search-input" id="expSearchInput" placeholder="Filtrar en directo por código, producto, cliente, taller o tramo..." value="${expSearchQuery}">
-          ${expSearchQuery ? `<button class="admin-quiet-button" type="button" id="clearExpSearchBtn" style="padding:2px 6px">${icon("x", 14)}</button>` : ""}
-          <span class="exp-search-count">${filteredExp.length} de ${EXPEDIENTES.length}</span>
-        </div>
-
-        <div class="admin-exp-list">
-          ${cards}
-        </div>
-      `;
+      return renderExpedientesBandejaVisual("admin", EXPEDIENTES);
     }
 
     if (section === "suministros") {
@@ -4853,95 +4781,8 @@
 
     if (section === "expedientes") {
       if (param) return renderDossierBuilder(param);
-
       const clientAll = EXPEDIENTES.filter(e => e.cliente.includes("Infraestructuras") || e.cliente.includes("Adif") || e.cliente.includes("Metro") || e.cliente.includes("Ferrocarrils"));
-      if (expDesignMode === "visual") {
-        return renderExpedientesBandejaVisual("cliente", clientAll);
-      }
-
-      const q = expSearchQuery.trim().toLowerCase();
-      const filteredExp = clientAll.filter(exp => {
-        if (!q) return true;
-        return exp.id.toLowerCase().includes(q) ||
-               exp.producto.toLowerCase().includes(q) ||
-               exp.destinatarioFinal.toLowerCase().includes(q) ||
-               exp.proveedor.toLowerCase().includes(q) ||
-               (PHASES[exp.faseActual] && PHASES[exp.faseActual].name.toLowerCase().includes(q));
-      });
-
-      const cards = filteredExp.length ? filteredExp.map(exp => `
-        <article class="admin-exp-card" data-go="#cliente/expedientes/${exp.id}" style="cursor:pointer">
-          <div class="admin-exp-card-top">
-            <span class="admin-exp-id">${exp.id}</span>
-            <span class="admin-phase-mini">${icon("folder", 12)} Fase ${exp.faseActual + 1}: ${PHASES[exp.faseActual].name}</span>
-          </div>
-          <h3>${exp.producto}</h3>
-          <p>${exp.unidades} · Tramo: <b>${exp.destinatarioFinal}</b></p>
-          <div class="admin-exp-card-meta">
-            <div>
-              <span>Taller adjudicado</span>
-              <strong>${exp.proveedor}</strong>
-            </div>
-            <div>
-              <span>Plazo estimado</span>
-              <strong class="${exp.desviacionDias.includes("+") ? "admin-due" : ""}">${exp.plazoRealEstimado}</strong>
-            </div>
-          </div>
-          <div class="admin-exp-actions" style="margin-top:14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
-            <span style="font-size:0.72rem;color:var(--entity-muted)">${exp.presupuestoTotal}</span>
-            <div style="display:flex;gap:6px">
-              ${exp.faseActual === 1 ? `
-                <button class="admin-quiet-button" type="button" data-go="#cliente/selector/${exp.id}" style="color:var(--entity-accent);font-size:0.75rem">
-                  ${icon("users", 13)} Selector de Proveedores
-                </button>
-              ` : ""}
-              <button class="admin-quiet-button" type="button">Abrir expediente ${icon("arrow", 14)}</button>
-            </div>
-          </div>
-        </article>
-      `).join("") : `<div style="grid-column:1/-1;padding:48px 24px;text-align:center;color:var(--entity-muted);background:var(--entity-panel);border-radius:10px;border:1px solid var(--entity-line)">No se han encontrado expedientes que coincidan con "<b>${expSearchQuery}</b>".</div>`;
-
-      return `
-        <div class="admin-view-head">
-          <div>
-            <h1>Mis expedientes</h1>
-            <p>Supervisa el ciclo de vida de los materiales pedidos para tus obras ferroviarias, sube requisitos y valida el cierre.</p>
-          </div>
-          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-            ${renderDesignTogglePill()}
-            <button class="admin-primary-button" type="button" data-go="#cliente/nuevo">
-              ${icon("plus", 16)} Nuevo expediente
-            </button>
-          </div>
-        </div>
-
-        <!-- Visión Global Integrada en Cabecera (Apuntes 06 - Tabla 1) -->
-        <div class="entity-scope-strip">
-          <div class="entity-scope-pill">
-            <span class="scope-dot active"></span>
-            <span><b>3</b> Expedientes activos</span>
-          </div>
-          <div class="entity-scope-pill">
-            <span class="scope-dot warning"></span>
-            <span><b>1</b> Mediación pendiente de firma digital</span>
-          </div>
-          <div class="entity-scope-pill">
-            <span class="scope-dot info"></span>
-            <span><b>1</b> Suministro en transporte a pie de vía</span>
-          </div>
-        </div>
-
-        <div class="exp-search-wrapper">
-          ${icon("search", 16)}
-          <input type="search" class="exp-search-input" id="expSearchInput" placeholder="Filtrar en directo por código, producto, tramo o taller..." value="${expSearchQuery}">
-          ${expSearchQuery ? `<button class="admin-quiet-button" type="button" id="clearExpSearchBtn" style="padding:2px 6px">${icon("x", 14)}</button>` : ""}
-          <span class="exp-search-count">${filteredExp.length} de ${clientAll.length}</span>
-        </div>
-
-        <div class="admin-exp-list">
-          ${cards}
-        </div>
-      `;
+      return renderExpedientesBandejaVisual("cliente", clientAll);
     }
     if (section === "suministros") {
       return renderSuministrosSection("cliente");
@@ -5009,84 +4850,7 @@
       if (param) return renderDossierBuilder(param);
 
       const prvAll = EXPEDIENTES.filter(e => e.proveedor.includes("IberRail") || e.id === "SFN-2026-K9M2" || e.id === "SFN-2026-W4P7");
-      if (expDesignMode === "visual") {
-        return renderExpedientesBandejaVisual("proveedor", prvAll);
-      }
-
-      const classicPrvAll = EXPEDIENTES.filter(e => e.proveedor.includes("IberRail"));
-      const q = expSearchQuery.trim().toLowerCase();
-      const filteredExp = classicPrvAll.filter(exp => {
-        if (!q) return true;
-        return exp.id.toLowerCase().includes(q) ||
-               exp.producto.toLowerCase().includes(q) ||
-               exp.cliente.toLowerCase().includes(q) ||
-               exp.destinatarioFinal.toLowerCase().includes(q) ||
-               (PHASES[exp.faseActual] && PHASES[exp.faseActual].name.toLowerCase().includes(q));
-      });
-
-      const cards = filteredExp.length ? filteredExp.map(exp => `
-        <article class="admin-exp-card" data-go="#proveedor/expedientes/${exp.id}" style="cursor:pointer">
-          <div class="admin-exp-card-top">
-            <span class="admin-exp-id">${exp.id}</span>
-            <span class="admin-phase-mini">${icon("folder", 12)} Fase ${exp.faseActual + 1}: ${PHASES[exp.faseActual].name}</span>
-          </div>
-          <h3>${exp.producto}</h3>
-          <p>Cliente: <b>${exp.cliente}</b> · ${exp.unidades}</p>
-          <div class="admin-exp-card-meta">
-            <div>
-              <span>Plazo acordado</span>
-              <strong>${exp.plazoPactado}</strong>
-            </div>
-            <div>
-              <span>Entrega estimada</span>
-              <strong class="${exp.desviacionDias.includes("+") ? "admin-due" : ""}">${exp.plazoRealEstimado}</strong>
-            </div>
-          </div>
-          <div class="admin-exp-actions" style="margin-top:14px;display:flex;justify-content:space-between;align-items:center">
-            <span style="font-size:0.72rem;color:var(--entity-muted)">${exp.presupuestoTotal}</span>
-            <button class="admin-quiet-button" type="button">Abrir y subir entregables ${icon("arrow", 14)}</button>
-          </div>
-        </article>
-      `).join("") : `<div style="grid-column:1/-1;padding:48px 24px;text-align:center;color:var(--entity-muted);background:var(--entity-panel);border-radius:10px;border:1px solid var(--entity-line)">No se han encontrado expedientes que coincidan con "<b>${expSearchQuery}</b>".</div>`;
-
-      return `
-        <div class="admin-view-head">
-          <div>
-            <h1>Mis expedientes</h1>
-            <p>Accede a tus lotes en curso, sube fichas técnicas y certificados con drag & drop, y reporta avances.</p>
-          </div>
-          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-            ${renderDesignTogglePill()}
-          </div>
-        </div>
-
-        <!-- Visión Global Integrada en Cabecera (Apuntes 06 - Tabla 1) -->
-        <div class="entity-scope-strip">
-          <div class="entity-scope-pill">
-            <span class="scope-dot active"></span>
-            <span><b>2</b> Suministros adjudicados</span>
-          </div>
-          <div class="entity-scope-pill">
-            <span class="scope-dot warning"></span>
-            <span><b>1</b> Solicitud de cotización (RFQ)</span>
-          </div>
-          <div class="entity-scope-pill">
-            <span class="scope-dot info"></span>
-            <span><b>1</b> Certificado de ensayo pendiente de carga</span>
-          </div>
-        </div>
-
-        <div class="exp-search-wrapper">
-          ${icon("search", 16)}
-          <input type="search" class="exp-search-input" id="expSearchInput" placeholder="Filtrar en directo por código, producto o cliente..." value="${expSearchQuery}">
-          ${expSearchQuery ? `<button class="admin-quiet-button" type="button" id="clearExpSearchBtn" style="padding:2px 6px">${icon("x", 14)}</button>` : ""}
-          <span class="exp-search-count">${filteredExp.length} de ${classicPrvAll.length}</span>
-        </div>
-
-        <div class="admin-exp-list">
-          ${cards}
-        </div>
-      `;
+      return renderExpedientesBandejaVisual("proveedor", prvAll);
     }
 
     if (section === "cotizaciones") {
@@ -6415,32 +6179,18 @@
       });
     });
 
-    // Buscador en directo de Expedientes (filtrado inmediato sin recarga)
+    // Buscador en directo de Expedientes
     const searchInput = document.getElementById("expSearchInput");
     if (searchInput) {
       searchInput.addEventListener("input", e => {
         expSearchQuery = e.target.value;
-        if (expDesignMode === "visual") {
-          const pos = e.target.selectionStart || expSearchQuery.length;
-          renderApp();
-          const newInput = document.getElementById("expSearchInput");
-          if (newInput) {
-            newInput.focus();
-            try { newInput.setSelectionRange(pos, pos); } catch (_) {}
-          }
-          return;
+        const pos = e.target.selectionStart || expSearchQuery.length;
+        renderApp();
+        const newInput = document.getElementById("expSearchInput");
+        if (newInput) {
+          newInput.focus();
+          try { newInput.setSelectionRange(pos, pos); } catch (_) {}
         }
-        const q = expSearchQuery.trim().toLowerCase();
-        const cards = document.querySelectorAll(".admin-exp-card");
-        let visibleCount = 0;
-        cards.forEach(card => {
-          const text = card.textContent.toLowerCase();
-          const match = !q || text.includes(q);
-          card.style.display = match ? "" : "none";
-          if (match) visibleCount++;
-        });
-        const countEl = document.querySelector(".exp-search-count");
-        if (countEl) countEl.textContent = `${visibleCount} de ${cards.length}`;
       });
     }
 
@@ -6477,20 +6227,73 @@
         expKpiFilter = "all";
         expSearchQuery = "";
         expCardFilters = {
-          estado: "all",
           fase: "all",
           cliente: "all",
           destino: "all",
-          entrega: "all"
+          entrega: "all",
+          presupuesto: "all"
         };
         renderApp();
       });
     });
 
-    // Agrupación en Suministros
-    document.querySelectorAll("[data-group-suministros]").forEach(btn => {
+    // Filtros rápidos KPI en Suministros (1 clic)
+    document.querySelectorAll("[data-suministro-kpi]").forEach(btn => {
       btn.addEventListener("click", () => {
-        suministrosGroup = btn.dataset.groupSuministros;
+        const kpi = btn.dataset.suministroKpi;
+        if (kpi === "activo") {
+          suministrosFilters.estado = "activo";
+          suministrosFilters.acciones = "all";
+          showCerradosSuministros = false;
+        } else if (kpi === "has_pending") {
+          suministrosFilters.acciones = "has_pending";
+          if (suministrosFilters.estado === "finalizado" || suministrosFilters.estado === "cerrado") {
+            suministrosFilters.estado = "all";
+          }
+        } else if (kpi === "finalizado") {
+          suministrosFilters.estado = "finalizado";
+          suministrosFilters.acciones = "all";
+          showCerradosSuministros = true;
+        } else if (kpi === "cerrado") {
+          suministrosFilters.estado = "cerrado";
+          suministrosFilters.acciones = "all";
+          showCerradosSuministros = true;
+        }
+        renderApp();
+      });
+    });
+
+    // Selectores de Filtro en Suministros (Fase, Estado, Proveedor, Cliente, Año, Acciones)
+    document.querySelectorAll("[data-suministro-filter]").forEach(sel => {
+      sel.addEventListener("change", () => {
+        const key = sel.dataset.suministroFilter;
+        if (key && suministrosFilters.hasOwnProperty(key)) {
+          suministrosFilters[key] = sel.value;
+          if (key === "estado") {
+            if (sel.value === "finalizado" || sel.value === "cerrado" || sel.value === "todos") {
+              showCerradosSuministros = true;
+            } else if (sel.value === "activo") {
+              showCerradosSuministros = false;
+            }
+          }
+          renderApp();
+        }
+      });
+    });
+
+    // Botones de restablecer/limpiar filtros en Suministros
+    document.querySelectorAll("[data-reset-suministros-filters]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        suministrosFilters = {
+          fase: "all",
+          estado: "all",
+          proveedor: "all",
+          cliente: "all",
+          ano: "all",
+          acciones: "all"
+        };
+        suministrosSearchQuery = "";
+        showCerradosSuministros = false;
         renderApp();
       });
     });
@@ -6514,6 +6317,9 @@
     if (toggleCerradosSuministrosEl) {
       toggleCerradosSuministrosEl.addEventListener("change", e => {
         showCerradosSuministros = e.target.checked;
+        if (!showCerradosSuministros && (suministrosFilters.estado === "cerrado" || suministrosFilters.estado === "finalizado" || suministrosFilters.estado === "todos")) {
+          suministrosFilters.estado = "all";
+        }
         renderApp();
       });
     }
@@ -6583,20 +6389,6 @@
       btn.addEventListener("click", () => {
         directorioViewMode = btn.dataset.dirMode;
         renderApp();
-      });
-    });
-
-    // Toggle Antes / Después en diseño de Expedientes
-    document.querySelectorAll("[data-set-exp-design]").forEach(btn => {
-      btn.addEventListener("click", e => {
-        e.stopPropagation();
-        const mode = btn.dataset.setExpDesign;
-        if (mode && mode !== expDesignMode) {
-          expDesignMode = mode;
-          localStorage.setItem("sofein-exp-design", mode);
-          showToast(mode === "visual" ? "Activado diseño Visual (Después)" : "Activado diseño Clásico (Antes)");
-          renderApp();
-        }
       });
     });
 
