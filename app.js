@@ -941,6 +941,236 @@
   let suministroRowCount = 1;
   let docScopeMode = "phase"; // "phase" | "all"
   let docStatusFilter = "all"; // "all" | "complete" | "review" | "pending" | "rejected"
+  let expDesignMode = localStorage.getItem("sofein-exp-design") || "visual"; // "classic" | "visual"
+
+  /* ---------- Helpers Visuales de Expedientes (Antes / Después) ---------- */
+  const SHORT_PHASE_NAMES = [
+    "Alcance",
+    "Cotización",
+    "Formalización",
+    "Fabricación",
+    "Logística",
+    "Recepción",
+    "Pasaporte"
+  ];
+
+  function renderDesignTogglePill() {
+    return `
+      <div class="exp-design-toggle" role="group" aria-label="Alternar diseño de expedientes">
+        <span class="exp-design-toggle-label">Vista:</span>
+        <button type="button" class="exp-design-btn ${expDesignMode === "classic" ? "is-active" : ""}" data-set-exp-design="classic" title="Ver diseño anterior con más texto">
+          Antes (Texto)
+        </button>
+        <button type="button" class="exp-design-btn ${expDesignMode === "visual" ? "is-active" : ""}" data-set-exp-design="visual" title="Ver nuevo diseño visual estructurado">
+          ${icon("grid", 12)} Después (Visual)
+        </button>
+      </div>
+    `;
+  }
+
+  function getEntityInitials(name = "") {
+    const clean = name.replace(/[,.\-()]/g, " ").trim();
+    const words = clean.split(/\s+/).filter(w => !/^(de|del|la|el|los|las|y|sa|sl|sau)$/i.test(w));
+    if (words.length >= 2) return (words[0][0] + words[1][0]).toUpperCase();
+    return clean.slice(0, 2).toUpperCase() || "SF";
+  }
+
+  function getExpVisualMeta(exp) {
+    const rawMat = `${exp.id} ${exp.tipoMaterial || ""} ${exp.producto || ""}`.toLowerCase();
+    let image = "assets/product-traviesas.png";
+    let category = "Hormigón PR-22";
+    if (exp.id === "RFQ-2026-011" || rawMat.includes("carril")) {
+      image = "assets/product-carril.png";
+      category = "Carril 54E1";
+    } else if (exp.id === "RFQ-2026-009" || rawMat.includes("sujeci") || rawMat.includes("skl")) {
+      image = "assets/product-sujeciones.png";
+      category = "Fijaciones SKL";
+    } else if (exp.id === "RFQ-2026-022" || rawMat.includes("madera")) {
+      image = "assets/phase-entrega.png";
+      category = "Madera Tratada";
+    } else if (exp.id === "RFQ-2026-003" || rawMat.includes("tirafondo")) {
+      image = "assets/phase-revision.png";
+      category = "Tirafondos TF-24";
+    } else if (rawMat.includes("balasto")) {
+      image = "assets/phase-fabricacion.png";
+      category = "Balasto Silíceo";
+    }
+
+    const isClosed = !!exp.cerrado;
+    const hasDelay = (exp.desviacionDias || "").includes("+");
+    const isAhead = (exp.desviacionDias || "").includes("-");
+    const hasOpenInc = (exp.incidencias || []).some(i => !i.adendaId);
+
+    let statusLabel = "En cronograma";
+    let statusTone = "complete";
+    if (isClosed) {
+      statusLabel = "Cerrado · Pasaporte";
+      statusTone = "complete";
+    } else if (hasOpenInc) {
+      statusLabel = `${exp.incidencias.length} incidencia en mediación`;
+      statusTone = "warning";
+    } else if (hasDelay) {
+      statusLabel = "Seguimiento de plazo";
+      statusTone = "warning";
+    } else if (exp.faseActual === 1) {
+      statusLabel = "En cotización";
+      statusTone = "review";
+    }
+
+    // Limpiar texto de desviación sin dobles paréntesis
+    const rawDev = (exp.desviacionDias || "").trim();
+    let shortDev = rawDev;
+    const m = rawDev.match(/^([+\-]?\d+\s*d[íi]as?)\s*\(([^)]+)\)/i);
+    if (m) {
+      const delta = m[1];
+      const reason = m[2];
+      shortDev = delta.startsWith("0") ? reason : `${delta} · ${reason}`;
+    }
+
+    const doneSteps = isClosed ? 7 : exp.faseActual + 1;
+    const pct = isClosed ? 100 : Math.round(((exp.faseActual + 1) / 7) * 100);
+    const shortPhase = SHORT_PHASE_NAMES[exp.faseActual] || PHASES[exp.faseActual]?.name || "";
+
+    // Contar entregables totales validados vs totales del expediente
+    let validDocs = 0;
+    let totalDocs = 0;
+    Object.values(exp.deliverables || {}).forEach(arr => {
+      (arr || []).forEach(d => {
+        totalDocs++;
+        if (d.state === "complete") validDocs++;
+      });
+    });
+
+    return {
+      image,
+      category,
+      statusLabel,
+      statusTone,
+      hasDelay,
+      isAhead,
+      shortDev,
+      doneSteps,
+      pct,
+      shortPhase,
+      validDocs,
+      totalDocs,
+      cliInitials: getEntityInitials(exp.cliente),
+      prvInitials: getEntityInitials(exp.proveedor)
+    };
+  }
+
+  function renderVisualExpCard(exp, role = "admin") {
+    const v = getExpVisualMeta(exp);
+    const goTarget = `#${role}/expedientes/${exp.id}`;
+    const segmentsHTML = PHASES.map((p, idx) => {
+      const isDone = idx < exp.faseActual || !!exp.cerrado;
+      const isCurrent = !exp.cerrado && idx === exp.faseActual;
+      return `<i class="exp-seg ${isDone ? "is-done" : isCurrent ? "is-current" : ""}" title="Fase ${idx + 1}: ${p.name}"></i>`;
+    }).join("");
+
+    // Partes según el actor que visualiza
+    let partyLeftLabel = "Constructor";
+    let partyLeftName = exp.cliente;
+    let partyLeftInit = v.cliInitials;
+    let partyRightLabel = "Proveedor";
+    let partyRightName = exp.proveedor;
+    let partyRightInit = v.prvInitials;
+
+    if (role === "cliente") {
+      partyLeftLabel = "Taller adjudicado";
+      partyLeftName = exp.proveedor;
+      partyLeftInit = v.prvInitials;
+      partyRightLabel = "Importe lote";
+      partyRightName = exp.presupuestoTotal;
+      partyRightInit = "€";
+    } else if (role === "proveedor") {
+      partyLeftLabel = "Contratista";
+      partyLeftName = exp.cliente;
+      partyLeftInit = v.cliInitials;
+      partyRightLabel = "Importe lote";
+      partyRightName = exp.presupuestoTotal;
+      partyRightInit = "€";
+    }
+
+    return `
+      <article class="admin-exp-card exp-visual-card" data-go="${goTarget}" style="cursor:pointer">
+        <div class="exp-visual-media">
+          <img src="${v.image}" alt="${exp.producto}" loading="lazy" />
+          <div class="exp-visual-media-overlay"></div>
+          <div class="exp-visual-media-top">
+            <div style="display:flex;align-items:center;gap:6px">
+              <span class="exp-visual-id">${exp.id}</span>
+              <span class="exp-visual-cat">${v.category}</span>
+            </div>
+            <span class="exp-visual-status ${v.statusTone}"><i></i>${v.statusLabel}</span>
+          </div>
+          <div class="exp-visual-media-bottom">
+            <span class="exp-visual-vol">${icon("packageCheck", 12)} ${exp.unidades}</span>
+            ${role === "admin" ? `<span class="exp-visual-price">${exp.presupuestoTotal}</span>` : ""}
+          </div>
+        </div>
+
+        <div class="exp-visual-body">
+          <h3 class="exp-visual-title">${exp.producto}</h3>
+          <div class="exp-visual-dest" title="${exp.destinatarioFinal}">
+            ${icon("route", 13)}
+            <span>${exp.destinatarioFinal}</span>
+          </div>
+
+          <!-- Barra de Progreso Visual de 7 Fases -->
+          <div class="exp-visual-progress-box">
+            <div class="exp-visual-progress-head">
+              <span class="exp-visual-phase-tag">
+                <b>Fase ${exp.faseActual + 1}/7</b> · ${v.shortPhase}
+              </span>
+              <span class="exp-visual-docs-count" title="Entregables validados en el expediente">
+                ${icon("check", 11)} ${v.validDocs}/${v.totalDocs} docs
+              </span>
+            </div>
+            <div class="exp-visual-segments">
+              ${segmentsHTML}
+            </div>
+          </div>
+
+          <!-- Actores con Avatar Visual -->
+          <div class="exp-visual-parties">
+            <div class="exp-visual-party">
+              <span class="exp-visual-avatar is-cli">${partyLeftInit}</span>
+              <div class="exp-visual-party-copy">
+                <small>${partyLeftLabel}</small>
+                <strong title="${partyLeftName}">${partyLeftName}</strong>
+              </div>
+            </div>
+            <div class="exp-visual-party">
+              <span class="exp-visual-avatar is-prv">${partyRightInit}</span>
+              <div class="exp-visual-party-copy">
+                <small>${partyRightLabel}</small>
+                <strong title="${partyRightName}">${partyRightName}</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pie: Plazo + Acciones -->
+          <div class="exp-visual-foot">
+            <div class="exp-visual-leadtime">
+              <strong>${exp.plazoRealEstimado}</strong>
+              <span class="exp-visual-delta ${v.hasDelay ? "is-delay" : v.isAhead ? "is-ahead" : ""}">${v.shortDev}</span>
+            </div>
+            <div class="exp-visual-actions">
+              ${exp.faseActual === 1 && role !== "proveedor" ? `
+                <button class="admin-quiet-button exp-visual-btn-match" type="button" data-go="#${role}/selector/${exp.id}" title="Abrir Selector y Matching de Proveedores">
+                  ${icon("users", 13)} Matching
+                </button>
+              ` : ""}
+              <button class="admin-quiet-button exp-visual-btn-open" type="button">
+                Abrir ${icon("arrow", 13)}
+              </button>
+            </div>
+          </div>
+        </div>
+      </article>
+    `;
+  }
 
   function parseHash() {
     const raw = location.hash.replace(/^#\/?/, "");
@@ -2001,10 +2231,31 @@
     const isRoleCliente = activeRole === "cliente";
     const isRoleProveedor = activeRole === "proveedor";
 
+    const isVisual = expDesignMode === "visual";
+    const vMeta = getExpVisualMeta(exp);
+
     // Stepper HTML
     const stepperHTML = PHASES.map((p, idx) => {
       const isCurrent = idx === activeDossierPhase;
       const isDone = idx < exp.faseActual || !!exp.cerrado;
+      const phaseList = exp.deliverables[idx] || [];
+      const phaseValidCount = phaseList.filter(d => d.state === "complete").length;
+      if (isVisual) {
+        const shortName = SHORT_PHASE_NAMES[idx] || p.name;
+        const stateText = exp.cerrado ? "Completada" : idx === exp.faseActual ? "En curso" : idx < exp.faseActual ? "Completada" : "Pendiente";
+        return `
+          <div class="dossier-step is-visual ${isCurrent ? "is-current" : isDone ? "is-done" : ""}" data-select-dossier-phase="${idx}">
+            <div class="dossier-step-top">
+              <span class="dossier-step-badge ${isDone ? "is-done" : isCurrent ? "is-current" : ""}">
+                ${isDone ? icon("check", 12) : p.num}
+              </span>
+              <span class="dossier-step-docpill">${phaseList.length ? `${phaseValidCount}/${phaseList.length}` : "—"}</span>
+            </div>
+            <div class="dossier-step-title">${shortName}</div>
+            <div class="dossier-step-meta">${stateText}</div>
+          </div>
+        `;
+      }
       return `
         <div class="dossier-step ${isCurrent ? "is-current" : isDone ? "is-done" : ""}" data-select-dossier-phase="${idx}">
           <div class="dossier-step-top">
@@ -2216,36 +2467,47 @@
           ? `<span class="entity-status review"><i></i>Fase en Curso (Activa)</span>`
           : `<span class="entity-status pending"><i></i>Fase Programada</span>`;
 
+      const phasePct = deliverables.length ? Math.round((completedSlotsCount / deliverables.length) * 100) : 0;
       const phaseOpsPanelHTML = !isDestinatario ? `
-        <div class="phase-ops-panel">
-          <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+        <div class="phase-ops-panel ${isVisual ? "is-visual" : ""}">
+          <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;flex:1;min-width:240px">
             ${phaseStateLabel}
-            <div>
-              <strong style="display:block;font-size:0.9rem;color:var(--entity-text)">
-                Gestión Operativa — ${PHASES[activeDossierPhase].name}
-              </strong>
-              <span style="font-size:0.76rem;color:var(--entity-muted)">
-                ${PHASES[activeDossierPhase].desc} · <b>${completedSlotsCount} de ${deliverables.length}</b> entregables validados
-              </span>
+            <div style="flex:1;min-width:180px">
+              <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                <strong style="font-size:0.9rem;color:var(--entity-text)">
+                  ${isVisual ? `Fase ${activeDossierPhase + 1} · ${SHORT_PHASE_NAMES[activeDossierPhase] || PHASES[activeDossierPhase].name}` : `Gestión Operativa — ${PHASES[activeDossierPhase].name}`}
+                </strong>
+                ${isVisual ? `
+                  <span class="phase-ops-progress-pill">
+                    <b>${completedSlotsCount}/${deliverables.length}</b> validados
+                    <i class="phase-ops-progress-track"><b style="width:${phasePct}%"></b></i>
+                  </span>
+                ` : ""}
+              </div>
+              ${!isVisual ? `
+                <span style="font-size:0.76rem;color:var(--entity-muted)">
+                  ${PHASES[activeDossierPhase].desc} · <b>${completedSlotsCount} de ${deliverables.length}</b> entregables validados
+                </span>
+              ` : ""}
             </div>
           </div>
           <div class="phase-ops-controls">
             ${activeDossierPhase !== 2 ? `
               <button class="admin-quiet-button" type="button" data-select-dossier-phase="2" title="Consultar Hoja de Pedido y Contrato">
-                ${icon("shield", 14)} Ver Hoja de Pedido
+                ${icon("shield", 14)} ${isVisual ? "Pedido" : "Ver Hoja de Pedido"}
               </button>
             ` : ""}
             ${!isDestinatario ? `
               <button class="admin-quiet-button" type="button" data-open-upload-free-doc="${exp.id}">
-                ${icon("upload", 14)} Adjuntar Documento
+                ${icon("upload", 14)} ${isVisual ? "Subir" : "Adjuntar Documento"}
               </button>
             ` : ""}
             ${isRoleAdmin ? `
               <button class="admin-quiet-button" type="button" data-open-timeline-modal="${exp.id}">
-                ${icon("calendar", 14)} Actualizar Plazo / Fase
+                ${icon("calendar", 14)} ${isVisual ? "Plazo / Fase" : "Actualizar Plazo / Fase"}
               </button>
               <button class="admin-quiet-button" type="button" data-open-add-slot-modal="${exp.id}">
-                ${icon("plus", 14)} Requerir Documento
+                ${icon("plus", 14)} ${isVisual ? "Requerir" : "Requerir Documento"}
               </button>
               ${activeDossierPhase === exp.faseActual && exp.faseActual < PHASES.length - 1 ? `
                 <button class="admin-primary-button" type="button" data-advance-dossier-phase="${exp.id}">
@@ -2329,20 +2591,28 @@
       `;
 
       const slotsHTML = filteredDocs.length ? filteredDocs.map(({ del, phaseIdx, phaseName, slotIdx }) => `
-        <article class="deliverable-slot">
+        <article class="deliverable-slot ${isVisual ? "is-visual" : ""}">
           <div class="slot-head">
             <div class="slot-identity">
               <span class="slot-icon">${icon(del.format === "DWG / PDF" ? "route" : del.format === "Digital" ? "shield" : "file", 20)}</span>
               <div class="slot-title">
                 <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
                   <h3>${del.name}</h3>
-                  ${docScopeMode === "all" ? `<span class="dossier-chip" style="font-size:0.66rem;padding:2px 7px">${phaseName}</span>` : ""}
+                  ${docScopeMode === "all" ? `<span class="dossier-chip" style="font-size:0.66rem;padding:2px 7px">${SHORT_PHASE_NAMES[phaseIdx] || phaseName}</span>` : ""}
                 </div>
-                <p>Formato requerido: <b>${del.format}</b> · ${del.deadline ? `Fecha límite: <b>${del.deadline}</b>` : "Entregable formal de trazabilidad"}</p>
+                ${isVisual ? `
+                  <div class="slot-visual-pills">
+                    <span class="slot-mini-pill">${del.format}</span>
+                    <span class="slot-mini-pill">${del.owner}</span>
+                    ${del.deadline ? `<span class="slot-mini-pill">Límite: ${del.deadline}</span>` : ""}
+                  </div>
+                ` : `
+                  <p>Formato requerido: <b>${del.format}</b> · ${del.deadline ? `Fecha límite: <b>${del.deadline}</b>` : "Entregable formal de trazabilidad"}</p>
+                `}
               </div>
             </div>
             <div class="slot-badges">
-              <span class="slot-party-tag">Responsable: ${del.owner}</span>
+              ${!isVisual ? `<span class="slot-party-tag">Responsable: ${del.owner}</span>` : ""}
               ${getStatusPill(del.state)}
             </div>
           </div>
@@ -2367,15 +2637,17 @@
                 ${icon("file", 18)}
                 <div>
                   <strong>${del.file}</strong>
-                  <small>Registrado: ${del.date} · ${del.state === "complete" ? "Certificado y sellado por SOFEIN" : del.state === "rejected" ? "Versión observada pendiente de subsanación" : "En cola de verificación técnica SOFEIN"}</small>
+                  <small>${isVisual
+                    ? `${del.date} · ${del.state === "complete" ? "Sellado SOFEIN" : del.state === "rejected" ? "Con observaciones" : "En verificación"}`
+                    : `Registrado: ${del.date} · ${del.state === "complete" ? "Certificado y sellado por SOFEIN" : del.state === "rejected" ? "Versión observada pendiente de subsanación" : "En cola de verificación técnica SOFEIN"}`}</small>
                 </div>
               </div>
               <div class="slot-actions">
                 <button class="slot-action-btn" type="button" data-inspect-doc="${exp.id}" data-phase="${phaseIdx}" data-slot="${slotIdx}">
-                  ${icon("eye", 14)} Ver / Auditar
+                  ${icon("eye", 14)} ${isVisual ? "Auditar" : "Ver / Auditar"}
                 </button>
                 <button class="slot-action-btn" type="button" data-download="${del.file}">
-                  ${icon("download", 14)} Descargar
+                  ${icon("download", 14)} ${isVisual ? "PDF" : "Descargar"}
                 </button>
                 ${activeRole === "admin" && (del.state === "review" || del.state === "rejected") ? `
                   <button class="slot-action-btn approve" type="button" data-admin-approve="${exp.id}" data-phase="${phaseIdx}" data-slot="${slotIdx}">
@@ -2384,7 +2656,7 @@
                 ` : ""}
                 ${activeRole === "admin" && del.state === "review" ? `
                   <button class="slot-action-btn reject" type="button" data-admin-reject="${exp.id}" data-phase="${phaseIdx}" data-slot="${slotIdx}">
-                    ${icon("alert", 14)} Rechazar con Nota
+                    ${icon("alert", 14)} ${isVisual ? "Rechazar" : "Rechazar con Nota"}
                   </button>
                 ` : ""}
               </div>
@@ -2394,17 +2666,17 @@
               <div class="slot-dropzone-copy">
                 ${icon("upload", 22)}
                 <div>
-                  <div><b>Arrastra aquí el archivo (${del.name})</b> o haz clic para subir</div>
-                  <span class="sub">Responsable asignado: ${del.owner} · Formatos admitidos: .pdf, .dwg, .xlsx (Máx 25 MB)</span>
+                  <div><b>${isVisual ? `Subir ${del.name}` : `Arrastra aquí el archivo (${del.name}) o haz clic para subir`}</b></div>
+                  <span class="sub">${isVisual ? `Responsable: ${del.owner} · PDF, DWG, XLSX` : `Responsable asignado: ${del.owner} · Formatos admitidos: .pdf, .dwg, .xlsx (Máx 25 MB)`}</span>
                 </div>
               </div>
               <button class="slot-upload-btn" type="button">
-                ${icon("plus", 14)} Seleccionar documento
+                ${icon("plus", 14)} ${isVisual ? "Adjuntar" : "Seleccionar documento"}
               </button>
             </div>
           `}
         </article>
-      `).join("") : `<div style="padding:32px;background:var(--entity-panel);border:1px solid var(--entity-line);border-radius:10px;text-align:center;color:var(--entity-muted)">No hay documentos que coincidan con el filtro seleccionado.${isRoleAdmin ? ` Puedes pulsar en <b>"+ Requerir Documento"</b> para crear una nueva ranura.` : ""}</div>`;
+      `).join("") : `<div style="padding:32px;background:var(--entity-panel);border:1px solid var(--entity-line);border-radius:10px;text-align:center;color:var(--entity-muted)">No hay documentos que coincidan con el filtro seleccionado.${isRoleAdmin ? ` Puedes pulsar en <b>"+ Requerir"</b> para crear una nueva ranura.` : ""}</div>`;
 
       tabContent = `${matchingBannerHTML}${formalizacionBlockHTML}${phaseOpsPanelHTML}${docManagerBarHTML}<div class="deliverable-slot-grid">${slotsHTML}</div>`;
     } else if (activeDossierTab === "incidents") {
@@ -2848,9 +3120,12 @@
     const expNotices = NOTICES.filter(n => n.expId === exp.id && n.roles.includes(activeRole) && !discardedNotices.has(n.id));
 
     return `
-      <div class="dossier-builder">
-        <div class="dossier-breadcrumb" style="margin-bottom:14px">
-          <a href="#${activeRole}/expedientes">← Volver a expedientes</a> / <span>${exp.id}</span>
+      <div class="dossier-builder ${isVisual ? "is-visual" : ""}">
+        <div class="dossier-breadcrumb" style="margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+          <div>
+            <a href="#${activeRole}/expedientes">← Volver a expedientes</a> / <span>${exp.id}</span>
+          </div>
+          ${renderDesignTogglePill()}
         </div>
 
         ${exp.estado === "pending_validation" ? `
@@ -2875,68 +3150,124 @@
         ` : ""}
 
         <!-- Tarjeta de Metadatos del Expediente Estanco -->
-        <section class="dossier-meta-card">
-          <div class="dossier-title-area">
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
-              <span style="font-size:0.75rem;font-weight:700;color:var(--entity-accent);letter-spacing:0.06em">${exp.id}</span>
-              <span style="font-size:0.72rem;color:var(--entity-faint)">·</span>
-              <span style="font-size:0.75rem;color:var(--entity-muted)">Expediente Estanco Modular</span>
+        ${isVisual ? `
+          <section class="dossier-meta-card is-visual">
+            <div class="dossier-visual-main">
+              <div class="dossier-visual-thumb">
+                <img src="${vMeta.image}" alt="${exp.producto}" />
+                <span class="dossier-visual-cat">${vMeta.category}</span>
+              </div>
+              <div class="dossier-title-area">
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px">
+                  <span class="dossier-visual-id">${exp.id}</span>
+                  <span class="exp-visual-status ${vMeta.statusTone}"><i></i>${vMeta.statusLabel}</span>
+                  <span class="dossier-visual-vol">${icon("packageCheck", 12)} ${exp.unidades}</span>
+                </div>
+                <h2>${exp.producto}</h2>
+                <div class="dossier-visual-entities-grid">
+                  <div class="dossier-visual-entity-item">
+                    <small>Contratista</small>
+                    <strong title="${exp.cliente}">${exp.cliente}</strong>
+                  </div>
+                  <div class="dossier-visual-entity-item">
+                    <small>Proveedor</small>
+                    <strong title="${exp.proveedor}">${!isDestinatario ? exp.proveedor : "[Reservado]"}</strong>
+                  </div>
+                  <div class="dossier-visual-entity-item">
+                    <small>Destino en vía</small>
+                    <strong title="${exp.destinatarioFinal}">${exp.destinatarioFinal}</strong>
+                  </div>
+                  <div class="dossier-visual-entity-item">
+                    <small>Importe</small>
+                    <strong style="color:var(--entity-accent)">${!isDestinatario ? exp.presupuestoTotal : "[Confidencial]"}</strong>
+                  </div>
+                </div>
+              </div>
             </div>
-            <h2>${exp.producto}</h2>
-            <p>${exp.subtipo} · <b>${exp.unidades}</b></p>
-            <div class="dossier-chips">
-              <span class="dossier-chip"><strong>Contratista:</strong> ${exp.cliente}</span>
-              <span class="dossier-chip"><strong>Destinatario Vía:</strong> ${exp.destinatarioFinal}</span>
-              ${!isDestinatario ? `<span class="dossier-chip"><strong>Proveedor:</strong> ${exp.proveedor}</span>` : ""}
-              ${!isDestinatario ? `<span class="dossier-chip"><strong>Importe:</strong> ${exp.presupuestoTotal}</span>` : `<span class="dossier-chip" style="color:var(--entity-faint)"><strong>Importe:</strong> [Confidencial Contratista]</span>`}
-            </div>
-          </div>
 
-          <div class="dossier-quick-stats">
-            <div class="dossier-quick-stat">
-              <span>Plazo Pactado</span>
-              <strong>${exp.plazoPactado}</strong>
+            <div class="dossier-visual-kpis">
+              <div class="dossier-visual-kpi">
+                <span>Plazo Pactado</span>
+                <strong>${exp.plazoPactado}</strong>
+                <small>Según pliego</small>
+              </div>
+              <div class="dossier-visual-kpi ${exp.desviacionDias.includes("+") ? "is-warning" : "is-accent"}">
+                <span>Estimado Real</span>
+                <strong>${exp.plazoRealEstimado}</strong>
+                <small>${vMeta.shortDev}</small>
+              </div>
+              <div class="dossier-visual-kpi ${exp.incidencias.length ? "is-warning" : ""}">
+                <span>Incidencias</span>
+                <strong>${exp.incidencias.length} ${exp.incidencias.length === 1 ? "activa" : "activas"}</strong>
+                <small>${vMeta.validDocs}/${vMeta.totalDocs} docs validados</small>
+              </div>
             </div>
-            <div class="dossier-quick-stat">
-              <span>Estimado Real</span>
-              <strong class="${exp.desviacionDias.includes("+") ? "warning" : "accent"}">${exp.plazoRealEstimado}</strong>
+          </section>
+        ` : `
+          <section class="dossier-meta-card">
+            <div class="dossier-title-area">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+                <span style="font-size:0.75rem;font-weight:700;color:var(--entity-accent);letter-spacing:0.06em">${exp.id}</span>
+                <span style="font-size:0.72rem;color:var(--entity-faint)">·</span>
+                <span style="font-size:0.75rem;color:var(--entity-muted)">Expediente Estanco Modular</span>
+              </div>
+              <h2>${exp.producto}</h2>
+              <p>${exp.subtipo} · <b>${exp.unidades}</b></p>
+              <div class="dossier-chips">
+                <span class="dossier-chip"><strong>Contratista:</strong> ${exp.cliente}</span>
+                <span class="dossier-chip"><strong>Destinatario Vía:</strong> ${exp.destinatarioFinal}</span>
+                ${!isDestinatario ? `<span class="dossier-chip"><strong>Proveedor:</strong> ${exp.proveedor}</span>` : ""}
+                ${!isDestinatario ? `<span class="dossier-chip"><strong>Importe:</strong> ${exp.presupuestoTotal}</span>` : `<span class="dossier-chip" style="color:var(--entity-faint)"><strong>Importe:</strong> [Confidencial Contratista]</span>`}
+              </div>
             </div>
-            <div class="dossier-quick-stat">
-              <span>Incidencias</span>
-              <strong>${exp.incidencias.length} activa</strong>
+
+            <div class="dossier-quick-stats">
+              <div class="dossier-quick-stat">
+                <span>Plazo Pactado</span>
+                <strong>${exp.plazoPactado}</strong>
+              </div>
+              <div class="dossier-quick-stat">
+                <span>Estimado Real</span>
+                <strong class="${exp.desviacionDias.includes("+") ? "warning" : "accent"}">${exp.plazoRealEstimado}</strong>
+              </div>
+              <div class="dossier-quick-stat">
+                <span>Incidencias</span>
+                <strong>${exp.incidencias.length} activa</strong>
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        `}
 
         <!-- Stepper de las 7 Fases -->
         <div>
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-            <span style="font-size:0.76rem;font-weight:600;color:var(--entity-faint);text-transform:uppercase;letter-spacing:0.06em">Secuencia de Trazabilidad por Fases</span>
-            <span style="font-size:0.76rem;color:var(--entity-accent);font-weight:600">Fase actual del expediente: ${PHASES[exp.faseActual].name}</span>
+            <span style="font-size:0.74rem;font-weight:600;color:var(--entity-faint);text-transform:uppercase;letter-spacing:0.06em">${isVisual ? "Fases del Suministro (7 etapas)" : "Secuencia de Trazabilidad por Fases"}</span>
+            <span style="font-size:0.75rem;color:var(--entity-accent);font-weight:600">${exp.cerrado ? "Expediente cerrado · 7/7 fases completadas" : `Fase actual: ${PHASES[exp.faseActual].name}`}</span>
           </div>
-          <div class="dossier-stepper">
+          <div class="dossier-stepper ${isVisual ? "is-visual" : ""}">
             ${stepperHTML}
           </div>
         </div>
 
         <!-- Pestañas Internas del Expediente -->
-        <div class="dossier-tabs">
+        <div class="dossier-tabs ${isVisual ? "is-visual" : ""}">
           <button class="dossier-tab-btn ${activeDossierTab === "deliverables" ? "is-active" : ""}" type="button" data-switch-dossier-tab="deliverables">
-            ${icon("file", 16)} Gestión & Documentación (${PHASES[activeDossierPhase].name})
+            ${icon("file", 16)} ${isVisual ? `Documentación · Fase ${activeDossierPhase + 1}` : `Gestión & Documentación (${PHASES[activeDossierPhase].name})`}
+            ${isVisual ? `<b class="badge is-neutral">${completedSlotsCount}/${deliverables.length}</b>` : ""}
           </button>
           <button class="dossier-tab-btn" type="button" data-go="#${activeRole}/selector/${exp.id}">
-            ${icon("users", 16)} Selector & Matching de Proveedores
+            ${icon("users", 16)} ${isVisual ? "Matching Proveedores" : "Selector & Matching de Proveedores"}
           </button>
           <button class="dossier-tab-btn ${activeDossierTab === "incidents" ? "is-active" : ""}" type="button" data-switch-dossier-tab="incidents">
-            ${icon("alert", 16)} Incidencias & Modificaciones
+            ${icon("alert", 16)} ${isVisual ? "Incidencias" : "Incidencias & Modificaciones"}
             ${exp.incidencias.length ? `<b class="badge">${exp.incidencias.length}</b>` : ""}
           </button>
           <button class="dossier-tab-btn ${activeDossierTab === "comms" ? "is-active" : ""}" type="button" data-switch-dossier-tab="comms">
-            ${icon("inbox", 16)} Avisos & Hitos
+            ${icon("inbox", 16)} ${isVisual ? "Avisos" : "Avisos & Hitos"}
             ${expNotices.length ? `<b class="badge">${expNotices.length}</b>` : ""}
           </button>
           <button class="dossier-tab-btn ${activeDossierTab === "passport" ? "is-active" : ""}" type="button" data-switch-dossier-tab="passport">
-            ${icon("award", 16)} Pasaporte Digital SOFEIN
+            ${icon("award", 16)} ${isVisual ? "Pasaporte Digital" : "Pasaporte Digital SOFEIN"}
           </button>
         </div>
 
@@ -3473,7 +3804,7 @@
                (PHASES[exp.faseActual] && PHASES[exp.faseActual].name.toLowerCase().includes(q));
       });
 
-      const cards = filteredExp.length ? filteredExp.map(exp => `
+      const cards = filteredExp.length ? filteredExp.map(exp => expDesignMode === "visual" ? renderVisualExpCard(exp, "admin") : `
         <article class="admin-exp-card" data-go="#admin/expedientes/${exp.id}" style="cursor:pointer">
           <div class="admin-exp-card-top">
             <span class="admin-exp-id">${exp.id}</span>
@@ -3511,9 +3842,12 @@
             <h1>Expedientes</h1>
             <p>Bandeja operativa central. Supervisa el avance por fases, aprueba entregables técnicos y gestiona el suministro.</p>
           </div>
-          <button class="admin-primary-button" type="button" data-go="#admin/nuevo">
-            ${icon("plus", 16)} Crear Expediente
-          </button>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            ${renderDesignTogglePill()}
+            <button class="admin-primary-button" type="button" data-go="#admin/nuevo">
+              ${icon("plus", 16)} Crear Expediente
+            </button>
+          </div>
         </div>
 
         <div class="exp-search-wrapper">
@@ -3782,7 +4116,7 @@
                (PHASES[exp.faseActual] && PHASES[exp.faseActual].name.toLowerCase().includes(q));
       });
 
-      const cards = filteredExp.length ? filteredExp.map(exp => `
+      const cards = filteredExp.length ? filteredExp.map(exp => expDesignMode === "visual" ? renderVisualExpCard(exp, "cliente") : `
         <article class="admin-exp-card" data-go="#cliente/expedientes/${exp.id}" style="cursor:pointer">
           <div class="admin-exp-card-top">
             <span class="admin-exp-id">${exp.id}</span>
@@ -3820,9 +4154,12 @@
             <h1>Mis expedientes</h1>
             <p>Supervisa el ciclo de vida de los materiales pedidos para tus obras ferroviarias, sube requisitos y valida el cierre.</p>
           </div>
-          <button class="admin-primary-button" type="button" data-go="#cliente/nuevo">
-            ${icon("plus", 16)} Nuevo expediente
-          </button>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            ${renderDesignTogglePill()}
+            <button class="admin-primary-button" type="button" data-go="#cliente/nuevo">
+              ${icon("plus", 16)} Nuevo expediente
+            </button>
+          </div>
         </div>
 
         <!-- Visión Global Integrada en Cabecera (Apuntes 06 - Tabla 1) -->
@@ -3926,7 +4263,7 @@
                (PHASES[exp.faseActual] && PHASES[exp.faseActual].name.toLowerCase().includes(q));
       });
 
-      const cards = filteredExp.length ? filteredExp.map(exp => `
+      const cards = filteredExp.length ? filteredExp.map(exp => expDesignMode === "visual" ? renderVisualExpCard(exp, "proveedor") : `
         <article class="admin-exp-card" data-go="#proveedor/expedientes/${exp.id}" style="cursor:pointer">
           <div class="admin-exp-card-top">
             <span class="admin-exp-id">${exp.id}</span>
@@ -3956,6 +4293,9 @@
           <div>
             <h1>Mis expedientes</h1>
             <p>Accede a tus lotes en curso, sube fichas técnicas y certificados con drag & drop, y reporta avances.</p>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            ${renderDesignTogglePill()}
           </div>
         </div>
 
@@ -5273,6 +5613,20 @@
       btn.addEventListener("click", () => {
         directorioViewMode = btn.dataset.dirMode;
         renderApp();
+      });
+    });
+
+    // Toggle Antes / Después en diseño de Expedientes
+    document.querySelectorAll("[data-set-exp-design]").forEach(btn => {
+      btn.addEventListener("click", e => {
+        e.stopPropagation();
+        const mode = btn.dataset.setExpDesign;
+        if (mode && mode !== expDesignMode) {
+          expDesignMode = mode;
+          localStorage.setItem("sofein-exp-design", mode);
+          showToast(mode === "visual" ? "Activado diseño Visual (Después)" : "Activado diseño Clásico (Antes)");
+          renderApp();
+        }
       });
     });
 

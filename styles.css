@@ -4102,3 +4102,795 @@ select:focus,
   }
 }
 
+/* ============================================================
+   PROPUESTA VISUAL EXPEDIENTES (ANTES / DESPUÉS TOGGLE)
+   Diseño B2B estructurado: fotografía técnica ferroviaria,
+   progreso segmentado en 7 etapas, avatares y reducción de texto.
+   ============================================================ */
+
+/* 1. Selector Antes / Después */
+.exp-design-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 8px;
+  background: var(--entity-panel-2);
+  border: 1px solid var(--entity-line-strong);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.exp-design-toggle-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--entity-faint);
+  padding: 0 8px 0 6px;
+}
+
+.exp-design-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  border-radius: 6px;
+  border: 0;
+  background: transparent;
+  color: var(--entity-muted);
+  font-size: 0.74rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.exp-design-btn:hover {
+  color: var(--entity-text);
+}
+
+.exp-design-btn.is-active {
+  background: var(--entity-accent);
+  color: #ffffff;
+  box-shadow: 0 1px 4px rgba(0, 122, 61, 0.25);
+}
+
+[data-theme="dark"] .exp-design-btn.is-active {
+  color: #06140b;
+}
+
+/* 2. Tarjeta Visual de Expediente en Bandeja (Admin, Cliente, Proveedor) */
+.admin-exp-card.exp-visual-card {
+  padding: 0;
+  overflow: hidden;
+  border-radius: 12px;
+  border: 1px solid var(--entity-line);
+  background: var(--entity-panel);
+  box-shadow: var(--entity-shadow);
+  display: flex;
+  flex-direction: column;
+  min-height: 340px;
+  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.admin-exp-card.exp-visual-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--entity-accent);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
+}
+
+.exp-visual-media {
+  position: relative;
+  height: 98px;
+  width: 100%;
+  overflow: hidden;
+  background: #0d1b12;
+  flex-shrink: 0;
+}
+
+.exp-visual-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(0.82) contrast(1.06) brightness(0.82);
+  transition: transform 0.35s ease;
+}
+
+.admin-exp-card.exp-visual-card:hover .exp-visual-media img {
+  transform: scale(1.04);
+}
+
+.exp-visual-media-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(6, 15, 10, 0.72) 0%,
+    rgba(6, 15, 10, 0.28) 50%,
+    rgba(6, 15, 10, 0.84) 100%
+  );
+}
+
+.exp-visual-media-top {
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  z-index: 2;
+}
+
+.exp-visual-id {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: #ffffff;
+  background: rgba(10, 24, 16, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  padding: 3px 8px;
+  border-radius: 5px;
+  backdrop-filter: blur(4px);
+}
+
+.exp-visual-cat {
+  font-size: 0.66rem;
+  font-weight: 600;
+  color: #d1fae5;
+  background: rgba(16, 185, 129, 0.22);
+  border: 1px solid rgba(52, 211, 153, 0.32);
+  padding: 2px 7px;
+  border-radius: 5px;
+  backdrop-filter: blur(4px);
+}
+
+.exp-visual-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.66rem;
+  font-weight: 650;
+  padding: 3px 8px;
+  border-radius: 99px;
+  backdrop-filter: blur(4px);
+  background: rgba(10, 24, 16, 0.8);
+  color: #ecfdf5;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.exp-visual-status i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #34d399;
+}
+
+.exp-visual-status.warning {
+  color: #fef3c7;
+  border-color: rgba(245, 158, 11, 0.45);
+}
+
+.exp-visual-status.warning i {
+  background: #f59e0b;
+}
+
+.exp-visual-status.review {
+  color: #dbeafe;
+  border-color: rgba(96, 165, 250, 0.45);
+}
+
+.exp-visual-status.review i {
+  background: #60a5fa;
+}
+
+.exp-visual-media-bottom {
+  position: absolute;
+  bottom: 8px;
+  left: 12px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  z-index: 2;
+}
+
+.exp-visual-vol {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.71rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.92);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+.exp-visual-price {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #86efac;
+  background: rgba(6, 20, 12, 0.75);
+  padding: 2px 7px;
+  border-radius: 4px;
+  border: 1px solid rgba(134, 239, 172, 0.25);
+}
+
+.exp-visual-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 14px 16px 14px;
+  gap: 11px;
+}
+
+.admin-exp-card.exp-visual-card .exp-visual-title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--entity-text);
+  letter-spacing: -0.015em;
+}
+
+.exp-visual-dest {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.73rem;
+  color: var(--entity-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: -4px;
+}
+
+.exp-visual-dest svg {
+  color: var(--entity-accent);
+  flex-shrink: 0;
+}
+
+.exp-visual-dest span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Barra de progreso segmentada de 7 fases */
+.exp-visual-progress-box {
+  padding: 9px 11px;
+  border-radius: 8px;
+  background: var(--entity-panel-2);
+  border: 1px solid var(--entity-line);
+  display: grid;
+  gap: 7px;
+}
+
+.exp-visual-progress-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.exp-visual-phase-tag {
+  font-size: 0.72rem;
+  color: var(--entity-text);
+  font-weight: 550;
+}
+
+.exp-visual-phase-tag b {
+  color: var(--entity-accent);
+  font-weight: 700;
+}
+
+.exp-visual-docs-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.67rem;
+  font-weight: 600;
+  color: var(--entity-muted);
+  background: var(--entity-panel);
+  padding: 1px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--entity-line);
+}
+
+.exp-visual-segments {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.exp-seg {
+  display: block;
+  height: 5px;
+  border-radius: 99px;
+  background: var(--entity-line-strong);
+  opacity: 0.55;
+}
+
+.exp-seg.is-done {
+  background: var(--entity-accent);
+  opacity: 1;
+}
+
+.exp-seg.is-current {
+  background: var(--entity-accent);
+  opacity: 1;
+  box-shadow: 0 0 0 2px var(--entity-accent-soft);
+}
+
+/* Actores con Avatar */
+.exp-visual-parties {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 2px;
+}
+
+.exp-visual-party {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 9px;
+  border-radius: 7px;
+  background: var(--entity-panel-2);
+  border: 1px solid var(--entity-line);
+  min-width: 0;
+}
+
+.exp-visual-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  font-size: 0.65rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  letter-spacing: 0.02em;
+}
+
+.exp-visual-avatar.is-cli {
+  background: rgba(37, 99, 235, 0.12);
+  color: #2563eb;
+  border: 1px solid rgba(37, 99, 235, 0.22);
+}
+
+[data-theme="dark"] .exp-visual-avatar.is-cli {
+  color: #60a5fa;
+}
+
+.exp-visual-avatar.is-prv {
+  background: var(--entity-accent-soft);
+  color: var(--entity-accent);
+  border: 1px solid rgba(16, 185, 129, 0.24);
+}
+
+.exp-visual-party-copy {
+  min-width: 0;
+  display: grid;
+  gap: 1px;
+}
+
+.exp-visual-party-copy small {
+  font-size: 0.61rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--entity-faint);
+  font-weight: 600;
+}
+
+.exp-visual-party-copy strong {
+  font-size: 0.72rem;
+  color: var(--entity-text);
+  font-weight: 650;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Pie de tarjeta visual */
+.exp-visual-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--entity-line);
+}
+
+.exp-visual-leadtime {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.exp-visual-leadtime strong {
+  font-size: 0.78rem;
+  color: var(--entity-text);
+  font-weight: 700;
+}
+
+.exp-visual-delta {
+  font-size: 0.67rem;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: var(--entity-panel-2);
+  color: var(--entity-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 165px;
+}
+
+.exp-visual-delta.is-delay {
+  background: rgba(245, 158, 11, 0.12);
+  color: var(--entity-warning);
+}
+
+.exp-visual-delta.is-ahead {
+  background: var(--entity-accent-soft);
+  color: var(--entity-accent);
+}
+
+.exp-visual-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.exp-visual-btn-match {
+  color: var(--entity-accent) !important;
+  border-color: var(--entity-accent-soft) !important;
+  font-size: 0.72rem !important;
+  padding: 5px 9px !important;
+}
+
+.exp-visual-btn-open {
+  font-size: 0.73rem !important;
+  padding: 5px 10px !important;
+  font-weight: 650 !important;
+}
+
+/* 3. Ficha de Detalle del Expediente en Modo Visual */
+.dossier-meta-card.is-visual {
+  padding: 20px 22px;
+  gap: 22px;
+  align-items: stretch;
+}
+
+.dossier-visual-main {
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+  min-width: 0;
+}
+
+.dossier-visual-thumb {
+  position: relative;
+  width: 124px;
+  height: 108px;
+  border-radius: 10px;
+  overflow: hidden;
+  flex-shrink: 0;
+  border: 1px solid var(--entity-line-strong);
+  background: #0d1b12;
+}
+
+.dossier-visual-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(0.85) contrast(1.05);
+}
+
+.dossier-visual-cat {
+  position: absolute;
+  bottom: 6px;
+  left: 6px;
+  right: 6px;
+  text-align: center;
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: #ffffff;
+  background: rgba(8, 20, 13, 0.82);
+  padding: 2px 5px;
+  border-radius: 4px;
+  backdrop-filter: blur(4px);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dossier-visual-id {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.73rem;
+  font-weight: 700;
+  color: var(--entity-accent);
+  background: var(--entity-accent-soft);
+  padding: 2px 8px;
+  border-radius: 5px;
+}
+
+.dossier-visual-vol {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.73rem;
+  font-weight: 600;
+  color: var(--entity-muted);
+  background: var(--entity-panel-2);
+  border: 1px solid var(--entity-line);
+  padding: 2px 8px;
+  border-radius: 5px;
+}
+
+.dossier-meta-card.is-visual .dossier-title-area {
+  flex: 1;
+  min-width: 0;
+}
+
+.dossier-meta-card.is-visual .dossier-title-area h2 {
+  font-size: 1.22rem;
+  margin: 0 0 10px;
+}
+
+.dossier-visual-entities-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--entity-line);
+}
+
+.dossier-visual-entity-item {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.dossier-visual-entity-item small {
+  font-size: 0.62rem;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--entity-faint);
+}
+
+.dossier-visual-entity-item strong {
+  font-size: 0.76rem;
+  font-weight: 650;
+  color: var(--entity-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dossier-visual-kpis {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(112px, 1fr));
+  gap: 10px;
+  align-self: center;
+}
+
+.dossier-visual-kpi {
+  padding: 10px 12px;
+  border-radius: 9px;
+  background: var(--entity-panel-2);
+  border: 1px solid var(--entity-line);
+  display: grid;
+  gap: 2px;
+  text-align: left;
+}
+
+.dossier-visual-kpi.is-warning {
+  border-color: rgba(245, 158, 11, 0.35);
+  background: rgba(245, 158, 11, 0.05);
+}
+
+.dossier-visual-kpi.is-accent {
+  border-color: var(--entity-accent-soft);
+}
+
+.dossier-visual-kpi span {
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--entity-faint);
+}
+
+.dossier-visual-kpi strong {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--entity-text);
+}
+
+.dossier-visual-kpi.is-warning strong {
+  color: var(--entity-warning);
+}
+
+.dossier-visual-kpi small {
+  font-size: 0.66rem;
+  color: var(--entity-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 4. Stepper Compacto sin Texto Cortado */
+.dossier-stepper.is-visual {
+  gap: 6px;
+  padding: 2px 0 8px;
+}
+
+.dossier-step.is-visual {
+  padding: 10px 11px;
+  gap: 5px;
+  border-radius: 9px;
+  position: relative;
+  overflow: hidden;
+}
+
+.dossier-step.is-visual::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  background: transparent;
+}
+
+.dossier-step.is-visual.is-done::after {
+  background: var(--entity-accent);
+  opacity: 0.65;
+}
+
+.dossier-step.is-visual.is-current::after {
+  background: var(--entity-accent);
+}
+
+.dossier-step-badge {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: inline-grid;
+  place-items: center;
+  font-size: 0.68rem;
+  font-weight: 700;
+  background: var(--entity-panel-2);
+  color: var(--entity-muted);
+  border: 1px solid var(--entity-line-strong);
+}
+
+.dossier-step-badge.is-done {
+  background: var(--entity-accent-soft);
+  color: var(--entity-accent);
+  border-color: var(--entity-accent-soft);
+}
+
+.dossier-step-badge.is-current {
+  background: var(--entity-accent);
+  color: #ffffff;
+  border-color: var(--entity-accent);
+}
+
+[data-theme="dark"] .dossier-step-badge.is-current {
+  color: #06140b;
+}
+
+.dossier-step-docpill {
+  font-size: 0.64rem;
+  font-weight: 600;
+  color: var(--entity-faint);
+  background: var(--entity-panel-2);
+  padding: 1px 6px;
+  border-radius: 99px;
+}
+
+.dossier-step.is-visual .dossier-step-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+/* 5. Pestañas Concisas que no se cortan */
+.dossier-tabs.is-visual {
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.dossier-tabs.is-visual .dossier-tab-btn {
+  padding: 7px 13px;
+  font-size: 0.79rem;
+}
+
+.dossier-tab-btn b.badge.is-neutral {
+  background: var(--entity-panel-2);
+  color: var(--entity-text);
+  border: 1px solid var(--entity-line);
+}
+
+/* 6. Barra Operativa y Ranuras en Modo Visual */
+.phase-ops-progress-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.72rem;
+  color: var(--entity-muted);
+  background: var(--entity-panel-2);
+  border: 1px solid var(--entity-line);
+  padding: 3px 9px;
+  border-radius: 99px;
+}
+
+.phase-ops-progress-pill b {
+  color: var(--entity-text);
+}
+
+.phase-ops-progress-track {
+  display: inline-block;
+  width: 48px;
+  height: 5px;
+  border-radius: 99px;
+  background: var(--entity-line-strong);
+  overflow: hidden;
+}
+
+.phase-ops-progress-track b {
+  display: block;
+  height: 100%;
+  background: var(--entity-accent);
+  border-radius: inherit;
+}
+
+.slot-visual-pills {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.slot-mini-pill {
+  font-size: 0.66rem;
+  font-weight: 600;
+  color: var(--entity-muted);
+  background: var(--entity-panel-2);
+  border: 1px solid var(--entity-line);
+  padding: 1px 7px;
+  border-radius: 4px;
+}
+
+@media (max-width: 1080px) {
+  .dossier-meta-card.is-visual {
+    grid-template-columns: 1fr;
+  }
+  .dossier-visual-entities-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .dossier-visual-main {
+    flex-direction: column;
+  }
+  .dossier-visual-thumb {
+    width: 100%;
+    height: 110px;
+  }
+  .dossier-visual-kpis {
+    grid-template-columns: 1fr;
+  }
+}
+
+
