@@ -1633,7 +1633,7 @@
       <a class="admin-nav-link ${activeSection === item.id ? "is-active" : ""}" data-go="#${activeRole}/${item.id}">
         ${icon(item.icon, 18)}
         <span>${item.label}</span>
-        ${(item.id === "suministros" ? getRoleActiveSuministrosCount(activeRole) : item.count) ? `<b>${item.id === "suministros" ? getRoleActiveSuministrosCount(activeRole) : item.count}</b>` : item.badge ? `<b style="background:rgba(0,135,81,0.2);color:#86efac;font-size:0.6rem;padding:0 6px">${item.badge}</b>` : ""}
+        ${getRolePendingCount(activeRole, item.id) ? `<b>${getRolePendingCount(activeRole, item.id)}</b>` : (item.badge ? `<b style="background:rgba(0,135,81,0.2);color:#86efac;font-size:0.6rem;padding:0 6px">${item.badge}</b>` : "")}
       </a>
     `).join("");
 
@@ -3802,8 +3802,38 @@
     return SUMINISTROS;
   }
 
-  function getRoleActiveSuministrosCount(role) {
-    return getSuministrosForRole(role).filter(s => s.estado === "activo").length;
+  // Cálculo reactivo de pendientes para las burbujas del menú lateral (pendientes, no activos)
+  function getRolePendingCount(role, navId) {
+    if (navId === "suministros") {
+      // Cuenta suministros con acciones pendientes en ese rol, o suministros activos pendientes de cierre
+      // Ejemplo del usuario: 5 suministros pendientes
+      const sumList = getSuministrosForRole(role);
+      const withActions = sumList.filter(s => (s.accionesPendientes || 0) > 0).length;
+      if (withActions > 0) return withActions;
+      return sumList.filter(s => s.estado === "activo").length;
+    }
+    if (navId === "expedientes") {
+      let roleExps = EXPEDIENTES;
+      if (role === "cliente") {
+        roleExps = EXPEDIENTES.filter(e => e.cliente.toLowerCase().includes("infraestructuras"));
+      } else if (role === "proveedor") {
+        roleExps = EXPEDIENTES.filter(e => e.proveedor.toLowerCase().includes("iberrail") || e.id === "SFN-2026-K9M2" || e.id === "SFN-2026-W4P7");
+      }
+      const pendingActionCount = roleExps.filter(e => {
+        const meta = getExpVisualMeta(e);
+        return meta.hasPendingAction;
+      }).length;
+      return pendingActionCount > 0 ? pendingActionCount : roleExps.filter(e => !e.cerrado).length;
+    }
+    if (navId === "avisos") {
+      return NOTICES.filter(n => n.roles.includes(role) && !discardedNotices.has(n.id)).length;
+    }
+    if (navId === "cotizaciones") {
+      return 1; // 1 RFQ pendiente de responder oferta
+    }
+    const player = PLAYERS[role];
+    const item = player ? player.nav.find(n => n.id === navId) : null;
+    return item ? (item.count || 0) : 0;
   }
 
   function renderSuministrosSection(role) {
