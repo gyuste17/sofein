@@ -57,12 +57,10 @@
       badge: "Administración Central",
       entity: "SOFEIN Digital HQ",
       avatar: "SF",
-      defaultNav: "overview",
+      defaultNav: "expedientes",
       nav: [
-        { id: "overview", label: "Visión global", icon: "grid" },
         { id: "expedientes", label: "Expedientes", icon: "folder", count: 5 },
         { id: "directorio", label: "Clientes y Proveedores", icon: "users" },
-        { id: "configuracion", label: "Configuración", icon: "cog" },
         { id: "avisos", label: "Avisos", icon: "inbox", count: 2 }
       ]
     },
@@ -942,8 +940,16 @@
   let docScopeMode = "phase"; // "phase" | "all"
   let docStatusFilter = "all"; // "all" | "complete" | "review" | "pending" | "rejected"
   let expDesignMode = localStorage.getItem("sofein-exp-design") || "visual"; // "classic" | "visual"
+  let expKpiFilter = "all"; // "all" | "activos" | "accion_pendiente" | "completados" | "cerrados"
+  let expCardFilters = {
+    estado: "all",
+    fase: "all",
+    cliente: "all",
+    destino: "all",
+    entrega: "all"
+  };
 
-  /* ---------- Helpers Visuales de Expedientes (Antes / Después) ---------- */
+  /* ---------- Helpers de Nuevo Diseño de Expedientes (Antes / Después) ---------- */
   const SHORT_PHASE_NAMES = [
     "Alcance",
     "Cotización",
@@ -954,217 +960,188 @@
     "Pasaporte"
   ];
 
+  const EXP_GENERIC_META = {
+    "RFQ-2026-014": {
+      tituloGenerico: "Superestructura y armamento de vía — Ramal Factoría VW",
+      numSuministros: 3,
+      destinoCorto: "Factoría Volkswagen · Conexión Red Adif",
+      proximaEntregaFecha: "14 oct 2026",
+      proximaEntregaDiff: "-6 días (retraso)",
+      proximaEntregaTone: "overdue", // retraso (fecha anterior a hoy)
+      forcePendingAction: true
+    },
+    "RFQ-2026-011": {
+      tituloGenerico: "Renovación de carril y sujeción — Línea 4 Metro Bilbao",
+      numSuministros: 2,
+      destinoCorto: "Consorcio Transportes Bizkaia (Línea 4)",
+      proximaEntregaFecha: "04 nov 2026",
+      proximaEntregaDiff: "En 15 días",
+      proximaEntregaTone: "ontime",
+      forcePendingAction: true
+    },
+    "RFQ-2026-022": {
+      tituloGenerico: "Suministro de traviesas y aparatos — Tramo Medina del Campo",
+      numSuministros: 3,
+      destinoCorto: "ADIF Red Convencional (Medina del Campo)",
+      proximaEntregaFecha: "25 oct 2026",
+      proximaEntregaDiff: "En 5 días",
+      proximaEntregaTone: "soon",
+      forcePendingAction: false
+    },
+    "RFQ-2026-009": {
+      tituloGenerico: "Sistemas de fijación elástica y placas — Tramo Terrassa-Sabadell",
+      numSuministros: 2,
+      destinoCorto: "FGC Infraestructures (Terrassa - Sabadell)",
+      proximaEntregaFecha: "18 oct 2026",
+      proximaEntregaDiff: "Entregado (hace 2d)",
+      proximaEntregaTone: "done",
+      isFinalizado: true,
+      forcePendingAction: false
+    },
+    "RFQ-2026-003": {
+      tituloGenerico: "Lote de clavazón y fijación metálica — Miranda de Ebro",
+      numSuministros: 2,
+      destinoCorto: "ADIF Red Convencional (Miranda de Ebro)",
+      proximaEntregaFecha: "29 abr 2026",
+      proximaEntregaDiff: "Entregado (en plazo)",
+      proximaEntregaTone: "done",
+      forcePendingAction: false
+    }
+  };
+
   function renderDesignTogglePill() {
     return `
       <div class="exp-design-toggle" role="group" aria-label="Alternar diseño de expedientes">
-        <span class="exp-design-toggle-label">Vista:</span>
-        <button type="button" class="exp-design-btn ${expDesignMode === "classic" ? "is-active" : ""}" data-set-exp-design="classic" title="Ver diseño anterior con más texto">
-          Antes (Texto)
+        <span class="exp-design-toggle-label">Diseño:</span>
+        <button type="button" class="exp-design-btn ${expDesignMode === "classic" ? "is-active" : ""}" data-set-exp-design="classic" title="Ver diseño anterior">
+          Antes
         </button>
-        <button type="button" class="exp-design-btn ${expDesignMode === "visual" ? "is-active" : ""}" data-set-exp-design="visual" title="Ver nuevo diseño visual estructurado">
-          ${icon("grid", 12)} Después (Visual)
+        <button type="button" class="exp-design-btn ${expDesignMode === "visual" ? "is-active" : ""}" data-set-exp-design="visual" title="Ver nuevo diseño limpio">
+          Nuevo diseño
         </button>
       </div>
     `;
   }
 
-  function getEntityInitials(name = "") {
-    const clean = name.replace(/[,.\-()]/g, " ").trim();
-    const words = clean.split(/\s+/).filter(w => !/^(de|del|la|el|los|las|y|sa|sl|sau)$/i.test(w));
-    if (words.length >= 2) return (words[0][0] + words[1][0]).toUpperCase();
-    return clean.slice(0, 2).toUpperCase() || "SF";
-  }
-
   function getExpVisualMeta(exp) {
-    const rawMat = `${exp.id} ${exp.tipoMaterial || ""} ${exp.producto || ""}`.toLowerCase();
-    let image = "assets/product-traviesas.png";
-    let category = "Hormigón PR-22";
-    if (exp.id === "RFQ-2026-011" || rawMat.includes("carril")) {
-      image = "assets/product-carril.png";
-      category = "Carril 54E1";
-    } else if (exp.id === "RFQ-2026-009" || rawMat.includes("sujeci") || rawMat.includes("skl")) {
-      image = "assets/product-sujeciones.png";
-      category = "Fijaciones SKL";
-    } else if (exp.id === "RFQ-2026-022" || rawMat.includes("madera")) {
-      image = "assets/phase-entrega.png";
-      category = "Madera Tratada";
-    } else if (exp.id === "RFQ-2026-003" || rawMat.includes("tirafondo")) {
-      image = "assets/phase-revision.png";
-      category = "Tirafondos TF-24";
-    } else if (rawMat.includes("balasto")) {
-      image = "assets/phase-fabricacion.png";
-      category = "Balasto Silíceo";
-    }
-
+    const preset = EXP_GENERIC_META[exp.id] || {};
     const isClosed = !!exp.cerrado;
-    const hasDelay = (exp.desviacionDias || "").includes("+");
-    const isAhead = (exp.desviacionDias || "").includes("-");
+    const isCompleted = !isClosed && (!!preset.isFinalizado || !!exp.finalizado || exp.faseActual >= 5);
     const hasOpenInc = (exp.incidencias || []).some(i => !i.adendaId);
+    const hasPendingAction = !isClosed && !isCompleted && (
+      preset.forcePendingAction !== undefined
+        ? preset.forcePendingAction
+        : (exp.estado === "pending_validation" || hasOpenInc || exp.faseActual === 1)
+    );
 
-    let statusLabel = "En cronograma";
-    let statusTone = "complete";
+    let kpiGroup = "activos";
     if (isClosed) {
-      statusLabel = "Cerrado · Pasaporte";
-      statusTone = "complete";
-    } else if (hasOpenInc) {
-      statusLabel = `${exp.incidencias.length} incidencia en mediación`;
-      statusTone = "warning";
-    } else if (hasDelay) {
-      statusLabel = "Seguimiento de plazo";
-      statusTone = "warning";
-    } else if (exp.faseActual === 1) {
-      statusLabel = "En cotización";
-      statusTone = "review";
+      kpiGroup = "cerrados";
+    } else if (isCompleted) {
+      kpiGroup = "completados";
     }
 
-    // Limpiar texto de desviación sin dobles paréntesis
-    const rawDev = (exp.desviacionDias || "").trim();
-    let shortDev = rawDev;
-    const m = rawDev.match(/^([+\-]?\d+\s*d[íi]as?)\s*\(([^)]+)\)/i);
-    if (m) {
-      const delta = m[1];
-      const reason = m[2];
-      shortDev = delta.startsWith("0") ? reason : `${delta} · ${reason}`;
+    let estadoKey = "activo";
+    let estadoLabel = "Activo";
+    let estadoDotClass = "is-active";
+    if (isClosed) {
+      estadoKey = "cerrado";
+      estadoLabel = "Cerrado";
+      estadoDotClass = "is-closed";
+    } else if (isCompleted) {
+      estadoKey = "completado";
+      estadoLabel = "Completado";
+      estadoDotClass = "is-completed";
+    } else if (hasPendingAction) {
+      estadoKey = "accion_pendiente";
+      estadoLabel = "Acción pendiente";
+      estadoDotClass = "is-pending-pulse";
     }
 
-    const doneSteps = isClosed ? 7 : exp.faseActual + 1;
-    const pct = isClosed ? 100 : Math.round(((exp.faseActual + 1) / 7) * 100);
-    const shortPhase = SHORT_PHASE_NAMES[exp.faseActual] || PHASES[exp.faseActual]?.name || "";
+    const totalPhases = PHASES.length; // 7
+    const currentStep = isClosed ? totalPhases : (exp.faseActual + 1);
+    const shortPhase = SHORT_PHASE_NAMES[exp.faseActual] || PHASES[exp.faseActual]?.name || "En curso";
 
-    // Contar entregables totales validados vs totales del expediente
-    let validDocs = 0;
-    let totalDocs = 0;
-    Object.values(exp.deliverables || {}).forEach(arr => {
-      (arr || []).forEach(d => {
-        totalDocs++;
-        if (d.state === "complete") validDocs++;
-      });
-    });
+    const tituloGenerico = exp.tituloGenerico || preset.tituloGenerico || `Suministro ferroviario — ${exp.destinatarioFinal.split("(")[0].trim()}`;
+    const numSuministros = exp.numSuministros || preset.numSuministros || 2;
+    const proximaEntregaFecha = exp.proximaEntregaFecha || preset.proximaEntregaFecha || "02 nov 2026";
+    const proximaEntregaDiff = exp.proximaEntregaDiff || preset.proximaEntregaDiff || "En 13 días";
+    const proximaEntregaTone = exp.proximaEntregaTone || preset.proximaEntregaTone || "ontime";
 
     return {
-      image,
-      category,
-      statusLabel,
-      statusTone,
-      hasDelay,
-      isAhead,
-      shortDev,
-      doneSteps,
-      pct,
+      isClosed,
+      isCompleted,
+      hasPendingAction,
+      kpiGroup,
+      estadoKey,
+      estadoLabel,
+      estadoDotClass,
+      totalPhases,
+      currentStep,
       shortPhase,
-      validDocs,
-      totalDocs,
-      cliInitials: getEntityInitials(exp.cliente),
-      prvInitials: getEntityInitials(exp.proveedor)
+      tituloGenerico,
+      numSuministros,
+      proximaEntregaFecha,
+      proximaEntregaDiff,
+      proximaEntregaTone
     };
   }
 
   function renderVisualExpCard(exp, role = "admin") {
     const v = getExpVisualMeta(exp);
     const goTarget = `#${role}/expedientes/${exp.id}`;
-    const segmentsHTML = PHASES.map((p, idx) => {
-      const isDone = idx < exp.faseActual || !!exp.cerrado;
-      const isCurrent = !exp.cerrado && idx === exp.faseActual;
-      return `<i class="exp-seg ${isDone ? "is-done" : isCurrent ? "is-current" : ""}" title="Fase ${idx + 1}: ${p.name}"></i>`;
+
+    // Mini gráfico minimalista de fases (ej. 4/7)
+    const miniBarsHTML = PHASES.map((p, idx) => {
+      const isDone = idx < exp.faseActual || v.isClosed || v.isCompleted;
+      const isCurrent = !v.isClosed && !v.isCompleted && idx === exp.faseActual;
+      return `<i class="exp-v2-bar ${isDone ? "is-done" : isCurrent ? "is-current" : ""}" title="Fase ${idx + 1}: ${p.name}"></i>`;
     }).join("");
 
-    // Partes según el actor que visualiza
-    let partyLeftLabel = "Constructor";
-    let partyLeftName = exp.cliente;
-    let partyLeftInit = v.cliInitials;
-    let partyRightLabel = "Proveedor";
-    let partyRightName = exp.proveedor;
-    let partyRightInit = v.prvInitials;
-
-    if (role === "cliente") {
-      partyLeftLabel = "Taller adjudicado";
-      partyLeftName = exp.proveedor;
-      partyLeftInit = v.prvInitials;
-      partyRightLabel = "Importe lote";
-      partyRightName = exp.presupuestoTotal;
-      partyRightInit = "€";
-    } else if (role === "proveedor") {
-      partyLeftLabel = "Contratista";
-      partyLeftName = exp.cliente;
-      partyLeftInit = v.cliInitials;
-      partyRightLabel = "Importe lote";
-      partyRightName = exp.presupuestoTotal;
-      partyRightInit = "€";
-    }
-
     return `
-      <article class="admin-exp-card exp-visual-card" data-go="${goTarget}" style="cursor:pointer">
-        <div class="exp-visual-media">
-          <img src="${v.image}" alt="${exp.producto}" loading="lazy" />
-          <div class="exp-visual-media-overlay"></div>
-          <div class="exp-visual-media-top">
-            <div style="display:flex;align-items:center;gap:6px">
-              <span class="exp-visual-id">${exp.id}</span>
-              <span class="exp-visual-cat">${v.category}</span>
-            </div>
-            <span class="exp-visual-status ${v.statusTone}"><i></i>${v.statusLabel}</span>
+      <article class="admin-exp-card exp-v2-card ${v.hasPendingAction ? "has-pending-action" : ""}" data-go="${goTarget}" style="cursor:pointer">
+        <!-- Fila 1: Estado (con icono circular y pulso si aplica) + Código -->
+        <div class="exp-v2-top">
+          <span class="exp-v2-status-badge ${v.estadoKey}">
+            <i class="exp-v2-dot ${v.estadoDotClass}"></i>
+            <span>${v.estadoLabel}</span>
+          </span>
+          <span class="exp-v2-code">${exp.id}</span>
+        </div>
+
+        <!-- Fila 2: Fase + Mini gráfico minimalista (ej. 4/7) -->
+        <div class="exp-v2-phase-row">
+          <div class="exp-v2-phase-info">
+            <span class="exp-v2-phase-num">${v.currentStep}/${v.totalPhases}</span>
+            <span class="exp-v2-phase-name">Fase ${v.currentStep}: ${v.shortPhase}</span>
           </div>
-          <div class="exp-visual-media-bottom">
-            <span class="exp-visual-vol">${icon("packageCheck", 12)} ${exp.unidades}</span>
-            ${role === "admin" ? `<span class="exp-visual-price">${exp.presupuestoTotal}</span>` : ""}
+          <div class="exp-v2-minichart" aria-label="Fase ${v.currentStep} de ${v.totalPhases}">
+            ${miniBarsHTML}
           </div>
         </div>
 
-        <div class="exp-visual-body">
-          <h3 class="exp-visual-title">${exp.producto}</h3>
-          <div class="exp-visual-dest" title="${exp.destinatarioFinal}">
-            ${icon("route", 13)}
-            <span>${exp.destinatarioFinal}</span>
-          </div>
+        <!-- Fila 3: Título genérico de expediente -->
+        <h3 class="exp-v2-title">${v.tituloGenerico}</h3>
 
-          <!-- Barra de Progreso Visual de 7 Fases -->
-          <div class="exp-visual-progress-box">
-            <div class="exp-visual-progress-head">
-              <span class="exp-visual-phase-tag">
-                <b>Fase ${exp.faseActual + 1}/7</b> · ${v.shortPhase}
-              </span>
-              <span class="exp-visual-docs-count" title="Entregables validados en el expediente">
-                ${icon("check", 11)} ${v.validDocs}/${v.totalDocs} docs
-              </span>
-            </div>
-            <div class="exp-visual-segments">
-              ${segmentsHTML}
-            </div>
+        <!-- Fila 4: Datos estructurados (Nº suministros, Destino, Cliente, Próxima entrega) -->
+        <div class="exp-v2-data-grid">
+          <div class="exp-v2-data-row">
+            <span class="exp-v2-label">Suministros</span>
+            <strong class="exp-v2-val">${v.numSuministros} suministros</strong>
           </div>
-
-          <!-- Actores con Avatar Visual -->
-          <div class="exp-visual-parties">
-            <div class="exp-visual-party">
-              <span class="exp-visual-avatar is-cli">${partyLeftInit}</span>
-              <div class="exp-visual-party-copy">
-                <small>${partyLeftLabel}</small>
-                <strong title="${partyLeftName}">${partyLeftName}</strong>
-              </div>
-            </div>
-            <div class="exp-visual-party">
-              <span class="exp-visual-avatar is-prv">${partyRightInit}</span>
-              <div class="exp-visual-party-copy">
-                <small>${partyRightLabel}</small>
-                <strong title="${partyRightName}">${partyRightName}</strong>
-              </div>
-            </div>
+          <div class="exp-v2-data-row">
+            <span class="exp-v2-label">Destino</span>
+            <strong class="exp-v2-val" title="${exp.destinatarioFinal}">${exp.destinatarioFinal}</strong>
           </div>
-
-          <!-- Pie: Plazo + Acciones -->
-          <div class="exp-visual-foot">
-            <div class="exp-visual-leadtime">
-              <strong>${exp.plazoRealEstimado}</strong>
-              <span class="exp-visual-delta ${v.hasDelay ? "is-delay" : v.isAhead ? "is-ahead" : ""}">${v.shortDev}</span>
-            </div>
-            <div class="exp-visual-actions">
-              ${exp.faseActual === 1 && role !== "proveedor" ? `
-                <button class="admin-quiet-button exp-visual-btn-match" type="button" data-go="#${role}/selector/${exp.id}" title="Abrir Selector y Matching de Proveedores">
-                  ${icon("users", 13)} Matching
-                </button>
-              ` : ""}
-              <button class="admin-quiet-button exp-visual-btn-open" type="button">
-                Abrir ${icon("arrow", 13)}
-              </button>
+          <div class="exp-v2-data-row">
+            <span class="exp-v2-label">Cliente</span>
+            <strong class="exp-v2-val" title="${exp.cliente}">${exp.cliente}</strong>
+          </div>
+          <div class="exp-v2-data-row is-delivery">
+            <span class="exp-v2-label">Próxima entrega</span>
+            <div class="exp-v2-delivery-wrap">
+              <strong class="exp-v2-delivery-date">${v.proximaEntregaFecha}</strong>
+              <span class="exp-v2-delivery-diff is-${v.proximaEntregaTone}">${v.proximaEntregaDiff}</span>
             </div>
           </div>
         </div>
@@ -1172,11 +1149,216 @@
     `;
   }
 
+  function renderExpedientesBandejaVisual(role, roleExpedientes) {
+    // 1. Calcular contadores de los 4 KPIs sobre la lista del rol
+    const enriched = roleExpedientes.map(exp => ({ exp, meta: getExpVisualMeta(exp) }));
+    const countActivos = enriched.filter(x => x.meta.kpiGroup === "activos").length;
+    const countAccionPendiente = enriched.filter(x => x.meta.hasPendingAction).length;
+    const countCompletados = enriched.filter(x => x.meta.kpiGroup === "completados").length;
+    const countCerrados = enriched.filter(x => x.meta.kpiGroup === "cerrados").length;
+
+    // Opciones dinámicas para los filtros de datos de la tarjeta
+    const uniqueClientes = Array.from(new Set(roleExpedientes.map(e => e.cliente)));
+    const uniqueDestinos = Array.from(new Set(roleExpedientes.map(e => e.destinatarioFinal)));
+
+    // 2. Filtrar según búsqueda y selectores de datos de tarjeta
+    const q = expSearchQuery.trim().toLowerCase();
+    const matchesSearchAndSelects = ({ exp, meta }) => {
+      if (q) {
+        const haystack = `${exp.id} ${meta.tituloGenerico} ${exp.producto} ${exp.cliente} ${exp.destinatarioFinal} ${meta.estadoLabel} ${meta.shortPhase} ${meta.proximaEntregaFecha}`.toLowerCase();
+        if (!haystack.includes(q)) return false;
+      }
+      if (expCardFilters.estado !== "all" && meta.estadoKey !== expCardFilters.estado) return false;
+      if (expCardFilters.fase !== "all" && String(exp.faseActual) !== expCardFilters.fase) return false;
+      if (expCardFilters.cliente !== "all" && exp.cliente !== expCardFilters.cliente) return false;
+      if (expCardFilters.destino !== "all" && exp.destinatarioFinal !== expCardFilters.destino) return false;
+      if (expCardFilters.entrega !== "all" && meta.proximaEntregaTone !== expCardFilters.entrega) return false;
+      return true;
+    };
+
+    const filteredAll = enriched.filter(matchesSearchAndSelects);
+
+    // Separar en activos vs completados (finalizados) vs cerrados
+    let activeItems = filteredAll.filter(x => x.meta.kpiGroup === "activos");
+    const completedItems = filteredAll.filter(x => x.meta.kpiGroup === "completados");
+    const closedItems = filteredAll.filter(x => x.meta.kpiGroup === "cerrados");
+
+    if (expKpiFilter === "accion_pendiente") {
+      activeItems = activeItems.filter(x => x.meta.hasPendingAction);
+    }
+
+    const hasActiveFilters =
+      expKpiFilter !== "all" ||
+      expSearchQuery.trim() !== "" ||
+      Object.values(expCardFilters).some(v => v !== "all");
+
+    // Tarjetas principales a mostrar según KPI seleccionado
+    let mainListToRender = activeItems;
+    let mainSectionNotice = "";
+    if (expKpiFilter === "completados") {
+      mainListToRender = completedItems;
+      mainSectionNotice = `<div class="exp-filter-banner">Mostrando expedientes <b>Completados (${completedItems.length})</b> · <button type="button" class="admin-quiet-button" data-reset-exp-filters style="padding:2px 8px;font-size:0.72rem">Ver todos</button></div>`;
+    } else if (expKpiFilter === "cerrados") {
+      mainListToRender = closedItems;
+      mainSectionNotice = `<div class="exp-filter-banner">Mostrando expedientes <b>Cerrados (${closedItems.length})</b> · <button type="button" class="admin-quiet-button" data-reset-exp-filters style="padding:2px 8px;font-size:0.72rem">Ver todos</button></div>`;
+    } else if (expKpiFilter === "accion_pendiente") {
+      mainSectionNotice = `<div class="exp-filter-banner is-warning">Filtrando por <b>Acción pendiente (${activeItems.length})</b> · <button type="button" class="admin-quiet-button" data-reset-exp-filters style="padding:2px 8px;font-size:0.72rem">Quitar filtro</button></div>`;
+    } else if (expKpiFilter === "activos") {
+      mainSectionNotice = `<div class="exp-filter-banner">Filtrando por <b>Expedientes activos (${activeItems.length})</b> · <button type="button" class="admin-quiet-button" data-reset-exp-filters style="padding:2px 8px;font-size:0.72rem">Quitar filtro</button></div>`;
+    }
+
+    const mainCardsHTML = mainListToRender.length
+      ? mainListToRender.map(x => renderVisualExpCard(x.exp, role)).join("")
+      : `<div style="grid-column:1/-1;padding:38px 24px;text-align:center;color:var(--entity-muted);background:var(--entity-panel);border-radius:10px;border:1px solid var(--entity-line)">No hay expedientes en este bloque con los filtros actuales.</div>`;
+
+    const completedCardsHTML = completedItems.length
+      ? completedItems.map(x => renderVisualExpCard(x.exp, role)).join("")
+      : `<div style="grid-column:1/-1;padding:24px;text-align:center;color:var(--entity-muted)">Ningún expediente finalizado coincide con el filtro.</div>`;
+
+    const closedCardsHTML = closedItems.length
+      ? closedItems.map(x => renderVisualExpCard(x.exp, role)).join("")
+      : `<div style="grid-column:1/-1;padding:24px;text-align:center;color:var(--entity-muted)">Ningún expediente cerrado coincide con el filtro.</div>`;
+
+    const pageTitle = role === "admin" ? "Expedientes" : "Mis expedientes";
+    const createBtnHTML = role === "admin"
+      ? `<button class="admin-primary-button" type="button" data-go="#admin/nuevo">${icon("plus", 16)} Crear Expediente</button>`
+      : role === "cliente"
+        ? `<button class="admin-primary-button" type="button" data-go="#cliente/nuevo">${icon("plus", 16)} Nuevo expediente</button>`
+        : "";
+
+    return `
+      <div class="admin-view-head exp-head-clean">
+        <div>
+          <h1>${pageTitle}</h1>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          ${renderDesignTogglePill()}
+          ${createBtnHTML}
+        </div>
+      </div>
+
+      <!-- Mini Resumen de KPIs (Funciona también como filtro clicable en los 3 usuarios) -->
+      <div class="entity-scope-strip exp-kpi-strip" role="region" aria-label="Resumen y filtro por estado de expediente">
+        <button type="button" class="entity-scope-pill exp-kpi-btn ${expKpiFilter === "activos" ? "is-active" : ""}" data-exp-kpi="activos">
+          <span class="scope-dot active"></span>
+          <span><b>${countActivos}</b> Activos</span>
+        </button>
+        <button type="button" class="entity-scope-pill exp-kpi-btn ${expKpiFilter === "accion_pendiente" ? "is-active" : ""}" data-exp-kpi="accion_pendiente">
+          <span class="scope-dot is-pending-pulse"></span>
+          <span><b>${countAccionPendiente}</b> Acción pendiente</span>
+        </button>
+        <button type="button" class="entity-scope-pill exp-kpi-btn ${expKpiFilter === "completados" ? "is-active" : ""}" data-exp-kpi="completados">
+          <span class="scope-dot info"></span>
+          <span><b>${countCompletados}</b> Completados</span>
+        </button>
+        <button type="button" class="entity-scope-pill exp-kpi-btn ${expKpiFilter === "cerrados" ? "is-active" : ""}" data-exp-kpi="cerrados">
+          <span class="scope-dot closed"></span>
+          <span><b>${countCerrados}</b> Cerrados</span>
+        </button>
+        ${expKpiFilter !== "all" ? `
+          <button type="button" class="exp-kpi-reset-link" data-reset-exp-filters>
+            ${icon("x", 12)} Mostrar todos
+          </button>
+        ` : ""}
+      </div>
+
+      <!-- Barra de búsqueda acortada lateralmente + Filtros de los datos de la tarjeta -->
+      <div class="exp-toolbar-row">
+        <div class="exp-search-wrapper is-compact">
+          ${icon("search", 15)}
+          <input type="search" class="exp-search-input" id="expSearchInput" placeholder="Buscar código, título, destino..." value="${expSearchQuery}">
+          ${expSearchQuery ? `<button class="admin-quiet-button" type="button" id="clearExpSearchBtn" style="padding:2px 6px">${icon("x", 13)}</button>` : ""}
+        </div>
+
+        <div class="exp-card-filters">
+          <select class="exp-filter-select" data-exp-card-filter="estado" aria-label="Filtrar por estado">
+            <option value="all" ${expCardFilters.estado === "all" ? "selected" : ""}>Estado: Todos</option>
+            <option value="accion_pendiente" ${expCardFilters.estado === "accion_pendiente" ? "selected" : ""}>Acción pendiente</option>
+            <option value="activo" ${expCardFilters.estado === "activo" ? "selected" : ""}>Activo</option>
+            <option value="completado" ${expCardFilters.estado === "completado" ? "selected" : ""}>Completado</option>
+            <option value="cerrado" ${expCardFilters.estado === "cerrado" ? "selected" : ""}>Cerrado</option>
+          </select>
+
+          <select class="exp-filter-select" data-exp-card-filter="fase" aria-label="Filtrar por fase">
+            <option value="all" ${expCardFilters.fase === "all" ? "selected" : ""}>Fase: Todas (1-7)</option>
+            ${PHASES.map((p, idx) => `<option value="${idx}" ${expCardFilters.fase === String(idx) ? "selected" : ""}>Fase ${idx + 1}/7 · ${SHORT_PHASE_NAMES[idx]}</option>`).join("")}
+          </select>
+
+          <select class="exp-filter-select" data-exp-card-filter="cliente" aria-label="Filtrar por cliente constructor">
+            <option value="all" ${expCardFilters.cliente === "all" ? "selected" : ""}>Cliente: Todos</option>
+            ${uniqueClientes.map(c => `<option value="${c}" ${expCardFilters.cliente === c ? "selected" : ""}>${c}</option>`).join("")}
+          </select>
+
+          <select class="exp-filter-select" data-exp-card-filter="destino" aria-label="Filtrar por destino">
+            <option value="all" ${expCardFilters.destino === "all" ? "selected" : ""}>Destino: Todos</option>
+            ${uniqueDestinos.map(d => `<option value="${d}" ${expCardFilters.destino === d ? "selected" : ""}>${d}</option>`).join("")}
+          </select>
+
+          <select class="exp-filter-select" data-exp-card-filter="entrega" aria-label="Filtrar por próxima entrega">
+            <option value="all" ${expCardFilters.entrega === "all" ? "selected" : ""}>Entrega: Todas</option>
+            <option value="overdue" ${expCardFilters.entrega === "overdue" ? "selected" : ""}>Con retraso</option>
+            <option value="soon" ${expCardFilters.entrega === "soon" ? "selected" : ""}>Próxima (&lt; 7 días)</option>
+            <option value="ontime" ${expCardFilters.entrega === "ontime" ? "selected" : ""}>En plazo</option>
+            <option value="done" ${expCardFilters.entrega === "done" ? "selected" : ""}>Entregado</option>
+          </select>
+
+          ${hasActiveFilters ? `
+            <button type="button" class="admin-quiet-button exp-clear-filters-btn" data-reset-exp-filters title="Limpiar todos los filtros">
+              ${icon("x", 12)} Limpiar
+            </button>
+          ` : ""}
+        </div>
+      </div>
+
+      ${mainSectionNotice}
+
+      <!-- Rejilla principal de expedientes -->
+      <div class="admin-exp-list">
+        ${mainCardsHTML}
+      </div>
+
+      <!-- Dos desplegables inferiores: Expedientes finalizados y Expedientes cerrados -->
+      <div class="exp-bottom-collapsibles">
+        <details class="exp-collapsible-details" ${expKpiFilter === "completados" ? "open" : ""}>
+          <summary>
+            <div class="exp-collapsible-summary-left">
+              <span class="scope-dot info"></span>
+              <strong>Expedientes finalizados (${completedItems.length})</strong>
+              <span class="exp-collapsible-hint">Recepción completada en destino</span>
+            </div>
+            <span class="exp-collapsible-toggle-text">Desplegar ${icon("chevronDown", 14)}</span>
+          </summary>
+          <div class="exp-collapsible-content">
+            <div class="admin-exp-list">
+              ${completedCardsHTML}
+            </div>
+          </div>
+        </details>
+
+        <details class="exp-collapsible-details" ${expKpiFilter === "cerrados" ? "open" : ""}>
+          <summary>
+            <div class="exp-collapsible-summary-left">
+              <span class="scope-dot closed"></span>
+              <strong>Expedientes cerrados (${closedItems.length})</strong>
+              <span class="exp-collapsible-hint">Pasaporte Digital emitido y sellado</span>
+            </div>
+            <span class="exp-collapsible-toggle-text">Desplegar ${icon("chevronDown", 14)}</span>
+          </summary>
+          <div class="exp-collapsible-content">
+            <div class="admin-exp-list">
+              ${closedCardsHTML}
+            </div>
+          </div>
+        </details>
+      </div>
+    `;
+  }
+
   function parseHash() {
     const raw = location.hash.replace(/^#\/?/, "");
     if (!raw) {
       activeRole = "admin";
-      activeSection = "overview";
+      activeSection = "expedientes";
       activeParam = null;
       return;
     }
@@ -1202,7 +1384,7 @@
       activeParam = param || null;
     } else {
       activeRole = "admin";
-      activeSection = "overview";
+      activeSection = "expedientes";
       activeParam = null;
     }
   }
@@ -1226,13 +1408,13 @@
         </a>
         <nav>${navItems}</nav>
         <div class="admin-sidebar-foot">
-          <div class="admin-admin-user${(activeRole === "cliente" || activeRole === "proveedor") ? " has-profile-link" + (activeSection === "perfil" ? " is-active" : "") : ""}" ${(activeRole === "cliente" || activeRole === "proveedor") ? `data-go="#${activeRole}/perfil" style="cursor:pointer" title="Ver perfil corporativo"` : ""}>
+          <div class="admin-admin-user has-profile-link${((activeRole === "admin" && activeSection === "overview") || ((activeRole === "cliente" || activeRole === "proveedor") && activeSection === "perfil")) ? " is-active" : ""}" data-go="#${activeRole === "admin" ? "admin/overview" : activeRole + "/perfil"}" style="cursor:pointer" title="${activeRole === "admin" ? "Ver visión global de métricas" : "Ver perfil corporativo"}">
             <span>${player.avatar}</span>
             <div style="min-width:0;flex:1">
               <strong style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${player.entity}</strong>
               <small>${player.label}</small>
             </div>
-            ${(activeRole === "cliente" || activeRole === "proveedor") ? `<span class="profile-link-chevron" style="margin-left:auto;color:var(--entity-faint);display:grid;place-items:center">${icon("chevronRight", 14)}</span>` : ""}
+            <span class="profile-link-chevron" style="margin-left:auto;color:var(--entity-faint);display:grid;place-items:center">${icon("chevronRight", 14)}</span>
           </div>
         </div>
       </aside>
@@ -1242,7 +1424,7 @@
   /* ---------- Componente: Topbar Interna con Switcher Sutil ---------- */
   function renderTopbar() {
     const player = PLAYERS[activeRole];
-    const sectionName = activeSection === "perfil" ? "Perfil corporativo" : ((player.nav.find(n => n.id === activeSection) || {}).label || activeSection);
+    const sectionName = activeSection === "perfil" ? "Perfil corporativo" : (activeSection === "overview" ? "Visión global" : ((player.nav.find(n => n.id === activeSection) || {}).label || activeSection));
     const currentTheme = document.documentElement.dataset.theme || "dark";
 
     return `
@@ -2231,31 +2413,10 @@
     const isRoleCliente = activeRole === "cliente";
     const isRoleProveedor = activeRole === "proveedor";
 
-    const isVisual = expDesignMode === "visual";
-    const vMeta = getExpVisualMeta(exp);
-
     // Stepper HTML
     const stepperHTML = PHASES.map((p, idx) => {
       const isCurrent = idx === activeDossierPhase;
       const isDone = idx < exp.faseActual || !!exp.cerrado;
-      const phaseList = exp.deliverables[idx] || [];
-      const phaseValidCount = phaseList.filter(d => d.state === "complete").length;
-      if (isVisual) {
-        const shortName = SHORT_PHASE_NAMES[idx] || p.name;
-        const stateText = exp.cerrado ? "Completada" : idx === exp.faseActual ? "En curso" : idx < exp.faseActual ? "Completada" : "Pendiente";
-        return `
-          <div class="dossier-step is-visual ${isCurrent ? "is-current" : isDone ? "is-done" : ""}" data-select-dossier-phase="${idx}">
-            <div class="dossier-step-top">
-              <span class="dossier-step-badge ${isDone ? "is-done" : isCurrent ? "is-current" : ""}">
-                ${isDone ? icon("check", 12) : p.num}
-              </span>
-              <span class="dossier-step-docpill">${phaseList.length ? `${phaseValidCount}/${phaseList.length}` : "—"}</span>
-            </div>
-            <div class="dossier-step-title">${shortName}</div>
-            <div class="dossier-step-meta">${stateText}</div>
-          </div>
-        `;
-      }
       return `
         <div class="dossier-step ${isCurrent ? "is-current" : isDone ? "is-done" : ""}" data-select-dossier-phase="${idx}">
           <div class="dossier-step-top">
@@ -2467,47 +2628,34 @@
           ? `<span class="entity-status review"><i></i>Fase en Curso (Activa)</span>`
           : `<span class="entity-status pending"><i></i>Fase Programada</span>`;
 
-      const phasePct = deliverables.length ? Math.round((completedSlotsCount / deliverables.length) * 100) : 0;
       const phaseOpsPanelHTML = !isDestinatario ? `
-        <div class="phase-ops-panel ${isVisual ? "is-visual" : ""}">
-          <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;flex:1;min-width:240px">
+        <div class="phase-ops-panel">
+          <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
             ${phaseStateLabel}
-            <div style="flex:1;min-width:180px">
-              <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-                <strong style="font-size:0.9rem;color:var(--entity-text)">
-                  ${isVisual ? `Fase ${activeDossierPhase + 1} · ${SHORT_PHASE_NAMES[activeDossierPhase] || PHASES[activeDossierPhase].name}` : `Gestión Operativa — ${PHASES[activeDossierPhase].name}`}
-                </strong>
-                ${isVisual ? `
-                  <span class="phase-ops-progress-pill">
-                    <b>${completedSlotsCount}/${deliverables.length}</b> validados
-                    <i class="phase-ops-progress-track"><b style="width:${phasePct}%"></b></i>
-                  </span>
-                ` : ""}
-              </div>
-              ${!isVisual ? `
-                <span style="font-size:0.76rem;color:var(--entity-muted)">
-                  ${PHASES[activeDossierPhase].desc} · <b>${completedSlotsCount} de ${deliverables.length}</b> entregables validados
-                </span>
-              ` : ""}
+            <div>
+              <strong style="display:block;font-size:0.86rem;color:var(--entity-text)">Gestión Operativa — ${PHASES[activeDossierPhase].name}</strong>
+              <span style="font-size:0.76rem;color:var(--entity-muted)">
+                ${PHASES[activeDossierPhase].desc} · <b>${completedSlotsCount} de ${deliverables.length}</b> entregables validados
+              </span>
             </div>
           </div>
           <div class="phase-ops-controls">
             ${activeDossierPhase !== 2 ? `
               <button class="admin-quiet-button" type="button" data-select-dossier-phase="2" title="Consultar Hoja de Pedido y Contrato">
-                ${icon("shield", 14)} ${isVisual ? "Pedido" : "Ver Hoja de Pedido"}
+                ${icon("shield", 14)} Ver Hoja de Pedido
               </button>
             ` : ""}
             ${!isDestinatario ? `
               <button class="admin-quiet-button" type="button" data-open-upload-free-doc="${exp.id}">
-                ${icon("upload", 14)} ${isVisual ? "Subir" : "Adjuntar Documento"}
+                ${icon("upload", 14)} Adjuntar Documento
               </button>
             ` : ""}
             ${isRoleAdmin ? `
               <button class="admin-quiet-button" type="button" data-open-timeline-modal="${exp.id}">
-                ${icon("calendar", 14)} ${isVisual ? "Plazo / Fase" : "Actualizar Plazo / Fase"}
+                ${icon("calendar", 14)} Actualizar Plazo / Fase
               </button>
               <button class="admin-quiet-button" type="button" data-open-add-slot-modal="${exp.id}">
-                ${icon("plus", 14)} ${isVisual ? "Requerir" : "Requerir Documento"}
+                ${icon("plus", 14)} Requerir Documento
               </button>
               ${activeDossierPhase === exp.faseActual && exp.faseActual < PHASES.length - 1 ? `
                 <button class="admin-primary-button" type="button" data-advance-dossier-phase="${exp.id}">
@@ -2591,28 +2739,20 @@
       `;
 
       const slotsHTML = filteredDocs.length ? filteredDocs.map(({ del, phaseIdx, phaseName, slotIdx }) => `
-        <article class="deliverable-slot ${isVisual ? "is-visual" : ""}">
+        <article class="deliverable-slot">
           <div class="slot-head">
             <div class="slot-identity">
               <span class="slot-icon">${icon(del.format === "DWG / PDF" ? "route" : del.format === "Digital" ? "shield" : "file", 20)}</span>
               <div class="slot-title">
                 <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
                   <h3>${del.name}</h3>
-                  ${docScopeMode === "all" ? `<span class="dossier-chip" style="font-size:0.66rem;padding:2px 7px">${SHORT_PHASE_NAMES[phaseIdx] || phaseName}</span>` : ""}
+                  ${docScopeMode === "all" ? `<span class="dossier-chip" style="font-size:0.66rem;padding:2px 7px">${phaseName}</span>` : ""}
                 </div>
-                ${isVisual ? `
-                  <div class="slot-visual-pills">
-                    <span class="slot-mini-pill">${del.format}</span>
-                    <span class="slot-mini-pill">${del.owner}</span>
-                    ${del.deadline ? `<span class="slot-mini-pill">Límite: ${del.deadline}</span>` : ""}
-                  </div>
-                ` : `
-                  <p>Formato requerido: <b>${del.format}</b> · ${del.deadline ? `Fecha límite: <b>${del.deadline}</b>` : "Entregable formal de trazabilidad"}</p>
-                `}
+                <p>Formato requerido: <b>${del.format}</b> · ${del.deadline ? `Fecha límite: <b>${del.deadline}</b>` : "Entregable formal de trazabilidad"}</p>
               </div>
             </div>
             <div class="slot-badges">
-              ${!isVisual ? `<span class="slot-party-tag">Responsable: ${del.owner}</span>` : ""}
+              <span class="slot-party-tag">Responsable: ${del.owner}</span>
               ${getStatusPill(del.state)}
             </div>
           </div>
@@ -2637,17 +2777,15 @@
                 ${icon("file", 18)}
                 <div>
                   <strong>${del.file}</strong>
-                  <small>${isVisual
-                    ? `${del.date} · ${del.state === "complete" ? "Sellado SOFEIN" : del.state === "rejected" ? "Con observaciones" : "En verificación"}`
-                    : `Registrado: ${del.date} · ${del.state === "complete" ? "Certificado y sellado por SOFEIN" : del.state === "rejected" ? "Versión observada pendiente de subsanación" : "En cola de verificación técnica SOFEIN"}`}</small>
+                  <small>Registrado: ${del.date} · ${del.state === "complete" ? "Certificado y sellado por SOFEIN" : del.state === "rejected" ? "Versión observada pendiente de subsanación" : "En cola de verificación técnica SOFEIN"}</small>
                 </div>
               </div>
               <div class="slot-actions">
                 <button class="slot-action-btn" type="button" data-inspect-doc="${exp.id}" data-phase="${phaseIdx}" data-slot="${slotIdx}">
-                  ${icon("eye", 14)} ${isVisual ? "Auditar" : "Ver / Auditar"}
+                  ${icon("eye", 14)} Ver / Auditar
                 </button>
                 <button class="slot-action-btn" type="button" data-download="${del.file}">
-                  ${icon("download", 14)} ${isVisual ? "PDF" : "Descargar"}
+                  ${icon("download", 14)} Descargar
                 </button>
                 ${activeRole === "admin" && (del.state === "review" || del.state === "rejected") ? `
                   <button class="slot-action-btn approve" type="button" data-admin-approve="${exp.id}" data-phase="${phaseIdx}" data-slot="${slotIdx}">
@@ -2656,7 +2794,7 @@
                 ` : ""}
                 ${activeRole === "admin" && del.state === "review" ? `
                   <button class="slot-action-btn reject" type="button" data-admin-reject="${exp.id}" data-phase="${phaseIdx}" data-slot="${slotIdx}">
-                    ${icon("alert", 14)} ${isVisual ? "Rechazar" : "Rechazar con Nota"}
+                    ${icon("alert", 14)} Rechazar con Nota
                   </button>
                 ` : ""}
               </div>
@@ -2666,17 +2804,17 @@
               <div class="slot-dropzone-copy">
                 ${icon("upload", 22)}
                 <div>
-                  <div><b>${isVisual ? `Subir ${del.name}` : `Arrastra aquí el archivo (${del.name}) o haz clic para subir`}</b></div>
-                  <span class="sub">${isVisual ? `Responsable: ${del.owner} · PDF, DWG, XLSX` : `Responsable asignado: ${del.owner} · Formatos admitidos: .pdf, .dwg, .xlsx (Máx 25 MB)`}</span>
+                  <div><b>Arrastra aquí el archivo (${del.name}) o haz clic para subir</b></div>
+                  <span class="sub">Responsable asignado: ${del.owner} · Formatos admitidos: .pdf, .dwg, .xlsx (Máx 25 MB)</span>
                 </div>
               </div>
               <button class="slot-upload-btn" type="button">
-                ${icon("plus", 14)} ${isVisual ? "Adjuntar" : "Seleccionar documento"}
+                ${icon("plus", 14)} Seleccionar documento
               </button>
             </div>
           `}
         </article>
-      `).join("") : `<div style="padding:32px;background:var(--entity-panel);border:1px solid var(--entity-line);border-radius:10px;text-align:center;color:var(--entity-muted)">No hay documentos que coincidan con el filtro seleccionado.${isRoleAdmin ? ` Puedes pulsar en <b>"+ Requerir"</b> para crear una nueva ranura.` : ""}</div>`;
+      `).join("") : `<div style="padding:32px;background:var(--entity-panel);border:1px solid var(--entity-line);border-radius:10px;text-align:center;color:var(--entity-muted)">No hay documentos que coincidan con el filtro seleccionado.${isRoleAdmin ? ` Puedes pulsar en <b>"+ Requerir Documento"</b> para crear una nueva ranura.` : ""}</div>`;
 
       tabContent = `${matchingBannerHTML}${formalizacionBlockHTML}${phaseOpsPanelHTML}${docManagerBarHTML}<div class="deliverable-slot-grid">${slotsHTML}</div>`;
     } else if (activeDossierTab === "incidents") {
@@ -3120,12 +3258,9 @@
     const expNotices = NOTICES.filter(n => n.expId === exp.id && n.roles.includes(activeRole) && !discardedNotices.has(n.id));
 
     return `
-      <div class="dossier-builder ${isVisual ? "is-visual" : ""}">
-        <div class="dossier-breadcrumb" style="margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
-          <div>
-            <a href="#${activeRole}/expedientes">← Volver a expedientes</a> / <span>${exp.id}</span>
-          </div>
-          ${renderDesignTogglePill()}
+      <div class="dossier-builder">
+        <div class="dossier-breadcrumb" style="margin-bottom:14px">
+          <a href="#${activeRole}/expedientes">← Volver a expedientes</a> / <span>${exp.id}</span>
         </div>
 
         ${exp.estado === "pending_validation" ? `
@@ -3150,124 +3285,68 @@
         ` : ""}
 
         <!-- Tarjeta de Metadatos del Expediente Estanco -->
-        ${isVisual ? `
-          <section class="dossier-meta-card is-visual">
-            <div class="dossier-visual-main">
-              <div class="dossier-visual-thumb">
-                <img src="${vMeta.image}" alt="${exp.producto}" />
-                <span class="dossier-visual-cat">${vMeta.category}</span>
-              </div>
-              <div class="dossier-title-area">
-                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px">
-                  <span class="dossier-visual-id">${exp.id}</span>
-                  <span class="exp-visual-status ${vMeta.statusTone}"><i></i>${vMeta.statusLabel}</span>
-                  <span class="dossier-visual-vol">${icon("packageCheck", 12)} ${exp.unidades}</span>
-                </div>
-                <h2>${exp.producto}</h2>
-                <div class="dossier-visual-entities-grid">
-                  <div class="dossier-visual-entity-item">
-                    <small>Contratista</small>
-                    <strong title="${exp.cliente}">${exp.cliente}</strong>
-                  </div>
-                  <div class="dossier-visual-entity-item">
-                    <small>Proveedor</small>
-                    <strong title="${exp.proveedor}">${!isDestinatario ? exp.proveedor : "[Reservado]"}</strong>
-                  </div>
-                  <div class="dossier-visual-entity-item">
-                    <small>Destino en vía</small>
-                    <strong title="${exp.destinatarioFinal}">${exp.destinatarioFinal}</strong>
-                  </div>
-                  <div class="dossier-visual-entity-item">
-                    <small>Importe</small>
-                    <strong style="color:var(--entity-accent)">${!isDestinatario ? exp.presupuestoTotal : "[Confidencial]"}</strong>
-                  </div>
-                </div>
-              </div>
+        <section class="dossier-meta-card">
+          <div class="dossier-title-area">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+              <span style="font-size:0.75rem;font-weight:700;color:var(--entity-accent);letter-spacing:0.06em">${exp.id}</span>
+              <span style="font-size:0.72rem;color:var(--entity-faint)">·</span>
+              <span style="font-size:0.75rem;color:var(--entity-muted)">Expediente Estanco Modular</span>
             </div>
+            <h2>${exp.producto}</h2>
+            <p>${exp.subtipo} · <b>${exp.unidades}</b></p>
+            <div class="dossier-chips">
+              <span class="dossier-chip"><strong>Contratista:</strong> ${exp.cliente}</span>
+              <span class="dossier-chip"><strong>Destinatario Vía:</strong> ${exp.destinatarioFinal}</span>
+              ${!isDestinatario ? `<span class="dossier-chip"><strong>Proveedor:</strong> ${exp.proveedor}</span>` : ""}
+              ${!isDestinatario ? `<span class="dossier-chip"><strong>Importe:</strong> ${exp.presupuestoTotal}</span>` : `<span class="dossier-chip" style="color:var(--entity-faint)"><strong>Importe:</strong> [Confidencial Contratista]</span>`}
+            </div>
+          </div>
 
-            <div class="dossier-visual-kpis">
-              <div class="dossier-visual-kpi">
-                <span>Plazo Pactado</span>
-                <strong>${exp.plazoPactado}</strong>
-                <small>Según pliego</small>
-              </div>
-              <div class="dossier-visual-kpi ${exp.desviacionDias.includes("+") ? "is-warning" : "is-accent"}">
-                <span>Estimado Real</span>
-                <strong>${exp.plazoRealEstimado}</strong>
-                <small>${vMeta.shortDev}</small>
-              </div>
-              <div class="dossier-visual-kpi ${exp.incidencias.length ? "is-warning" : ""}">
-                <span>Incidencias</span>
-                <strong>${exp.incidencias.length} ${exp.incidencias.length === 1 ? "activa" : "activas"}</strong>
-                <small>${vMeta.validDocs}/${vMeta.totalDocs} docs validados</small>
-              </div>
+          <div class="dossier-quick-stats">
+            <div class="dossier-quick-stat">
+              <span>Plazo Pactado</span>
+              <strong>${exp.plazoPactado}</strong>
             </div>
-          </section>
-        ` : `
-          <section class="dossier-meta-card">
-            <div class="dossier-title-area">
-              <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
-                <span style="font-size:0.75rem;font-weight:700;color:var(--entity-accent);letter-spacing:0.06em">${exp.id}</span>
-                <span style="font-size:0.72rem;color:var(--entity-faint)">·</span>
-                <span style="font-size:0.75rem;color:var(--entity-muted)">Expediente Estanco Modular</span>
-              </div>
-              <h2>${exp.producto}</h2>
-              <p>${exp.subtipo} · <b>${exp.unidades}</b></p>
-              <div class="dossier-chips">
-                <span class="dossier-chip"><strong>Contratista:</strong> ${exp.cliente}</span>
-                <span class="dossier-chip"><strong>Destinatario Vía:</strong> ${exp.destinatarioFinal}</span>
-                ${!isDestinatario ? `<span class="dossier-chip"><strong>Proveedor:</strong> ${exp.proveedor}</span>` : ""}
-                ${!isDestinatario ? `<span class="dossier-chip"><strong>Importe:</strong> ${exp.presupuestoTotal}</span>` : `<span class="dossier-chip" style="color:var(--entity-faint)"><strong>Importe:</strong> [Confidencial Contratista]</span>`}
-              </div>
+            <div class="dossier-quick-stat">
+              <span>Estimado Real</span>
+              <strong class="${exp.desviacionDias.includes("+") ? "warning" : "accent"}">${exp.plazoRealEstimado}</strong>
             </div>
-
-            <div class="dossier-quick-stats">
-              <div class="dossier-quick-stat">
-                <span>Plazo Pactado</span>
-                <strong>${exp.plazoPactado}</strong>
-              </div>
-              <div class="dossier-quick-stat">
-                <span>Estimado Real</span>
-                <strong class="${exp.desviacionDias.includes("+") ? "warning" : "accent"}">${exp.plazoRealEstimado}</strong>
-              </div>
-              <div class="dossier-quick-stat">
-                <span>Incidencias</span>
-                <strong>${exp.incidencias.length} activa</strong>
-              </div>
+            <div class="dossier-quick-stat">
+              <span>Incidencias</span>
+              <strong>${exp.incidencias.length} activa</strong>
             </div>
-          </section>
-        `}
+          </div>
+        </section>
 
         <!-- Stepper de las 7 Fases -->
         <div>
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-            <span style="font-size:0.74rem;font-weight:600;color:var(--entity-faint);text-transform:uppercase;letter-spacing:0.06em">${isVisual ? "Fases del Suministro (7 etapas)" : "Secuencia de Trazabilidad por Fases"}</span>
+            <span style="font-size:0.74rem;font-weight:600;color:var(--entity-faint);text-transform:uppercase;letter-spacing:0.06em">Secuencia de Trazabilidad por Fases</span>
             <span style="font-size:0.75rem;color:var(--entity-accent);font-weight:600">${exp.cerrado ? "Expediente cerrado · 7/7 fases completadas" : `Fase actual: ${PHASES[exp.faseActual].name}`}</span>
           </div>
-          <div class="dossier-stepper ${isVisual ? "is-visual" : ""}">
+          <div class="dossier-stepper">
             ${stepperHTML}
           </div>
         </div>
 
         <!-- Pestañas Internas del Expediente -->
-        <div class="dossier-tabs ${isVisual ? "is-visual" : ""}">
+        <div class="dossier-tabs">
           <button class="dossier-tab-btn ${activeDossierTab === "deliverables" ? "is-active" : ""}" type="button" data-switch-dossier-tab="deliverables">
-            ${icon("file", 16)} ${isVisual ? `Documentación · Fase ${activeDossierPhase + 1}` : `Gestión & Documentación (${PHASES[activeDossierPhase].name})`}
-            ${isVisual ? `<b class="badge is-neutral">${completedSlotsCount}/${deliverables.length}</b>` : ""}
+            ${icon("file", 16)} Gestión & Documentación (${PHASES[activeDossierPhase].name})
           </button>
           <button class="dossier-tab-btn" type="button" data-go="#${activeRole}/selector/${exp.id}">
-            ${icon("users", 16)} ${isVisual ? "Matching Proveedores" : "Selector & Matching de Proveedores"}
+            ${icon("users", 16)} Selector & Matching de Proveedores
           </button>
           <button class="dossier-tab-btn ${activeDossierTab === "incidents" ? "is-active" : ""}" type="button" data-switch-dossier-tab="incidents">
-            ${icon("alert", 16)} ${isVisual ? "Incidencias" : "Incidencias & Modificaciones"}
+            ${icon("alert", 16)} Incidencias & Modificaciones
             ${exp.incidencias.length ? `<b class="badge">${exp.incidencias.length}</b>` : ""}
           </button>
           <button class="dossier-tab-btn ${activeDossierTab === "comms" ? "is-active" : ""}" type="button" data-switch-dossier-tab="comms">
-            ${icon("inbox", 16)} ${isVisual ? "Avisos" : "Avisos & Hitos"}
+            ${icon("inbox", 16)} Avisos & Hitos
             ${expNotices.length ? `<b class="badge">${expNotices.length}</b>` : ""}
           </button>
           <button class="dossier-tab-btn ${activeDossierTab === "passport" ? "is-active" : ""}" type="button" data-switch-dossier-tab="passport">
-            ${icon("award", 16)} ${isVisual ? "Pasaporte Digital" : "Pasaporte Digital SOFEIN"}
+            ${icon("award", 16)} Pasaporte Digital SOFEIN
           </button>
         </div>
 
@@ -3793,6 +3872,10 @@
     if (section === "expedientes") {
       if (param) return renderDossierBuilder(param);
 
+      if (expDesignMode === "visual") {
+        return renderExpedientesBandejaVisual("admin", EXPEDIENTES);
+      }
+
       const q = expSearchQuery.trim().toLowerCase();
       const filteredExp = EXPEDIENTES.filter(exp => {
         if (!q) return true;
@@ -3804,7 +3887,7 @@
                (PHASES[exp.faseActual] && PHASES[exp.faseActual].name.toLowerCase().includes(q));
       });
 
-      const cards = filteredExp.length ? filteredExp.map(exp => expDesignMode === "visual" ? renderVisualExpCard(exp, "admin") : `
+      const cards = filteredExp.length ? filteredExp.map(exp => `
         <article class="admin-exp-card" data-go="#admin/expedientes/${exp.id}" style="cursor:pointer">
           <div class="admin-exp-card-top">
             <span class="admin-exp-id">${exp.id}</span>
@@ -4105,7 +4188,11 @@
     if (section === "expedientes") {
       if (param) return renderDossierBuilder(param);
 
-      const clientAll = EXPEDIENTES.filter(e => e.cliente.includes("Infraestructuras") || e.cliente.includes("Adif") || e.cliente.includes("Metro"));
+      const clientAll = EXPEDIENTES.filter(e => e.cliente.includes("Infraestructuras") || e.cliente.includes("Adif") || e.cliente.includes("Metro") || e.cliente.includes("Ferrocarrils"));
+      if (expDesignMode === "visual") {
+        return renderExpedientesBandejaVisual("cliente", clientAll);
+      }
+
       const q = expSearchQuery.trim().toLowerCase();
       const filteredExp = clientAll.filter(exp => {
         if (!q) return true;
@@ -4116,7 +4203,7 @@
                (PHASES[exp.faseActual] && PHASES[exp.faseActual].name.toLowerCase().includes(q));
       });
 
-      const cards = filteredExp.length ? filteredExp.map(exp => expDesignMode === "visual" ? renderVisualExpCard(exp, "cliente") : `
+      const cards = filteredExp.length ? filteredExp.map(exp => `
         <article class="admin-exp-card" data-go="#cliente/expedientes/${exp.id}" style="cursor:pointer">
           <div class="admin-exp-card-top">
             <span class="admin-exp-id">${exp.id}</span>
@@ -4252,9 +4339,14 @@
     if (section === "expedientes") {
       if (param) return renderDossierBuilder(param);
 
-      const prvAll = EXPEDIENTES.filter(e => e.proveedor.includes("IberRail"));
+      const prvAll = EXPEDIENTES.filter(e => e.proveedor.includes("IberRail") || e.id === "RFQ-2026-011" || e.id === "RFQ-2026-022");
+      if (expDesignMode === "visual") {
+        return renderExpedientesBandejaVisual("proveedor", prvAll);
+      }
+
+      const classicPrvAll = EXPEDIENTES.filter(e => e.proveedor.includes("IberRail"));
       const q = expSearchQuery.trim().toLowerCase();
-      const filteredExp = prvAll.filter(exp => {
+      const filteredExp = classicPrvAll.filter(exp => {
         if (!q) return true;
         return exp.id.toLowerCase().includes(q) ||
                exp.producto.toLowerCase().includes(q) ||
@@ -4263,7 +4355,7 @@
                (PHASES[exp.faseActual] && PHASES[exp.faseActual].name.toLowerCase().includes(q));
       });
 
-      const cards = filteredExp.length ? filteredExp.map(exp => expDesignMode === "visual" ? renderVisualExpCard(exp, "proveedor") : `
+      const cards = filteredExp.length ? filteredExp.map(exp => `
         <article class="admin-exp-card" data-go="#proveedor/expedientes/${exp.id}" style="cursor:pointer">
           <div class="admin-exp-card-top">
             <span class="admin-exp-id">${exp.id}</span>
@@ -4319,7 +4411,7 @@
           ${icon("search", 16)}
           <input type="search" class="exp-search-input" id="expSearchInput" placeholder="Filtrar en directo por código, producto o cliente..." value="${expSearchQuery}">
           ${expSearchQuery ? `<button class="admin-quiet-button" type="button" id="clearExpSearchBtn" style="padding:2px 6px">${icon("x", 14)}</button>` : ""}
-          <span class="exp-search-count">${filteredExp.length} de ${prvAll.length}</span>
+          <span class="exp-search-count">${filteredExp.length} de ${classicPrvAll.length}</span>
         </div>
 
         <div class="admin-exp-list">
@@ -5375,6 +5467,11 @@
 
         const newExpediente = {
           id: newId,
+          tituloGenerico: titulo || `Suministro ferroviario — ${dest.split("(")[0].trim()}`,
+          numSuministros: suministrosList.length || 1,
+          proximaEntregaFecha: fechaObj ? new Date(fechaObj).toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" }) : "10 nov 2026",
+          proximaEntregaDiff: "En plazo",
+          proximaEntregaTone: "ontime",
           producto: primaryMat,
           tipoMaterial: "Superestructura Ferroviaria",
           subtipo: suministrosList.length > 1 ? `${suministrosList.length} lotes de suministro coordinados` : primaryMat,
@@ -5560,6 +5657,16 @@
     if (searchInput) {
       searchInput.addEventListener("input", e => {
         expSearchQuery = e.target.value;
+        if (expDesignMode === "visual") {
+          const pos = e.target.selectionStart || expSearchQuery.length;
+          renderApp();
+          const newInput = document.getElementById("expSearchInput");
+          if (newInput) {
+            newInput.focus();
+            try { newInput.setSelectionRange(pos, pos); } catch (_) {}
+          }
+          return;
+        }
         const q = expSearchQuery.trim().toLowerCase();
         const cards = document.querySelectorAll(".admin-exp-card");
         let visibleCount = 0;
@@ -5577,6 +5684,44 @@
     document.getElementById("clearExpSearchBtn")?.addEventListener("click", () => {
       expSearchQuery = "";
       renderApp();
+    });
+
+    // Filtros KPI clicables en Expedientes (Activos, Acción pendiente, Completados, Cerrados)
+    document.querySelectorAll("[data-exp-kpi]").forEach(btn => {
+      btn.addEventListener("click", e => {
+        e.stopPropagation();
+        const kpi = btn.dataset.expKpi;
+        expKpiFilter = expKpiFilter === kpi ? "all" : kpi;
+        renderApp();
+      });
+    });
+
+    // Selectores de filtro por datos de la tarjeta de expediente
+    document.querySelectorAll("[data-exp-card-filter]").forEach(sel => {
+      sel.addEventListener("change", e => {
+        const field = sel.dataset.expCardFilter;
+        if (field && field in expCardFilters) {
+          expCardFilters[field] = e.target.value;
+          renderApp();
+        }
+      });
+    });
+
+    // Botón para limpiar todos los filtros de expedientes
+    document.querySelectorAll("[data-reset-exp-filters]").forEach(btn => {
+      btn.addEventListener("click", e => {
+        e.stopPropagation();
+        expKpiFilter = "all";
+        expSearchQuery = "";
+        expCardFilters = {
+          estado: "all",
+          fase: "all",
+          cliente: "all",
+          destino: "all",
+          entrega: "all"
+        };
+        renderApp();
+      });
     });
 
     // Agrupación en Avisos
@@ -7603,7 +7748,7 @@
 
   // Inicializar al cargar
   if (!location.hash) {
-    location.hash = "#admin/overview";
+    location.hash = "#admin/expedientes";
   }
   renderApp();
 })();
