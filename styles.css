@@ -3411,11 +3411,19 @@ select:focus,
 }
 
 /* Impresión optimizada A4 para Pasaporte y Adendas */
+@page {
+  size: A4 portrait;
+  margin: 12mm 12mm 12mm 12mm;
+}
+
 @media print {
-  body {
+  html, body {
     background: #ffffff !important;
     color: #111827 !important;
-    font-size: 9.5pt !important;
+    font-size: 8.5pt !important;
+    line-height: 1.35 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
   .admin-sidebar,
   .admin-topbar,
@@ -3425,7 +3433,8 @@ select:focus,
   .passport-actions-bar,
   .admin-quiet-button,
   .admin-primary-button,
-  .admin-toast {
+  .admin-toast,
+  .destinatario-confidential-notice {
     display: none !important;
   }
   body:not(.printing-modal) .procurement-modal-backdrop,
@@ -3460,18 +3469,135 @@ select:focus,
   body.printing-modal .procurement-modal-foot {
     display: none !important;
   }
-  .app, .admin-main {
+  .app, .admin-main, .admin-view {
     margin: 0 !important;
     padding: 0 !important;
-    background: #fff !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    background: #ffffff !important;
+    overflow: visible !important;
   }
   .passport-card {
     border: none !important;
     box-shadow: none !important;
     padding: 0 !important;
+    margin: 0 !important;
+    background: #ffffff !important;
+    overflow: visible !important;
+  }
+  .passport-card::before {
+    display: none !important;
   }
   .passport-stamp {
     border: 1px solid #111827 !important;
+    background: #f9fafb !important;
+  }
+  .passport-spec-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 8px !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  .passport-spec-box {
+    background: #f9fafb !important;
+    border: 1px solid #e5e7eb !important;
+    padding: 8px 10px !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  .passport-spec-box .label {
+    color: #6b7280 !important;
+    font-size: 0.62rem !important;
+  }
+  .passport-spec-box .val {
+    color: #111827 !important;
+    font-size: 0.8rem !important;
+  }
+  .passport-spec-box .sub {
+    color: #6b7280 !important;
+    font-size: 0.68rem !important;
+  }
+  .passport-section-title {
+    margin: 14px 0 8px !important;
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+  .passport-timeline {
+    gap: 6px !important;
+  }
+  .passport-timeline-item {
+    display: grid !important;
+    grid-template-columns: 24px 175px 1fr auto !important;
+    align-items: center !important;
+    gap: 12px !important;
+    padding: 6px 10px !important;
+    border: 1px solid #e5e7eb !important;
+    background: #f9fafb !important;
+    font-size: 0.76rem !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  .passport-timeline-item * {
+    word-break: normal !important;
+    overflow-wrap: normal !important;
+    white-space: normal !important;
+  }
+  .passport-timeline-item strong {
+    color: #111827 !important;
+    font-size: 0.76rem !important;
+  }
+  .passport-timeline-item span {
+    color: #374151 !important;
+  }
+  .passport-timeline-item .entity-status {
+    white-space: nowrap !important;
+  }
+  .passport-certs-wrap {
+    overflow: visible !important;
+    border: 1px solid #e5e7eb !important;
+    background: #ffffff !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  .passport-certs-table {
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+  .passport-certs-table th {
+    background: #f3f4f6 !important;
+    color: #374151 !important;
+    font-size: 0.62rem !important;
+    padding: 6px 8px !important;
+    border-bottom: 1px solid #e5e7eb !important;
+  }
+  .passport-certs-table td {
+    padding: 6px 8px !important;
+    border-bottom: 1px solid #e5e7eb !important;
+    color: #111827 !important;
+    font-size: 0.72rem !important;
+  }
+  .passport-certs-table td:last-child,
+  .passport-certs-table th:last-child {
+    display: none !important;
+  }
+  .passport-signatures-row {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 10px !important;
+    margin-top: 14px !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  .passport-signature-card {
+    background: #f9fafb !important;
+    border: 1px solid #e5e7eb !important;
+    padding: 10px !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  .entity-status {
+    border: 1px solid currentColor !important;
+    padding: 2px 6px !important;
+    font-size: 0.64rem !important;
   }
 }
 
