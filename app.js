@@ -120,10 +120,20 @@
     { num: 7, id: "cierre", name: "7. Cierre & Pasaporte", icon: "award", desc: "Liquidación, cierre documental y emisión del Pasaporte Digital SOFEIN." }
   ];
 
+  // Generador de identificadores oficiales de expediente (Formato: SFN-YYYY-XXXX alfanumérico)
+  function generateExpedienteId(year = 2026) {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    let code = "";
+    for (let i = 0; i < 4; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return `SFN-${year}-${code}`;
+  }
+
   /* ---------- Datos Maestros de Expedientes Estancos ---------- */
   const EXPEDIENTES = [
     {
-      id: "RFQ-2026-014",
+      id: "SFN-2026-H6T4",
       producto: "Traviesas de hormigón monobloque PR-22",
       tipoMaterial: "Traviesas — Superestructura",
       subtipo: "Hormigón pretensado monobloque",
@@ -266,7 +276,7 @@
       }
     },
     {
-      id: "RFQ-2026-011",
+      id: "SFN-2026-K9M2",
       producto: "Carril laminado 54E1 Grado R260",
       tipoMaterial: "Carril — Superestructura",
       subtipo: "Laminado caliente 54E1 Adif 03.360.501",
@@ -373,7 +383,7 @@
       }
     },
     {
-      id: "RFQ-2026-009",
+      id: "SFN-2026-B3R8",
       producto: "Sujeciones elásticas y fijaciones SKL-14",
       tipoMaterial: "Fijaciones — Superestructura",
       subtipo: "Clip elástico + Placas de asiento antivibratorias",
@@ -399,7 +409,7 @@
       }
     },
     {
-      id: "RFQ-2026-022",
+      id: "SFN-2026-W4P7",
       producto: "Traviesas de madera tratada creosotada (3 subtipos)",
       tipoMaterial: "Traviesas de Madera — Especial",
       subtipo: "Roble / Haya creosotada según pliego RENFE/Adif",
@@ -422,7 +432,7 @@
       }
     },
     {
-      id: "RFQ-2026-003",
+      id: "SFN-2026-D8J5",
       producto: "Tirafondos de acero tratado TF-24",
       tipoMaterial: "Tirafondos — Superestructura",
       subtipo: "Tirafondo roscado galvanizado para traviesa de madera",
@@ -460,7 +470,7 @@
       tipo: "Traviesas de hormigón monobloque PR-22",
       unidades: "14.500 uds (7.250 m)",
       unidadesNum: 14500,
-      expId: "RFQ-2026-014",
+      expId: "SFN-2026-H6T4",
       proveedor: "IberRail Components, S.L.",
       cliente: "Infraestructuras del Norte, S.A.",
       destino: "Factoría Volkswagen (Acceso Red Adif)",
@@ -478,7 +488,7 @@
       tipo: "Sujeciones elásticas y placas de asiento PR-22",
       unidades: "29.000 cjtos",
       unidadesNum: 29000,
-      expId: "RFQ-2026-014",
+      expId: "SFN-2026-H6T4",
       proveedor: "IberRail Components, S.L.",
       cliente: "Infraestructuras del Norte, S.A.",
       destino: "Factoría Volkswagen (Acceso Red Adif)",
@@ -496,7 +506,7 @@
       tipo: "Balasto silíceo certificado Tipo 1",
       unidades: "8.500 t",
       unidadesNum: 8500,
-      expId: "RFQ-2026-014",
+      expId: "SFN-2026-H6T4",
       proveedor: "Por determinar",
       cliente: "Infraestructuras del Norte, S.A.",
       destino: "Factoría Volkswagen (Acceso Red Adif)",
@@ -514,7 +524,7 @@
       tipo: "Carril laminado 54E1 Grado R260",
       unidades: "1.200 t (18 km)",
       unidadesNum: 1200,
-      expId: "RFQ-2026-011",
+      expId: "SFN-2026-K9M2",
       proveedor: "Por determinar",
       cliente: "Metro de Bilbao",
       destino: "Consorcio Transportes Bizkaia (Línea 4)",
@@ -532,7 +542,7 @@
       tipo: "Aparatos de dilatación y bridas aislantes 54E1",
       unidades: "24 parejas",
       unidadesNum: 24,
-      expId: "RFQ-2026-011",
+      expId: "SFN-2026-K9M2",
       proveedor: "Por determinar",
       cliente: "Metro de Bilbao",
       destino: "Consorcio Transportes Bizkaia (Línea 4)",
@@ -550,7 +560,7 @@
       tipo: "Traviesas de madera tratada creosotada",
       unidades: "3.200 uds",
       unidadesNum: 3200,
-      expId: "RFQ-2026-022",
+      expId: "SFN-2026-W4P7",
       proveedor: "Madera Vía Ibérica, S.A.",
       cliente: "Adif Mantenimiento Red Convencional",
       destino: "ADIF Red Convencional (Medina del Campo)",
@@ -568,7 +578,7 @@
       tipo: "Desvíos y cruzamientos monobloque tipo C",
       unidades: "4 desvíos cjtos",
       unidadesNum: 4,
-      expId: "RFQ-2026-022",
+      expId: "SFN-2026-W4P7",
       proveedor: "IberRail Components, S.L.",
       cliente: "Adif Mantenimiento Red Convencional",
       destino: "ADIF Red Convencional (Medina del Campo)",
@@ -586,7 +596,7 @@
       tipo: "Placas de asiento para traviesa de madera",
       unidades: "6.400 uds",
       unidadesNum: 6400,
-      expId: "RFQ-2026-022",
+      expId: "SFN-2026-W4P7",
       proveedor: "Por determinar",
       cliente: "Adif Mantenimiento Red Convencional",
       destino: "ADIF Red Convencional (Medina del Campo)",
@@ -604,7 +614,7 @@
       tipo: "Sujeciones elásticas y fijaciones SKL-14",
       unidades: "29.000 cjtos",
       unidadesNum: 29000,
-      expId: "RFQ-2026-009",
+      expId: "SFN-2026-B3R8",
       proveedor: "IberRail Components, S.L.",
       cliente: "Ferrocarrils de la Generalitat de Catalunya",
       destino: "FGC Infraestructures (Terrassa - Sabadell)",
@@ -622,7 +632,7 @@
       tipo: "Suelas bajo traviesa y elastómeros antivibratorios",
       unidades: "14.500 uds",
       unidadesNum: 14500,
-      expId: "RFQ-2026-009",
+      expId: "SFN-2026-B3R8",
       proveedor: "IberRail Components, S.L.",
       cliente: "Ferrocarrils de la Generalitat de Catalunya",
       destino: "FGC Infraestructures (Terrassa - Sabadell)",
@@ -640,7 +650,7 @@
       tipo: "Tirafondos de acero tratado TF-24",
       unidades: "62.000 uds",
       unidadesNum: 62000,
-      expId: "RFQ-2026-003",
+      expId: "SFN-2026-D8J5",
       proveedor: "IberRail Components, S.L.",
       cliente: "Infraestructuras del Norte, S.A.",
       destino: "ADIF Red Convencional (Miranda de Ebro)",
@@ -658,7 +668,7 @@
       tipo: "Arandelas elásticas dobles Fe6",
       unidades: "124.000 uds",
       unidadesNum: 124000,
-      expId: "RFQ-2026-003",
+      expId: "SFN-2026-D8J5",
       proveedor: "IberRail Components, S.L.",
       cliente: "Infraestructuras del Norte, S.A.",
       destino: "ADIF Red Convencional (Miranda de Ebro)",
@@ -678,7 +688,7 @@
   const NOTICES = [
     {
       id: "AV-01",
-      expId: "RFQ-2026-014",
+      expId: "SFN-2026-H6T4",
       categoria: "Incidencia / Mediación",
       tagClass: "warning",
       titulo: "Propuesta de mediación de plazo pendiente de firma",
@@ -686,11 +696,11 @@
       fecha: "Hoy, 10:35",
       roles: ["admin", "cliente"],
       accion: "Ver Mediación",
-      enlace: "#cliente/expedientes/RFQ-2026-014?tab=incidents&openMediation=INC-014-1"
+      enlace: "#cliente/expedientes/SFN-2026-H6T4?tab=incidents&openMediation=INC-014-1"
     },
     {
       id: "AV-02",
-      expId: "RFQ-2026-014",
+      expId: "SFN-2026-H6T4",
       categoria: "Documentación",
       tagClass: "review",
       titulo: "Nuevo ensayo mecánico EN 13230 recibido",
@@ -698,11 +708,11 @@
       fecha: "Hoy, 09:15",
       roles: ["admin", "proveedor"],
       accion: "Validar Documento",
-      enlace: "#admin/expedientes/RFQ-2026-014?tab=deliverables"
+      enlace: "#admin/expedientes/SFN-2026-H6T4?tab=deliverables"
     },
     {
       id: "AV-03",
-      expId: "RFQ-2026-011",
+      expId: "SFN-2026-K9M2",
       categoria: "Cotización",
       tagClass: "complete",
       titulo: "Preselección de 3 laminadores completada",
@@ -710,11 +720,11 @@
       fecha: "Ayer, 16:40",
       roles: ["admin", "cliente"],
       accion: "Revisar Proveedores",
-      enlace: "#admin/selector/RFQ-2026-011"
+      enlace: "#admin/selector/SFN-2026-K9M2"
     },
     {
       id: "AV-04",
-      expId: "RFQ-2026-009",
+      expId: "SFN-2026-B3R8",
       categoria: "Logística / Plazo",
       tagClass: "info",
       titulo: "Albarán de salida y despacho confirmado",
@@ -722,11 +732,11 @@
       fecha: "18 jun, 11:00",
       roles: ["admin", "cliente", "proveedor"],
       accion: "Consultar Albarán",
-      enlace: "#admin/expedientes/RFQ-2026-009?tab=deliverables"
+      enlace: "#admin/expedientes/SFN-2026-B3R8?tab=deliverables"
     },
     {
       id: "AV-05",
-      expId: "RFQ-2026-022",
+      expId: "SFN-2026-W4P7",
       categoria: "Formalización",
       tagClass: "review",
       titulo: "Póliza de suministro y hoja de pedido emitida",
@@ -734,11 +744,11 @@
       fecha: "Hoy, 08:30",
       roles: ["admin", "cliente"],
       accion: "Revisar Póliza",
-      enlace: "#admin/expedientes/RFQ-2026-022?tab=deliverables"
+      enlace: "#admin/expedientes/SFN-2026-W4P7?tab=deliverables"
     },
     {
       id: "AV-06",
-      expId: "RFQ-2026-014",
+      expId: "SFN-2026-H6T4",
       categoria: "Calidad / Ensayo",
       tagClass: "complete",
       titulo: "Ficha de lote y análisis de material aprobados",
@@ -746,7 +756,7 @@
       fecha: "Ayer, 12:10",
       roles: ["admin", "proveedor"],
       accion: "Ver Ficha",
-      enlace: "#admin/expedientes/RFQ-2026-014?tab=deliverables"
+      enlace: "#admin/expedientes/SFN-2026-H6T4?tab=deliverables"
     }
   ];
 
@@ -1076,7 +1086,7 @@
     return `<span class="entity-status ${b.class}"><i></i>${b.label}</span>`;
   }
 
-  function getActiveExpediente(id = "RFQ-2026-014") {
+  function getActiveExpediente(id = "SFN-2026-H6T4") {
     return EXPEDIENTES.find(e => e.id === id) || EXPEDIENTES[0];
   }
 
@@ -1124,7 +1134,7 @@
     const cliObj = DIRECTORIO_CLIENTES.find(c => exp.cliente.includes(c.nombre.split(",")[0])) || DIRECTORIO_CLIENTES[0];
 
     exp.formalizacion = {
-      codigoContrato: `PED-SOF-${exp.id.replace("RFQ-", "")}`,
+      codigoContrato: `PED-SOF-${exp.id.replace(/^SFN-\d{4}-/, "")}`,
       fechaEmision: isAlreadyPastFormalizacion ? "18 jun 2026" : "Hoy",
       clienteCif: cliObj ? cliObj.cif : "A-48092311",
       proveedorCif: prvObj ? prvObj.cif : "B-48192837",
@@ -1156,7 +1166,14 @@
   // Nuevos Estados Interactivos
   let overviewFilter = null; // "validados" | "review" | "pending" | "futuras" | "expedientes" | "incidencias" | "proveedores"
   let expSearchQuery = "";
-  let suministrosGroup = "none"; // "none" | "suministro" | "fase" | "estado" | "expediente"
+  let suministrosFilters = {
+    fase: "all",
+    estado: "all",
+    proveedor: "all",
+    cliente: "all",
+    ano: "all",
+    acciones: "all"
+  };
   let suministrosSortCol = "num"; // "num" | "tipo" | "unidades" | "expediente" | "proveedor" | "cliente" | "destino" | "ano" | "fase" | "acciones" | "fechaEntrega"
   let suministrosSortDir = "asc"; // "asc" | "desc"
   let showCerradosSuministros = false;
@@ -1170,17 +1187,16 @@
   let suministroRowCount = 1;
   let docScopeMode = "phase"; // "phase" | "all"
   let docStatusFilter = "all"; // "all" | "complete" | "review" | "pending" | "rejected"
-  let expDesignMode = localStorage.getItem("sofein-exp-design") || "visual"; // "classic" | "visual"
   let expKpiFilter = "all"; // "all" | "activos" | "accion_pendiente" | "completados" | "cerrados"
   let expCardFilters = {
-    estado: "all",
     fase: "all",
     cliente: "all",
     destino: "all",
-    entrega: "all"
+    entrega: "all",
+    presupuesto: "all"
   };
 
-  /* ---------- Helpers de Nuevo Diseño de Expedientes (Antes / Después) ---------- */
+  /* ---------- Helpers de Vista de Expedientes ---------- */
   const SHORT_PHASE_NAMES = [
     "Alcance",
     "Cotización",
@@ -1192,16 +1208,16 @@
   ];
 
   const EXP_GENERIC_META = {
-    "RFQ-2026-014": {
+    "SFN-2026-H6T4": {
       tituloGenerico: "Superestructura y armamento de vía — Ramal Factoría VW",
       numSuministros: 3,
       destinoCorto: "Factoría Volkswagen · Conexión Red Adif",
       proximaEntregaFecha: "14 oct 2026",
       proximaEntregaDiff: "-6 días (retraso)",
-      proximaEntregaTone: "overdue", // retraso (fecha anterior a hoy)
+      proximaEntregaTone: "overdue",
       forcePendingAction: true
     },
-    "RFQ-2026-011": {
+    "SFN-2026-K9M2": {
       tituloGenerico: "Renovación de carril y sujeción — Línea 4 Metro Bilbao",
       numSuministros: 2,
       destinoCorto: "Consorcio Transportes Bizkaia (Línea 4)",
@@ -1210,7 +1226,7 @@
       proximaEntregaTone: "ontime",
       forcePendingAction: true
     },
-    "RFQ-2026-022": {
+    "SFN-2026-W4P7": {
       tituloGenerico: "Suministro de traviesas y aparatos — Tramo Medina del Campo",
       numSuministros: 3,
       destinoCorto: "ADIF Red Convencional (Medina del Campo)",
@@ -1219,7 +1235,7 @@
       proximaEntregaTone: "soon",
       forcePendingAction: false
     },
-    "RFQ-2026-009": {
+    "SFN-2026-B3R8": {
       tituloGenerico: "Sistemas de fijación elástica y placas — Tramo Terrassa-Sabadell",
       numSuministros: 2,
       destinoCorto: "FGC Infraestructures (Terrassa - Sabadell)",
@@ -1229,7 +1245,7 @@
       isFinalizado: true,
       forcePendingAction: false
     },
-    "RFQ-2026-003": {
+    "SFN-2026-D8J5": {
       tituloGenerico: "Lote de clavazón y fijación metálica — Miranda de Ebro",
       numSuministros: 2,
       destinoCorto: "ADIF Red Convencional (Miranda de Ebro)",
@@ -1240,18 +1256,9 @@
     }
   };
 
-  function renderDesignTogglePill() {
-    return `
-      <div class="exp-design-toggle" role="group" aria-label="Alternar diseño de expedientes">
-        <span class="exp-design-toggle-label">Diseño:</span>
-        <button type="button" class="exp-design-btn ${expDesignMode === "classic" ? "is-active" : ""}" data-set-exp-design="classic" title="Ver diseño anterior">
-          Antes
-        </button>
-        <button type="button" class="exp-design-btn ${expDesignMode === "visual" ? "is-active" : ""}" data-set-exp-design="visual" title="Ver nuevo diseño limpio">
-          Nuevo diseño
-        </button>
-      </div>
-    `;
+  function parseBudgetNumber(str = "") {
+    const digits = String(str).replace(/[^\d]/g, "");
+    return digits ? parseInt(digits, 10) : 0;
   }
 
   function getExpVisualMeta(exp) {
@@ -1298,6 +1305,8 @@
     const proximaEntregaFecha = exp.proximaEntregaFecha || preset.proximaEntregaFecha || "02 nov 2026";
     const proximaEntregaDiff = exp.proximaEntregaDiff || preset.proximaEntregaDiff || "En 13 días";
     const proximaEntregaTone = exp.proximaEntregaTone || preset.proximaEntregaTone || "ontime";
+    const budgetNum = parseBudgetNumber(exp.presupuestoTotal);
+    const budgetRange = budgetNum < 200000 ? "low" : budgetNum <= 500000 ? "mid" : "high";
 
     return {
       isClosed,
@@ -1314,7 +1323,8 @@
       numSuministros,
       proximaEntregaFecha,
       proximaEntregaDiff,
-      proximaEntregaTone
+      proximaEntregaTone,
+      budgetRange
     };
   }
 
@@ -1326,35 +1336,31 @@
     const miniBarsHTML = PHASES.map((p, idx) => {
       const isDone = idx < exp.faseActual || v.isClosed || v.isCompleted;
       const isCurrent = !v.isClosed && !v.isCompleted && idx === exp.faseActual;
-      return `<i class="exp-v2-bar ${isDone ? "is-done" : isCurrent ? "is-current" : ""}" title="Fase ${idx + 1}: ${p.name}"></i>`;
+      return `<i class="exp-v2-bar ${isDone ? "is-done" : isCurrent ? "is-current" : ""}" title="${p.name}"></i>`;
     }).join("");
 
     return `
       <article class="admin-exp-card exp-v2-card ${v.hasPendingAction ? "has-pending-action" : ""}" data-go="${goTarget}" style="cursor:pointer">
-        <!-- Fila 1: Estado (con icono circular y pulso si aplica) + Código -->
+        <!-- Fila 1: Puntito de estado + Código + Fase en 1 fila sin fondo ni borde y tono progresivo -->
         <div class="exp-v2-top">
-          <span class="exp-v2-status-badge ${v.estadoKey}">
-            <i class="exp-v2-dot ${v.estadoDotClass}"></i>
-            <span>${v.estadoLabel}</span>
-          </span>
-          <span class="exp-v2-code">${exp.id}</span>
-        </div>
+          <div class="exp-v2-identity">
+            <i class="exp-v2-dot ${v.estadoDotClass}" title="${v.estadoLabel}" aria-label="${v.estadoLabel}"></i>
+            <span class="exp-v2-code">${exp.id}</span>
+          </div>
 
-        <!-- Fila 2: Fase + Mini gráfico minimalista (ej. 4/7) -->
-        <div class="exp-v2-phase-row">
-          <div class="exp-v2-phase-info">
+          <div class="exp-v2-phase-row phase-tone-${v.currentStep}" title="Fase ${v.currentStep} de ${v.totalPhases}: ${v.shortPhase}">
             <span class="exp-v2-phase-num">${v.currentStep}/${v.totalPhases}</span>
-            <span class="exp-v2-phase-name">Fase ${v.currentStep}: ${v.shortPhase}</span>
-          </div>
-          <div class="exp-v2-minichart" aria-label="Fase ${v.currentStep} de ${v.totalPhases}">
-            ${miniBarsHTML}
+            <span class="exp-v2-phase-name">${v.shortPhase}</span>
+            <div class="exp-v2-minichart" aria-label="Fase ${v.currentStep} de ${v.totalPhases}">
+              ${miniBarsHTML}
+            </div>
           </div>
         </div>
 
-        <!-- Fila 3: Título genérico de expediente -->
+        <!-- Fila 2: Título genérico de expediente (tamaño reducido) -->
         <h3 class="exp-v2-title">${v.tituloGenerico}</h3>
 
-        <!-- Fila 4: Datos estructurados (Nº suministros, Destino, Cliente, Próxima entrega) -->
+        <!-- Fila 3: Datos estructurados -->
         <div class="exp-v2-data-grid">
           <div class="exp-v2-data-row">
             <span class="exp-v2-label">Suministros</span>
@@ -1367,6 +1373,10 @@
           <div class="exp-v2-data-row">
             <span class="exp-v2-label">Cliente</span>
             <strong class="exp-v2-val" title="${exp.cliente}">${exp.cliente}</strong>
+          </div>
+          <div class="exp-v2-data-row">
+            <span class="exp-v2-label">Presupuesto est.</span>
+            <strong class="exp-v2-val">${exp.presupuestoTotal}</strong>
           </div>
           <div class="exp-v2-data-row is-delivery">
             <span class="exp-v2-label">Próxima entrega</span>
@@ -1396,14 +1406,14 @@
     const q = expSearchQuery.trim().toLowerCase();
     const matchesSearchAndSelects = ({ exp, meta }) => {
       if (q) {
-        const haystack = `${exp.id} ${meta.tituloGenerico} ${exp.producto} ${exp.cliente} ${exp.destinatarioFinal} ${meta.estadoLabel} ${meta.shortPhase} ${meta.proximaEntregaFecha}`.toLowerCase();
+        const haystack = `${exp.id} ${meta.tituloGenerico} ${exp.producto} ${exp.cliente} ${exp.destinatarioFinal} ${exp.presupuestoTotal} ${meta.shortPhase} ${meta.proximaEntregaFecha}`.toLowerCase();
         if (!haystack.includes(q)) return false;
       }
-      if (expCardFilters.estado !== "all" && meta.estadoKey !== expCardFilters.estado) return false;
       if (expCardFilters.fase !== "all" && String(exp.faseActual) !== expCardFilters.fase) return false;
       if (expCardFilters.cliente !== "all" && exp.cliente !== expCardFilters.cliente) return false;
       if (expCardFilters.destino !== "all" && exp.destinatarioFinal !== expCardFilters.destino) return false;
       if (expCardFilters.entrega !== "all" && meta.proximaEntregaTone !== expCardFilters.entrega) return false;
+      if (expCardFilters.presupuesto !== "all" && meta.budgetRange !== expCardFilters.presupuesto) return false;
       return true;
     };
 
@@ -1463,7 +1473,6 @@
           <h1>${pageTitle}</h1>
         </div>
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-          ${renderDesignTogglePill()}
           ${createBtnHTML}
         </div>
       </div>
@@ -1493,40 +1502,39 @@
         ` : ""}
       </div>
 
-      <!-- Barra de búsqueda acortada lateralmente + Filtros de los datos de la tarjeta -->
+      <!-- Barra de búsqueda + Filtros en una sola fila (solo con su título) -->
       <div class="exp-toolbar-row">
         <div class="exp-search-wrapper is-compact">
           ${icon("search", 15)}
-          <input type="search" class="exp-search-input" id="expSearchInput" placeholder="Buscar código, título, destino..." value="${expSearchQuery}">
+          <input type="search" class="exp-search-input" id="expSearchInput" placeholder="Buscar expediente..." value="${expSearchQuery}">
           ${expSearchQuery ? `<button class="admin-quiet-button" type="button" id="clearExpSearchBtn" style="padding:2px 6px">${icon("x", 13)}</button>` : ""}
         </div>
 
         <div class="exp-card-filters">
-          <select class="exp-filter-select" data-exp-card-filter="estado" aria-label="Filtrar por estado">
-            <option value="all" ${expCardFilters.estado === "all" ? "selected" : ""}>Estado: Todos</option>
-            <option value="accion_pendiente" ${expCardFilters.estado === "accion_pendiente" ? "selected" : ""}>Acción pendiente</option>
-            <option value="activo" ${expCardFilters.estado === "activo" ? "selected" : ""}>Activo</option>
-            <option value="completado" ${expCardFilters.estado === "completado" ? "selected" : ""}>Completado</option>
-            <option value="cerrado" ${expCardFilters.estado === "cerrado" ? "selected" : ""}>Cerrado</option>
+          <select class="exp-filter-select ${expCardFilters.fase !== "all" ? "is-filtered" : ""}" data-exp-card-filter="fase" aria-label="Fase">
+            <option value="all" ${expCardFilters.fase === "all" ? "selected" : ""}>Fase</option>
+            ${PHASES.map((p, idx) => `<option value="${idx}" ${expCardFilters.fase === String(idx) ? "selected" : ""}>${idx + 1}/7 · ${SHORT_PHASE_NAMES[idx]}</option>`).join("")}
           </select>
 
-          <select class="exp-filter-select" data-exp-card-filter="fase" aria-label="Filtrar por fase">
-            <option value="all" ${expCardFilters.fase === "all" ? "selected" : ""}>Fase: Todas (1-7)</option>
-            ${PHASES.map((p, idx) => `<option value="${idx}" ${expCardFilters.fase === String(idx) ? "selected" : ""}>Fase ${idx + 1}/7 · ${SHORT_PHASE_NAMES[idx]}</option>`).join("")}
-          </select>
-
-          <select class="exp-filter-select" data-exp-card-filter="cliente" aria-label="Filtrar por cliente constructor">
-            <option value="all" ${expCardFilters.cliente === "all" ? "selected" : ""}>Cliente: Todos</option>
+          <select class="exp-filter-select ${expCardFilters.cliente !== "all" ? "is-filtered" : ""}" data-exp-card-filter="cliente" aria-label="Cliente">
+            <option value="all" ${expCardFilters.cliente === "all" ? "selected" : ""}>Cliente</option>
             ${uniqueClientes.map(c => `<option value="${c}" ${expCardFilters.cliente === c ? "selected" : ""}>${c}</option>`).join("")}
           </select>
 
-          <select class="exp-filter-select" data-exp-card-filter="destino" aria-label="Filtrar por destino">
-            <option value="all" ${expCardFilters.destino === "all" ? "selected" : ""}>Destino: Todos</option>
+          <select class="exp-filter-select ${expCardFilters.destino !== "all" ? "is-filtered" : ""}" data-exp-card-filter="destino" aria-label="Destino">
+            <option value="all" ${expCardFilters.destino === "all" ? "selected" : ""}>Destino</option>
             ${uniqueDestinos.map(d => `<option value="${d}" ${expCardFilters.destino === d ? "selected" : ""}>${d}</option>`).join("")}
           </select>
 
-          <select class="exp-filter-select" data-exp-card-filter="entrega" aria-label="Filtrar por próxima entrega">
-            <option value="all" ${expCardFilters.entrega === "all" ? "selected" : ""}>Entrega: Todas</option>
+          <select class="exp-filter-select ${expCardFilters.presupuesto !== "all" ? "is-filtered" : ""}" data-exp-card-filter="presupuesto" aria-label="Presupuesto estimado">
+            <option value="all" ${expCardFilters.presupuesto === "all" ? "selected" : ""}>Presupuesto</option>
+            <option value="low" ${expCardFilters.presupuesto === "low" ? "selected" : ""}>&lt; 200.000 €</option>
+            <option value="mid" ${expCardFilters.presupuesto === "mid" ? "selected" : ""}>200.000 € - 500.000 €</option>
+            <option value="high" ${expCardFilters.presupuesto === "high" ? "selected" : ""}>&gt; 500.000 €</option>
+          </select>
+
+          <select class="exp-filter-select ${expCardFilters.entrega !== "all" ? "is-filtered" : ""}" data-exp-card-filter="entrega" aria-label="Próxima entrega">
+            <option value="all" ${expCardFilters.entrega === "all" ? "selected" : ""}>Próxima entrega</option>
             <option value="overdue" ${expCardFilters.entrega === "overdue" ? "selected" : ""}>Con retraso</option>
             <option value="soon" ${expCardFilters.entrega === "soon" ? "selected" : ""}>Próxima (&lt; 7 días)</option>
             <option value="ontime" ${expCardFilters.entrega === "ontime" ? "selected" : ""}>En plazo</option>
@@ -1534,8 +1542,8 @@
           </select>
 
           ${hasActiveFilters ? `
-            <button type="button" class="admin-quiet-button exp-clear-filters-btn" data-reset-exp-filters title="Limpiar todos los filtros">
-              ${icon("x", 12)} Limpiar
+            <button type="button" class="admin-quiet-button exp-clear-filters-btn" data-reset-exp-filters title="Limpiar filtros">
+              ${icon("x", 12)}
             </button>
           ` : ""}
         </div>
@@ -1555,9 +1563,8 @@
             <div class="exp-collapsible-summary-left">
               <span class="scope-dot info"></span>
               <strong>Expedientes finalizados (${completedItems.length})</strong>
-              <span class="exp-collapsible-hint">Recepción completada en destino</span>
             </div>
-            <span class="exp-collapsible-toggle-text">Desplegar ${icon("chevronDown", 14)}</span>
+            <span class="exp-collapsible-toggle-text">${icon("chevronDown", 14)}</span>
           </summary>
           <div class="exp-collapsible-content">
             <div class="admin-exp-list">
@@ -1571,9 +1578,8 @@
             <div class="exp-collapsible-summary-left">
               <span class="scope-dot closed"></span>
               <strong>Expedientes cerrados (${closedItems.length})</strong>
-              <span class="exp-collapsible-hint">Pasaporte Digital emitido y sellado</span>
             </div>
-            <span class="exp-collapsible-toggle-text">Desplegar ${icon("chevronDown", 14)}</span>
+            <span class="exp-collapsible-toggle-text">${icon("chevronDown", 14)}</span>
           </summary>
           <div class="exp-collapsible-content">
             <div class="admin-exp-list">
@@ -1719,7 +1725,7 @@
           </button>
 
           <!-- Notificaciones Bell -->
-          <button class="topbar-icon-btn" type="button" data-toast="Tienes 1 notificación de actualización en RFQ-2026-014" aria-label="Notificaciones" title="Notificaciones de inbox">
+          <button class="topbar-icon-btn" type="button" data-toast="Tienes 1 notificación de actualización en SFN-2026-H6T4" aria-label="Notificaciones" title="Notificaciones de inbox">
             ${icon("bell", 16)}<i class="bell-unread-dot"></i>
           </button>
         </div>
@@ -1905,7 +1911,7 @@
      PANTALLA 2: SELECTOR Y MATCHING DE PROVEEDORES (FASE DE COTIZACIONES)
      Apuntes 06 - Tablas 2 y 3 (Preselección SOFEIN, Selección Cliente, Cotizaciones, Comparativa)
      ============================================================ */
-  function renderSelectorProveedoresView(expId = "RFQ-2026-011") {
+  function renderSelectorProveedoresView(expId = "SFN-2026-K9M2") {
     const exp = getActiveExpediente(expId);
     const matching = ensureExpedienteMatching(exp);
     const isRoleAdmin = activeRole === "admin";
@@ -3785,52 +3791,111 @@
 
   function renderSuministrosSection(role) {
     const roleAll = getSuministrosForRole(role);
-    const countCerradosFinalizados = roleAll.filter(s => s.estado !== "activo").length;
-    const baseList = showCerradosSuministros ? roleAll : roleAll.filter(s => s.estado === "activo");
 
+    // Contadores para resumen KPI
+    const countActivos = roleAll.filter(s => s.estado === "activo").length;
+    const countAccionPendiente = roleAll.filter(s => s.accionesPendientes > 0).length;
+    const countFinalizados = roleAll.filter(s => s.estado === "finalizado").length;
+    const countCerrados = roleAll.filter(s => s.estado === "cerrado").length;
+    const countCerradosFinalizados = countFinalizados + countCerrados;
+
+    // Opciones dinamicas para los filtros selectores
+    const uniquePhaseIndices = Array.from(new Set(roleAll.map(s => s.faseActual))).sort((a, b) => a - b);
+    const uniqueProveedores = Array.from(new Set(roleAll.map(s => s.proveedor))).sort();
+    const uniqueClientes = Array.from(new Set(roleAll.map(s => s.cliente))).sort();
+    const uniqueAnos = Array.from(new Set(roleAll.map(s => s.ano))).sort((a, b) => b - a);
+
+    // Filtrar segun busqueda y selectores
     const q = suministrosSearchQuery.trim().toLowerCase();
-    const filtered = baseList.filter(s => {
-      if (!q) return true;
-      const haystack = `${s.num} ${s.tipo} ${s.unidades} ${s.expId} ${s.proveedor} ${s.cliente} ${s.destino} ${s.ano} ${s.faseNombre} ${s.estado} ${s.fechaEntrega}`.toLowerCase();
-      return haystack.includes(q);
+    const filtered = roleAll.filter(s => {
+      // 1. Buscador libre
+      if (q) {
+        const haystack = `${s.num} ${s.tipo} ${s.unidades} ${s.expId} ${s.proveedor} ${s.cliente} ${s.destino} ${s.ano} ${s.faseNombre} ${s.estado} ${s.fechaEntrega}`.toLowerCase();
+        if (!haystack.includes(q)) return false;
+      }
+
+      // 2. Filtro por Fase
+      if (suministrosFilters.fase !== "all" && String(s.faseActual) !== suministrosFilters.fase) {
+        return false;
+      }
+
+      // 3. Filtro por Estado
+      if (suministrosFilters.estado === "all") {
+        if (!showCerradosSuministros && s.estado !== "activo") return false;
+      } else if (suministrosFilters.estado === "activo") {
+        if (s.estado !== "activo") return false;
+      } else if (suministrosFilters.estado === "finalizado") {
+        if (s.estado !== "finalizado") return false;
+      } else if (suministrosFilters.estado === "cerrado") {
+        if (s.estado !== "cerrado") return false;
+      } // "todos": muestra todos
+
+      // 4. Filtro por Proveedor
+      if (suministrosFilters.proveedor !== "all" && s.proveedor !== suministrosFilters.proveedor) {
+        return false;
+      }
+
+      // 5. Filtro por Cliente
+      if (suministrosFilters.cliente !== "all" && s.cliente !== suministrosFilters.cliente) {
+        return false;
+      }
+
+      // 6. Filtro por Ano
+      if (suministrosFilters.ano !== "all" && String(s.ano) !== suministrosFilters.ano) {
+        return false;
+      }
+
+      // 7. Filtro por Acciones pendientes
+      if (suministrosFilters.acciones === "has_pending" && s.accionesPendientes === 0) {
+        return false;
+      }
+      if (suministrosFilters.acciones === "none" && s.accionesPendientes > 0) {
+        return false;
+      }
+
+      return true;
     });
 
-    const sortList = (items) => {
-      const mult = suministrosSortDir === "desc" ? -1 : 1;
-      return [...items].sort((a, b) => {
-        let valA, valB;
-        switch (suministrosSortCol) {
-          case "num":
-            return (parseInt(a.num, 10) - parseInt(b.num, 10)) * mult;
-          case "tipo":
-            return a.tipo.localeCompare(b.tipo, "es") * mult;
-          case "unidades":
-            valA = a.unidadesNum || 0;
-            valB = b.unidadesNum || 0;
-            return (valA - valB) * mult;
-          case "expediente":
-            return a.expId.localeCompare(b.expId, "es") * mult;
-          case "proveedor":
-            return a.proveedor.localeCompare(b.proveedor, "es") * mult;
-          case "cliente":
-            return a.cliente.localeCompare(b.cliente, "es") * mult;
-          case "destino":
-            return a.destino.localeCompare(b.destino, "es") * mult;
-          case "ano":
-            return ((a.ano || 0) - (b.ano || 0)) * mult;
-          case "fase":
-            return ((a.faseActual ?? 0) - (b.faseActual ?? 0)) * mult;
-          case "acciones":
-            return ((a.accionesPendientes || 0) - (b.accionesPendientes || 0)) * mult;
-          case "fechaEntrega":
-            valA = new Date(a.fechaEntregaIso || a.fechaEntrega).getTime() || 0;
-            valB = new Date(b.fechaEntregaIso || b.fechaEntrega).getTime() || 0;
-            return (valA - valB) * mult;
-          default:
-            return 0;
-        }
-      });
-    };
+    const hasActiveFilters =
+      suministrosSearchQuery.trim() !== "" ||
+      showCerradosSuministros ||
+      Object.values(suministrosFilters).some(v => v !== "all");
+
+    // Ordenacion por columnas
+    const mult = suministrosSortDir === "desc" ? -1 : 1;
+    const sorted = [...filtered].sort((a, b) => {
+      let valA, valB;
+      switch (suministrosSortCol) {
+        case "num":
+          return (parseInt(a.num, 10) - parseInt(b.num, 10)) * mult;
+        case "tipo":
+          return a.tipo.localeCompare(b.tipo, "es") * mult;
+        case "unidades":
+          valA = a.unidadesNum || 0;
+          valB = b.unidadesNum || 0;
+          return (valA - valB) * mult;
+        case "expediente":
+          return a.expId.localeCompare(b.expId, "es") * mult;
+        case "proveedor":
+          return a.proveedor.localeCompare(b.proveedor, "es") * mult;
+        case "cliente":
+          return a.cliente.localeCompare(b.cliente, "es") * mult;
+        case "destino":
+          return a.destino.localeCompare(b.destino, "es") * mult;
+        case "ano":
+          return ((a.ano || 0) - (b.ano || 0)) * mult;
+        case "fase":
+          return ((a.faseActual ?? 0) - (b.faseActual ?? 0)) * mult;
+        case "acciones":
+          return ((a.accionesPendientes || 0) - (b.accionesPendientes || 0)) * mult;
+        case "fechaEntrega":
+          valA = new Date(a.fechaEntregaIso || a.fechaEntrega).getTime() || 0;
+          valB = new Date(b.fechaEntregaIso || b.fechaEntrega).getTime() || 0;
+          return (valA - valB) * mult;
+        default:
+          return 0;
+      }
+    });
 
     const getSortIndicator = (col) => {
       if (suministrosSortCol !== col) return '<span class="suministros-sort-icon">↕</span>';
@@ -3969,21 +4034,20 @@
 
     let mainContentHTML = "";
 
-    if (filtered.length === 0) {
+    if (sorted.length === 0) {
       mainContentHTML = `
         <div class="suministros-empty-state">
           ${icon("box", 32)}
           <h3>No se han encontrado suministros</h3>
-          <p>${q ? `No hay resultados para "<b>${q}</b>"` : "No hay suministros que cumplan los criterios de visualización seleccionados."}</p>
-          ${!showCerradosSuministros && countCerradosFinalizados > 0 ? `
-            <button class="admin-quiet-button" type="button" id="btnActivarVerCerrados" style="margin-top:12px;color:var(--entity-accent)">
-              ${icon("check", 14)} Activar "Ver cerrados" para ver ${countCerradosFinalizados} lote(s) finalizados o cerrados
+          <p>${q ? `No hay resultados para "<b>${q}</b>"` : "No hay suministros que cumplan los filtros seleccionados."}</p>
+          ${hasActiveFilters ? `
+            <button class="admin-primary-button" type="button" data-reset-suministros-filters style="margin-top:12px;font-size:0.78rem">
+              ${icon("x", 14)} Limpiar todos los filtros
             </button>
           ` : ""}
         </div>
       `;
-    } else if (suministrosGroup === "none") {
-      const sorted = sortList(filtered);
+    } else {
       mainContentHTML = `
         <div class="suministros-table-wrap">
           <table class="suministros-table">
@@ -3994,137 +4058,6 @@
           </table>
         </div>
       `;
-    } else if (suministrosGroup === "suministro") {
-      const groups = {};
-      filtered.forEach(s => {
-        if (!groups[s.tipo]) groups[s.tipo] = [];
-        groups[s.tipo].push(s);
-      });
-      mainContentHTML = Object.keys(groups).sort().map(tipo => {
-        const sorted = sortList(groups[tipo]);
-        return `
-          <section class="suministros-group-card">
-            <div class="suministros-group-card-head">
-              <div class="suministros-group-card-title">
-                ${icon("box", 16)}
-                <span>${tipo}</span>
-              </div>
-              <span class="avisos-group-count-pill">${sorted.length} ${sorted.length === 1 ? "lote" : "lotes"}</span>
-            </div>
-            <div class="suministros-table-wrap" style="border:0;border-radius:0;box-shadow:none;margin-bottom:0">
-              <table class="suministros-table">
-                ${renderTableHeadHTML()}
-                <tbody>
-                  ${sorted.map(s => renderRowHTML(s)).join("")}
-                </tbody>
-              </table>
-            </div>
-          </section>
-        `;
-      }).join("");
-    } else if (suministrosGroup === "fase") {
-      const groups = {};
-      filtered.forEach(s => {
-        const key = s.faseActual ?? 0;
-        if (!groups[key]) groups[key] = [];
-        groups[key].push(s);
-      });
-      mainContentHTML = Object.keys(groups).sort((a, b) => parseInt(a, 10) - parseInt(b, 10)).map(faseKey => {
-        const sorted = sortList(groups[faseKey]);
-        const faseNum = parseInt(faseKey, 10);
-        const faseInfo = PHASES[faseNum] || { name: `Fase ${faseNum + 1}` };
-        return `
-          <section class="suministros-group-card">
-            <div class="suministros-group-card-head">
-              <div class="suministros-group-card-title">
-                ${icon("folder", 16)}
-                <span>Fase ${faseNum + 1}: ${SHORT_PHASE_NAMES[faseNum] || faseInfo.name}</span>
-              </div>
-              <span class="avisos-group-count-pill">${sorted.length} ${sorted.length === 1 ? "suministro" : "suministros"}</span>
-            </div>
-            <div class="suministros-table-wrap" style="border:0;border-radius:0;box-shadow:none;margin-bottom:0">
-              <table class="suministros-table">
-                ${renderTableHeadHTML()}
-                <tbody>
-                  ${sorted.map(s => renderRowHTML(s)).join("")}
-                </tbody>
-              </table>
-            </div>
-          </section>
-        `;
-      }).join("");
-    } else if (suministrosGroup === "estado") {
-      const estadoOrder = ["activo", "finalizado", "cerrado"];
-      const estadoMeta = {
-        activo: { label: "Activo (En curso)", iconDot: "active", desc: "Lotes en proceso de cotización, fabricación o transporte" },
-        finalizado: { label: "Finalizado", iconDot: "info", desc: "Lotes entregados y recepcionados conforme a pliego" },
-        cerrado: { label: "Cerrado", iconDot: "default", desc: "Lotes liquidados y auditados con Pasaporte Digital SOFEIN" }
-      };
-      const groups = {};
-      filtered.forEach(s => {
-        if (!groups[s.estado]) groups[s.estado] = [];
-        groups[s.estado].push(s);
-      });
-      mainContentHTML = estadoOrder.filter(st => groups[st] && groups[st].length).map(st => {
-        const sorted = sortList(groups[st]);
-        const meta = estadoMeta[st] || { label: st, iconDot: "default", desc: "" };
-        return `
-          <section class="suministros-group-card">
-            <div class="suministros-group-card-head">
-              <div class="suministros-group-card-title">
-                <span class="scope-dot ${meta.iconDot}"></span>
-                <span>Estado: ${meta.label}</span>
-                <span class="suministros-group-card-sub">· ${meta.desc}</span>
-              </div>
-              <span class="avisos-group-count-pill">${sorted.length} ${sorted.length === 1 ? "suministro" : "suministros"}</span>
-            </div>
-            <div class="suministros-table-wrap" style="border:0;border-radius:0;box-shadow:none;margin-bottom:0">
-              <table class="suministros-table">
-                ${renderTableHeadHTML()}
-                <tbody>
-                  ${sorted.map(s => renderRowHTML(s)).join("")}
-                </tbody>
-              </table>
-            </div>
-          </section>
-        `;
-      }).join("");
-    } else if (suministrosGroup === "expediente") {
-      const groups = {};
-      filtered.forEach(s => {
-        if (!groups[s.expId]) groups[s.expId] = [];
-        groups[s.expId].push(s);
-      });
-      mainContentHTML = Object.keys(groups).sort().map(expId => {
-        const sorted = sortList(groups[expId]);
-        const exp = getActiveExpediente(expId) || {};
-        const phaseName = exp.faseActual !== undefined && PHASES[exp.faseActual] ? PHASES[exp.faseActual].name : "";
-        return `
-          <section class="suministros-group-card">
-            <div class="suministros-group-card-head">
-              <div class="suministros-group-card-title" data-go="#${role}/expedientes/${expId}" style="cursor:pointer" title="Abrir expediente ${expId}">
-                ${icon("folder", 16)}
-                <span style="text-decoration:underline;text-underline-offset:3px">${expId} · ${exp.producto || "Expediente"}</span>
-                <span class="suministros-group-card-sub">· ${exp.cliente || ""} ${phaseName ? `(${phaseName})` : ""}</span>
-              </div>
-              <div style="display:flex;align-items:center;gap:10px">
-                <span class="avisos-group-count-pill">${sorted.length} ${sorted.length === 1 ? "suministro" : "suministros"}</span>
-                <button class="admin-quiet-button" type="button" data-go="#${role}/expedientes/${expId}" style="padding:3px 9px;font-size:0.72rem">
-                  Abrir expediente ${icon("arrow", 12)}
-                </button>
-              </div>
-            </div>
-            <div class="suministros-table-wrap" style="border:0;border-radius:0;box-shadow:none;margin-bottom:0">
-              <table class="suministros-table">
-                ${renderTableHeadHTML()}
-                <tbody>
-                  ${sorted.map(s => renderRowHTML(s)).join("")}
-                </tbody>
-              </table>
-            </div>
-          </section>
-        `;
-      }).join("");
     }
 
     const titles = {
@@ -4160,36 +4093,101 @@
         ` : ""}
       </div>
 
-      <!-- Toolbar de Controles de Suministros -->
+      <!-- Resumen KPI / Filtros directos de 1 clic -->
+      <div class="entity-scope-strip exp-kpi-strip suministros-kpi-strip" role="region" aria-label="Resumen y filtros de suministros">
+        <button type="button" class="entity-scope-pill exp-kpi-btn ${suministrosFilters.estado === 'activo' || (suministrosFilters.estado === 'all' && !showCerradosSuministros && suministrosFilters.acciones === 'all') ? 'is-active' : ''}" data-suministro-kpi="activo">
+          <span class="scope-dot active"></span>
+          <span><b>${countActivos}</b> Activos</span>
+        </button>
+        <button type="button" class="entity-scope-pill exp-kpi-btn ${suministrosFilters.acciones === 'has_pending' ? 'is-active' : ''}" data-suministro-kpi="has_pending">
+          <span class="scope-dot is-pending-pulse"></span>
+          <span><b>${countAccionPendiente}</b> Con acción pendiente</span>
+        </button>
+        <button type="button" class="entity-scope-pill exp-kpi-btn ${suministrosFilters.estado === 'finalizado' ? 'is-active' : ''}" data-suministro-kpi="finalizado">
+          <span class="scope-dot info"></span>
+          <span><b>${countFinalizados}</b> Finalizados</span>
+        </button>
+        <button type="button" class="entity-scope-pill exp-kpi-btn ${suministrosFilters.estado === 'cerrado' ? 'is-active' : ''}" data-suministro-kpi="cerrado">
+          <span class="scope-dot closed"></span>
+          <span><b>${countCerrados}</b> Cerrados</span>
+        </button>
+        ${hasActiveFilters ? `
+          <button type="button" class="exp-kpi-reset-link" data-reset-suministros-filters>
+            ${icon("x", 12)} Mostrar todos
+          </button>
+        ` : ""}
+      </div>
+
+      <!-- Barra de Filtros y Busqueda -->
       <div class="suministros-controls-bar">
-        <div class="suministros-controls-left">
-          <div class="suministros-group-wrap">
-            <span class="suministros-ctrl-label">Agrupar por:</span>
-            <div class="avisos-group-buttons">
-              <button class="avisos-group-btn ${suministrosGroup === 'none' ? 'is-active' : ''}" type="button" data-group-suministros="none">Sin agrupar</button>
-              <button class="avisos-group-btn ${suministrosGroup === 'suministro' ? 'is-active' : ''}" type="button" data-group-suministros="suministro">Suministro</button>
-              <button class="avisos-group-btn ${suministrosGroup === 'fase' ? 'is-active' : ''}" type="button" data-group-suministros="fase">Fase</button>
-              <button class="avisos-group-btn ${suministrosGroup === 'estado' ? 'is-active' : ''}" type="button" data-group-suministros="estado">Estado</button>
-              <button class="avisos-group-btn ${suministrosGroup === 'expediente' ? 'is-active' : ''}" type="button" data-group-suministros="expediente">Expediente</button>
-            </div>
-          </div>
-
-          <!-- Casilla Ver Cerrados -->
-          <label class="suministros-cerrados-toggle" title="Incluir lotes finalizados y cerrados en la tabla">
-            <input type="checkbox" id="toggleVerCerradosSuministros" ${showCerradosSuministros ? "checked" : ""}>
-            <span class="suministros-toggle-title">Ver cerrados</span>
-            <span class="suministros-closed-counter">(${countCerradosFinalizados} cerrados/finalizados)</span>
-          </label>
-        </div>
-
-        <div class="suministros-controls-right">
+        <div class="suministros-toolbar-left">
           <div class="suministros-search-box">
             ${icon("search", 14)}
-            <input type="search" id="suministrosSearchInput" placeholder="Filtrar por suministro, exp., taller..." value="${suministrosSearchQuery}">
+            <input type="search" id="suministrosSearchInput" placeholder="Buscar por tipo, exp., taller, destino..." value="${suministrosSearchQuery}">
             ${suministrosSearchQuery ? `<button type="button" id="clearSuministrosSearchBtn" class="admin-quiet-button" style="padding:0 4px">${icon("x", 12)}</button>` : ""}
           </div>
+
+          <div class="suministros-filters-wrap">
+            <select class="exp-filter-select" data-suministro-filter="fase" aria-label="Filtrar por fase">
+              <option value="all" ${suministrosFilters.fase === "all" ? "selected" : ""}>Fase: Todas</option>
+              ${uniquePhaseIndices.map(fIdx => {
+                const fInfo = PHASES[fIdx] || {};
+                const name = SHORT_PHASE_NAMES[fIdx] || fInfo.name || `Fase ${fIdx + 1}`;
+                return `<option value="${fIdx}" ${suministrosFilters.fase === String(fIdx) ? "selected" : ""}>Fase ${fIdx + 1}: ${name}</option>`;
+              }).join("")}
+            </select>
+
+            <select class="exp-filter-select" data-suministro-filter="estado" aria-label="Filtrar por estado">
+              <option value="all" ${suministrosFilters.estado === "all" ? "selected" : ""}>Estado: ${showCerradosSuministros ? "Todos" : "Activos (por defecto)"}</option>
+              <option value="activo" ${suministrosFilters.estado === "activo" ? "selected" : ""}>Activos</option>
+              <option value="finalizado" ${suministrosFilters.estado === "finalizado" ? "selected" : ""}>Finalizados</option>
+              <option value="cerrado" ${suministrosFilters.estado === "cerrado" ? "selected" : ""}>Cerrados</option>
+              <option value="todos" ${suministrosFilters.estado === "todos" ? "selected" : ""}>Todos (inc. cerrados)</option>
+            </select>
+
+            ${role !== "proveedor" ? `
+              <select class="exp-filter-select" data-suministro-filter="proveedor" aria-label="Filtrar por proveedor">
+                <option value="all" ${suministrosFilters.proveedor === "all" ? "selected" : ""}>Proveedor: Todos</option>
+                ${uniqueProveedores.map(p => `<option value="${p}" ${suministrosFilters.proveedor === p ? "selected" : ""}>${p}</option>`).join("")}
+              </select>
+            ` : ""}
+
+            ${role !== "cliente" ? `
+              <select class="exp-filter-select" data-suministro-filter="cliente" aria-label="Filtrar por cliente">
+                <option value="all" ${suministrosFilters.cliente === "all" ? "selected" : ""}>Cliente: Todos</option>
+                ${uniqueClientes.map(c => `<option value="${c}" ${suministrosFilters.cliente === c ? "selected" : ""}>${c}</option>`).join("")}
+              </select>
+            ` : ""}
+
+            <select class="exp-filter-select" data-suministro-filter="ano" aria-label="Filtrar por año">
+              <option value="all" ${suministrosFilters.ano === "all" ? "selected" : ""}>Año: Todos</option>
+              ${uniqueAnos.map(a => `<option value="${a}" ${suministrosFilters.ano === String(a) ? "selected" : ""}>Año ${a}</option>`).join("")}
+            </select>
+
+            <select class="exp-filter-select" data-suministro-filter="acciones" aria-label="Filtrar por acciones">
+              <option value="all" ${suministrosFilters.acciones === "all" ? "selected" : ""}>Acciones: Todas</option>
+              <option value="has_pending" ${suministrosFilters.acciones === "has_pending" ? "selected" : ""}>Con acciones pendientes</option>
+              <option value="none" ${suministrosFilters.acciones === "none" ? "selected" : ""}>Sin acciones pendientes</option>
+            </select>
+
+            <!-- Casilla Ver Cerrados rapida -->
+            <label class="suministros-cerrados-toggle" title="Incluir lotes finalizados y cerrados en la tabla">
+              <input type="checkbox" id="toggleVerCerradosSuministros" ${showCerradosSuministros || suministrosFilters.estado === "todos" ? "checked" : ""}>
+              <span class="suministros-toggle-title">Ver cerrados</span>
+              <span class="suministros-closed-counter">(${countCerradosFinalizados})</span>
+            </label>
+
+            ${hasActiveFilters ? `
+              <button type="button" class="admin-quiet-button" data-reset-suministros-filters style="color:var(--entity-accent);padding:4px 8px;font-size:0.75rem;white-space:nowrap">
+                ${icon("x", 12)} Limpiar filtros
+              </button>
+            ` : ""}
+          </div>
+        </div>
+
+        <div class="suministros-toolbar-right">
           <span class="suministros-count-badge">
-            <b>${filtered.length}</b> de ${roleAll.length} suministros
+            <b>${sorted.length}</b> de ${roleAll.length} suministros
           </span>
         </div>
       </div>
@@ -4197,6 +4195,7 @@
       ${mainContentHTML}
     `;
   }
+
 
   const OVERVIEW_FILTER_LABELS = {
     validados: "Entregables técnicos validados y conformes (18)",
@@ -4222,37 +4221,37 @@
           <div class="admin-alert-row is-urgent">
             <span class="admin-deadline">En revisión</span>
             <strong>Certificado de ensayos mecánicos EN 13230</strong>
-            <span>RFQ-2026-014</span>
+            <span>SFN-2026-H6T4</span>
             <span>IberRail Components</span>
-            <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-014">Validar</button>
+            <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/SFN-2026-H6T4">Validar</button>
           </div>
           <div class="admin-alert-row is-urgent">
             <span class="admin-deadline">En revisión</span>
             <strong>Oferta económica vinculante Norte Vía (54E1)</strong>
-            <span>RFQ-2026-011</span>
+            <span>SFN-2026-K9M2</span>
             <span>Norte Vía Industrial</span>
-            <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-011">Validar</button>
+            <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/SFN-2026-K9M2">Validar</button>
           </div>
           <div class="admin-alert-row is-urgent">
             <span class="admin-deadline">En revisión</span>
             <strong>Acta de descarga y pesaje a pie de vía</strong>
-            <span>RFQ-2026-009</span>
+            <span>SFN-2026-B3R8</span>
             <span>FGC Terrassa - Sabadell</span>
-            <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-009">Validar</button>
+            <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/SFN-2026-B3R8">Validar</button>
           </div>
           <div class="admin-alert-row is-urgent">
             <span class="admin-deadline">En revisión</span>
             <strong>Póliza de suministro y hoja de pedido formalizada</strong>
-            <span>RFQ-2026-022</span>
+            <span>SFN-2026-W4P7</span>
             <span>Madera Vía Ibérica</span>
-            <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-022">Validar</button>
+            <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/SFN-2026-W4P7">Validar</button>
           </div>
           <div class="admin-alert-row is-urgent">
             <span class="admin-deadline">En revisión</span>
             <strong>Conformidad técnica de lote de traviesas</strong>
-            <span>RFQ-2026-014</span>
+            <span>SFN-2026-H6T4</span>
             <span>Infraestructuras del Norte</span>
-            <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-014">Validar</button>
+            <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/SFN-2026-H6T4">Validar</button>
           </div>
         </div>
       `;
@@ -4268,23 +4267,23 @@
           <div class="admin-alert-row">
             <span class="admin-deadline" style="color:var(--entity-warning)">Pendiente taller</span>
             <strong>Certificado de lote homologado (Fase 4)</strong>
-            <span>RFQ-2026-014</span>
+            <span>SFN-2026-H6T4</span>
             <span>IberRail Components</span>
-            <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-014">Requerir</button>
+            <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/SFN-2026-H6T4">Requerir</button>
           </div>
           <div class="admin-alert-row">
             <span class="admin-deadline" style="color:var(--entity-warning)">Pendiente taller</span>
             <strong>Plan logístico y transporte ferroviario especial</strong>
-            <span>RFQ-2026-014</span>
+            <span>SFN-2026-H6T4</span>
             <span>IberRail Components</span>
-            <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-014">Requerir</button>
+            <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/SFN-2026-H6T4">Requerir</button>
           </div>
           <div class="admin-alert-row">
             <span class="admin-deadline" style="color:var(--entity-warning)">Pendiente cliente</span>
             <strong>Selección de proveedor para cotización vinculante</strong>
-            <span>RFQ-2026-011</span>
+            <span>SFN-2026-K9M2</span>
             <span>Metro de Bilbao</span>
-            <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-011">Avisar</button>
+            <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/SFN-2026-K9M2">Avisar</button>
           </div>
         </div>
       `;
@@ -4300,23 +4299,23 @@
           <div class="admin-alert-row">
             <span class="admin-deadline" style="color:var(--entity-accent)">✓ Conforme</span>
             <strong>Especificación técnica y trazabilidad Adif 03.360.501</strong>
-            <span>RFQ-2026-011</span>
+            <span>SFN-2026-K9M2</span>
             <span>SOFEIN Verificado</span>
-            <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-011">Ver</button>
+            <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/SFN-2026-K9M2">Ver</button>
           </div>
           <div class="admin-alert-row">
             <span class="admin-deadline" style="color:var(--entity-accent)">✓ Conforme</span>
             <strong>Ensayo dinámico y fatiga EN 13481 (Sujeciones SKL-14)</strong>
-            <span>RFQ-2026-009</span>
+            <span>SFN-2026-B3R8</span>
             <span>Laboratorio Homologado</span>
-            <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-009">Ver</button>
+            <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/SFN-2026-B3R8">Ver</button>
           </div>
           <div class="admin-alert-row">
             <span class="admin-deadline" style="color:var(--entity-accent)">✓ Conforme</span>
             <strong>Ficha técnica de lote y análisis de material (PR-22)</strong>
-            <span>RFQ-2026-014</span>
+            <span>SFN-2026-H6T4</span>
             <span>IberRail Components</span>
-            <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-014">Ver</button>
+            <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/SFN-2026-H6T4">Ver</button>
           </div>
         </div>
       `;
@@ -4332,16 +4331,16 @@
           <div class="admin-alert-row">
             <span class="admin-deadline">Fase 6: Recepción</span>
             <strong>Acta de Descarga a Pie de Vía (Medina del Campo)</strong>
-            <span>RFQ-2026-022</span>
+            <span>SFN-2026-W4P7</span>
             <span>Programada</span>
-            <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-022">Ver</button>
+            <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/SFN-2026-W4P7">Ver</button>
           </div>
           <div class="admin-alert-row">
             <span class="admin-deadline">Fase 7: Cierre</span>
             <strong>Pasaporte Digital SOFEIN (Factoría Volkswagen)</strong>
-            <span>RFQ-2026-014</span>
+            <span>SFN-2026-H6T4</span>
             <span>Generación final</span>
-            <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-014">Ver</button>
+            <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/SFN-2026-H6T4">Ver</button>
           </div>
         </div>
       `;
@@ -4378,9 +4377,9 @@
           <div class="admin-alert-row is-critical">
             <span class="admin-deadline">Mediación</span>
             <strong>Propuesta de mediación (curado Lote B por ola de calor)</strong>
-            <span>RFQ-2026-014</span>
+            <span>SFN-2026-H6T4</span>
             <span>Pendiente de firma del constructor</span>
-            <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-014">Gestionar Mediación</button>
+            <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/SFN-2026-H6T4">Gestionar Mediación</button>
           </div>
         </div>
       `;
@@ -4418,23 +4417,23 @@
           <div class="admin-alert-row is-critical">
             <span class="admin-deadline">Urgente</span>
             <strong>Propuesta de mediación (curado Lote B)</strong>
-            <span>RFQ-2026-014</span>
+            <span>SFN-2026-H6T4</span>
             <span>Pendiente firma constructor</span>
-            <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-014">Revisar</button>
+            <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/SFN-2026-H6T4">Revisar</button>
           </div>
           <div class="admin-alert-row is-urgent">
             <span class="admin-deadline">En revisión</span>
             <strong>Certificado de ensayos EN 13230</strong>
-            <span>RFQ-2026-014</span>
+            <span>SFN-2026-H6T4</span>
             <span>IberRail Components</span>
-            <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-014">Validar</button>
+            <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/SFN-2026-H6T4">Validar</button>
           </div>
           <div class="admin-alert-row">
             <span class="admin-deadline" style="color:var(--entity-accent)">En plazo</span>
             <strong>Preselección de 3 laminadores</strong>
-            <span>RFQ-2026-011</span>
+            <span>SFN-2026-K9M2</span>
             <span>Metro Bilbao</span>
-            <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/RFQ-2026-011">Ver ofertas</button>
+            <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/SFN-2026-K9M2">Ver ofertas</button>
           </div>
         </div>
       `;
@@ -4525,7 +4524,7 @@
     }
 
     if (section === "selector") {
-      return renderSelectorProveedoresView(param || "RFQ-2026-011");
+      return renderSelectorProveedoresView(param || "SFN-2026-K9M2");
     }
 
     if (section === "nuevo" || (section === "expedientes" && param === "nuevo")) {
@@ -4837,7 +4836,7 @@
     }
 
     // Default
-    return renderDossierBuilder("RFQ-2026-014");
+    return renderDossierBuilder("SFN-2026-H6T4");
   }
 
   /* ============================================================
@@ -4845,7 +4844,7 @@
      ============================================================ */
   function renderClienteView(section, param) {
     if (section === "selector") {
-      return renderSelectorProveedoresView(param || "RFQ-2026-011");
+      return renderSelectorProveedoresView(param || "SFN-2026-K9M2");
     }
 
     if (section === "nuevo" || (section === "expedientes" && param === "nuevo")) {
@@ -4995,7 +4994,7 @@
     }
 
     // Default
-    return renderDossierBuilder("RFQ-2026-014");
+    return renderDossierBuilder("SFN-2026-H6T4");
   }
 
   /* ============================================================
@@ -5003,13 +5002,13 @@
      ============================================================ */
   function renderProveedorView(section, param) {
     if (section === "selector") {
-      return renderSelectorProveedoresView(param || "RFQ-2026-011");
+      return renderSelectorProveedoresView(param || "SFN-2026-K9M2");
     }
 
     if (section === "expedientes") {
       if (param) return renderDossierBuilder(param);
 
-      const prvAll = EXPEDIENTES.filter(e => e.proveedor.includes("IberRail") || e.id === "RFQ-2026-011" || e.id === "RFQ-2026-022");
+      const prvAll = EXPEDIENTES.filter(e => e.proveedor.includes("IberRail") || e.id === "SFN-2026-K9M2" || e.id === "SFN-2026-W4P7");
       if (expDesignMode === "visual") {
         return renderExpedientesBandejaVisual("proveedor", prvAll);
       }
@@ -5102,11 +5101,11 @@
           <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px">
             <div>
               <span class="dossier-chip" style="margin-bottom:8px">Fase 2: Cotización Vinculante</span>
-              <h3 style="margin:4px 0;font-size:1.15rem;color:var(--entity-text)">Carril laminado 54E1 Grado R260 · RFQ-2026-011</h3>
+              <h3 style="margin:4px 0;font-size:1.15rem;color:var(--entity-text)">Carril laminado 54E1 Grado R260 · SFN-2026-K9M2</h3>
               <p style="margin:0;color:var(--entity-muted);font-size:0.8rem">Volumen solicitado: 1.200 toneladas · Plazo objetivo cliente: 60 días</p>
             </div>
             <div style="display:flex;gap:10px">
-              <button class="admin-primary-button" type="button" data-go="#proveedor/selector/RFQ-2026-011">
+              <button class="admin-primary-button" type="button" data-go="#proveedor/selector/SFN-2026-K9M2">
                 ${icon("file", 14)} Abrir Cotización & Responder Oferta
               </button>
             </div>
@@ -5162,7 +5161,7 @@
     }
 
     // Default
-    return renderDossierBuilder("RFQ-2026-014");
+    return renderDossierBuilder("SFN-2026-H6T4");
   }
 
   /* ============================================================
@@ -5700,7 +5699,7 @@
      VISTAS: DESTINATARIO FINAL (AUDITOR / ESPECTADOR DE VÍA)
      ============================================================ */
   function renderDestinatarioView(dossierId = null) {
-    const exp = getActiveExpediente(dossierId || activeParam || "RFQ-2026-014");
+    const exp = getActiveExpediente(dossierId || activeParam || "SFN-2026-H6T4");
 
     return `
       <div class="admin-view-head">
@@ -5775,7 +5774,7 @@
       pendingOpenMediation = null;
       if (activeRole === "admin") {
         setTimeout(() => {
-          openMediationModal(activeParam || "RFQ-2026-014", incId);
+          openMediationModal(activeParam || "SFN-2026-H6T4", incId);
         }, 70);
       } else {
         setTimeout(() => {
@@ -5835,10 +5834,10 @@
 
       // 1. Destinatario Final (solo tiene vista de pasaporte de expediente)
       if (targetRole === "destinatario") {
-        return activeParam ? `#destinatario/pasaporte/${activeParam}${querySuffix}` : `#destinatario/pasaporte/RFQ-2026-014${querySuffix}`;
+        return activeParam ? `#destinatario/pasaporte/${activeParam}${querySuffix}` : `#destinatario/pasaporte/SFN-2026-H6T4${querySuffix}`;
       }
       if (activeRole === "destinatario") {
-        return `#${targetRole}/expedientes/${activeParam || "RFQ-2026-014"}${querySuffix}`;
+        return `#${targetRole}/expedientes/${activeParam || "SFN-2026-H6T4"}${querySuffix}`;
       }
 
       // 2. Ficha o detalle de expediente
@@ -6201,7 +6200,8 @@
           return m ? parseInt(m[0], 10) : 0;
         });
         const nextNum = Math.max(...existingNums, 22) + 1;
-        const newId = `RFQ-2026-0${nextNum}`;
+        const newYear = fechaObj ? new Date(fechaObj).getFullYear() : 2026;
+        const newId = generateExpedienteId(newYear);
 
         const isRoleAdmin = activeRole === "admin";
 

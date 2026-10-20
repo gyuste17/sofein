@@ -29,7 +29,7 @@ Mockup navegable para una plataforma de soporte, trazabilidad y gestion document
 - `app.html#cliente` -> Resumen, `#cliente/trazabilidad`, `#cliente/documentos`, `#cliente/informes`.
 - `app.html#proveedor` -> Solicitudes, `#proveedor/perfil`, `#proveedor/documentacion`.
 - `app.html#admin` -> Expedientes, `#admin/matching`, `#admin/trazabilidad`, `#admin/documentos`.
-- `app.html#admin/expedientes/RFQ-2026-014` -> detalle de un expediente.
+- `app.html#admin/expedientes/SFN-2026-H6T4` -> detalle de un expediente.
 
 ## Objetivo de la fase 1
 
