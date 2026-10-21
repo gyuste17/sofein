@@ -32,6 +32,7 @@
     truck: '<path d="M10 17h4V5H2v12h3"/><path d="M14 17h1"/><path d="M14 8h4l4 4v5h-3"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/>',
     packageCheck: '<path d="m16 16 2 2 4-4"/><path d="M21 10V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l2-1.14"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>',
     eye: '<path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>',
+    eyeOff: '<path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" y1="2" x2="22" y2="22"/>',
     activity: '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',
     upload: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>',
     sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
@@ -4528,6 +4529,7 @@
   }
 
   function renderSuministrosSection(role) {
+    loadSuministrosColPrefs();
     const roleAll = getSuministrosForRole(role);
 
     // Opciones dinámicas para los filtros selectores
@@ -4645,6 +4647,9 @@
                   <span class="suministros-th-drag-grip" title="Arrastrar para mover">⠿</span>
                   <span class="suministros-th-label">${colDef.label}</span>
                   ${sortIndicator}
+                  <button type="button" class="suministros-th-hide-btn" data-hide-col="${colId}" title="Ocultar columna «${colDef.label}»" aria-label="Ocultar columna «${colDef.label}»">
+                    ${icon("eyeOff", 12)}
+                  </button>
                 </div>
               </th>
             `;
@@ -7395,6 +7400,25 @@
       });
     });
 
+    // Botón hover de ocultar columna directa desde cabecera TH
+    document.querySelectorAll("[data-hide-col]").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        const colId = btn.dataset.hideCol;
+        const colDef = ALL_SUMINISTROS_COL_DEFS[colId] || { label: colId };
+        const visibleCount = suministrosColumnOrder.filter(c => !suministrosHiddenCols.has(c)).length;
+        if (visibleCount <= 1) {
+          showToast("Al menos una columna debe permanecer visible");
+          return;
+        }
+        suministrosHiddenCols.add(colId);
+        saveSuministrosColPrefs();
+        showToast(`Columna "${colDef.label}" ocultada. Puedes reactivarla desde "Columnas".`);
+        renderApp();
+      });
+    });
+
     // Restablecer Columnas a Valores por Defecto
     const btnResetCols = document.getElementById("btnResetColsConfig");
     if (btnResetCols) {
@@ -7403,6 +7427,7 @@
         suministrosColumnOrder = [...DEFAULT_SUMINISTROS_COL_ORDER];
         suministrosHiddenCols.clear();
         saveSuministrosColPrefs();
+        showToast("Columnas restablecidas al orden y visibilidad por defecto");
         renderApp();
       });
     }
@@ -7472,7 +7497,7 @@
       // Clic para ordenar columna (solo si no se estaba arrastrando)
       th.addEventListener("click", (e) => {
         if (isDraggingColumn) return;
-        if (e.target.closest(".suministros-th-drag-grip")) return;
+        if (e.target.closest(".suministros-th-drag-grip") || e.target.closest("[data-hide-col]")) return;
         const col = th.dataset.sortSuministro;
         if (suministrosSortCol === col) {
           suministrosSortDir = suministrosSortDir === "asc" ? "desc" : "asc";
