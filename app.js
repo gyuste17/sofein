@@ -2530,6 +2530,119 @@
     const sumUnidades = exp.unidades || (sumItem ? sumItem.unidades : "Según pliego");
     const sumFecha = exp.fechaEntrega || (sumItem ? sumItem.fechaEntrega : null) || exp.fechaCierre || "14 oct 2026";
 
+    // -------------------------------------------------------------
+    // VISTA DE PROVEEDOR (TALLER HOMOLOGADO): SÓLO COTIZAR
+    // Ocultamos pasos y resto de cotizaciones. Sólo enviar cotización para el expediente.
+    // -------------------------------------------------------------
+    if (isRoleProveedor) {
+      const myPrvId = "PRV-01";
+      const myQuote = matching.cotizaciones ? (matching.cotizaciones[myPrvId] || Object.values(matching.cotizaciones).find(q => q.proveedorId === myPrvId || (q.nombre && q.nombre.includes("IberRail")))) : null;
+      const hasQuote = Boolean(myQuote && myQuote.estado && myQuote.estado !== "pendiente");
+
+      return `
+        <div class="selector-view-wrap" style="max-width:960px;margin:0 auto">
+          ${breadcrumbBase}
+
+          <div class="admin-view-head" style="margin-bottom:18px">
+            <div>
+              <h1>Cotizaciones</h1>
+              <p>${sumNombre} · ${sumTipo} · ${sumUnidades} · ${sumFecha}</p>
+            </div>
+          </div>
+
+          ${hasQuote ? `
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-radius:10px;background:rgba(82,223,127,0.08);border:1px solid rgba(82,223,127,0.28);margin-bottom:18px;flex-wrap:wrap;gap:12px">
+              <div style="display:flex;align-items:center;gap:12px">
+                <span style="color:var(--entity-accent);display:grid;place-items:center">${icon("check", 20)}</span>
+                <div>
+                  <strong style="color:var(--entity-text);font-size:0.9rem">Cotización vinculante registrada para ${exp.id}</strong>
+                  <p style="margin:2px 0 0;font-size:0.76rem;color:var(--entity-muted)">Importe: <b>${myQuote.precioTotal}</b> (${myQuote.precioUnitario}) · Plazo: <b>${myQuote.plazoSemanas}</b> · Validez: ${myQuote.validezOferta || "45 días"}</p>
+                </div>
+              </div>
+              <span class="dossier-chip complete" style="font-size:0.75rem">${myQuote.estado === "adjudicada" ? "✓ Oferta Adjudicada" : "✓ Oferta Enviada"}</span>
+            </div>
+          ` : ""}
+
+          <form id="providerQuoteForm" data-exp-id="${exp.id}" style="padding:24px;border-radius:12px;background:var(--entity-panel);border:1px solid var(--entity-line)">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+              <span style="color:var(--entity-accent);display:grid;place-items:center;width:40px;height:40px;border-radius:8px;background:rgba(82,223,127,0.12)">
+                ${icon("file", 22)}
+              </span>
+              <div>
+                <h2 style="margin:0;font-size:1.15rem;color:var(--entity-text);font-weight:700">Enviar Cotización para ${exp.id}</h2>
+                <small style="color:var(--entity-muted);font-size:0.78rem">Suministro: ${sumNombre} · ${sumTipo} (${sumUnidades}) · Destino: ${exp.destinatarioFinal}</small>
+              </div>
+            </div>
+
+            <div class="create-exp-grid-3" style="margin-bottom:14px">
+              <label class="create-exp-label">
+                <span>Precio Unitario Ofertado</span>
+                <input type="text" class="create-exp-input" id="quoteUnitPrice" placeholder="Ej: 945 €/t o 33,50 €/ud" value="${myQuote?.precioUnitario || ""}" required>
+              </label>
+              <label class="create-exp-label">
+                <span>Importe Total Calculado</span>
+                <input type="text" class="create-exp-input" id="quoteTotalPrice" placeholder="Ej: 1.134.000 €" value="${myQuote?.precioTotal || ""}" required>
+              </label>
+              <label class="create-exp-label">
+                <span>Plazo Garantizado de Entrega</span>
+                <input type="text" class="create-exp-input" id="quoteDeliveryTime" placeholder="Ej: 8 semanas (56 días)" value="${myQuote?.plazoSemanas || ""}" required>
+              </label>
+            </div>
+
+            <div class="create-exp-grid-2" style="margin-bottom:16px">
+              <label class="create-exp-label">
+                <span>Condiciones de Pago Propuestas</span>
+                <select class="create-exp-select" id="quotePaymentCond">
+                  <option value="60 días fecha factura" ${myQuote?.condicionesPago?.includes("60") && !myQuote?.condicionesPago?.includes("confirming") ? "selected" : ""}>60 días fecha factura (Estándar SOFEIN)</option>
+                  <option value="60 días confirming" ${myQuote?.condicionesPago?.includes("confirming") ? "selected" : ""}>60 días confirming bancario</option>
+                  <option value="90 días confirming" ${myQuote?.condicionesPago?.includes("90") ? "selected" : ""}>90 días confirming</option>
+                </select>
+              </label>
+              <label class="create-exp-label">
+                <span>Validez de la Oferta</span>
+                <select class="create-exp-select" id="quoteValidity">
+                  <option value="45 días" ${myQuote?.validezOferta?.includes("45") ? "selected" : ""}>45 días naturales</option>
+                  <option value="60 días" ${myQuote?.validezOferta?.includes("60") ? "selected" : ""}>60 días naturales</option>
+                  <option value="30 días" ${myQuote?.validezOferta?.includes("30") ? "selected" : ""}>30 días naturales</option>
+                </select>
+              </label>
+            </div>
+
+            <div style="margin-bottom:18px">
+              <span class="create-exp-label" style="margin-bottom:8px">Confirmación de Requisitos Técnicos del Pliego:</span>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                <label class="selector-req-check-item">
+                  <input type="checkbox" checked required>
+                  <span>Certificación de ensayos mecánicos en laboratorio ENAC</span>
+                </label>
+                <label class="selector-req-check-item">
+                  <input type="checkbox" checked required>
+                  <span>Trazabilidad de colada / lote con código individual QR</span>
+                </label>
+                <label class="selector-req-check-item">
+                  <input type="checkbox" checked required>
+                  <span>Cumplimiento estricto de especificación técnica y tolerancias</span>
+                </label>
+                <label class="selector-req-check-item">
+                  <input type="checkbox" checked>
+                  <span>Plan de transporte y acopio coordinado a pie de vía</span>
+                </label>
+              </div>
+            </div>
+
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;padding-top:14px;border-top:1px solid var(--entity-line)">
+              <span style="font-size:0.75rem;color:var(--entity-muted)">
+                ${hasQuote ? `Última cotización remitida: ${myQuote.fechaEnvio || "Registrada"}` : "Cotización confidencial y vinculante para SOFEIN"}
+              </span>
+              <button class="admin-primary-button" type="submit" style="padding:9px 22px">
+                ${icon("check", 14)} ${hasQuote ? "Actualizar Cotización Oficial" : "Enviar Cotización Oficial a SOFEIN"}
+              </button>
+            </div>
+          </form>
+        </div>
+      `;
+    }
+
     // Candidate providers for preselection
     const matQuery = (exp.tipoMaterial || exp.producto || "").toLowerCase();
     let candidateProviders = DIRECTORIO_PROVEEDORES.filter(p => {
@@ -2754,84 +2867,6 @@
         `;
       }).join("");
 
-      // Proveedor Formulario de Cotización
-      let providerFormHTML = "";
-      if (isRoleProveedor) {
-        providerFormHTML = `
-          <form id="providerQuoteForm" data-exp-id="${exp.id}" style="padding:22px;border-radius:10px;background:var(--entity-panel);border:1px solid var(--entity-accent-soft);margin-top:20px">
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
-              <span style="color:var(--entity-accent)">${icon("file", 20)}</span>
-              <div>
-                <h3 style="margin:0;font-size:1.05rem;color:var(--entity-text)">Enviar Cotización Vinculante para ${exp.id}</h3>
-                <small style="color:var(--entity-muted)">Suministro: ${exp.producto} (${exp.unidades}) · Destino: ${exp.destinatarioFinal}</small>
-              </div>
-            </div>
-
-            <div class="create-exp-grid-3" style="margin-bottom:14px">
-              <label class="create-exp-label">
-                <span>Precio Unitario Ofertado</span>
-                <input type="text" class="create-exp-input" id="quoteUnitPrice" placeholder="Ej: 945 €/t o 33,50 €/ud" required>
-              </label>
-              <label class="create-exp-label">
-                <span>Importe Total Calculado</span>
-                <input type="text" class="create-exp-input" id="quoteTotalPrice" placeholder="Ej: 1.134.000 €" required>
-              </label>
-              <label class="create-exp-label">
-                <span>Plazo Garantizado de Entrega</span>
-                <input type="text" class="create-exp-input" id="quoteDeliveryTime" placeholder="Ej: 8 semanas (56 días)" required>
-              </label>
-            </div>
-
-            <div class="create-exp-grid-2" style="margin-bottom:16px">
-              <label class="create-exp-label">
-                <span>Condiciones de Pago Propuestas</span>
-                <select class="create-exp-select" id="quotePaymentCond">
-                  <option value="60 días fecha factura">60 días fecha factura (Estándar SOFEIN)</option>
-                  <option value="60 días confirming">60 días confirming bancario</option>
-                  <option value="90 días confirming">90 días confirming</option>
-                </select>
-              </label>
-              <label class="create-exp-label">
-                <span>Validez de la Oferta</span>
-                <select class="create-exp-select" id="quoteValidity">
-                  <option value="45 días">45 días naturales</option>
-                  <option value="60 días">60 días naturales</option>
-                  <option value="30 días">30 días naturales</option>
-                </select>
-              </label>
-            </div>
-
-            <div style="margin-bottom:16px">
-              <span class="create-exp-label" style="margin-bottom:8px">Confirmación de Requisitos Técnicos del Pliego:</span>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-                <label class="selector-req-check-item">
-                  <input type="checkbox" checked required>
-                  <span>Certificación de ensayos mecánicos en laboratorio ENAC</span>
-                </label>
-                <label class="selector-req-check-item">
-                  <input type="checkbox" checked required>
-                  <span>Trazabilidad de colada / lote con código individual QR</span>
-                </label>
-                <label class="selector-req-check-item">
-                  <input type="checkbox" checked required>
-                  <span>Cumplimiento estricto de especificación técnica y tolerancias</span>
-                </label>
-                <label class="selector-req-check-item">
-                  <input type="checkbox" checked>
-                  <span>Plan de transporte y acopio coordinado a pie de vía</span>
-                </label>
-              </div>
-            </div>
-
-            <div style="display:flex;justify-content:flex-end;gap:10px">
-              <button class="admin-primary-button" type="submit" style="padding:9px 20px">
-                ${icon("check", 14)} Enviar Cotización Oficial a SOFEIN
-              </button>
-            </div>
-          </form>
-        `;
-      }
-
       dynamicContentHTML = `
         <div style="margin-bottom:18px">
           <div style="display:flex;justify-content:flex-end;align-items:center;margin-bottom:12px">
@@ -2843,8 +2878,6 @@
           <div>
             ${listHTML}
           </div>
-
-          ${providerFormHTML}
 
           <div class="selector-action-bar" style="margin-top:20px">
             <div>
@@ -6764,39 +6797,57 @@
         return (targetRole === "admin" || targetRole === "cliente") ? `#${targetRole}/nuevo` : `#${targetRole}/expedientes`;
       }
 
-      // 5. Bandeja de Avisos / Inbox
+      // 5. Suministros (compartido por admin, cliente y proveedor)
+      if (activeSection === "suministros") {
+        return (targetRole === "admin" || targetRole === "cliente" || targetRole === "proveedor")
+          ? `#${targetRole}/suministros${querySuffix}`
+          : `#${targetRole}/expedientes${querySuffix}`;
+      }
+
+      // 6. Bandeja de Avisos / Inbox
       if (activeSection === "avisos" || activeSection === "inbox") {
-        return `#${targetRole}/avisos`;
+        return `#${targetRole}/avisos${querySuffix}`;
       }
 
-      // 6. Perfil corporativo
+      // 7. Perfil corporativo (cliente y proveedor)
       if (activeSection === "perfil") {
-        return (targetRole === "cliente" || targetRole === "proveedor") ? `#${targetRole}/perfil` : `#${targetRole}/expedientes`;
+        if (targetRole === "cliente" || targetRole === "proveedor") {
+          return `#${targetRole}/perfil${querySuffix}`;
+        }
+        return `#admin/overview${querySuffix}`;
       }
 
-      // 7. Visión global (exclusiva de admin)
+      // 8. Visión global (exclusiva de admin)
       if (activeSection === "overview") {
-        return targetRole === "admin" ? `#admin/overview` : `#${targetRole}/expedientes`;
+        if (targetRole === "admin") return `#admin/overview${querySuffix}`;
+        if (targetRole === "cliente" || targetRole === "proveedor") return `#${targetRole}/perfil${querySuffix}`;
+        return `#${targetRole}/expedientes${querySuffix}`;
       }
 
-      // 8. Directorio (exclusivo de admin)
+      // 9. Directorio (exclusivo de admin)
       if (activeSection === "directorio") {
-        return targetRole === "admin" ? `#admin/directorio` : `#${targetRole}/expedientes`;
+        return targetRole === "admin" ? `#admin/directorio${querySuffix}` : `#${targetRole}/expedientes${querySuffix}`;
       }
 
-      // 9. Cotizaciones (exclusivo de proveedor)
+      // 10. Cotizaciones (exclusivo de proveedor)
       if (activeSection === "cotizaciones") {
-        return targetRole === "proveedor" ? `#proveedor/cotizaciones` : `#${targetRole}/expedientes`;
+        return targetRole === "proveedor" ? `#proveedor/cotizaciones${querySuffix}` : `#${targetRole}/expedientes${querySuffix}`;
       }
 
-      // 10. Listado general de expedientes
+      // 11. Preservar sección activa si existe en el menú de navegación del rol de destino
+      const targetNav = (PLAYERS[targetRole] && PLAYERS[targetRole].nav) || [];
+      if (targetNav.some(n => n.id === activeSection)) {
+        return `#${targetRole}/${activeSection}${activeParam ? "/" + activeParam : ""}${querySuffix}`;
+      }
+
+      // 12. Listado general de expedientes
       if (activeSection === "expedientes") {
-        return `#${targetRole}/expedientes`;
+        return `#${targetRole}/expedientes${querySuffix}`;
       }
 
       // Fallback predeterminado del rol destino
       const defaultNav = (PLAYERS[targetRole] && PLAYERS[targetRole].defaultNav) || "expedientes";
-      return `#${targetRole}/${defaultNav}`;
+      return `#${targetRole}/${defaultNav}${querySuffix}`;
     }
 
     document.querySelectorAll("[data-switch-role]").forEach(btn => {
