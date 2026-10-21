@@ -2871,10 +2871,10 @@ select:focus,
 .b2b-dir-filter-bar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 14px;
+  justify-content: flex-end;
+  gap: 10px;
   flex-wrap: wrap;
-  margin-bottom: 22px;
+  margin-bottom: 0;
 }
 .b2b-dir-type-tabs {
   display: inline-flex;

@@ -1465,6 +1465,7 @@
   let directorioPrvSortDir = "asc";
   let directorioCliSortCol = "nombre";
   let directorioCliSortDir = "asc";
+  let directorioPopoverEntity = "proveedor"; // "proveedor" | "cliente" (para selector en popover en modo 'all')
 
   const ALL_DIR_PRV_COL_DEFS = {
     nombre: { id: "nombre", label: "Nombre", minWidth: "160px" },
@@ -5741,14 +5742,109 @@
 
       let contentHTML = "";
 
+      const currentTotalCount = (directorioTypeFilter === "proveedores") 
+        ? prvActiveList.length 
+        : (directorioTypeFilter === "clientes") 
+          ? cliActiveList.length 
+          : (prvActiveList.length + cliActiveList.length);
+
+      const isOnlyCli = directorioTypeFilter === "clientes";
+      const currentPopoverEntity = isOnlyCli ? "cliente" : (directorioTypeFilter === "proveedores" ? "proveedor" : (directorioPopoverEntity || "proveedor"));
+      const isPopoverCli = currentPopoverEntity === "cliente";
+      const activeColOrder = isPopoverCli ? dirCliColOrder : dirPrvColOrder;
+      const activeHiddenCols = isPopoverCli ? dirCliHiddenCols : dirPrvHiddenCols;
+      const activeColDefs = isPopoverCli ? ALL_DIR_CLI_COL_DEFS : ALL_DIR_PRV_COL_DEFS;
+      const activeDefaultOrder = isPopoverCli ? DEFAULT_DIR_CLI_COL_ORDER : DEFAULT_DIR_PRV_COL_ORDER;
+      const visibleColsCount = activeColOrder.filter(c => !activeHiddenCols.has(c)).length;
+
+      const filterBarHTML = `
+        <div class="b2b-dir-filter-bar" style="display:flex;align-items:center;justify-content:flex-end;gap:10px;margin-left:auto;flex-wrap:wrap">
+          <div class="b2b-dir-search-wrap" style="max-width:240px;min-width:160px">
+            <span class="dir-search-icon" style="left:10px">${icon("search", 14)}</span>
+            <input 
+              type="search" 
+              id="directorioSearchInput" 
+              class="b2b-dir-search-input" 
+              placeholder="Buscar..." 
+              value="${directorioSearchQuery.replace(/"/g, '&quot;')}"
+              autocomplete="off"
+              style="height:32px;font-size:0.77rem;padding-left:32px"
+            />
+            ${directorioSearchQuery ? `
+              <button type="button" id="clearDirectorioSearchBtn" class="dir-search-clear" title="Limpiar búsqueda">
+                ${icon("x", 12)}
+              </button>
+            ` : ''}
+          </div>
+
+          <div class="b2b-dir-type-tabs">
+            <button type="button" class="dir-type-btn ${directorioTypeFilter === 'all' ? 'is-active' : ''}" data-dir-type="all">
+              Todos <span class="dir-count-pill">${DIRECTORIO_PROVEEDORES.length + DIRECTORIO_CLIENTES.length}</span>
+            </button>
+            <button type="button" class="dir-type-btn ${directorioTypeFilter === 'proveedores' ? 'is-active' : ''}" data-dir-type="proveedores">
+              Proveedores <span class="dir-count-pill">${DIRECTORIO_PROVEEDORES.length}</span>
+            </button>
+            <button type="button" class="dir-type-btn ${directorioTypeFilter === 'clientes' ? 'is-active' : ''}" data-dir-type="clientes">
+              Clientes <span class="dir-count-pill">${DIRECTORIO_CLIENTES.length}</span>
+            </button>
+          </div>
+
+          <!-- Gestor de Columnas de Directorio -->
+          <div class="suministros-cols-wrap" id="directorioColsWrap" style="position:relative">
+            <button type="button" class="suministros-cols-btn ${(dirPrvHiddenCols.size > 0 || dirCliHiddenCols.size > 0) ? 'is-active' : ''}" id="btnToggleDirColsMenu" aria-expanded="${isDirColsMenuOpen}" style="height:32px;padding:0 10px;font-size:0.75rem">
+              ${icon("columns", 13)}
+              <span>Columnas</span>
+              <span class="suministros-cols-count">(${visibleColsCount}/${activeDefaultOrder.length})</span>
+              ${icon("chevronDown", 11)}
+            </button>
+            <div class="suministros-cols-popover" id="directorioColsPopover" ${isDirColsMenuOpen ? '' : 'hidden'} style="top:calc(100% + 8px);right:0;width:290px;z-index:150">
+              <div class="suministros-cols-popover-head">
+                <div>
+                  <strong>Personalizar columnas</strong>
+                  <p>Arrastra cabeceras o usa flechas para ordenar; desmarca para ocultar.</p>
+                  ${directorioTypeFilter === "all" ? `
+                    <div style="display:flex;gap:4px;margin-top:6px">
+                      <button type="button" class="view-mode-btn ${!isPopoverCli ? 'is-active' : ''}" data-dir-pop-entity="proveedor" style="padding:2px 8px;font-size:0.7rem">Proveedores</button>
+                      <button type="button" class="view-mode-btn ${isPopoverCli ? 'is-active' : ''}" data-dir-pop-entity="cliente" style="padding:2px 8px;font-size:0.7rem">Clientes</button>
+                    </div>
+                  ` : ''}
+                </div>
+                <button type="button" class="admin-quiet-button" id="btnResetDirColsConfig" title="Restablecer visibilidad y orden por defecto" style="font-size:0.72rem;color:var(--entity-accent)">
+                  Restablecer
+                </button>
+              </div>
+              <div class="suministros-cols-list">
+                ${activeColOrder.map((colId, idx) => {
+                  const colDef = activeColDefs[colId] || { label: colId };
+                  const isVis = !activeHiddenCols.has(colId);
+                  return `
+                    <div class="suministros-col-row" data-popover-dir-col="${colId}">
+                      <label class="suministros-col-check-label">
+                        <input type="checkbox" data-dir-col-toggle="${colId}" data-popover-entity="${isPopoverCli ? 'cliente' : 'proveedor'}" ${isVis ? "checked" : ""}>
+                        <span>${colDef.label}</span>
+                      </label>
+                      <div class="suministros-col-arrows">
+                        <button type="button" class="col-arrow-btn" data-dir-col-move="up" data-col-id="${colId}" data-popover-entity="${isPopoverCli ? 'cliente' : 'proveedor'}" title="Mover hacia arriba" ${idx === 0 ? "disabled" : ""}>↑</button>
+                        <button type="button" class="col-arrow-btn" data-dir-col-move="down" data-col-id="${colId}" data-popover-entity="${isPopoverCli ? 'cliente' : 'proveedor'}" title="Mover hacia abajo" ${idx === activeColOrder.length - 1 ? "disabled" : ""}>↓</button>
+                      </div>
+                    </div>
+                  `;
+                }).join("")}
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+
       if (directorioViewMode === "table") {
         const prvTableHTML = showProveedores ? `
           <div style="margin-bottom:28px">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:12px;flex-wrap:wrap">
               <h3 style="margin:0;font-size:0.92rem;color:var(--entity-text);display:flex;align-items:center;gap:8px">
                 Proveedores homologados
                 <span class="dossier-chip" style="font-size:0.7rem">${prvActiveList.length} ${prvActiveList.length === 1 ? 'proveedor' : 'proveedores'}</span>
               </h3>
+              ${filterBarHTML}
             </div>
             <div class="b2b-dir-table-wrap">
               <table class="b2b-dir-table">
@@ -5805,12 +5901,13 @@
         ` : "";
 
         const cliTableHTML = showClientes ? `
-          <div>
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div ${showProveedores ? 'style="margin-top:24px"' : ''}>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:12px;flex-wrap:wrap">
               <h3 style="margin:0;font-size:0.92rem;color:var(--entity-text);display:flex;align-items:center;gap:8px">
                 Clientes (Constructores de vía)
                 <span class="dossier-chip" style="font-size:0.7rem">${cliActiveList.length} ${cliActiveList.length === 1 ? 'cliente' : 'clientes'}</span>
               </h3>
+              ${!showProveedores ? filterBarHTML : ''}
             </div>
             <div class="b2b-dir-table-wrap">
               <table class="b2b-dir-table">
@@ -5942,44 +6039,37 @@
         `).join("");
 
         contentHTML = `
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:12px;flex-wrap:wrap">
+            <h3 style="margin:0;font-size:0.92rem;color:var(--entity-text);display:flex;align-items:center;gap:8px">
+              ${directorioTypeFilter === 'clientes' ? 'Clientes (Constructores de vía)' : (directorioTypeFilter === 'proveedores' ? 'Proveedores homologados' : 'Directorio de entidades')}
+              <span class="dossier-chip" style="font-size:0.7rem">${currentTotalCount}</span>
+            </h3>
+            ${filterBarHTML}
+          </div>
+
           ${showProveedores ? `
             <div style="margin-bottom:28px">
-              <h3 style="margin:0 0 14px;font-size:0.95rem;color:var(--entity-text);display:flex;align-items:center;gap:8px">
-                Proveedores homologados
-                <span class="dossier-chip" style="font-size:0.7rem">${prvActiveList.length} proveedores</span>
-              </h3>
+              ${directorioTypeFilter === 'all' ? `
+                <h4 style="margin:0 0 10px;font-size:0.86rem;color:var(--entity-muted);font-weight:600">Proveedores homologados (${prvActiveList.length})</h4>
+              ` : ''}
               <div class="admin-client-grid">${prvCards || '<p style="color:var(--entity-muted);font-size:0.8rem">No hay proveedores que coincidan.</p>'}</div>
             </div>
           ` : ''}
 
           ${showClientes ? `
             <div>
-              <h3 style="margin:0 0 14px;font-size:0.95rem;color:var(--entity-text);display:flex;align-items:center;gap:8px">
-                Clientes (Constructores de vía)
-                <span class="dossier-chip" style="font-size:0.7rem">${cliActiveList.length} clientes</span>
-              </h3>
+              ${directorioTypeFilter === 'all' ? `
+                <h4 style="margin:0 0 10px;font-size:0.86rem;color:var(--entity-muted);font-weight:600">Clientes (${cliActiveList.length})</h4>
+              ` : ''}
               <div class="admin-client-grid" style="grid-template-columns:repeat(2,1fr)">${cliCards || '<p style="color:var(--entity-muted);font-size:0.8rem">No hay clientes que coincidan.</p>'}</div>
             </div>
           ` : ''}
         `;
       }
 
-      const currentTotalCount = (directorioTypeFilter === "proveedores") 
-        ? prvActiveList.length 
-        : (directorioTypeFilter === "clientes") 
-          ? cliActiveList.length 
-          : (prvActiveList.length + cliActiveList.length);
-
-      const isOnlyCli = directorioTypeFilter === "clientes";
-      const activeColOrder = isOnlyCli ? dirCliColOrder : dirPrvColOrder;
-      const activeHiddenCols = isOnlyCli ? dirCliHiddenCols : dirPrvHiddenCols;
-      const activeColDefs = isOnlyCli ? ALL_DIR_CLI_COL_DEFS : ALL_DIR_PRV_COL_DEFS;
-      const activeDefaultOrder = isOnlyCli ? DEFAULT_DIR_CLI_COL_ORDER : DEFAULT_DIR_PRV_COL_ORDER;
-      const visibleColsCount = activeColOrder.filter(c => !activeHiddenCols.has(c)).length;
-
       return `
         <!-- Fila superior: Título 'Listado' y acciones principales -->
-        <div class="admin-view-head" style="margin-bottom:14px">
+        <div class="admin-view-head" style="margin-bottom:12px">
           <div class="b2b-dir-header-title">
             <h1 style="margin:0;font-size:1.75rem;font-weight:600;display:flex;align-items:center;gap:10px;letter-spacing:-0.03em">
               Listado
@@ -6000,78 +6090,6 @@
             <button class="admin-primary-button" type="button" data-open-add-dir-modal style="height:34px;padding:0 14px;font-size:0.76rem">
               ${icon("plus", 13)} Añadir
             </button>
-          </div>
-        </div>
-
-        <!-- Fila inferior: Filtros y controles situados a la derecha y pegados a la tabla -->
-        <div class="b2b-dir-filter-bar" style="display:flex;align-items:center;justify-content:flex-end;gap:10px;margin-bottom:8px;flex-wrap:wrap">
-          <div class="b2b-dir-search-wrap" style="max-width:280px;min-width:180px">
-            <span class="dir-search-icon" style="left:10px">${icon("search", 14)}</span>
-            <input 
-              type="search" 
-              id="directorioSearchInput" 
-              class="b2b-dir-search-input" 
-              placeholder="Buscar..." 
-              value="${directorioSearchQuery.replace(/"/g, '&quot;')}"
-              autocomplete="off"
-              style="height:32px;font-size:0.77rem;padding-left:32px"
-            />
-            ${directorioSearchQuery ? `
-              <button type="button" id="clearDirectorioSearchBtn" class="dir-search-clear" title="Limpiar búsqueda">
-                ${icon("x", 12)}
-              </button>
-            ` : ''}
-          </div>
-
-          <div class="b2b-dir-type-tabs">
-            <button type="button" class="dir-type-btn ${directorioTypeFilter === 'all' ? 'is-active' : ''}" data-dir-type="all">
-              Todos <span class="dir-count-pill">${DIRECTORIO_PROVEEDORES.length + DIRECTORIO_CLIENTES.length}</span>
-            </button>
-            <button type="button" class="dir-type-btn ${directorioTypeFilter === 'proveedores' ? 'is-active' : ''}" data-dir-type="proveedores">
-              Proveedores <span class="dir-count-pill">${DIRECTORIO_PROVEEDORES.length}</span>
-            </button>
-            <button type="button" class="dir-type-btn ${directorioTypeFilter === 'clientes' ? 'is-active' : ''}" data-dir-type="clientes">
-              Clientes <span class="dir-count-pill">${DIRECTORIO_CLIENTES.length}</span>
-            </button>
-          </div>
-
-          <!-- Gestor de Columnas de Directorio -->
-          <div class="suministros-cols-wrap" id="directorioColsWrap" style="position:relative">
-            <button type="button" class="suministros-cols-btn ${(dirPrvHiddenCols.size > 0 || dirCliHiddenCols.size > 0) ? 'is-active' : ''}" id="btnToggleDirColsMenu" aria-expanded="${isDirColsMenuOpen}" style="height:32px;padding:0 10px;font-size:0.75rem">
-              ${icon("columns", 13)}
-              <span>Columnas</span>
-              <span class="suministros-cols-count">(${visibleColsCount}/${activeDefaultOrder.length})</span>
-              ${icon("chevronDown", 11)}
-            </button>
-            <div class="suministros-cols-popover" id="directorioColsPopover" ${isDirColsMenuOpen ? '' : 'hidden'} style="top:calc(100% + 8px);right:0;width:290px;z-index:150">
-              <div class="suministros-cols-popover-head">
-                <div>
-                  <strong>Personalizar columnas</strong>
-                  <p>Arrastra cabeceras o usa flechas para ordenar; desmarca para ocultar.</p>
-                </div>
-                <button type="button" class="admin-quiet-button" id="btnResetDirColsConfig" title="Restablecer visibilidad y orden por defecto" style="font-size:0.72rem;color:var(--entity-accent)">
-                  Restablecer
-                </button>
-              </div>
-              <div class="suministros-cols-list">
-                ${activeColOrder.map((colId, idx) => {
-                  const colDef = activeColDefs[colId] || { label: colId };
-                  const isVis = !activeHiddenCols.has(colId);
-                  return `
-                    <div class="suministros-col-row" data-popover-dir-col="${colId}">
-                      <label class="suministros-col-check-label">
-                        <input type="checkbox" data-dir-col-toggle="${colId}" ${isVis ? "checked" : ""}>
-                        <span>${colDef.label}</span>
-                      </label>
-                      <div class="suministros-col-arrows">
-                        <button type="button" class="col-arrow-btn" data-dir-col-move="up" data-col-id="${colId}" title="Mover hacia arriba" ${idx === 0 ? "disabled" : ""}>↑</button>
-                        <button type="button" class="col-arrow-btn" data-dir-col-move="down" data-col-id="${colId}" title="Mover hacia abajo" ${idx === activeColOrder.length - 1 ? "disabled" : ""}>↓</button>
-                      </div>
-                    </div>
-                  `;
-                }).join("")}
-              </div>
-            </div>
           </div>
         </div>
 
@@ -8084,11 +8102,21 @@
       }
     });
 
+    // Selector Proveedor / Cliente dentro del Popover de Columnas en modo 'Todos'
+    document.querySelectorAll("[data-dir-pop-entity]").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        directorioPopoverEntity = btn.dataset.dirPopEntity;
+        renderApp();
+      });
+    });
+
     // Ocultar/Mostrar Columnas de Directorio con Checkbox
     document.querySelectorAll("[data-dir-col-toggle]").forEach(chk => {
       chk.addEventListener("change", () => {
         const colId = chk.dataset.dirColToggle;
-        const isCli = directorioTypeFilter === "clientes";
+        const popEntity = chk.dataset.popoverEntity;
+        const isCli = popEntity ? popEntity === "cliente" : (directorioTypeFilter === "clientes");
         const activeOrder = isCli ? dirCliColOrder : dirPrvColOrder;
         const activeHidden = isCli ? dirCliHiddenCols : dirPrvHiddenCols;
 
@@ -8114,7 +8142,8 @@
         e.stopPropagation();
         const dir = btn.dataset.dirColMove;
         const colId = btn.dataset.colId;
-        const isCli = directorioTypeFilter === "clientes";
+        const popEntity = btn.dataset.popoverEntity;
+        const isCli = popEntity ? popEntity === "cliente" : (directorioTypeFilter === "clientes");
         const activeOrder = isCli ? dirCliColOrder : dirPrvColOrder;
         const idx = activeOrder.indexOf(colId);
         if (idx === -1) return;
