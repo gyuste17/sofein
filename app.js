@@ -1629,6 +1629,13 @@
   let stagedPliegoFile = null;
   let suministroRowCount = 1;
   let docScopeMode = "phase"; // "phase" | "all"
+  let commsPhaseScope = "all"; // "phase" | "all"
+  let commsSumScope = "all"; // "current" | "all"
+  let dossierCollapseState = {
+    suministros: true,
+    changesLog: true,
+    passportClosure: true
+  };
   let docStatusFilter = "all"; // "all" | "complete" | "review" | "pending" | "rejected"
   let expKpiFilter = "all"; // "all" | "activos" | "accion_pendiente" | "completados" | "cerrados"
   let expCardFilters = {
@@ -3105,6 +3112,16 @@
     return "packageCheck";
   }
 
+  function getNoticePhaseIdx(n) {
+    if (typeof n.phaseIdx === "number") return n.phaseIdx;
+    const cat = String(n.categoria || "").toLowerCase();
+    const text = `${n.titulo || ""} ${n.descripcion || ""}`.toLowerCase();
+    if (cat.includes("cotizaci") || cat.includes("preselecci") || text.includes("fase 2") || text.includes("selector")) return 1;
+    if (cat.includes("cierre") || cat.includes("pasaporte") || text.includes("pasaporte") || text.includes("cerrado")) return 3;
+    if (text.includes("fase 1") || text.includes("pliego inicial")) return 0;
+    return 2; // Gestión del pedido (Formalización, Calidad / Ensayo, Incidencia / Mediación, Logística)
+  }
+
   function ensureExpedienteRegistroCambios(exp) {
     if (!exp) return [];
     if (Array.isArray(exp.registroCambios)) return exp.registroCambios;
@@ -3124,7 +3141,7 @@
         fecha: "12 jun 2026 · 10:05",
         autor: `Cliente (${exp.cliente})`,
         tipo: "Cambio documental",
-        suministro: "SUM-001",
+        suministro: "SUM-01",
         titulo: "Validación de especificaciones técnicas y pliego base",
         detalle: "Pliego técnico revisado y permisos de lectura asignados a los actores del expediente."
       },
@@ -3161,7 +3178,6 @@
     if (!sum) return exp.deliverables;
     if (sum.deliverables) return sum.deliverables;
 
-    // Clonar base documental del expediente adaptada al suministro
     const cloned = { 0: [], 1: [], 2: [], 3: [] };
     [0, 1, 2, 3].forEach(pIdx => {
       const srcList = (exp.deliverables && exp.deliverables[pIdx]) || [];
@@ -3286,7 +3302,7 @@
     const isDestinatario = activeRole === "destinatario";
     const isRoleAdmin = activeRole === "admin";
 
-    // Metadatos visuales resumidos del expediente (idénticos a la vista de expedientes)
+    // Metadatos visuales resumidos del expediente
     const v = getExpVisualMeta(exp);
     const miniBarsHTML = PHASES.map((p, idx) => {
       const isDone = idx < exp.faseActual || v.isClosed || v.isCompleted;
@@ -3294,69 +3310,84 @@
       return `<i class="exp-v2-bar ${isDone ? "is-done" : isCurrent ? "is-current" : ""}" title="${p.name}"></i>`;
     }).join("");
 
-    // 1. Tarjetas por suministro (con icono distintivo por suministro y botón discreto para cerrar/reabrir con confirmación)
+    const currentSumIconName = currentSum ? getSuministroTypeIcon(currentSum.tipo) : getSuministroTypeIcon(exp.producto);
+
+    // 1. Sección plegable de Tarjetas por Suministro (con mayor espaciado vertical y barra separadora)
     const suministrosCardsHTML = expSuministros.length > 1 ? `
-      <section class="dossier-suministros-section">
-        <div class="dossier-suministros-head">
-          <span>Suministros del expediente (${expSuministros.length}) · Selecciona un suministro para gestionar sus fases</span>
-        </div>
-        <div class="dossier-suministros-grid">
-          ${expSuministros.map(s => {
-            const isSelected = currentSum && currentSum.id === s.id;
-            const isSumClosed = s.estado === "cerrado" || !!exp.cerrado;
-            const sStep = isSumClosed ? PHASES.length : Math.min((s.faseActual ?? 0) + 1, PHASES.length);
-            const sPhaseName = SHORT_PHASE_NAMES[Math.min(s.faseActual ?? 0, PHASES.length - 1)] || "Alcance";
-            const sDotClass = isSumClosed ? "is-closed" : s.estado === "finalizado" ? "is-completed" : s.accionesPendientes > 0 ? "is-pending-pulse" : "is-active";
-            const sumIconName = getSuministroTypeIcon(s.tipo);
-            return `
-              <article class="dossier-sum-card ${isSelected ? "is-selected" : ""} ${isSumClosed ? "is-closed" : ""}" data-select-exp-suministro="${s.id}">
-                <div class="dossier-sum-card-top">
-                  <div class="exp-v2-identity">
-                    <i class="exp-v2-dot ${sDotClass}"></i>
-                    <span class="sum-type-icon-badge" title="${s.tipo}">${icon(sumIconName, 13)}</span>
-                    <span class="dossier-sum-code">${s.id}</span>
-                  </div>
-                  <div style="display:inline-flex;align-items:center;gap:8px">
-                    <div class="exp-v2-phase-row phase-tone-${sStep}">
-                      <span class="exp-v2-phase-num">${sStep}/${PHASES.length}</span>
-                      <span class="exp-v2-phase-name">${sPhaseName}</span>
+      <hr class="dossier-section-divider" />
+      <details class="dossier-collapsible-block" data-collapse-key="suministros" ${dossierCollapseState.suministros !== false ? "open" : ""}>
+        <summary class="dossier-collapsible-summary">
+          <div class="dossier-collapsible-summary-left">
+            <span class="dossier-section-kicker">Suministros del expediente (${expSuministros.length})</span>
+            ${currentSum ? `
+              <span class="dossier-active-sum-pill">
+                ${icon(currentSumIconName, 12)} Activo: <b>${currentSum.id}</b> · ${currentSum.tipo}
+              </span>
+            ` : ""}
+          </div>
+          <span class="dossier-collapsible-chevron" title="Colapsar / Expandir suministros">
+            ${icon("chevronDown", 15)}
+          </span>
+        </summary>
+        <div class="dossier-collapsible-body">
+          <div class="dossier-suministros-grid">
+            ${expSuministros.map(s => {
+              const isSelected = currentSum && currentSum.id === s.id;
+              const isSumClosed = s.estado === "cerrado" || !!exp.cerrado;
+              const sStep = isSumClosed ? PHASES.length : Math.min((s.faseActual ?? 0) + 1, PHASES.length);
+              const sPhaseName = SHORT_PHASE_NAMES[Math.min(s.faseActual ?? 0, PHASES.length - 1)] || "Alcance";
+              const sDotClass = isSumClosed ? "is-closed" : s.estado === "finalizado" ? "is-completed" : s.accionesPendientes > 0 ? "is-pending-pulse" : "is-active";
+              const sumIconName = getSuministroTypeIcon(s.tipo);
+              return `
+                <article class="dossier-sum-card ${isSelected ? "is-selected" : ""} ${isSumClosed ? "is-closed" : ""}" data-select-exp-suministro="${s.id}">
+                  <div class="dossier-sum-card-top">
+                    <div class="exp-v2-identity">
+                      <i class="exp-v2-dot ${sDotClass}"></i>
+                      <span class="sum-type-icon-badge" title="${s.tipo}">${icon(sumIconName, 13)}</span>
+                      <span class="dossier-sum-code">${s.id}</span>
                     </div>
-                    ${isRoleAdmin ? (
-                      !isSumClosed ? `
-                        <button type="button" class="btn-close-sum-inline" data-toggle-suministro-closed="${s.id}" data-exp-id="${exp.id}" title="Cerrar este suministro">
-                          ${icon("archive", 11)} Cerrar
-                        </button>
-                      ` : `
-                        <button type="button" class="btn-close-sum-inline is-closed-state" data-toggle-suministro-closed="${s.id}" data-exp-id="${exp.id}" title="Haz clic para reabrir este suministro">
-                          ${icon("check", 11)} Cerrado · Reabrir
-                        </button>
-                      `
-                    ) : (isSumClosed ? `<span class="sum-closed-pill">Cerrado</span>` : "")}
+                    <div style="display:inline-flex;align-items:center;gap:8px">
+                      <div class="exp-v2-phase-row phase-tone-${sStep}">
+                        <span class="exp-v2-phase-num">${sStep}/${PHASES.length}</span>
+                        <span class="exp-v2-phase-name">${sPhaseName}</span>
+                      </div>
+                      ${isRoleAdmin ? (
+                        !isSumClosed ? `
+                          <button type="button" class="btn-close-sum-inline" data-toggle-suministro-closed="${s.id}" data-exp-id="${exp.id}" title="Cerrar este suministro">
+                            ${icon("archive", 11)} Cerrar
+                          </button>
+                        ` : `
+                          <button type="button" class="btn-close-sum-inline is-closed-state" data-toggle-suministro-closed="${s.id}" data-exp-id="${exp.id}" title="Haz clic para reabrir este suministro">
+                            ${icon("check", 11)} Cerrado · Reabrir
+                          </button>
+                        `
+                      ) : (isSumClosed ? `<span class="sum-closed-pill">Cerrado</span>` : "")}
+                    </div>
                   </div>
-                </div>
-                <h4 class="dossier-sum-title">
-                  <span class="sum-title-icon-inline">${icon(sumIconName, 14)}</span>
-                  <span>${s.tipo}</span>
-                </h4>
-                <div class="dossier-sum-meta-rows">
-                  <div class="dossier-sum-meta-row">
-                    <span>Código de suministro</span>
-                    <strong>${s.id}</strong>
+                  <h4 class="dossier-sum-title">
+                    <span class="sum-title-icon-inline">${icon(sumIconName, 14)}</span>
+                    <span>${s.tipo}</span>
+                  </h4>
+                  <div class="dossier-sum-meta-rows">
+                    <div class="dossier-sum-meta-row">
+                      <span>Código de suministro</span>
+                      <strong>${s.id}</strong>
+                    </div>
+                    <div class="dossier-sum-meta-row">
+                      <span>Presupuesto estimado</span>
+                      <strong>${!isDestinatario ? (s.presupuesto || exp.presupuestoTotal) : "[Reservado]"}</strong>
+                    </div>
+                    <div class="dossier-sum-meta-row">
+                      <span>Fecha de entrega</span>
+                      <strong>${s.fechaEntrega}</strong>
+                    </div>
                   </div>
-                  <div class="dossier-sum-meta-row">
-                    <span>Presupuesto estimado</span>
-                    <strong>${!isDestinatario ? (s.presupuesto || exp.presupuestoTotal) : "[Reservado]"}</strong>
-                  </div>
-                  <div class="dossier-sum-meta-row">
-                    <span>Fecha de entrega</span>
-                    <strong>${s.fechaEntrega}</strong>
-                  </div>
-                </div>
-              </article>
-            `;
-          }).join("")}
+                </article>
+              `;
+            }).join("")}
+          </div>
         </div>
-      </section>
+      </details>
     ` : "";
 
     // 2. Stepper de las 4 Fases con icono simple (Alcance, Proveedores, Gestión del pedido, Cierre)
@@ -3379,14 +3410,12 @@
       `;
     }).join("");
 
-    // 3. Barra de Estado, Fase, Nombre y Botones (Completar fase, + Requerir, Subir) DEBAJO de las fases y ENCIMA de las secciones
+    // 3. Barra de Estado, Fase, Nombre y Botones (Completar fase, Requerir, Subir) DEBAJO de las fases y ENCIMA de las secciones
     const phaseStateLabel = (activeDossierPhase < activeEntityPhaseActual || isCurrentContextClosed)
       ? `<span class="entity-status complete"><i></i>Completada</span>`
       : activeDossierPhase === activeEntityPhaseActual
         ? `<span class="entity-status review"><i></i>En curso</span>`
         : `<span class="entity-status pending"><i></i>Pendiente</span>`;
-
-    const currentSumIconName = currentSum ? getSuministroTypeIcon(currentSum.tipo) : getSuministroTypeIcon(exp.producto);
 
     const phaseOpsPanelBelowStepperHTML = !isDestinatario ? `
       <div class="phase-ops-panel is-simplified">
@@ -3405,7 +3434,7 @@
               ${icon("check", 14)} Completar fase
             </button>
             <button class="admin-quiet-button" type="button" data-open-add-slot-modal="${exp.id}">
-              ${icon("plus", 14)} + Requerir
+              ${icon("plus", 14)} Requerir
             </button>
           ` : ""}
           <button class="admin-quiet-button" type="button" data-open-upload-free-doc="${exp.id}">
@@ -3436,7 +3465,6 @@
     // 5. Contenido de la pestaña activa
     let tabContent = "";
     if (activeDossierTab === "deliverables") {
-      // Recopilar documentos visibles para el actor actual
       const allExpDocs = [];
       PHASES.forEach((pObj, pIdx) => {
         const list = delivMap[pIdx] || [];
@@ -3510,8 +3538,8 @@
         </div>
       `;
 
-      // Tabla limpia "Documentación" con 7 columnas y Notas editables:
-      // Nombre | Fecha de Requerimiento | Origen | Fase | Estado | Acciones | Notas
+      // Tabla "Documentación" sin scroll lateral:
+      // Columnas: Nombre | Requerimiento | Origen | Fase | Estado | Acciones (multilínea) | Notas (multilínea y editables)
       const tableRowsHTML = filteredDocs.length ? filteredDocs.map(({ del, phaseIdx, phaseName, slotIdx }) => {
         const reqDateText = del.reqDate || del.date || "12 jun 2026";
         const notesText = del.rejectReason
@@ -3522,7 +3550,7 @@
 
         return `
           <tr>
-            <td>
+            <td class="col-doc-name">
               <div class="doc-tbl-name-wrap">
                 <strong class="doc-tbl-name">${del.name}</strong>
                 <div class="doc-tbl-submeta">
@@ -3531,11 +3559,11 @@
                 </div>
               </div>
             </td>
-            <td><span class="doc-tbl-date">${reqDateText}</span></td>
-            <td><span class="doc-tbl-origin">${del.owner}</span></td>
-            <td><span class="doc-tbl-phase">${phaseIdx + 1}. ${SHORT_PHASE_NAMES[phaseIdx] || phaseName}</span></td>
-            <td>${getTableDocStatusBadge(del.state)}</td>
-            <td>
+            <td class="col-doc-req"><span class="doc-tbl-date">${reqDateText}</span></td>
+            <td class="col-doc-origin"><span class="doc-tbl-origin">${del.owner}</span></td>
+            <td class="col-doc-phase"><span class="doc-tbl-phase">${phaseIdx + 1}. ${SHORT_PHASE_NAMES[phaseIdx] || phaseName}</span></td>
+            <td class="col-doc-state">${getTableDocStatusBadge(del.state)}</td>
+            <td class="col-doc-actions">
               <div class="doc-tbl-actions">
                 ${del.file ? `
                   <button class="doc-tbl-action-btn" type="button" data-inspect-doc="${exp.id}" data-phase="${phaseIdx}" data-slot="${slotIdx}" title="Ver documento">
@@ -3556,7 +3584,7 @@
                 ` : ""}
               </div>
             </td>
-            <td>
+            <td class="col-doc-notes">
               <button type="button" class="doc-tbl-notes-edit-btn ${hasRealNote ? "" : "is-empty"}" data-edit-doc-note="${exp.id}" data-phase="${phaseIdx}" data-slot="${slotIdx}" title="Haz clic para editar la nota">
                 <span class="doc-tbl-notes-text">${notesText}</span>
                 <span class="doc-tbl-notes-edit-icon">✎</span>
@@ -3582,13 +3610,13 @@
             <table class="doc-clean-table">
               <thead>
                 <tr>
-                  <th>Nombre</th>
-                  <th>Fecha de Requerimiento</th>
-                  <th>Origen</th>
-                  <th>Fase</th>
-                  <th>Estado</th>
-                  <th>Acciones</th>
-                  <th>Notas</th>
+                  <th class="col-doc-name">Nombre</th>
+                  <th class="col-doc-req">Requerimiento</th>
+                  <th class="col-doc-origin">Origen</th>
+                  <th class="col-doc-phase">Fase</th>
+                  <th class="col-doc-state">Estado</th>
+                  <th class="col-doc-actions">Acciones</th>
+                  <th class="col-doc-notes">Notas</th>
                 </tr>
               </thead>
               <tbody>
@@ -3599,19 +3627,29 @@
         </section>
       `;
 
-      // Si estamos en la Fase 4 (Cierre, activeDossierPhase === 3), el Pasaporte Digital SOFEIN forma parte del cierre
+      // En Fase 4 (Cierre, activeDossierPhase === 3), el Pasaporte Digital SOFEIN aparece integrado en un bloque colapsable/expandible
       const passportInClosureHTML = activeDossierPhase === (PHASES.length - 1) ? `
-        <div class="closure-passport-wrapper" style="margin-top:16px">
-          <div class="closure-passport-divider">
-            <span>${icon("award", 15)} Pasaporte Digital SOFEIN · Parte del Cierre (Fase 4)</span>
+        <hr class="dossier-section-divider" />
+        <details class="dossier-collapsible-block" data-collapse-key="passportClosure" ${dossierCollapseState.passportClosure !== false ? "open" : ""}>
+          <summary class="dossier-collapsible-summary">
+            <div class="dossier-collapsible-summary-left">
+              <span class="dossier-section-kicker" style="color:var(--entity-accent)">
+                ${icon("award", 15)} Pasaporte Digital SOFEIN · Parte del Cierre (Fase 4)
+              </span>
+            </div>
+            <span class="dossier-collapsible-chevron" title="Colapsar / Expandir Pasaporte Digital">
+              ${icon("chevronDown", 15)}
+            </span>
+          </summary>
+          <div class="dossier-collapsible-body">
+            ${renderPassportSection(exp, isDestinatario)}
           </div>
-          ${renderPassportSection(exp, isDestinatario)}
-        </div>
+        </details>
       ` : "";
 
       tabContent = `${docManagerBarHTML}${docTableHTML}${passportInClosureHTML}`;
     } else if (activeDossierTab === "incidents") {
-      // Sección "Registro": Incidencias y Cambios del expediente (se reflejan y se pueden añadir ambos)
+      // Sección "Registro de incidencias": Incidencias y Cambios del expediente (con bloques colapsables para mayor legibilidad)
       const totalInc = exp.incidencias.length;
       const totalCambios = cambiosLog.length;
       const totalRegistros = totalInc + totalCambios;
@@ -3631,43 +3669,51 @@
       }
 
       const changesTableHTML = showChangesBlock ? `
-        <section class="doc-clean-table-card" style="margin-bottom:14px">
-          <div class="doc-clean-table-head">
-            <h3>${icon("activity", 15)} Registro de Cambios y Actividad del Expediente</h3>
-            <span>${cambiosLog.length} cambio(s) registrado(s)</span>
+        <details class="dossier-collapsible-block" data-collapse-key="changesLog" ${dossierCollapseState.changesLog !== false ? "open" : ""}>
+          <summary class="dossier-collapsible-summary">
+            <div class="dossier-collapsible-summary-left">
+              <span class="dossier-section-kicker">${icon("activity", 14)} Historial de Cambios y Actividad del Expediente (${cambiosLog.length})</span>
+            </div>
+            <span class="dossier-collapsible-chevron" title="Colapsar / Expandir historial de cambios">
+              ${icon("chevronDown", 15)}
+            </span>
+          </summary>
+          <div class="dossier-collapsible-body">
+            <section class="doc-clean-table-card">
+              <div class="doc-clean-table-wrap">
+                <table class="doc-clean-table">
+                  <thead>
+                    <tr>
+                      <th>Código</th>
+                      <th>Fecha</th>
+                      <th>Tipo de Cambio</th>
+                      <th>Suministro</th>
+                      <th>Descripción / Cambio registrado</th>
+                      <th>Autor</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${cambiosLog.map(c => `
+                      <tr>
+                        <td><span class="dossier-sum-code">${c.id}</span></td>
+                        <td><span class="doc-tbl-date">${c.fecha}</span></td>
+                        <td><span class="dossier-chip" style="font-size:0.68rem">${c.tipo}</span></td>
+                        <td><span class="doc-tbl-phase">${c.suministro || "General"}</span></td>
+                        <td>
+                          <div class="doc-tbl-name-wrap">
+                            <strong class="doc-tbl-name">${c.titulo}</strong>
+                            ${c.detalle ? `<span style="font-size:0.72rem;color:var(--entity-muted)">${c.detalle}</span>` : ""}
+                          </div>
+                        </td>
+                        <td><span class="doc-tbl-origin">${c.autor}</span></td>
+                      </tr>
+                    `).join("")}
+                  </tbody>
+                </table>
+              </div>
+            </section>
           </div>
-          <div class="doc-clean-table-wrap">
-            <table class="doc-clean-table">
-              <thead>
-                <tr>
-                  <th>Código</th>
-                  <th>Fecha</th>
-                  <th>Tipo de Cambio</th>
-                  <th>Suministro</th>
-                  <th>Descripción / Cambio registrado</th>
-                  <th>Autor</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${cambiosLog.map(c => `
-                  <tr>
-                    <td><span class="dossier-sum-code">${c.id}</span></td>
-                    <td><span class="doc-tbl-date">${c.fecha}</span></td>
-                    <td><span class="dossier-chip" style="font-size:0.68rem">${c.tipo}</span></td>
-                    <td><span class="doc-tbl-phase">${c.suministro || "General"}</span></td>
-                    <td>
-                      <div class="doc-tbl-name-wrap">
-                        <strong class="doc-tbl-name">${c.titulo}</strong>
-                        ${c.detalle ? `<span style="font-size:0.72rem;color:var(--entity-muted)">${c.detalle}</span>` : ""}
-                      </div>
-                    </td>
-                    <td><span class="doc-tbl-origin">${c.autor}</span></td>
-                  </tr>
-                `).join("")}
-              </tbody>
-            </table>
-          </div>
-        </section>
+        </details>
       ` : "";
 
       const incidentsCardsHTML = showIncidentsBlock ? (filteredIncidents.length ? filteredIncidents.map((inc) => {
@@ -3729,119 +3775,128 @@
               </div>
             </div>
 
-            ${inc.propuestaMediacion ? `
-              <div class="incident-mediation-panel">
-                <div class="incident-mediation-head">
-                  <h4>${icon("shield", 16)} Propuesta de Mediación & Adenda SOFEIN (Resolución Imparcial)</h4>
-                  <span style="font-size:0.72rem;color:var(--entity-muted)">Notificada formalmente el ${inc.fechaNotificacionPropuesta || inc.fecha}</span>
-                </div>
-                <p class="incident-mediation-body">${inc.propuestaMediacion}</p>
-                
-                <div class="incident-terms-grid">
-                  <div class="incident-term-box">
-                    <span class="term-label">Nuevo Plazo Oficial Pactado</span>
-                    <strong class="term-val">${inc.nuevoPlazoAcordado || "Reajustado en propuesta"}</strong>
-                  </div>
-                  <div class="incident-term-box">
-                    <span class="term-label">Ajuste Económico Vinculante</span>
-                    <strong class="term-val">${inc.nuevoCosteAcordado || "Sin variación de importe"}</strong>
-                  </div>
-                  <div class="incident-term-box">
-                    <span class="term-label">Garantías Técnicas & Ensayos</span>
-                    <strong class="term-val" style="font-size:0.75rem">${inc.resolucionTecnica || "Ensayos EN 13230 verificados"}</strong>
-                  </div>
-                </div>
+            <!-- Desplegable de Mediación SOFEIN y Firmas para reducir densidad visual -->
+            <details class="dossier-inner-collapsible" ${!isConsolidated ? "open" : ""}>
+              <summary class="dossier-inner-collapsible-summary">
+                <span>${icon("shield", 14)} Resolución de Mediación SOFEIN, Cláusula de Silencio Positivo y Firmas</span>
+                <span class="dossier-collapsible-chevron">${icon("chevronDown", 14)}</span>
+              </summary>
+              <div class="dossier-inner-collapsible-body">
+                ${inc.propuestaMediacion ? `
+                  <div class="incident-mediation-panel">
+                    <div class="incident-mediation-head">
+                      <h4>${icon("shield", 16)} Propuesta de Mediación & Adenda SOFEIN</h4>
+                      <span style="font-size:0.72rem;color:var(--entity-muted)">Notificada el ${inc.fechaNotificacionPropuesta || inc.fecha}</span>
+                    </div>
+                    <p class="incident-mediation-body">${inc.propuestaMediacion}</p>
+                    
+                    <div class="incident-terms-grid">
+                      <div class="incident-term-box">
+                        <span class="term-label">Nuevo Plazo Oficial Pactado</span>
+                        <strong class="term-val">${inc.nuevoPlazoAcordado || "Reajustado en propuesta"}</strong>
+                      </div>
+                      <div class="incident-term-box">
+                        <span class="term-label">Ajuste Económico Vinculante</span>
+                        <strong class="term-val">${inc.nuevoCosteAcordado || "Sin variación de importe"}</strong>
+                      </div>
+                      <div class="incident-term-box">
+                        <span class="term-label">Garantías Técnicas & Ensayos</span>
+                        <strong class="term-val" style="font-size:0.75rem">${inc.resolucionTecnica || "Ensayos EN 13230 verificados"}</strong>
+                      </div>
+                    </div>
 
-                <div class="incident-silence-box">
-                  <div class="incident-silence-icon">${icon("activity", 18)}</div>
-                  <div class="incident-silence-text">
-                    <strong>Cláusula de Silencio Positivo (5 Días Hábiles):</strong>
-                    ${isConsolidated ?
-                      ` Adenda contractual formalizada y consolidada oficialmente el ${inc.adendaFecha || "recientemente"}. Surte plenos efectos ejecutivos en el suministro de vía.` :
-                      ` Fecha límite de alegaciones: <b>${inc.fechaLimiteRespuesta || "5 días hábiles"}</b> (${inc.diasHabilesRestantes > 0 ? `quedan <b>${inc.diasHabilesRestantes} días hábiles</b>` : "Plazo legal transcurrido"}). Conforme a las estipulaciones del Acuerdo Marco de Suministro SOFEIN, la ausencia de oposición formal expresa en dicho plazo opera automáticamente como <b>aprobación tácita por SILENCIO POSITIVO</b>, consolidando la adenda para garantizar que no se paralice la obra.`
-                    }
+                    <div class="incident-silence-box">
+                      <div class="incident-silence-icon">${icon("activity", 18)}</div>
+                      <div class="incident-silence-text">
+                        <strong>Cláusula de Silencio Positivo (5 Días Hábiles):</strong>
+                        ${isConsolidated ?
+                          ` Adenda contractual formalizada y consolidada oficialmente el ${inc.adendaFecha || "recientemente"}.` :
+                          ` Fecha límite de alegaciones: <b>${inc.fechaLimiteRespuesta || "5 días hábiles"}</b> (${inc.diasHabilesRestantes > 0 ? `quedan <b>${inc.diasHabilesRestantes} días hábiles</b>` : "Plazo legal transcurrido"}). La ausencia de oposición formal expresa opera como <b>aprobación tácita por SILENCIO POSITIVO</b>.`
+                        }
+                      </div>
+                      ${isRoleAdmin && !isConsolidated ? `
+                        <button class="admin-quiet-button" type="button" data-open-mediation-modal="${exp.id}" data-incident-id="${inc.id}" style="font-size:0.72rem;white-space:nowrap;margin-left:auto">
+                          Editar términos
+                        </button>
+                      ` : ""}
+                    </div>
                   </div>
-                  ${isRoleAdmin && !isConsolidated ? `
-                    <button class="admin-quiet-button" type="button" data-open-mediation-modal="${exp.id}" data-incident-id="${inc.id}" style="font-size:0.72rem;white-space:nowrap;margin-left:auto">
-                      Editar términos
-                    </button>
-                  ` : ""}
-                </div>
-              </div>
-            ` : `
-              <div style="padding:16px 20px;background:var(--entity-panel-2);border:1px dashed var(--entity-line);border-radius:10px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
-                <div>
-                  <strong style="display:block;font-size:0.84rem;color:var(--entity-text);margin-bottom:2px">Propuesta de Mediación SOFEIN Pendiente</strong>
-                  <span style="font-size:0.76rem;color:var(--entity-muted)">Esta alteración requiere que el mediador de SOFEIN evalúe la solución técnica y plantee la adenda correspondiente.</span>
-                </div>
-                ${isRoleAdmin ? `
-                  <button class="admin-primary-button" type="button" data-open-mediation-modal="${exp.id}" data-incident-id="${inc.id}">
-                    ${icon("shield", 14)} Redactar Propuesta de Mediación & Adenda
-                  </button>
                 ` : `
-                  <span style="font-size:0.75rem;color:var(--entity-accent);font-weight:600">En evaluación técnica por SOFEIN (< 24h)</span>
-                `}
-              </div>
-            `}
-
-            <div class="incident-signers-grid">
-              <div class="incident-signer-card">
-                <div class="incident-signer-head">
-                  <span class="incident-signer-role">Mediador SOFEIN</span>
-                  <span class="incident-signer-status signed">${icon("check", 13)} Emitida</span>
-                </div>
-                <div class="incident-signer-user" title="${inc.firmaSofeinUsuario || "Ángel Plaza (SOFEIN HQ)"}">
-                  ${inc.firmaSofeinUsuario || "Ángel Plaza (SOFEIN HQ)"}
-                </div>
-                <div class="incident-signer-date">${inc.firmaSofeinFecha || inc.fecha}</div>
-              </div>
-
-              <div class="incident-signer-card">
-                <div class="incident-signer-head">
-                  <span class="incident-signer-role">Proveedor (Taller)</span>
-                  ${inc.firmaProveedor ?
-                    `<span class="incident-signer-status signed">${icon("check", 13)} Conforme</span>` :
-                    `<span class="incident-signer-status pending">${icon("alert", 13)} Pendiente</span>`
-                  }
-                </div>
-                ${inc.firmaProveedor ? `
-                  <div class="incident-signer-user" title="${inc.firmaProveedorUsuario || "Representante de Taller"}">
-                    ${inc.firmaProveedorUsuario || "Representante de Taller"}
+                  <div style="padding:16px 20px;background:var(--entity-panel-2);border:1px dashed var(--entity-line);border-radius:10px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
+                    <div>
+                      <strong style="display:block;font-size:0.84rem;color:var(--entity-text);margin-bottom:2px">Propuesta de Mediación SOFEIN Pendiente</strong>
+                      <span style="font-size:0.76rem;color:var(--entity-muted)">Esta alteración requiere que el mediador de SOFEIN evalúe la solución técnica y plantee la adenda correspondiente.</span>
+                    </div>
+                    ${isRoleAdmin ? `
+                      <button class="admin-primary-button" type="button" data-open-mediation-modal="${exp.id}" data-incident-id="${inc.id}">
+                        ${icon("shield", 14)} Redactar Propuesta de Mediación & Adenda
+                      </button>
+                    ` : `
+                      <span style="font-size:0.75rem;color:var(--entity-accent);font-weight:600">En evaluación técnica por SOFEIN (< 24h)</span>
+                    `}
                   </div>
-                  <div class="incident-signer-date">${inc.firmaProveedorFecha || "Firmado electrónicamente"}</div>
-                ` : activeRole === "proveedor" ? `
-                  <button class="admin-primary-button" type="button" data-sign-incident-party="proveedor" data-incident-id="${inc.id}" data-exp-id="${exp.id}" style="padding:4px 8px;font-size:0.72rem;margin-top:2px">
-                    ${icon("check", 12)} Firmar y Aceptar Propuesta
-                  </button>
-                ` : `
-                  <div class="incident-signer-user" style="color:var(--entity-muted);font-style:italic">Firma de taller requerida</div>
-                  <div class="incident-signer-date">Plazo 5 días hábiles</div>
                 `}
-              </div>
 
-              <div class="incident-signer-card">
-                <div class="incident-signer-head">
-                  <span class="incident-signer-role">Cliente (Constructor)</span>
-                  ${inc.firmaCliente ?
-                    `<span class="incident-signer-status signed">${icon("check", 13)} Conforme</span>` :
-                    `<span class="incident-signer-status pending">${icon("alert", 13)} Pendiente</span>`
-                  }
-                </div>
-                ${inc.firmaCliente ? `
-                  <div class="incident-signer-user" title="${inc.firmaClienteUsuario || "Jefe de Obra (Constructor)"}">
-                    ${inc.firmaClienteUsuario || "Jefe de Obra (Constructor)"}
+                <div class="incident-signers-grid">
+                  <div class="incident-signer-card">
+                    <div class="incident-signer-head">
+                      <span class="incident-signer-role">Mediador SOFEIN</span>
+                      <span class="incident-signer-status signed">${icon("check", 13)} Emitida</span>
+                    </div>
+                    <div class="incident-signer-user" title="${inc.firmaSofeinUsuario || "Ángel Plaza (SOFEIN HQ)"}">
+                      ${inc.firmaSofeinUsuario || "Ángel Plaza (SOFEIN HQ)"}
+                    </div>
+                    <div class="incident-signer-date">${inc.firmaSofeinFecha || inc.fecha}</div>
                   </div>
-                  <div class="incident-signer-date">${inc.firmaClienteFecha || "Firmado electrónicamente"}</div>
-                ` : activeRole === "cliente" ? `
-                  <button class="admin-primary-button" type="button" data-sign-incident-party="cliente" data-incident-id="${inc.id}" data-exp-id="${exp.id}" style="padding:4px 8px;font-size:0.72rem;margin-top:2px">
-                    ${icon("check", 12)} Firmar y Aceptar Propuesta
-                  </button>
-                ` : `
-                  <div class="incident-signer-user" style="color:var(--entity-muted);font-style:italic">Firma de cliente requerida</div>
-                  <div class="incident-signer-date">Plazo 5 días hábiles</div>
-                `}
+
+                  <div class="incident-signer-card">
+                    <div class="incident-signer-head">
+                      <span class="incident-signer-role">Proveedor (Taller)</span>
+                      ${inc.firmaProveedor ?
+                        `<span class="incident-signer-status signed">${icon("check", 13)} Conforme</span>` :
+                        `<span class="incident-signer-status pending">${icon("alert", 13)} Pendiente</span>`
+                      }
+                    </div>
+                    ${inc.firmaProveedor ? `
+                      <div class="incident-signer-user" title="${inc.firmaProveedorUsuario || "Representante de Taller"}">
+                        ${inc.firmaProveedorUsuario || "Representante de Taller"}
+                      </div>
+                      <div class="incident-signer-date">${inc.firmaProveedorFecha || "Firmado electrónicamente"}</div>
+                    ` : activeRole === "proveedor" ? `
+                      <button class="admin-primary-button" type="button" data-sign-incident-party="proveedor" data-incident-id="${inc.id}" data-exp-id="${exp.id}" style="padding:4px 8px;font-size:0.72rem;margin-top:2px">
+                        ${icon("check", 12)} Firmar y Aceptar Propuesta
+                      </button>
+                    ` : `
+                      <div class="incident-signer-user" style="color:var(--entity-muted);font-style:italic">Firma de taller requerida</div>
+                      <div class="incident-signer-date">Plazo 5 días hábiles</div>
+                    `}
+                  </div>
+
+                  <div class="incident-signer-card">
+                    <div class="incident-signer-head">
+                      <span class="incident-signer-role">Cliente (Constructor)</span>
+                      ${inc.firmaCliente ?
+                        `<span class="incident-signer-status signed">${icon("check", 13)} Conforme</span>` :
+                        `<span class="incident-signer-status pending">${icon("alert", 13)} Pendiente</span>`
+                      }
+                    </div>
+                    ${inc.firmaCliente ? `
+                      <div class="incident-signer-user" title="${inc.firmaClienteUsuario || "Jefe de Obra (Constructor)"}">
+                        ${inc.firmaClienteUsuario || "Jefe de Obra (Constructor)"}
+                      </div>
+                      <div class="incident-signer-date">${inc.firmaClienteFecha || "Firmado electrónicamente"}</div>
+                    ` : activeRole === "cliente" ? `
+                      <button class="admin-primary-button" type="button" data-sign-incident-party="cliente" data-incident-id="${inc.id}" data-exp-id="${exp.id}" style="padding:4px 8px;font-size:0.72rem;margin-top:2px">
+                        ${icon("check", 12)} Firmar y Aceptar Propuesta
+                      </button>
+                    ` : `
+                      <div class="incident-signer-user" style="color:var(--entity-muted);font-style:italic">Firma de cliente requerida</div>
+                      <div class="incident-signer-date">Plazo 5 días hábiles</div>
+                    `}
+                  </div>
+                </div>
               </div>
-            </div>
+            </details>
 
             ${isConsolidated ? `
               <div class="incident-consolidation-bar" style="background:rgba(16, 185, 129, 0.05);border-color:rgba(16, 185, 129, 0.28)">
@@ -3905,14 +3960,11 @@
 
       tabContent = `
         <div class="incident-container">
-          <!-- Barra de Filtros y Acciones de Registro (Incidencias + Cambios) -->
+          <!-- Barra de Filtros y Acciones de Registro de incidencias -->
           <div class="incident-filter-bar">
             <div class="incident-filter-pills">
               <button type="button" class="incident-filter-pill ${incidentStatusFilter === "all" ? "is-active" : ""}" data-incident-filter="all">
                 Todo el Registro <span class="pill-count">${totalRegistros}</span>
-              </button>
-              <button type="button" class="incident-filter-pill ${incidentStatusFilter === "changes_only" ? "is-active" : ""}" data-incident-filter="changes_only">
-                Cambios y Actividad <span class="pill-count">${totalCambios}</span>
               </button>
               <button type="button" class="incident-filter-pill ${incidentStatusFilter === "in_mediation" ? "is-active" : ""}" data-incident-filter="in_mediation">
                 Incidencias en Mediación <span class="pill-count">${inMediationInc}</span>
@@ -3920,31 +3972,95 @@
               <button type="button" class="incident-filter-pill ${incidentStatusFilter === "consolidated" ? "is-active" : ""}" data-incident-filter="consolidated">
                 Adendas Consolidadas <span class="pill-count">${consolidatedInc}</span>
               </button>
+              <button type="button" class="incident-filter-pill ${incidentStatusFilter === "changes_only" ? "is-active" : ""}" data-incident-filter="changes_only">
+                Historial de Cambios <span class="pill-count">${totalCambios}</span>
+              </button>
             </div>
             ${activeRole !== "destinatario" ? `
               <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
                 <button class="admin-quiet-button" type="button" data-open-change-log-modal="${exp.id}">
-                  ${icon("plus", 14)} + Añadir cambio
+                  ${icon("plus", 14)} Añadir cambio
                 </button>
                 <button class="admin-primary-button" type="button" data-open-incident-modal="${exp.id}">
-                  ${icon("plus", 14)} + Añadir incidencia
+                  ${icon("plus", 14)} Añadir incidencia
                 </button>
               </div>
             ` : ""}
           </div>
 
-          <!-- Tabla de Cambios y Actividad del Expediente -->
-          ${changesTableHTML}
-
           <!-- Tarjetas de Incidencias y Adendas -->
           ${incidentsCardsHTML}
+
+          <!-- Historial de Cambios y Actividad del Expediente (Plegable) -->
+          ${changesTableHTML}
         </div>
       `;
     } else if (activeDossierTab === "comms") {
-      // Pantalla 6: Comunicaciones & Avisos del Expediente
-      const roleNotices = NOTICES.filter(n => n.expId === exp.id && n.roles.includes(activeRole));
+      // Pantalla 6: Avisos & Hitos del Expediente con mini sección de Alcance (Fase y Suministro)
+      const allRoleNotices = NOTICES.filter(n => n.expId === exp.id && n.roles.includes(activeRole));
+
+      const matchesPhase = (n) => commsPhaseScope === "all" || getNoticePhaseIdx(n) === activeDossierPhase;
+      const matchesSum = (n) => {
+        if (commsSumScope === "all" || !currentSum) return true;
+        if (!n.sumId && (!n.suministro || n.suministro === "General")) return true;
+        return n.sumId === currentSum.id || String(n.suministro || "").includes(currentSum.id.replace("SUM-", ""));
+      };
+
+      const countThisPhase = allRoleNotices.filter(n => getNoticePhaseIdx(n) === activeDossierPhase && matchesSum(n)).length;
+      const countAllPhases = allRoleNotices.filter(n => matchesSum(n)).length;
+
+      const countThisSum = currentSum
+        ? allRoleNotices.filter(n => matchesPhase(n) && (n.sumId === currentSum.id || String(n.suministro || "").includes(currentSum.id.replace("SUM-", "")) || !n.sumId)).length
+        : allRoleNotices.length;
+      const countAllSums = allRoleNotices.filter(n => matchesPhase(n)).length;
+
+      const roleNotices = allRoleNotices.filter(n => matchesPhase(n) && matchesSum(n));
       const activeNotices = roleNotices.filter(n => !completedNotices.has(n.id));
       const completedList = roleNotices.filter(n => completedNotices.has(n.id));
+
+      // Mini sección de Alcance (idéntica a Alcance Documental: filtra esta fase o todas, y este suministro o todos)
+      const commsScopeBarHTML = `
+        <div class="doc-manager-bar" style="margin-bottom:12px">
+          <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+              <span style="font-size:0.74rem;font-weight:650;color:var(--entity-muted)">Alcance de fase:</span>
+              <div class="avisos-group-buttons">
+                <button class="avisos-group-btn ${commsPhaseScope === "phase" ? "is-active" : ""}" type="button" data-comms-phase-scope="phase">
+                  Fase ${activeDossierPhase + 1}: ${SHORT_PHASE_NAMES[activeDossierPhase] || PHASES[activeDossierPhase].name} (${countThisPhase})
+                </button>
+                <button class="avisos-group-btn ${commsPhaseScope === "all" ? "is-active" : ""}" type="button" data-comms-phase-scope="all">
+                  Todas las fases (${countAllPhases})
+                </button>
+              </div>
+            </div>
+
+            ${expSuministros.length > 1 && currentSum ? `
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                <span style="font-size:0.74rem;font-weight:650;color:var(--entity-muted)">Suministro:</span>
+                <div class="avisos-group-buttons">
+                  <button class="avisos-group-btn ${commsSumScope === "current" ? "is-active" : ""}" type="button" data-comms-sum-scope="current">
+                    ${currentSum.id} (${countThisSum})
+                  </button>
+                  <button class="avisos-group-btn ${commsSumScope === "all" ? "is-active" : ""}" type="button" data-comms-sum-scope="all">
+                    Todos los suministros (${countAllSums})
+                  </button>
+                </div>
+              </div>
+            ` : ""}
+          </div>
+
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <button class="admin-quiet-button" type="button" data-go="#${activeRole}/avisos" style="font-size:0.74rem">
+              ${icon("folder", 13)} Bandeja Central
+            </button>
+            ${isRoleAdmin ? `
+              <button class="admin-primary-button" type="button" data-open-create-notice-modal="${exp.id}" style="font-size:0.74rem">
+                ${icon("plus", 13)} Emitir Aviso
+              </button>
+            ` : ""}
+          </div>
+        </div>
+      `;
 
       const tableHeaderHTML = `
         <div class="admin-doc-table-head avisos-grid group-none">
@@ -4015,50 +4131,13 @@
 
       tabContent = `
         <div class="incident-container">
-          <div class="incident-hero-banner">
-            <div class="incident-hero-header">
-              <div class="incident-hero-title">
-                <h3>${icon("inbox", 20)} Comunicaciones & Avisos del Expediente ${exp.id}</h3>
-                <p>
-                  Registro cronológico de avisos vinculantes, requerimientos de documentación e hitos automáticos de este lote.
-                </p>
-              </div>
-              <div style="display:flex;align-items:center;gap:10px">
-                <button class="admin-quiet-button" type="button" data-go="#${activeRole}/avisos" style="font-size:0.75rem">
-                  ${icon("folder", 14)} Abrir Bandeja Central
-                </button>
-                ${isRoleAdmin ? `
-                  <button class="admin-primary-button" type="button" data-open-create-notice-modal="${exp.id}" style="font-size:0.76rem">
-                    ${icon("plus", 14)} Emitir Aviso / Requerimiento
-                  </button>
-                ` : ""}
-              </div>
-            </div>
-            
-            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:4px">
-              <div class="incident-kpi-card">
-                <span class="label">Avisos de este Lote</span>
-                <strong class="value">${roleNotices.length}</strong>
-                <small class="sub">${activeNotices.length} activos · ${completedList.length} completados</small>
-              </div>
-              <div class="incident-kpi-card">
-                <span class="label">Partes Vinculadas</span>
-                <strong class="value" style="font-size:0.92rem;color:var(--entity-text);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${exp.cliente}</strong>
-                <small class="sub">${exp.proveedor}</small>
-              </div>
-              <div class="incident-kpi-card">
-                <span class="label">Garante de Proceso</span>
-                <strong class="value" style="font-size:0.92rem;color:var(--entity-accent);margin-top:4px">SOFEIN Digital</strong>
-                <small class="sub">Trazabilidad fehaciente</small>
-              </div>
-            </div>
-          </div>
+          ${commsScopeBarHTML}
 
           <section class="admin-document-list" style="border:1px solid var(--entity-line);border-radius:10px;overflow:hidden;background:var(--entity-panel)">
             ${tableHeaderHTML}
             ${activeNotices.length ? sortNotices(activeNotices).map(n => renderDossierNoticeRow(n)).join("") : `
               <div style="padding:36px;text-align:center;color:var(--entity-muted)">
-                No hay avisos pendientes para este expediente. Toda la operativa avanza conforme al pliego.
+                No hay avisos pendientes con el filtro de alcance seleccionado.
               </div>
             `}
           </section>
@@ -4078,12 +4157,12 @@
       `;
     }
 
-    const expNotices = NOTICES.filter(n => n.expId === exp.id && n.roles.includes(activeRole) && !discardedNotices.has(n.id));
-    const totalRegistroBadge = exp.incidencias.length + cambiosLog.length;
+    const expNotices = NOTICES.filter(n => n.expId === exp.id && n.roles.includes(activeRole) && !completedNotices.has(n.id));
+    const totalRegistroBadge = exp.incidencias.length;
 
     return `
       <div class="dossier-builder">
-        <div class="dossier-breadcrumb" style="margin-bottom:14px">
+        <div class="dossier-breadcrumb" style="margin-bottom:12px">
           <a href="#${activeRole}/expedientes">← Volver a expedientes</a> / <span>${exp.id}</span>
         </div>
 
@@ -4174,11 +4253,13 @@
           </div>
         </section>
 
-        <!-- 2. Tarjetas por suministro (si hay más de uno, con su icono, filtro y cierre/reapertura) -->
+        <!-- 2. Suministros del expediente (Sección diferenciada con barra horizontal y colapsable) -->
         ${suministrosCardsHTML}
 
+        <hr class="dossier-section-divider" />
+
         <!-- 3. Stepper de las 4 Fases (con el icono del suministro elegido al lado del título) -->
-        <div>
+        <div class="dossier-phases-block">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px">
             <span class="dossier-phases-heading-with-icon">
               <span class="sum-type-icon-badge is-small">${icon(currentSumIconName, 13)}</span>
@@ -4193,19 +4274,21 @@
           </div>
         </div>
 
-        <!-- 4. Barra de Estado, Fase, Nombre y Botones (Completar, + Requerir, Subir) DEBAJO de las fases y ENCIMA de las secciones -->
+        <!-- 4. Barra de Estado, Fase, Nombre y Botones (Completar, Requerir, Subir) DEBAJO de las fases y ENCIMA de las secciones -->
         ${phaseOpsPanelBelowStepperHTML}
 
         <!-- 5. Selector y Matching ENCIMA del menú (sólo visible en Fase 2: Proveedores) -->
         ${selectorAboveMenuHTML}
 
-        <!-- 6. Menú de Secciones del Expediente (sin Pasaporte global, ya integrado en Fase 4: Cierre) -->
+        <hr class="dossier-section-divider" />
+
+        <!-- 6. Menú de Secciones del Expediente -->
         <div class="dossier-tabs">
           <button class="dossier-tab-btn ${activeDossierTab === "deliverables" ? "is-active" : ""}" type="button" data-switch-dossier-tab="deliverables">
             ${icon("file", 16)} Documentación
           </button>
           <button class="dossier-tab-btn ${activeDossierTab === "incidents" ? "is-active" : ""}" type="button" data-switch-dossier-tab="incidents">
-            ${icon("alert", 16)} Registro
+            ${icon("alert", 16)} Registro de incidencias
             ${totalRegistroBadge ? `<b class="badge">${totalRegistroBadge}</b>` : ""}
           </button>
           <button class="dossier-tab-btn ${activeDossierTab === "comms" ? "is-active" : ""}" type="button" data-switch-dossier-tab="comms">
@@ -6689,6 +6772,29 @@
       btn.addEventListener("click", () => {
         docStatusFilter = btn.dataset.docFilter;
         renderApp();
+      });
+    });
+
+    // Alcance en Avisos & Hitos (filtra esta fase o todas, y este suministro o todos)
+    document.querySelectorAll("[data-comms-phase-scope]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        commsPhaseScope = btn.dataset.commsPhaseScope;
+        renderApp();
+      });
+    });
+
+    document.querySelectorAll("[data-comms-sum-scope]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        commsSumScope = btn.dataset.commsSumScope;
+        renderApp();
+      });
+    });
+
+    // Recordar estado de bloques colapsables dentro del expediente
+    document.querySelectorAll("details[data-collapse-key]").forEach(det => {
+      det.addEventListener("toggle", () => {
+        const k = det.dataset.collapseKey;
+        if (k) dossierCollapseState[k] = det.open;
       });
     });
 

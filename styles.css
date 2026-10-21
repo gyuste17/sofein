@@ -6308,3 +6308,236 @@ select:focus,
   background: rgba(239, 68, 68, 0.14) !important;
   border-color: rgba(239, 68, 68, 0.28) !important;
 }
+
+
+/* ============================================================
+   MEJORAS DE USABILIDAD, LEGIBILIDAD Y TABLA DOCUMENTAL SIN SCROLL LATERAL (v22)
+   ============================================================ */
+
+/* 1. Barras divisorias horizontales entre secciones del expediente */
+.dossier-section-divider {
+  border: 0;
+  height: 1px;
+  background: var(--entity-line-strong, var(--entity-line));
+  margin: 6px 0;
+  opacity: 0.85;
+}
+
+/* 2. Bloques colapsables/expandibles en el expediente (Suministros, Pasaporte en Cierre, Historial de Cambios) */
+.dossier-collapsible-block {
+  border: 1px solid var(--entity-line);
+  border-radius: 10px;
+  background: var(--entity-panel);
+  overflow: hidden;
+}
+
+.dossier-collapsible-summary {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 16px;
+  background: var(--entity-panel-2);
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s ease;
+}
+
+.dossier-collapsible-summary::-webkit-details-marker {
+  display: none;
+}
+
+.dossier-collapsible-summary:hover {
+  background: var(--entity-panel);
+}
+
+.dossier-collapsible-summary-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.dossier-section-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.73rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--entity-muted);
+}
+
+.dossier-active-sum-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.72rem;
+  color: var(--entity-text);
+  background: var(--entity-panel);
+  border: 1px solid var(--entity-line);
+  padding: 2px 9px;
+  border-radius: 999px;
+}
+
+.dossier-collapsible-chevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--entity-muted);
+  transition: transform 0.18s ease;
+}
+
+.dossier-collapsible-block[open] > .dossier-collapsible-summary .dossier-collapsible-chevron {
+  transform: rotate(180deg);
+}
+
+.dossier-collapsible-body {
+  padding: 14px 16px;
+  border-top: 1px solid var(--entity-line);
+  background: var(--entity-bg);
+}
+
+/* Desplegable interno dentro de cada tarjeta de incidencia (Mediación y Firmas) */
+.dossier-inner-collapsible {
+  border: 1px solid var(--entity-line);
+  border-radius: 9px;
+  background: var(--entity-panel-2);
+  overflow: hidden;
+}
+
+.dossier-inner-collapsible-summary {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 14px;
+  font-size: 0.76rem;
+  font-weight: 650;
+  color: var(--entity-text);
+  cursor: pointer;
+  user-select: none;
+}
+
+.dossier-inner-collapsible-summary::-webkit-details-marker {
+  display: none;
+}
+
+.dossier-inner-collapsible[open] > .dossier-inner-collapsible-summary .dossier-collapsible-chevron {
+  transform: rotate(180deg);
+}
+
+.dossier-inner-collapsible-body {
+  padding: 12px 14px;
+  border-top: 1px solid var(--entity-line);
+  background: var(--entity-panel);
+  display: grid;
+  gap: 12px;
+}
+
+/* 3. Mejorar espaciado vertical en cada tarjeta de suministro */
+.dossier-suministros-grid {
+  gap: 14px !important;
+}
+
+.dossier-sum-card {
+  padding: 15px 18px !important;
+  gap: 11px !important;
+}
+
+.dossier-sum-title {
+  font-size: 0.84rem !important;
+  padding: 2px 0;
+}
+
+.dossier-sum-meta-rows {
+  gap: 8px !important;
+  padding-top: 10px !important;
+}
+
+.dossier-sum-meta-row {
+  padding: 2px 0;
+}
+
+/* 4. Eliminar scroll lateral en la tabla de Documentación (Acciones y Notas en varias filas) */
+.doc-clean-table-wrap {
+  overflow-x: visible !important;
+}
+
+.doc-clean-table {
+  table-layout: auto;
+  width: 100%;
+}
+
+.doc-clean-table th {
+  padding: 10px 10px !important;
+  white-space: nowrap;
+}
+
+.doc-clean-table td {
+  padding: 11px 10px !important;
+  vertical-align: top !important;
+}
+
+.doc-clean-table .col-doc-name {
+  width: 26%;
+}
+
+.doc-clean-table .col-doc-req,
+.doc-clean-table .col-doc-origin,
+.doc-clean-table .col-doc-phase,
+.doc-clean-table .col-doc-state {
+  white-space: nowrap;
+}
+
+.doc-clean-table .col-doc-actions {
+  width: 165px;
+}
+
+.doc-clean-table .col-doc-notes {
+  width: 22%;
+  min-width: 150px;
+}
+
+.doc-tbl-name-wrap {
+  min-width: 130px !important;
+  gap: 4px !important;
+}
+
+.doc-tbl-name {
+  white-space: normal;
+  line-height: 1.35;
+}
+
+.doc-tbl-actions {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 5px !important;
+  align-items: flex-start;
+}
+
+.doc-tbl-action-btn {
+  padding: 3px 7px !important;
+  font-size: 0.69rem !important;
+}
+
+.doc-tbl-notes-edit-btn {
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: space-between;
+  gap: 6px;
+  max-width: none !important;
+  width: 100%;
+  padding: 4px 7px !important;
+}
+
+.doc-tbl-notes-text {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+  word-break: break-word;
+  line-height: 1.38;
+}
