@@ -2006,29 +2006,10 @@
 
       ${mainSectionNotice}
 
-      <!-- Bloque principal de expedientes (plegable/desplegable con diseño sutil) -->
-      <details class="exp-collapsible-details is-main-active" data-exp-collapse="activos" ${expBandejaCollapseState.activos !== false ? "open" : ""}>
-        <summary>
-          <div class="exp-collapsible-summary-left">
-            <span class="scope-dot ${expKpiFilter === "accion_pendiente" ? "is-pending-pulse" : expKpiFilter === "completados" ? "info" : expKpiFilter === "cerrados" ? "closed" : "active"}"></span>
-            <strong>${
-              expKpiFilter === "completados"
-                ? `Expedientes completados (${mainListToRender.length})`
-                : expKpiFilter === "cerrados"
-                  ? `Expedientes cerrados (${mainListToRender.length})`
-                  : expKpiFilter === "accion_pendiente"
-                    ? `Expedientes con acción pendiente (${mainListToRender.length})`
-                    : `Expedientes activos (${mainListToRender.length})`
-            }</strong>
-          </div>
-          <span class="exp-collapsible-toggle-text">${icon("chevronDown", 14)}</span>
-        </summary>
-        <div class="exp-collapsible-content">
-          <div class="admin-exp-list">
-            ${mainCardsHTML}
-          </div>
-        </div>
-      </details>
+      <!-- Rejilla principal de expedientes activos (siempre desplegada y sin caja exterior) -->
+      <div class="admin-exp-list">
+        ${mainCardsHTML}
+      </div>
 
       <hr class="dossier-section-divider is-subtle" style="margin: 18px 0 14px" />
 
@@ -2487,7 +2468,7 @@
     // -------------------------------------------------------------
     // SUB-FASE 1: PRESELECCIÓN SOFEIN (ADMIN)
     // -------------------------------------------------------------
-    if (matching.faseSelector === "preseleccion") {
+    if (effectiveFaseSelector === "preseleccion") {
       const preselectedIds = new Set(matching.proveedoresPreseleccionadosPorAdmin);
       const cardsHTML = candidateProviders.map(prv => {
         const isPreselected = preselectedIds.has(prv.id);
@@ -2498,7 +2479,6 @@
                 <strong style="font-size:0.95rem;color:var(--entity-text);display:block">${prv.nombre}</strong>
                 <small style="color:var(--entity-muted);font-size:0.72rem">${prv.sede} · CIF ${prv.cif}</small>
               </div>
-              <span class="selector-provider-badge-score">${prv.score || "98% Conforme"}</span>
             </div>
 
             <div class="selector-homologations">
@@ -2538,17 +2518,11 @@
 
       dynamicContentHTML = `
         <div style="margin-bottom:18px">
-          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:14px">
-            <div>
-              <h2 style="margin:0 0 4px;font-size:1.15rem;color:var(--entity-text)">Paso 1: Preselección Técnica por SOFEIN</h2>
-              <p style="margin:0;font-size:0.8rem;color:var(--entity-muted)">SOFEIN filtra los talleres homologados aptos para este pliego antes de habilitar la selección al cliente.</p>
+          ${isRoleAdmin ? `
+            <div style="display:flex;justify-content:flex-end;align-items:center;margin-bottom:12px">
+              <span style="font-size:0.76rem;color:var(--entity-muted)"><b style="color:var(--entity-accent)">${matching.proveedoresPreseleccionadosPorAdmin.length}</b> seleccionados</span>
             </div>
-            ${isRoleAdmin ? `
-              <div style="display:flex;align-items:center;gap:8px">
-                <span style="font-size:0.76rem;color:var(--entity-muted)"><b style="color:var(--entity-accent)">${matching.proveedoresPreseleccionadosPorAdmin.length}</b> seleccionados</span>
-              </div>
-            ` : ""}
-          </div>
+          ` : ""}
 
           <div class="selector-cards-grid">
             ${cardsHTML}
@@ -2578,11 +2552,11 @@
     // -------------------------------------------------------------
     // SUB-FASE 2: SELECCIÓN DEL CLIENTE (CONSTRUCTOR)
     // -------------------------------------------------------------
-    else if (matching.faseSelector === "seleccion_cliente") {
+    else if (effectiveFaseSelector === "seleccion_cliente") {
       const preselectedPrvs = candidateProviders.filter(p => matching.proveedoresPreseleccionadosPorAdmin.includes(p.id));
       const clientSelectedSet = new Set(matching.proveedoresSeleccionadosPorCliente);
 
-      const cardsHTML = preselectedPrvs.map(prv => {
+      const cardsHTML = preselectedPrvs.length ? preselectedPrvs.map(prv => {
         const isSelectedByClient = clientSelectedSet.has(prv.id);
         return `
           <article class="selector-provider-card ${isSelectedByClient ? "is-selected" : ""}">
@@ -2591,7 +2565,6 @@
                 <strong style="font-size:0.95rem;color:var(--entity-text);display:block">${prv.nombre}</strong>
                 <small style="color:var(--entity-muted);font-size:0.72rem">${prv.sede}</small>
               </div>
-              <span class="selector-provider-badge-score">${prv.score || "98% Conforme"}</span>
             </div>
 
             <div class="selector-homologations">
@@ -2629,20 +2602,22 @@
             </div>
           </article>
         `;
-      }).join("");
+      }).join("") : `
+        <div style="grid-column:1/-1;padding:36px 20px;text-align:center;background:var(--entity-panel);border:1px solid var(--entity-line);border-radius:10px;color:var(--entity-muted);font-size:0.85rem">
+          ${icon("clock", 20)}
+          <p style="margin:8px 0 0">SOFEIN está finalizando la preselección técnica de talleres homologados. En breve aparecerán aquí para solicitar cotizaciones.</p>
+        </div>
+      `;
 
       dynamicContentHTML = `
         <div style="margin-bottom:18px">
-          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:14px">
-            <div>
-              <h2 style="margin:0 0 4px;font-size:1.15rem;color:var(--entity-text)">Paso 2: Selección de Talleres para Petición de Oferta Ciega</h2>
-              <p style="margin:0;font-size:0.8rem;color:var(--entity-muted)">Elige los proveedores a los que SOFEIN solicitará cotización vinculante de precio, plazo y ensayos técnicos.</p>
-            </div>
+          <div style="display:flex;justify-content:flex-end;align-items:center;margin-bottom:12px">
             <span class="dossier-chip" style="color:var(--entity-accent)">${matching.proveedoresSeleccionadosPorCliente.length} Seleccionados para cotizar</span>
           </div>
 
           <div class="selector-cards-grid">
             ${cardsHTML}
+          </div>
           </div>
 
           <div class="selector-action-bar">
@@ -2669,7 +2644,7 @@
     // -------------------------------------------------------------
     // SUB-FASE 3: RECEPCIÓN DE COTIZACIONES DE TALLERES
     // -------------------------------------------------------------
-    else if (matching.faseSelector === "peticion_cotizaciones") {
+    else if (effectiveFaseSelector === "peticion_cotizaciones") {
       const selectedPrvs = candidateProviders.filter(p => matching.proveedoresSeleccionadosPorCliente.includes(p.id));
       const quotesObj = matching.cotizaciones || {};
 
@@ -2782,16 +2757,10 @@
 
       dynamicContentHTML = `
         <div style="margin-bottom:18px">
-          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:14px">
-            <div>
-              <h2 style="margin:0 0 4px;font-size:1.15rem;color:var(--entity-text)">Paso 3: Recepción de Cotizaciones Vinculantes</h2>
-              <p style="margin:0;font-size:0.8rem;color:var(--entity-muted)">Petición formal remitida a los proveedores seleccionados. A medida que responden, SOFEIN revisa y valida sus ofertas.</p>
-            </div>
-            <div style="display:flex;gap:8px">
-              <button class="admin-quiet-button" type="button" id="simulateAllQuotesBtn" data-exp-id="${exp.id}">
-                ${icon("check", 13)} Simular recepción de todas las ofertas
-              </button>
-            </div>
+          <div style="display:flex;justify-content:flex-end;align-items:center;margin-bottom:12px">
+            <button class="admin-quiet-button" type="button" id="simulateAllQuotesBtn" data-exp-id="${exp.id}">
+              ${icon("check", 13)} Simular recepción de todas las ofertas
+            </button>
           </div>
 
           <div>
@@ -2816,7 +2785,7 @@
     // -------------------------------------------------------------
     // SUB-FASE 4: COMPARATIVA DE OFERTAS & ADJUDICACIÓN FINAL
     // -------------------------------------------------------------
-    else if (matching.faseSelector === "comparativa") {
+    else if (effectiveFaseSelector === "comparativa") {
       const quotes = Object.values(matching.cotizaciones || {});
       const reqsExigidosSet = new Set(matching.requisitosExigidosCliente || []);
 
@@ -2957,17 +2926,13 @@
 
       dynamicContentHTML = `
         <div style="margin-bottom:18px">
-          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:14px">
-            <div>
-              <h2 style="margin:0 0 4px;font-size:1.15rem;color:var(--entity-text)">Paso 4: Matriz Comparativa de Ofertas Vinculantes</h2>
-              <p style="margin:0;font-size:0.8rem;color:var(--entity-muted)">Analiza las propuestas técnicas y económicas. Selecciona el taller adjudicatario y marca los requisitos contractuales exigibles (Apuntes 06).</p>
-            </div>
-            ${matching.proveedorAdjudicado ? `
+          ${matching.proveedorAdjudicado ? `
+            <div style="display:flex;justify-content:flex-end;align-items:center;margin-bottom:12px">
               <span class="dossier-chip complete" style="font-size:0.75rem">
                 ${icon("award", 14)} Adjudicado a: <b>${matching.proveedorAdjudicado}</b>
               </span>
-            ` : ""}
-          </div>
+            </div>
+          ` : ""}
 
           <!-- Matriz Comparativa B2B -->
           <div class="selector-matrix-wrap">
@@ -3051,7 +3016,7 @@
     // -------------------------------------------------------------
     // SUB-FASE 5: ADJUDICADO (PROVEEDOR CONFIRMADO)
     // -------------------------------------------------------------
-    else if (matching.faseSelector === "adjudicado") {
+    else if (effectiveFaseSelector === "adjudicado") {
       dynamicContentHTML = `
         <div style="padding:28px;border-radius:12px;background:var(--entity-panel);border:1px solid rgba(82,223,127,0.3);margin-bottom:20px;animation:filterFadeIn 0.25s ease-out">
           <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px">
@@ -3061,7 +3026,6 @@
             <div>
               <div style="display:flex;align-items:center;gap:8px">
                 <span class="dossier-chip complete">✓ Proceso de Selección Completado</span>
-                <span style="font-size:0.75rem;color:var(--entity-muted)">Fase 2 de Cotización Finalizada</span>
               </div>
               <h2 style="margin:4px 0 0;font-size:1.4rem;color:var(--entity-text)">Proveedor Adjudicatario: ${matching.proveedorAdjudicado || exp.proveedor}</h2>
             </div>
@@ -3107,13 +3071,8 @@
 
         <div class="admin-view-head" style="margin-bottom:18px">
           <div>
-            <h1>Selector y Matching de Proveedores</h1>
-            <p>Expediente estanco <b>${exp.id}</b> · ${exp.producto} (${exp.unidades}) · Destino: <b>${exp.destinatarioFinal}</b></p>
-          </div>
-          <div style="display:flex;align-items:center;gap:8px">
-            <button class="admin-quiet-button" type="button" data-go="#${activeRole}/expedientes/${exp.id}">
-              ${icon("folder", 14)} Ver Expediente
-            </button>
+            <h1>Cotizaciones</h1>
+            <p>${sumNombre} · ${sumTipo} · ${sumUnidades} · ${sumFecha}</p>
           </div>
         </div>
 
@@ -3121,9 +3080,6 @@
         <div class="selector-stepper-wrap">
           ${stepperHTML}
         </div>
-
-        <!-- Banner de Cumplimiento Legal (Mínimo 3) -->
-        ${legalBannerHTML}
 
         <!-- Contenido Dinámico de la Sub-fase -->
         ${dynamicContentHTML}
