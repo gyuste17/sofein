@@ -6617,3 +6617,58 @@ select:focus,
   margin-top: 0 !important;
   gap: 12px !important;
 }
+
+
+/* ============================================================
+   MEJORAS DE LEGIBILIDAD DE TÍTULOS Y LÓGICA POR PERFILES (v25)
+   ============================================================ */
+
+/* 1. Títulos de Suministros del Expediente y Fases del Suministro un poco más grandes y oscuros */
+.dossier-section-kicker {
+  font-size: 0.82rem !important;
+  font-weight: 700 !important;
+  color: var(--entity-text) !important;
+  letter-spacing: 0.04em !important;
+}
+
+.dossier-phases-heading-with-icon {
+  font-size: 0.83rem !important;
+  font-weight: 700 !important;
+  color: var(--entity-text) !important;
+  letter-spacing: 0.04em !important;
+}
+
+/* 2. Botón de "Completar fase" deshabilitado cuando la fase ya está completada */
+.admin-primary-button.is-disabled-phase-btn,
+.admin-primary-button:disabled {
+  background: var(--entity-panel-2) !important;
+  border-color: var(--entity-line) !important;
+  color: var(--entity-muted) !important;
+  opacity: 0.72;
+  cursor: not-allowed !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+/* 3. Indicador contextual de alcance por perfil (Cliente / Proveedor / Destinatario) */
+.dossier-role-scope-strip {
+  display: inline-flex;
+  align-items: center;
+}
+
+.dossier-role-scope-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.73rem;
+  color: var(--entity-muted);
+  background: var(--entity-panel-2);
+  border: 1px solid var(--entity-line);
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+.dossier-role-scope-badge b {
+  color: var(--entity-text);
+  font-weight: 650;
+}

@@ -3198,7 +3198,7 @@
   }
 
   /* ============================================================
-     HELPERS DE SUMINISTROS, ICONOS, REGISTRO Y VISIBILIDAD DOCUMENTAL
+     HELPERS DE SUMINISTROS, ICONOS, REGISTRO Y LÓGICA ESTANCA POR PERFILES
      ============================================================ */
   function getSuministroTypeIcon(tipo = "") {
     const t = String(tipo).toLowerCase();
@@ -3210,6 +3210,43 @@
     return "packageCheck";
   }
 
+  function isSuministroRelevantForRole(exp, sum, role) {
+    if (!sum) return false;
+    if (role === "admin" || role === "cliente" || role === "destinatario") return true;
+    if (role === "proveedor") {
+      const myEntity = (PLAYERS.proveedor && PLAYERS.proveedor.entity) || "IberRail";
+      const myKey = myEntity.split(" ")[0].toLowerCase(); // "iberrail"
+      const sumProv = String(sum.proveedor || "").toLowerCase();
+      if (sumProv.includes(myKey)) return true;
+      // Si el suministro está en fase de cotización (Por determinar) y el tipo encaja con las categorías del proveedor
+      if (sumProv.includes("por determinar")) {
+        const tipoLower = String(sum.tipo || "").toLowerCase();
+        if (tipoLower.includes("traviesa") || tipoLower.includes("sujeci") || tipoLower.includes("fijaci") || tipoLower.includes("placa") || tipoLower.includes("desv")) {
+          return true;
+        }
+      }
+      return false;
+    }
+    return true;
+  }
+
+  function getRoleVisibleExpSuministros(exp, role = activeRole) {
+    if (!exp) return [];
+    const all = SUMINISTROS.filter(s => s.expId === exp.id);
+    if (role === "proveedor") {
+      const filtered = all.filter(s => isSuministroRelevantForRole(exp, s, "proveedor"));
+      return filtered.length ? filtered : all.slice(0, 1);
+    }
+    return all;
+  }
+
+  function formatSuministrosBudgetSum(suministrosList, fallbackText = "0 €") {
+    if (!suministrosList || !suministrosList.length) return fallbackText;
+    const total = suministrosList.reduce((acc, s) => acc + parseBudgetNumber(s.presupuesto || "0"), 0);
+    if (!total) return fallbackText;
+    return total.toLocaleString("es-ES") + " €";
+  }
+
   function getNoticePhaseIdx(n) {
     if (typeof n.phaseIdx === "number") return n.phaseIdx;
     const cat = String(n.categoria || "").toLowerCase();
@@ -3217,7 +3254,7 @@
     if (cat.includes("cotizaci") || cat.includes("preselecci") || text.includes("fase 2") || text.includes("selector")) return 1;
     if (cat.includes("cierre") || cat.includes("pasaporte") || text.includes("pasaporte") || text.includes("cerrado")) return 3;
     if (text.includes("fase 1") || text.includes("pliego inicial")) return 0;
-    return 2; // Gestión del pedido (Formalización, Calidad / Ensayo, Incidencia / Mediación, Logística)
+    return 2;
   }
 
   function ensureExpedienteRegistroCambios(exp) {
@@ -3309,7 +3346,7 @@
 
   function getActiveExpSuministro(exp) {
     if (!exp) return null;
-    const list = SUMINISTROS.filter(s => s.expId === exp.id);
+    const list = getRoleVisibleExpSuministros(exp, activeRole);
     if (!list.length) return null;
     let found = list.find(s => s.id === activeDossierSuministroId);
     if (!found) {
@@ -3321,8 +3358,8 @@
 
   function getActiveDeliverablesMap(exp) {
     const sum = getActiveExpSuministro(exp);
-    const list = SUMINISTROS.filter(s => s.expId === exp.id);
-    if (sum && list.length > 1) {
+    const allList = SUMINISTROS.filter(s => s.expId === exp.id);
+    if (sum && allList.length > 1) {
       return ensureSuministroDeliverables(exp, sum);
     }
     [0, 1, 2, 3].forEach(idx => {
@@ -3352,6 +3389,15 @@
     return true;
   }
 
+  function canRoleUploadToSlot(del, role) {
+    if (role === "admin") return true;
+    if (role === "destinatario") return false;
+    const owner = String(del.owner || "").toLowerCase();
+    if (role === "cliente") return owner.includes("cliente");
+    if (role === "proveedor") return owner.includes("proveedor");
+    return false;
+  }
+
   function getTableDocStatusBadge(state) {
     if (state === "complete") {
       return `<span class="entity-status complete"><i></i>Validado</span>`;
@@ -3366,11 +3412,12 @@
   }
 
   /* ============================================================
-     EL CONSTRUCTOR DE EXPEDIENTES (GESTIÓN DEL EXPEDIENTE)
+     EL CONSTRUCTOR DE EXPEDIENTES (GESTIÓN DEL EXPEDIENTE ADAPTADA POR PERFIL)
      ============================================================ */
   function renderDossierBuilder(expId) {
     const exp = getActiveExpediente(expId);
-    const expSuministros = SUMINISTROS.filter(s => s.expId === exp.id);
+    const allExpSuministros = SUMINISTROS.filter(s => s.expId === exp.id);
+    const expSuministros = getRoleVisibleExpSuministros(exp, activeRole);
     const cambiosLog = ensureExpedienteRegistroCambios(exp);
 
     if (lastOpenedExpId !== exp.id) {
@@ -3380,14 +3427,13 @@
       activeDossierPhase = firstSum ? Math.min(firstSum.faseActual, PHASES.length - 1) : Math.min(exp.faseActual, PHASES.length - 1);
     }
 
-    // Si algún enlace apuntaba a passport como pestaña global, redirigirlo a la Fase 4 (Cierre) dentro de Documentación
     if (activeDossierTab === "passport") {
       activeDossierPhase = PHASES.length - 1;
       activeDossierTab = "deliverables";
     }
 
     const currentSum = getActiveExpSuministro(exp);
-    const activeEntityPhaseActual = (currentSum && expSuministros.length > 1)
+    const activeEntityPhaseActual = (currentSum && allExpSuministros.length > 1)
       ? Math.min(currentSum.faseActual, PHASES.length - 1)
       : Math.min(exp.faseActual, PHASES.length - 1);
 
@@ -3399,6 +3445,8 @@
     const rawPhaseDeliverables = delivMap[activeDossierPhase] || [];
     const isDestinatario = activeRole === "destinatario";
     const isRoleAdmin = activeRole === "admin";
+    const isRoleCliente = activeRole === "cliente";
+    const isRoleProveedor = activeRole === "proveedor";
 
     // Metadatos visuales resumidos del expediente
     const v = getExpVisualMeta(exp);
@@ -3410,16 +3458,37 @@
 
     const currentSumIconName = currentSum ? getSuministroTypeIcon(currentSum.tipo) : getSuministroTypeIcon(exp.producto);
 
-    // 1. Sección plegable de Tarjetas por Suministro (con mayor espaciado vertical y barra separadora)
-    const suministrosCardsHTML = expSuministros.length > 1 ? `
+    // Datos de la tarjeta de expediente adaptados al perfil (el Proveedor solo ve el alcance e importe de SUS suministros)
+    const summaryNumSuministrosLabel = isRoleProveedor ? "Mis suministros asignados" : "Número de suministros";
+    const summaryNumSuministrosVal = isRoleProveedor
+      ? `${expSuministros.length} de mis suministros`
+      : `${allExpSuministros.length || v.numSuministros} suministros`;
+
+    const summaryBudgetLabel = isRoleProveedor ? "Presupuesto de mis suministros" : "Presupuesto estimado";
+    const summaryBudgetVal = isDestinatario
+      ? "[Reservado]"
+      : isRoleProveedor
+        ? formatSuministrosBudgetSum(expSuministros, exp.presupuestoTotal)
+        : exp.presupuestoTotal;
+
+    const summaryNextDeliveryDate = (isRoleProveedor && currentSum && currentSum.fechaEntrega)
+      ? currentSum.fechaEntrega
+      : v.proximaEntregaFecha;
+
+    // 1. Sección plegable de Tarjetas por Suministro (filtrada según lo que concierne al perfil)
+    const suministrosSectionTitle = isRoleProveedor
+      ? `Mis suministros en este expediente (${expSuministros.length})`
+      : `Suministros del expediente (${expSuministros.length})`;
+
+    const suministrosCardsHTML = expSuministros.length >= 1 ? `
       <hr class="dossier-section-divider" />
       <details class="dossier-collapsible-block" data-collapse-key="suministros" ${dossierCollapseState.suministros !== false ? "open" : ""}>
         <summary class="dossier-collapsible-summary">
           <div class="dossier-collapsible-summary-left">
-            <span class="dossier-section-kicker">Suministros del expediente (${expSuministros.length})</span>
+            <span class="dossier-section-kicker">${suministrosSectionTitle}</span>
             ${currentSum ? `
               <span class="dossier-active-sum-pill">
-                ${icon(currentSumIconName, 12)} Activo: <b>${currentSum.id}</b> · ${currentSum.tipo}
+                ${icon(currentSumIconName, 12)} Seleccionado: <b>${currentSum.id}</b> · ${currentSum.tipo}
               </span>
             ` : ""}
           </div>
@@ -3490,9 +3559,11 @@
 
     // 2. Stepper de las 4 Fases con icono simple (Alcance, Proveedores, Gestión del pedido, Cierre)
     const isCurrentContextClosed = !!exp.cerrado || (currentSum && currentSum.estado === "cerrado");
+    const isCurrentContextFinished = isCurrentContextClosed || !!exp.finalizado || (currentSum && currentSum.estado === "finalizado");
+
     const stepperHTML = PHASES.map((p, idx) => {
       const isCurrent = idx === activeDossierPhase;
-      const isDone = idx < activeEntityPhaseActual || isCurrentContextClosed;
+      const isDone = idx < activeEntityPhaseActual || isCurrentContextClosed || (idx === PHASES.length - 1 && isCurrentContextFinished);
       return `
         <div class="dossier-step ${isCurrent ? "is-current" : isDone ? "is-done" : ""}" data-select-dossier-phase="${idx}">
           <div class="dossier-step-top">
@@ -3503,64 +3574,109 @@
             ${isDone ? `<span style="color:var(--entity-accent)">${icon("check", 14)}</span>` : ""}
           </div>
           <div class="dossier-step-title">${p.name}</div>
-          <div class="dossier-step-meta">${isCurrentContextClosed ? "Completada" : idx === activeEntityPhaseActual ? "En curso" : idx < activeEntityPhaseActual ? "Completada" : "Pendiente"}</div>
+          <div class="dossier-step-meta">${isDone ? "Completada" : idx === activeEntityPhaseActual ? "En curso" : "Pendiente"}</div>
         </div>
       `;
     }).join("");
 
-    // 3. Barra de Estado, Fase, Nombre y Botones (Completar fase, Requerir, Subir) DEBAJO de las fases y ENCIMA de las secciones
-    const phaseStateLabel = (activeDossierPhase < activeEntityPhaseActual || isCurrentContextClosed)
+    // 3. Barra de Estado, Fase, Nombre y Botones DEBAJO de las fases y ENCIMA de las secciones
+    // - Si una fase ya está completada, el botón "Completar fase" aparece DESHABILITADO.
+    // - Cliente y Proveedor NO pueden completar fases ni requerir ranuras documentales.
+    const isSelectedPhaseCompleted =
+      activeDossierPhase < activeEntityPhaseActual ||
+      isCurrentContextClosed ||
+      (activeDossierPhase === PHASES.length - 1 && isCurrentContextFinished);
+
+    const isSelectedPhaseFuture = !isSelectedPhaseCompleted && activeDossierPhase > activeEntityPhaseActual;
+
+    const phaseStateLabel = isSelectedPhaseCompleted
       ? `<span class="entity-status complete"><i></i>Completada</span>`
       : activeDossierPhase === activeEntityPhaseActual
         ? `<span class="entity-status review"><i></i>En curso</span>`
         : `<span class="entity-status pending"><i></i>Pendiente</span>`;
 
+    const adminCompletePhaseBtnHTML = isRoleAdmin ? (
+      isSelectedPhaseCompleted ? `
+        <button class="admin-primary-button is-disabled-phase-btn" type="button" disabled title="Esta fase ya ha sido completada y no puede completarse de nuevo">
+          ${icon("check", 14)} Fase completada
+        </button>
+      ` : isSelectedPhaseFuture ? `
+        <button class="admin-primary-button is-disabled-phase-btn" type="button" disabled title="Debes completar primero la Fase ${activeEntityPhaseActual + 1}">
+          ${icon("check", 14)} Completar fase
+        </button>
+      ` : `
+        <button class="admin-primary-button" type="button" data-advance-dossier-phase="${exp.id}">
+          ${icon("check", 14)} Completar fase
+        </button>
+      `
+    ) : "";
+
     const phaseOpsPanelBelowStepperHTML = !isDestinatario ? `
       <div class="phase-ops-panel is-simplified">
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
           ${phaseStateLabel}
-          <strong style="font-size:0.86rem;color:var(--entity-text)">Fase ${PHASES[activeDossierPhase].num}: ${PHASES[activeDossierPhase].name}</strong>
-          ${currentSum && expSuministros.length > 1 ? `
-            <span class="dossier-chip" style="font-size:0.71rem;display:inline-flex;align-items:center;gap:5px">
+          <strong style="font-size:0.88rem;color:var(--entity-text)">Fase ${PHASES[activeDossierPhase].num}: ${PHASES[activeDossierPhase].name}</strong>
+          ${currentSum ? `
+            <span class="dossier-chip" style="font-size:0.72rem;display:inline-flex;align-items:center;gap:5px">
               ${icon(currentSumIconName, 12)} ${currentSum.id} · ${currentSum.tipo}
             </span>
           ` : ""}
         </div>
         <div class="phase-ops-controls">
+          ${adminCompletePhaseBtnHTML}
           ${isRoleAdmin && !isCurrentContextClosed ? `
-            <button class="admin-primary-button" type="button" data-advance-dossier-phase="${exp.id}">
-              ${icon("check", 14)} Completar fase
-            </button>
             <button class="admin-quiet-button" type="button" data-open-add-slot-modal="${exp.id}">
               ${icon("plus", 14)} Requerir
             </button>
           ` : ""}
-          <button class="admin-quiet-button" type="button" data-open-upload-free-doc="${exp.id}">
-            ${icon("upload", 14)} Subir
-          </button>
+          ${!isCurrentContextClosed ? `
+            <button class="admin-quiet-button" type="button" data-open-upload-free-doc="${exp.id}">
+              ${icon("upload", 14)} ${isRoleAdmin ? "Subir" : isRoleCliente ? "Subir doc. cliente" : "Subir entregable"}
+            </button>
+          ` : `
+            <span style="font-size:0.73rem;color:var(--entity-muted)">Expediente / suministro cerrado</span>
+          `}
         </div>
       </div>
     ` : "";
 
-    // 4. Selector y Matching de Proveedores ENCIMA del menú y SÓLO en la Fase 2 (Proveedores, idx === 1)
-    const selectorAboveMenuHTML = activeDossierPhase === 1 ? `
+    // 4. Selector y Matching en Fase 2 (Proveedores, idx === 1) adaptado al perfil
+    const selectorTitleByRole = isRoleAdmin
+      ? `Selector y Matching de Proveedores${currentSum ? ` · ${currentSum.id} (${currentSum.tipo})` : ""}`
+      : isRoleCliente
+        ? `Selección de Proveedor Adjudicatario${currentSum ? ` · ${currentSum.id} (${currentSum.tipo})` : ""}`
+        : `Cotización y Oferta Vinculante${currentSum ? ` · ${currentSum.id} (${currentSum.tipo})` : ""}`;
+
+    const selectorDescByRole = isRoleAdmin
+      ? "Preselección de 3 homologados, solicitud de cotizaciones vinculantes y matriz comparativa de adjudicación."
+      : isRoleCliente
+        ? "Consulta la matriz comparativa de los proveedores homologados preseleccionados por SOFEIN y confirma la adjudicación."
+        : "Revisa las especificaciones técnicas del suministro y gestiona tu oferta económica y de plazo vinculante.";
+
+    const selectorBtnLabelByRole = isRoleAdmin
+      ? "Abrir Selector y Matching"
+      : isRoleCliente
+        ? "Revisar Ofertas y Elegir Proveedor"
+        : "Ver / Presentar mi Oferta";
+
+    const selectorAboveMenuHTML = (activeDossierPhase === 1 && !isDestinatario) ? `
       <div class="selector-above-menu-bar">
         <div style="display:flex;align-items:center;gap:12px">
           <span class="selector-above-menu-icon">
             ${icon("users", 18)}
           </span>
           <div>
-            <strong style="color:var(--entity-text);font-size:0.86rem">Selector y Matching de Proveedores${currentSum && expSuministros.length > 1 ? ` · ${currentSum.id} (${currentSum.tipo})` : ""}</strong>
-            <p style="margin:2px 0 0;font-size:0.74rem;color:var(--entity-muted)">Preselección de 3 homologados, solicitud de cotizaciones vinculantes y matriz comparativa de adjudicación.</p>
+            <strong style="color:var(--entity-text);font-size:0.86rem">${selectorTitleByRole}</strong>
+            <p style="margin:2px 0 0;font-size:0.74rem;color:var(--entity-muted)">${selectorDescByRole}</p>
           </div>
         </div>
         <button class="admin-primary-button" type="button" data-go="#${activeRole}/selector/${exp.id}" style="white-space:nowrap">
-          ${icon("users", 14)} Abrir Selector y Matching
+          ${icon("users", 14)} ${selectorBtnLabelByRole}
         </button>
       </div>
     ` : "";
 
-    // 5. Contenido de la pestaña activa
+    // 5. Contenido de la sección activa adaptado al perfil
     let tabContent = "";
     if (activeDossierTab === "deliverables") {
       const allExpDocs = [];
@@ -3599,7 +3715,10 @@
         ? baseDocs
         : baseDocs.filter(x => x.del.state === docStatusFilter);
 
-      // Filtro de Alcance Documental
+      const allScopeBtnLabel = isRoleProveedor && currentSum
+        ? `Todo mi Suministro ${currentSum.id} (${allExpDocs.length})`
+        : `Todo el Expediente (${allExpDocs.length})`;
+
       const docManagerBarHTML = `
         <div class="doc-manager-bar">
           <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
@@ -3609,7 +3728,7 @@
                 Fase ${activeDossierPhase + 1} (${phaseVisibleDocs.length})
               </button>
               <button class="avisos-group-btn ${docScopeMode === "all" ? "is-active" : ""}" type="button" data-doc-scope="all">
-                Todo el Expediente (${allExpDocs.length})
+                ${allScopeBtnLabel}
               </button>
             </div>
           </div>
@@ -3636,15 +3755,14 @@
         </div>
       `;
 
-      // Tabla "Documentación" sin scroll lateral:
-      // Columnas: Nombre | Requerimiento | Origen | Fase | Estado | Acciones (multilínea) | Notas (multilínea y editables)
       const tableRowsHTML = filteredDocs.length ? filteredDocs.map(({ del, phaseIdx, phaseName, slotIdx }) => {
         const reqDateText = del.reqDate || del.date || "12 jun 2026";
         const notesText = del.rejectReason
           ? `⚠️ ${del.rejectReason}`
-          : (del.notes || "Añadir nota...");
+          : (del.notes || (isDestinatario ? "—" : "Añadir nota..."));
         const hasRealNote = Boolean(del.rejectReason || (del.notes && del.notes.trim()));
         const visLabel = formatVisibleToLabel(del.visibleTo);
+        const allowUploadSlot = !isCurrentContextClosed && canRoleUploadToSlot(del, activeRole);
 
         return `
           <tr>
@@ -3670,11 +3788,18 @@
                   <button class="doc-tbl-action-btn" type="button" data-download="${del.file}" title="Descargar documento">
                     ${icon("download", 13)} Descargar
                   </button>
-                ` : (!isDestinatario ? `
-                  <button class="doc-tbl-action-btn is-upload" type="button" data-upload-slot-doc="${exp.id}" data-phase="${phaseIdx}" data-slot="${slotIdx}" title="Subir archivo a esta ranura">
+                  ${allowUploadSlot && del.state === "rejected" ? `
+                    <button class="doc-tbl-action-btn is-upload" type="button" data-upload-slot-doc="${exp.id}" data-phase="${phaseIdx}" data-slot="${slotIdx}" title="Subir nueva versión subsanada">
+                      ${icon("upload", 13)} Subsanar
+                    </button>
+                  ` : ""}
+                ` : (allowUploadSlot ? `
+                  <button class="doc-tbl-action-btn is-upload" type="button" data-upload-slot-doc="${exp.id}" data-phase="${phaseIdx}" data-slot="${slotIdx}" title="Subir archivo requerido">
                     ${icon("upload", 13)} Subir
                   </button>
-                ` : "")}
+                ` : `
+                  <span style="font-size:0.69rem;color:var(--entity-faint);font-style:italic">Pendiente de ${del.owner}</span>
+                `)}
                 ${isRoleAdmin ? `
                   <button class="doc-tbl-action-btn is-validate" type="button" data-admin-approve="${exp.id}" data-phase="${phaseIdx}" data-slot="${slotIdx}" title="Validar documento y configurar quién puede verlo">
                     ${icon("check", 13)} Validar
@@ -3683,17 +3808,21 @@
               </div>
             </td>
             <td class="col-doc-notes">
-              <button type="button" class="doc-tbl-notes-edit-btn ${hasRealNote ? "" : "is-empty"}" data-edit-doc-note="${exp.id}" data-phase="${phaseIdx}" data-slot="${slotIdx}" title="Haz clic para editar la nota">
-                <span class="doc-tbl-notes-text">${notesText}</span>
-                <span class="doc-tbl-notes-edit-icon">✎</span>
-              </button>
+              ${!isDestinatario ? `
+                <button type="button" class="doc-tbl-notes-edit-btn ${hasRealNote ? "" : "is-empty"}" data-edit-doc-note="${exp.id}" data-phase="${phaseIdx}" data-slot="${slotIdx}" title="Haz clic para editar la nota">
+                  <span class="doc-tbl-notes-text">${notesText}</span>
+                  <span class="doc-tbl-notes-edit-icon">✎</span>
+                </button>
+              ` : `
+                <span class="doc-tbl-notes-text" style="font-size:0.73rem;color:var(--entity-muted)">${notesText}</span>
+              `}
             </td>
           </tr>
         `;
       }).join("") : `
         <tr>
           <td colspan="7" style="padding:28px;text-align:center;color:var(--entity-muted)">
-            No hay documentos que coincidan con el filtro seleccionado.
+            No hay documentos visibles para tu perfil con el filtro seleccionado.
           </td>
         </tr>
       `;
@@ -3701,8 +3830,8 @@
       const docTableHTML = `
         <section class="doc-clean-table-card">
           <div class="doc-clean-table-head">
-            <h3>Documentación</h3>
-            <span>${filteredDocs.length} documento(s) · Haz clic en cualquier nota para editarla</span>
+            <h3>Documentación${currentSum ? ` · ${currentSum.id}` : ""}</h3>
+            <span>${filteredDocs.length} documento(s)${!isDestinatario ? " · Haz clic en cualquier nota para editarla" : ""}</span>
           </div>
           <div class="doc-clean-table-wrap">
             <table class="doc-clean-table">
@@ -3725,7 +3854,6 @@
         </section>
       `;
 
-      // En Fase 4 (Cierre, activeDossierPhase === 3), el Pasaporte Digital SOFEIN aparece integrado en un bloque colapsable/expandible
       const passportInClosureHTML = activeDossierPhase === (PHASES.length - 1) ? `
         <hr class="dossier-section-divider" />
         <details class="dossier-collapsible-block" data-collapse-key="passportClosure" ${dossierCollapseState.passportClosure !== false ? "open" : ""}>
@@ -3747,30 +3875,39 @@
 
       tabContent = `${docManagerBarHTML}${docTableHTML}${passportInClosureHTML}`;
     } else if (activeDossierTab === "incidents") {
-      // Sección "Registro de incidencias": Incidencias y Cambios del expediente (con bloques colapsables para mayor legibilidad)
-      const totalInc = exp.incidencias.length;
-      const totalCambios = cambiosLog.length;
+      // Sección "Registro de incidencias": Filtrado estanco para Proveedor (solo ve incidencias y cambios de sus suministros)
+      const visibleSumIds = new Set(expSuministros.map(s => s.id));
+      const roleIncidents = isRoleProveedor
+        ? exp.incidencias.filter(inc => !inc.sumId || visibleSumIds.has(inc.sumId))
+        : exp.incidencias;
+
+      const roleCambiosLog = isRoleProveedor
+        ? cambiosLog.filter(c => !c.suministro || c.suministro === "General" || c.suministro === "Todos" || visibleSumIds.has(c.suministro))
+        : cambiosLog;
+
+      const totalInc = roleIncidents.length;
+      const totalCambios = roleCambiosLog.length;
       const totalRegistros = totalInc + totalCambios;
-      const inMediationInc = exp.incidencias.filter(i => (!i.adendaId && !i.estado.includes("Consolidada") && !i.estado.includes("formalizada")) && (i.estado.includes("mediación") || i.estado.includes("Registrada"))).length;
-      const consolidatedInc = exp.incidencias.filter(i => !!i.adendaId || i.estado.includes("Consolidada") || i.estado.includes("formalizada")).length;
+      const inMediationInc = roleIncidents.filter(i => (!i.adendaId && !i.estado.includes("Consolidada") && !i.estado.includes("formalizada")) && (i.estado.includes("mediación") || i.estado.includes("Registrada"))).length;
+      const consolidatedInc = roleIncidents.filter(i => !!i.adendaId || i.estado.includes("Consolidada") || i.estado.includes("formalizada")).length;
 
       const showIncidentsBlock = incidentStatusFilter !== "changes_only";
       const showChangesBlock = incidentStatusFilter === "all" || incidentStatusFilter === "changes_only";
 
-      let filteredIncidents = exp.incidencias;
+      let filteredIncidents = roleIncidents;
       if (incidentStatusFilter === "in_mediation") {
-        filteredIncidents = exp.incidencias.filter(i => (!i.adendaId && !i.estado.includes("Consolidada") && !i.estado.includes("formalizada")) && (i.estado.includes("mediación") || i.estado.includes("Registrada")));
+        filteredIncidents = roleIncidents.filter(i => (!i.adendaId && !i.estado.includes("Consolidada") && !i.estado.includes("formalizada")) && (i.estado.includes("mediación") || i.estado.includes("Registrada")));
       } else if (incidentStatusFilter === "pending_signs") {
-        filteredIncidents = exp.incidencias.filter(i => (!i.adendaId && !i.estado.includes("Consolidada") && !i.estado.includes("formalizada")) && i.propuestaMediacion && (!i.firmaCliente || !i.firmaProveedor));
+        filteredIncidents = roleIncidents.filter(i => (!i.adendaId && !i.estado.includes("Consolidada") && !i.estado.includes("formalizada")) && i.propuestaMediacion && (!i.firmaCliente || !i.firmaProveedor));
       } else if (incidentStatusFilter === "consolidated") {
-        filteredIncidents = exp.incidencias.filter(i => !!i.adendaId || i.estado.includes("Consolidada") || i.estado.includes("formalizada"));
+        filteredIncidents = roleIncidents.filter(i => !!i.adendaId || i.estado.includes("Consolidada") || i.estado.includes("formalizada"));
       }
 
       const changesTableHTML = showChangesBlock ? `
         <details class="dossier-collapsible-block" data-collapse-key="changesLog" ${dossierCollapseState.changesLog !== false ? "open" : ""}>
           <summary class="dossier-collapsible-summary">
             <div class="dossier-collapsible-summary-left">
-              <span class="dossier-section-kicker">${icon("activity", 14)} Historial de Cambios y Actividad del Expediente (${cambiosLog.length})</span>
+              <span class="dossier-section-kicker">${icon("activity", 14)} Historial de Cambios y Actividad (${roleCambiosLog.length})</span>
             </div>
             <span class="dossier-collapsible-chevron" title="Colapsar / Expandir historial de cambios">
               ${icon("chevronDown", 15)}
@@ -3791,7 +3928,7 @@
                     </tr>
                   </thead>
                   <tbody>
-                    ${cambiosLog.map(c => `
+                    ${roleCambiosLog.map(c => `
                       <tr>
                         <td><span class="dossier-sum-code">${c.id}</span></td>
                         <td><span class="doc-tbl-date">${c.fecha}</span></td>
@@ -3817,11 +3954,11 @@
       const incidentsCardsHTML = showIncidentsBlock ? (filteredIncidents.length ? filteredIncidents.map((inc) => {
         const isConsolidated = !!inc.adendaId || inc.estado.includes("Consolidada") || inc.estado.includes("formalizada");
         const isPendingSigns = !isConsolidated && inc.propuestaMediacion && (!inc.firmaCliente || !inc.firmaProveedor);
-        const cardClass = isConsolidated ? "is-consolidated" : isPendingSigns ? "is-pending-signs" : inc.estado.includes("mediación") ? "is-mediated" : "is-open";
+        const cardClass = isConsolidated ? "is-consolidated" : (!isConsolidated && inc.propuestaMediacion && (!inc.firmaCliente || !inc.firmaProveedor)) ? "is-pending-signs" : inc.estado.includes("mediación") ? "is-mediated" : "is-open";
 
         const statusBadgeHTML = isConsolidated ?
           `<span class="entity-status complete"><i></i>Adenda Consolidada</span>` :
-          isPendingSigns ?
+          (!isConsolidated && inc.propuestaMediacion && (!inc.firmaCliente || !inc.firmaProveedor)) ?
           `<span class="entity-status review" style="color:#0F766E"><i></i>Pendiente de firmas</span>` :
           `<span class="entity-status warning"><i></i>${inc.estado}</span>`;
 
@@ -3873,7 +4010,6 @@
               </div>
             </div>
 
-            <!-- Desplegable de Mediación SOFEIN y Firmas para reducir densidad visual -->
             <details class="dossier-inner-collapsible" ${!isConsolidated ? "open" : ""}>
               <summary class="dossier-inner-collapsible-summary">
                 <span>${icon("shield", 14)} Resolución de Mediación SOFEIN, Cláusula de Silencio Positivo y Firmas</span>
@@ -4058,7 +4194,6 @@
 
       tabContent = `
         <div class="incident-container">
-          <!-- Barra de Filtros y Acciones de Registro de incidencias -->
           <div class="incident-filter-bar">
             <div class="incident-filter-pills">
               <button type="button" class="incident-filter-pill ${incidentStatusFilter === "all" ? "is-active" : ""}" data-incident-filter="all">
@@ -4076,9 +4211,11 @@
             </div>
             ${activeRole !== "destinatario" ? `
               <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-                <button class="admin-quiet-button" type="button" data-open-change-log-modal="${exp.id}">
-                  ${icon("plus", 14)} Añadir cambio
-                </button>
+                ${isRoleAdmin ? `
+                  <button class="admin-quiet-button" type="button" data-open-change-log-modal="${exp.id}">
+                    ${icon("plus", 14)} Añadir cambio
+                  </button>
+                ` : ""}
                 <button class="admin-primary-button" type="button" data-open-incident-modal="${exp.id}">
                   ${icon("plus", 14)} Añadir incidencia
                 </button>
@@ -4086,16 +4223,18 @@
             ` : ""}
           </div>
 
-          <!-- Tarjetas de Incidencias y Adendas -->
           ${incidentsCardsHTML}
-
-          <!-- Historial de Cambios y Actividad del Expediente (Plegable) -->
           ${changesTableHTML}
         </div>
       `;
     } else if (activeDossierTab === "comms") {
-      // Pantalla 6: Avisos & Hitos del Expediente con mini sección de Alcance (Fase y Suministro)
-      const allRoleNotices = NOTICES.filter(n => n.expId === exp.id && n.roles.includes(activeRole));
+      // Pantalla 6: Avisos & Hitos del Expediente filtrados por perfil y alcance (Fase y Suministro)
+      const visibleSumIds = new Set(expSuministros.map(s => s.id));
+      const allRoleNotices = NOTICES.filter(n => {
+        if (n.expId !== exp.id || !n.roles.includes(activeRole)) return false;
+        if (isRoleProveedor && n.sumId && !visibleSumIds.has(n.sumId)) return false;
+        return true;
+      });
 
       const matchesPhase = (n) => commsPhaseScope === "all" || getNoticePhaseIdx(n) === activeDossierPhase;
       const matchesSum = (n) => {
@@ -4116,7 +4255,6 @@
       const activeNotices = roleNotices.filter(n => !completedNotices.has(n.id));
       const completedList = roleNotices.filter(n => completedNotices.has(n.id));
 
-      // Mini sección de Alcance (idéntica a Alcance Documental: filtra esta fase o todas, y este suministro o todos)
       const commsScopeBarHTML = `
         <div class="doc-manager-bar" style="margin-bottom:12px">
           <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
@@ -4140,7 +4278,7 @@
                     ${currentSum.id} (${countThisSum})
                   </button>
                   <button class="avisos-group-btn ${commsSumScope === "all" ? "is-active" : ""}" type="button" data-comms-sum-scope="all">
-                    Todos los suministros (${countAllSums})
+                    ${isRoleProveedor ? `Mis suministros (${countAllSums})` : `Todos los suministros (${countAllSums})`}
                   </button>
                 </div>
               </div>
@@ -4255,13 +4393,39 @@
       `;
     }
 
-    const expNotices = NOTICES.filter(n => n.expId === exp.id && n.roles.includes(activeRole) && !completedNotices.has(n.id));
-    const totalRegistroBadge = exp.incidencias.length;
+    const visibleSumIdsForBadge = new Set(expSuministros.map(s => s.id));
+    const expNotices = NOTICES.filter(n => {
+      if (n.expId !== exp.id || !n.roles.includes(activeRole) || completedNotices.has(n.id)) return false;
+      if (isRoleProveedor && n.sumId && !visibleSumIdsForBadge.has(n.sumId)) return false;
+      return true;
+    });
+    const totalRegistroBadge = isRoleProveedor
+      ? exp.incidencias.filter(inc => !inc.sumId || visibleSumIdsForBadge.has(inc.sumId)).length
+      : exp.incidencias.length;
+
+    // Indicador contextual de alcance por perfil (para Cliente, Proveedor y Destinatario)
+    const roleScopeNoticeHTML = !isRoleAdmin ? `
+      <div class="dossier-role-scope-strip">
+        <span class="dossier-role-scope-badge">
+          ${icon(isRoleProveedor ? "truck" : isRoleCliente ? "building" : "eye", 13)}
+          <b>Vista ${PLAYERS[activeRole]?.shortLabel || activeRole}:</b>
+          ${isRoleProveedor
+            ? `Acceso estanco a tus suministros adjudicados (${expSuministros.map(s => s.id).join(", ")}) y su documentación asociada.`
+            : isRoleCliente
+              ? `Seguimiento de tus suministros, pliegos y entregas como constructor (${exp.cliente}).`
+              : `Modo auditoría de trazabilidad para destinatario final (${exp.destinatarioFinal}).`
+          }
+        </span>
+      </div>
+    ` : "";
 
     return `
       <div class="dossier-builder">
-        <div class="dossier-breadcrumb" style="margin-bottom:12px">
-          <a href="#${activeRole}/expedientes">← Volver a expedientes</a> / <span>${exp.id}</span>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:10px">
+          <div class="dossier-breadcrumb" style="margin-bottom:0">
+            <a href="#${activeRole}/expedientes">← Volver a expedientes</a> / <span>${exp.id}</span>
+          </div>
+          ${roleScopeNoticeHTML}
         </div>
 
         ${exp.estado === "pending_validation" ? `
@@ -4285,7 +4449,7 @@
           </div>
         ` : ""}
 
-        <!-- 1. Tarjeta de Expediente (Datos resumidos + botón discreto de cerrar/reabrir con confirmación) -->
+        <!-- 1. Tarjeta de Expediente (Adaptada según el perfil activo) -->
         <section class="dossier-exp-summary-card">
           <div class="dossier-exp-summary-top">
             <div class="dossier-exp-summary-left">
@@ -4326,12 +4490,12 @@
 
           <div class="dossier-exp-summary-grid">
             <div class="dossier-exp-summary-item">
-              <span class="exp-v2-label">Número de suministros</span>
-              <strong class="exp-v2-val">${expSuministros.length || v.numSuministros} suministros</strong>
+              <span class="exp-v2-label">${summaryNumSuministrosLabel}</span>
+              <strong class="exp-v2-val">${summaryNumSuministrosVal}</strong>
             </div>
             <div class="dossier-exp-summary-item">
-              <span class="exp-v2-label">Presupuesto estimado</span>
-              <strong class="exp-v2-val">${!isDestinatario ? exp.presupuestoTotal : "[Reservado]"}</strong>
+              <span class="exp-v2-label">${summaryBudgetLabel}</span>
+              <strong class="exp-v2-val">${summaryBudgetVal}</strong>
             </div>
             <div class="dossier-exp-summary-item">
               <span class="exp-v2-label">Destino</span>
@@ -4344,26 +4508,26 @@
             <div class="dossier-exp-summary-item">
               <span class="exp-v2-label">Próxima entrega</span>
               <div class="exp-v2-delivery-wrap" style="justify-content:flex-start">
-                <strong class="exp-v2-delivery-date">${v.proximaEntregaFecha}</strong>
+                <strong class="exp-v2-delivery-date">${summaryNextDeliveryDate}</strong>
                 <span class="exp-v2-delivery-diff is-${v.proximaEntregaTone}">${v.proximaEntregaDiff}</span>
               </div>
             </div>
           </div>
         </section>
 
-        <!-- 2. Suministros del expediente (Sección diferenciada con barra horizontal y colapsable) -->
+        <!-- 2. Suministros del expediente (Filtrados por perfil, con título más legible) -->
         ${suministrosCardsHTML}
 
         <hr class="dossier-section-divider" />
 
-        <!-- 3. Stepper de las 4 Fases (con el icono del suministro elegido al lado del título) -->
+        <!-- 3. Stepper de las 4 Fases (con título más grande y más oscuro) -->
         <div class="dossier-phases-block">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
             <span class="dossier-phases-heading-with-icon">
-              <span class="sum-type-icon-badge is-small">${icon(currentSumIconName, 13)}</span>
-              <span>Fases${currentSum && expSuministros.length > 1 ? ` del suministro ${currentSum.id} (${currentSum.tipo})` : " del expediente"}</span>
+              <span class="sum-type-icon-badge is-small">${icon(currentSumIconName, 14)}</span>
+              <span>Fases${currentSum ? ` del suministro ${currentSum.id} (${currentSum.tipo})` : " del expediente"}</span>
             </span>
-            <span style="font-size:0.75rem;color:var(--entity-accent);font-weight:600">
+            <span style="font-size:0.76rem;color:var(--entity-accent);font-weight:650">
               ${isCurrentContextClosed ? `Cerrado · 4/4 fases completadas` : `Fase activa: ${PHASES[activeEntityPhaseActual].num}. ${PHASES[activeEntityPhaseActual].name}`}
             </span>
           </div>
@@ -4372,7 +4536,7 @@
           </div>
         </div>
 
-        <!-- 4. Barra de Estado, Fase, Nombre y Botones (Completar, Requerir, Subir) DEBAJO de las fases y ENCIMA de las secciones -->
+        <!-- 4. Barra de Estado, Fase, Nombre y Botones adaptados al perfil -->
         ${phaseOpsPanelBelowStepperHTML}
 
         <!-- 5. Selector y Matching ENCIMA del menú (sólo visible en Fase 2: Proveedores) -->
@@ -8539,14 +8703,23 @@
       });
     });
 
-    // 3. Completar Fase Actual y Avanzar a la Siguiente (Gestión Operativa SOFEIN)
+    // 3. Completar Fase Actual y Avanzar a la Siguiente (Exclusivo SOFEIN Admin y solo si la fase no está ya completada)
     document.querySelectorAll("[data-advance-dossier-phase]").forEach(btn => {
       btn.addEventListener("click", () => {
+        if (activeRole !== "admin" || btn.disabled) return;
         const exp = getActiveExpediente(btn.dataset.advanceDossierPhase);
         const currentSum = getActiveExpSuministro(exp);
         const expSuministros = SUMINISTROS.filter(s => s.expId === exp.id);
-        const delivMap = getActiveDeliverablesMap(exp);
+        const activeEntityPhaseActual = (currentSum && expSuministros.length > 1)
+          ? Math.min(currentSum.faseActual, PHASES.length - 1)
+          : Math.min(exp.faseActual, PHASES.length - 1);
         const currentIdx = activeDossierPhase;
+        const isAlreadyDone = currentIdx < activeEntityPhaseActual || !!exp.cerrado || (currentSum && currentSum.estado === "cerrado") || (currentIdx === PHASES.length - 1 && (exp.finalizado || (currentSum && currentSum.estado === "finalizado")));
+        if (isAlreadyDone) {
+          showToast("Esta fase ya está completada.");
+          return;
+        }
+        const delivMap = getActiveDeliverablesMap(exp);
 
         // Marcar ranuras de la fase actual como completas
         if (delivMap[currentIdx]) {
