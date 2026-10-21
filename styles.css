@@ -3523,7 +3523,7 @@ select:focus,
 
 .selector-substep-text strong {
   display: block;
-  font-size: 0.78rem;
+  font-size: 0.82rem;
   font-weight: 600;
   color: var(--entity-text);
   white-space: nowrap;
@@ -6269,21 +6269,26 @@ select:focus,
 }
 
 /* Drag and drop de cabeceras TH */
-.suministros-th[draggable="true"] {
+.suministros-th[draggable="true"],
+.b2b-dir-table th.is-sortable[draggable="true"] {
   cursor: grab;
 }
-.suministros-th.is-dragging {
+.suministros-th.is-dragging,
+.b2b-dir-table th.is-dragging {
   opacity: 0.4;
   background: var(--entity-panel-2);
   cursor: grabbing;
 }
-.suministros-th.drag-over-left {
+.suministros-th.drag-over-left,
+.b2b-dir-table th.drag-over-left {
   box-shadow: inset 3px 0 0 0 var(--entity-accent);
 }
-.suministros-th.drag-over-right {
+.suministros-th.drag-over-right,
+.b2b-dir-table th.drag-over-right {
   box-shadow: inset -3px 0 0 0 var(--entity-accent);
 }
-.suministros-th-drag-grip {
+.suministros-th-drag-grip,
+.dir-th-drag-grip {
   font-size: 0.72rem;
   color: var(--entity-faint);
   cursor: grab;
@@ -6291,13 +6296,14 @@ select:focus,
   opacity: 0.45;
   transition: opacity 0.15s, color 0.15s;
 }
-.suministros-th:hover .suministros-th-drag-grip {
+.suministros-th:hover .suministros-th-drag-grip,
+.b2b-dir-table th:hover .dir-th-drag-grip {
   opacity: 1;
   color: var(--entity-accent);
 }
 
-
-.suministros-th-hide-btn {
+.suministros-th-hide-btn,
+.dir-th-hide-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -6315,12 +6321,14 @@ select:focus,
   transform: scale(0.85);
   transition: opacity 0.15s ease, transform 0.15s ease, background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
-.suministros-th:hover .suministros-th-hide-btn {
+.suministros-th:hover .suministros-th-hide-btn,
+.b2b-dir-table th:hover .dir-th-hide-btn {
   opacity: 0.75;
   pointer-events: auto;
   transform: scale(1);
 }
-.suministros-th-hide-btn:hover {
+.suministros-th-hide-btn:hover,
+.dir-th-hide-btn:hover {
   opacity: 1 !important;
   color: #ef4444 !important;
   background: rgba(239, 68, 68, 0.14) !important;

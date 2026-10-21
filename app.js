@@ -1466,6 +1466,83 @@
   let directorioCliSortCol = "nombre";
   let directorioCliSortDir = "asc";
 
+  const ALL_DIR_PRV_COL_DEFS = {
+    nombre: { id: "nombre", label: "Nombre", minWidth: "160px" },
+    cif: { id: "cif", label: "CIF", minWidth: "85px" },
+    sede: { id: "sede", label: "Sede", minWidth: "95px" },
+    suministros: { id: "suministros", label: "Suministros", minWidth: "125px" },
+    activos: { id: "activos", label: "Activos", minWidth: "85px" },
+    conformidades: { id: "conformidades", label: "Conformidades", minWidth: "140px" },
+    contacto: { id: "contacto", label: "Contacto", minWidth: "155px" }
+  };
+  const DEFAULT_DIR_PRV_COL_ORDER = ["nombre", "cif", "sede", "suministros", "activos", "conformidades", "contacto"];
+
+  const ALL_DIR_CLI_COL_DEFS = {
+    nombre: { id: "nombre", label: "Nombre", minWidth: "160px" },
+    cif: { id: "cif", label: "CIF", minWidth: "85px" },
+    sede: { id: "sede", label: "Sede", minWidth: "95px" },
+    actividad: { id: "actividad", label: "Actividad", minWidth: "140px" },
+    activos: { id: "activos", label: "Activos", minWidth: "85px" },
+    contacto: { id: "contacto", label: "Contacto", minWidth: "155px" }
+  };
+  const DEFAULT_DIR_CLI_COL_ORDER = ["nombre", "cif", "sede", "actividad", "activos", "contacto"];
+
+  let dirPrvColOrder = [...DEFAULT_DIR_PRV_COL_ORDER];
+  let dirPrvHiddenCols = new Set();
+  let dirCliColOrder = [...DEFAULT_DIR_CLI_COL_ORDER];
+  let dirCliHiddenCols = new Set();
+  let isDirColsMenuOpen = false;
+
+  function loadDirColPrefs() {
+    try {
+      const prvRaw = localStorage.getItem("sofein_dir_prv_col_prefs_v1");
+      if (prvRaw) {
+        const parsed = JSON.parse(prvRaw);
+        if (Array.isArray(parsed.order)) {
+          const validCols = parsed.order.filter(id => ALL_DIR_PRV_COL_DEFS[id]);
+          DEFAULT_DIR_PRV_COL_ORDER.forEach(id => {
+            if (!validCols.includes(id)) validCols.push(id);
+          });
+          dirPrvColOrder = validCols;
+        }
+        if (Array.isArray(parsed.hidden)) {
+          dirPrvHiddenCols = new Set(parsed.hidden);
+        }
+      }
+      const cliRaw = localStorage.getItem("sofein_dir_cli_col_prefs_v1");
+      if (cliRaw) {
+        const parsed = JSON.parse(cliRaw);
+        if (Array.isArray(parsed.order)) {
+          const validCols = parsed.order.filter(id => ALL_DIR_CLI_COL_DEFS[id]);
+          DEFAULT_DIR_CLI_COL_ORDER.forEach(id => {
+            if (!validCols.includes(id)) validCols.push(id);
+          });
+          dirCliColOrder = validCols;
+        }
+        if (Array.isArray(parsed.hidden)) {
+          dirCliHiddenCols = new Set(parsed.hidden);
+        }
+      }
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  function saveDirColPrefs() {
+    try {
+      localStorage.setItem("sofein_dir_prv_col_prefs_v1", JSON.stringify({
+        order: dirPrvColOrder,
+        hidden: Array.from(dirPrvHiddenCols)
+      }));
+      localStorage.setItem("sofein_dir_cli_col_prefs_v1", JSON.stringify({
+        order: dirCliColOrder,
+        hidden: Array.from(dirCliHiddenCols)
+      }));
+    } catch (e) {
+      // ignore
+    }
+  }
+
   function getProveedorActiveExpedientes(prvName) {
     if (!prvName) return [];
     const query = prvName.toLowerCase().trim();
@@ -5337,6 +5414,7 @@
     }
 
     if (section === "directorio") {
+      loadDirColPrefs();
       const q = (directorioSearchQuery || "").toLowerCase().trim();
 
       const prvActiveList = DIRECTORIO_PROVEEDORES.filter(p => {
@@ -5390,13 +5468,87 @@
       const showProveedores = directorioTypeFilter === "all" || directorioTypeFilter === "proveedores";
       const showClientes = directorioTypeFilter === "all" || directorioTypeFilter === "clientes";
 
+      const visiblePrvCols = dirPrvColOrder.filter(c => !dirPrvHiddenCols.has(c));
+      if (!visiblePrvCols.length) visiblePrvCols.push("nombre");
+
+      const visibleCliCols = dirCliColOrder.filter(c => !dirCliHiddenCols.has(c));
+      if (!visibleCliCols.length) visibleCliCols.push("nombre");
+
+      const renderPrvCell = (p, colId, idx, total) => {
+        switch (colId) {
+          case "nombre":
+            return `
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;min-width:0">
+                  <span class="admin-client-initials" style="width:26px;height:26px;min-width:26px;min-height:26px;max-width:26px;max-height:26px;flex:0 0 26px;flex-shrink:0;border-radius:50%;font-size:0.68rem;aspect-ratio:1">${p.nombre.slice(0, 2).toUpperCase()}</span>
+                  <strong style="font-size:0.78rem">${p.nombre}</strong>
+                </div>
+              </td>
+            `;
+          case "cif":
+            return `<td><span class="entity-code" style="font-size:0.75rem">${p.cif}</span></td>`;
+          case "sede":
+            return `<td><span style="color:var(--entity-muted);font-size:0.76rem">${p.sede}</span></td>`;
+          case "suministros":
+            return `<td>${renderSuministrosTags(p.suministros || [p.materiales])}</td>`;
+          case "activos":
+            return `<td>${renderProveedorActivosCell(p, idx, total)}</td>`;
+          case "conformidades":
+            return `<td>${renderConformidadesTags(p.conformidades || p.homologaciones)}</td>`;
+          case "contacto":
+            return `
+              <td class="dir-cell-contact">
+                <div style="display:flex;flex-direction:column;gap:3px;min-width:0">
+                  ${renderEmailCell(p.email || p.contacto)}
+                  ${p.telefono ? renderTelefonoCell(p.telefono) : ''}
+                </div>
+              </td>
+            `;
+          default:
+            return `<td></td>`;
+        }
+      };
+
+      const renderCliCell = (c, colId, idx, total) => {
+        switch (colId) {
+          case "nombre":
+            return `
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;min-width:0">
+                  <span class="admin-client-initials" style="width:26px;height:26px;min-width:26px;min-height:26px;max-width:26px;max-height:26px;flex:0 0 26px;flex-shrink:0;border-radius:50%;font-size:0.68rem;aspect-ratio:1;background:#1d426b">${c.nombre.slice(0, 2).toUpperCase()}</span>
+                  <strong style="font-size:0.78rem">${c.nombre}</strong>
+                </div>
+              </td>
+            `;
+          case "cif":
+            return `<td><span class="entity-code" style="font-size:0.75rem">${c.cif}</span></td>`;
+          case "sede":
+            return `<td><span style="color:var(--entity-muted);font-size:0.76rem">${c.sede}</span></td>`;
+          case "actividad":
+            return `<td><span style="font-size:0.75rem;color:var(--entity-muted)">${c.actividad}</span></td>`;
+          case "activos":
+            return `<td>${renderClienteActivosCell(c, idx, total)}</td>`;
+          case "contacto":
+            return `
+              <td class="dir-cell-contact">
+                <div style="display:flex;flex-direction:column;gap:3px;min-width:0">
+                  ${renderEmailCell(c.email || c.contacto)}
+                  ${c.telefono ? renderTelefonoCell(c.telefono) : ''}
+                </div>
+              </td>
+            `;
+          default:
+            return `<td></td>`;
+        }
+      };
+
       let contentHTML = "";
 
       if (directorioViewMode === "table") {
         const prvTableHTML = showProveedores ? `
           <div style="margin-bottom:28px">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-              <h3 style="margin:0;font-size:0.95rem;color:var(--entity-text);display:flex;align-items:center;gap:8px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+              <h3 style="margin:0;font-size:0.92rem;color:var(--entity-text);display:flex;align-items:center;gap:8px">
                 Proveedores homologados
                 <span class="dossier-chip" style="font-size:0.7rem">${prvActiveList.length} ${prvActiveList.length === 1 ? 'proveedor' : 'proveedores'}</span>
               </h3>
@@ -5405,77 +5557,43 @@
               <table class="b2b-dir-table">
                 <thead>
                   <tr>
-                    <th class="is-sortable ${directorioPrvSortCol === 'nombre' ? 'is-sorted' : ''}" data-sort-dir-prv="nombre">
-                      <div class="th-sort-wrap">
-                        <span>Nombre</span>
-                        ${getDirectorioSortIcon('nombre', directorioPrvSortCol, directorioPrvSortDir)}
-                      </div>
-                    </th>
-                    <th class="is-sortable ${directorioPrvSortCol === 'cif' ? 'is-sorted' : ''}" data-sort-dir-prv="cif">
-                      <div class="th-sort-wrap">
-                        <span>CIF</span>
-                        ${getDirectorioSortIcon('cif', directorioPrvSortCol, directorioPrvSortDir)}
-                      </div>
-                    </th>
-                    <th class="is-sortable ${directorioPrvSortCol === 'sede' ? 'is-sorted' : ''}" data-sort-dir-prv="sede">
-                      <div class="th-sort-wrap">
-                        <span>Sede</span>
-                        ${getDirectorioSortIcon('sede', directorioPrvSortCol, directorioPrvSortDir)}
-                      </div>
-                    </th>
-                    <th class="is-sortable ${directorioPrvSortCol === 'suministros' ? 'is-sorted' : ''}" data-sort-dir-prv="suministros">
-                      <div class="th-sort-wrap">
-                        <span>Suministros</span>
-                        ${getDirectorioSortIcon('suministros', directorioPrvSortCol, directorioPrvSortDir)}
-                      </div>
-                    </th>
-                    <th class="is-sortable ${directorioPrvSortCol === 'activos' ? 'is-sorted' : ''}" data-sort-dir-prv="activos">
-                      <div class="th-sort-wrap">
-                        <span>Activos</span>
-                        ${getDirectorioSortIcon('activos', directorioPrvSortCol, directorioPrvSortDir)}
-                      </div>
-                    </th>
-                    <th class="is-sortable ${directorioPrvSortCol === 'conformidades' ? 'is-sorted' : ''}" data-sort-dir-prv="conformidades">
-                      <div class="th-sort-wrap">
-                        <span>Conformidades</span>
-                        ${getDirectorioSortIcon('conformidades', directorioPrvSortCol, directorioPrvSortDir)}
-                      </div>
-                    </th>
-                    <th class="is-sortable ${directorioPrvSortCol === 'contacto' ? 'is-sorted' : ''}" data-sort-dir-prv="contacto">
-                      <div class="th-sort-wrap">
-                        <span>Contacto</span>
-                        ${getDirectorioSortIcon('contacto', directorioPrvSortCol, directorioPrvSortDir)}
-                      </div>
-                    </th>
+                    ${visiblePrvCols.map(colId => {
+                      const colDef = ALL_DIR_PRV_COL_DEFS[colId] || { label: colId };
+                      const isSorted = directorioPrvSortCol === colId;
+                      return `
+                        <th class="is-sortable ${isSorted ? 'is-sorted' : ''}"
+                            data-sort-dir-prv="${colId}"
+                            data-dir-col-id="${colId}"
+                            data-dir-entity="proveedor"
+                            draggable="true"
+                            title="Clic para ordenar · Arrastra para reordenar columna"
+                            style="min-width:${colDef.minWidth || '85px'}">
+                          <div class="th-sort-wrap" style="display:flex;align-items:center;justify-content:space-between;gap:4px">
+                            <div style="display:flex;align-items:center;gap:4px;min-width:0">
+                              <span class="dir-th-drag-grip" title="Arrastrar para mover">⠿</span>
+                              <span>${colDef.label}</span>
+                              ${getDirectorioSortIcon(colId, directorioPrvSortCol, directorioPrvSortDir)}
+                            </div>
+                            <button type="button" class="dir-th-hide-btn" data-hide-dir-col="${colId}" data-dir-entity="proveedor" title="Ocultar columna «${colDef.label}»" aria-label="Ocultar columna «${colDef.label}»">
+                              ${icon("eyeOff", 12)}
+                            </button>
+                          </div>
+                        </th>
+                      `;
+                    }).join("")}
                     <th style="text-align:right">Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
                   ${prvActiveList.length === 0 ? `
                     <tr>
-                      <td colspan="9" style="text-align:center;padding:32px;color:var(--entity-muted)">
+                      <td colspan="${visiblePrvCols.length + 1}" style="text-align:center;padding:32px;color:var(--entity-muted)">
                         No se encontraron proveedores que coincidan con la búsqueda.
                       </td>
                     </tr>
                   ` : prvActiveList.map((p, idx) => `
                     <tr>
-                      <td>
-                        <div style="display:flex;align-items:center;gap:10px">
-                          <span class="admin-client-initials" style="width:26px;height:26px;min-width:26px;min-height:26px;max-width:26px;max-height:26px;flex:0 0 26px;flex-shrink:0;border-radius:50%;font-size:0.68rem;aspect-ratio:1">${p.nombre.slice(0, 2).toUpperCase()}</span>
-                          <strong style="font-size:0.78rem">${p.nombre}</strong>
-                        </div>
-                      </td>
-                      <td><span class="entity-code" style="font-size:0.75rem">${p.cif}</span></td>
-                      <td><span style="color:var(--entity-muted);font-size:0.78rem">${p.sede}</span></td>
-                      <td>${renderSuministrosTags(p.suministros || [p.materiales])}</td>
-                      <td>${renderProveedorActivosCell(p, idx, prvActiveList.length)}</td>
-                      <td>${renderConformidadesTags(p.conformidades || p.homologaciones)}</td>
-                      <td class="dir-cell-contact">
-                        <div style="display:flex;flex-direction:column;gap:3px;min-width:0">
-                          ${renderEmailCell(p.email || p.contacto)}
-                          ${p.telefono ? renderTelefonoCell(p.telefono) : ''}
-                        </div>
-                      </td>
+                      ${visiblePrvCols.map(colId => renderPrvCell(p, colId, idx, prvActiveList.length)).join("")}
                       <td style="text-align:right">
                         <button class="admin-quiet-button" type="button" data-edit-dir="proveedor" data-id="${p.id}">
                           ${icon("edit", 13)} Editar
@@ -5491,8 +5609,8 @@
 
         const cliTableHTML = showClientes ? `
           <div>
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-              <h3 style="margin:0;font-size:0.95rem;color:var(--entity-text);display:flex;align-items:gap:8px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+              <h3 style="margin:0;font-size:0.92rem;color:var(--entity-text);display:flex;align-items:center;gap:8px">
                 Clientes (Constructores de vía)
                 <span class="dossier-chip" style="font-size:0.7rem">${cliActiveList.length} ${cliActiveList.length === 1 ? 'cliente' : 'clientes'}</span>
               </h3>
@@ -5501,70 +5619,43 @@
               <table class="b2b-dir-table">
                 <thead>
                   <tr>
-                    <th class="is-sortable ${directorioCliSortCol === 'nombre' ? 'is-sorted' : ''}" data-sort-dir-cli="nombre">
-                      <div class="th-sort-wrap">
-                        <span>Nombre</span>
-                        ${getDirectorioSortIcon('nombre', directorioCliSortCol, directorioCliSortDir)}
-                      </div>
-                    </th>
-                    <th class="is-sortable ${directorioCliSortCol === 'cif' ? 'is-sorted' : ''}" data-sort-dir-cli="cif">
-                      <div class="th-sort-wrap">
-                        <span>CIF</span>
-                        ${getDirectorioSortIcon('cif', directorioCliSortCol, directorioCliSortDir)}
-                      </div>
-                    </th>
-                    <th class="is-sortable ${directorioCliSortCol === 'sede' ? 'is-sorted' : ''}" data-sort-dir-cli="sede">
-                      <div class="th-sort-wrap">
-                        <span>Sede</span>
-                        ${getDirectorioSortIcon('sede', directorioCliSortCol, directorioCliSortDir)}
-                      </div>
-                    </th>
-                    <th class="is-sortable ${directorioCliSortCol === 'actividad' ? 'is-sorted' : ''}" data-sort-dir-cli="actividad">
-                      <div class="th-sort-wrap">
-                        <span>Actividad</span>
-                        ${getDirectorioSortIcon('actividad', directorioCliSortCol, directorioCliSortDir)}
-                      </div>
-                    </th>
-                    <th class="is-sortable ${directorioCliSortCol === 'activos' ? 'is-sorted' : ''}" data-sort-dir-cli="activos">
-                      <div class="th-sort-wrap">
-                        <span>Activos</span>
-                        ${getDirectorioSortIcon('activos', directorioCliSortCol, directorioCliSortDir)}
-                      </div>
-                    </th>
-                    <th class="is-sortable ${directorioCliSortCol === 'contacto' ? 'is-sorted' : ''}" data-sort-dir-cli="contacto">
-                      <div class="th-sort-wrap">
-                        <span>Contacto</span>
-                        ${getDirectorioSortIcon('contacto', directorioCliSortCol, directorioCliSortDir)}
-                      </div>
-                    </th>
+                    ${visibleCliCols.map(colId => {
+                      const colDef = ALL_DIR_CLI_COL_DEFS[colId] || { label: colId };
+                      const isSorted = directorioCliSortCol === colId;
+                      return `
+                        <th class="is-sortable ${isSorted ? 'is-sorted' : ''}"
+                            data-sort-dir-cli="${colId}"
+                            data-dir-col-id="${colId}"
+                            data-dir-entity="cliente"
+                            draggable="true"
+                            title="Clic para ordenar · Arrastra para reordenar columna"
+                            style="min-width:${colDef.minWidth || '85px'}">
+                          <div class="th-sort-wrap" style="display:flex;align-items:center;justify-content:space-between;gap:4px">
+                            <div style="display:flex;align-items:center;gap:4px;min-width:0">
+                              <span class="dir-th-drag-grip" title="Arrastrar para mover">⠿</span>
+                              <span>${colDef.label}</span>
+                              ${getDirectorioSortIcon(colId, directorioCliSortCol, directorioCliSortDir)}
+                            </div>
+                            <button type="button" class="dir-th-hide-btn" data-hide-dir-col="${colId}" data-dir-entity="cliente" title="Ocultar columna «${colDef.label}»" aria-label="Ocultar columna «${colDef.label}»">
+                              ${icon("eyeOff", 12)}
+                            </button>
+                          </div>
+                        </th>
+                      `;
+                    }).join("")}
                     <th style="text-align:right">Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
                   ${cliActiveList.length === 0 ? `
                     <tr>
-                      <td colspan="8" style="text-align:center;padding:32px;color:var(--entity-muted)">
+                      <td colspan="${visibleCliCols.length + 1}" style="text-align:center;padding:32px;color:var(--entity-muted)">
                         No se encontraron clientes que coincidan con la búsqueda.
                       </td>
                     </tr>
                   ` : cliActiveList.map((c, idx) => `
                     <tr>
-                      <td>
-                        <div style="display:flex;align-items:center;gap:10px">
-                          <span class="admin-client-initials" style="width:26px;height:26px;min-width:26px;min-height:26px;max-width:26px;max-height:26px;flex:0 0 26px;flex-shrink:0;border-radius:50%;font-size:0.68rem;aspect-ratio:1;background:#1d426b">${c.nombre.slice(0, 2).toUpperCase()}</span>
-                          <strong style="font-size:0.78rem">${c.nombre}</strong>
-                        </div>
-                      </td>
-                      <td><span class="entity-code" style="font-size:0.75rem">${c.cif}</span></td>
-                      <td><span style="color:var(--entity-muted);font-size:0.78rem">${c.sede}</span></td>
-                      <td><span style="font-size:0.75rem;color:var(--entity-muted)">${c.actividad}</span></td>
-                      <td>${renderClienteActivosCell(c, idx, cliActiveList.length)}</td>
-                      <td class="dir-cell-contact">
-                        <div style="display:flex;flex-direction:column;gap:3px;min-width:0">
-                          ${renderEmailCell(c.email || c.contacto)}
-                          ${c.telefono ? renderTelefonoCell(c.telefono) : ''}
-                        </div>
-                      </td>
+                      ${visibleCliCols.map(colId => renderCliCell(c, colId, idx, cliActiveList.length)).join("")}
                       <td style="text-align:right">
                         <button class="admin-quiet-button" type="button" data-edit-dir="cliente" data-id="${c.id}">
                           ${icon("edit", 13)} Editar
@@ -5682,9 +5773,16 @@
           ? cliActiveList.length 
           : (prvActiveList.length + cliActiveList.length);
 
+      const isOnlyCli = directorioTypeFilter === "clientes";
+      const activeColOrder = isOnlyCli ? dirCliColOrder : dirPrvColOrder;
+      const activeHiddenCols = isOnlyCli ? dirCliHiddenCols : dirPrvHiddenCols;
+      const activeColDefs = isOnlyCli ? ALL_DIR_CLI_COL_DEFS : ALL_DIR_PRV_COL_DEFS;
+      const activeDefaultOrder = isOnlyCli ? DEFAULT_DIR_CLI_COL_ORDER : DEFAULT_DIR_PRV_COL_ORDER;
+      const visibleColsCount = activeColOrder.filter(c => !activeHiddenCols.has(c)).length;
+
       return `
         <!-- Fila superior: Título 'Listado' y acciones principales -->
-        <div class="admin-view-head" style="margin-bottom:18px">
+        <div class="admin-view-head" style="margin-bottom:14px">
           <div class="b2b-dir-header-title">
             <h1 style="margin:0;font-size:1.75rem;font-weight:600;display:flex;align-items:center;gap:10px;letter-spacing:-0.03em">
               Listado
@@ -5708,8 +5806,26 @@
           </div>
         </div>
 
-        <!-- Fila inferior de filtros y buscador: situada cerca de la tabla -->
-        <div class="b2b-dir-filter-bar" style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px">
+        <!-- Fila inferior: Filtros y controles situados a la derecha y pegados a la tabla -->
+        <div class="b2b-dir-filter-bar" style="display:flex;align-items:center;justify-content:flex-end;gap:10px;margin-bottom:8px;flex-wrap:wrap">
+          <div class="b2b-dir-search-wrap" style="max-width:280px;min-width:180px">
+            <span class="dir-search-icon" style="left:10px">${icon("search", 14)}</span>
+            <input 
+              type="search" 
+              id="directorioSearchInput" 
+              class="b2b-dir-search-input" 
+              placeholder="Buscar..." 
+              value="${directorioSearchQuery.replace(/"/g, '&quot;')}"
+              autocomplete="off"
+              style="height:32px;font-size:0.77rem;padding-left:32px"
+            />
+            ${directorioSearchQuery ? `
+              <button type="button" id="clearDirectorioSearchBtn" class="dir-search-clear" title="Limpiar búsqueda">
+                ${icon("x", 12)}
+              </button>
+            ` : ''}
+          </div>
+
           <div class="b2b-dir-type-tabs">
             <button type="button" class="dir-type-btn ${directorioTypeFilter === 'all' ? 'is-active' : ''}" data-dir-type="all">
               Todos <span class="dir-count-pill">${DIRECTORIO_PROVEEDORES.length + DIRECTORIO_CLIENTES.length}</span>
@@ -5722,22 +5838,43 @@
             </button>
           </div>
 
-          <div class="b2b-dir-search-wrap" style="max-width:320px;min-width:220px">
-            <span class="dir-search-icon" style="left:10px">${icon("search", 14)}</span>
-            <input 
-              type="search" 
-              id="directorioSearchInput" 
-              class="b2b-dir-search-input" 
-              placeholder="Buscar por nombre, CIF, sede, suministro..." 
-              value="${directorioSearchQuery.replace(/"/g, '&quot;')}"
-              autocomplete="off"
-              style="height:34px;font-size:0.78rem;padding-left:32px"
-            />
-            ${directorioSearchQuery ? `
-              <button type="button" id="clearDirectorioSearchBtn" class="dir-search-clear" title="Limpiar búsqueda">
-                ${icon("x", 12)}
-              </button>
-            ` : ''}
+          <!-- Gestor de Columnas de Directorio -->
+          <div class="suministros-cols-wrap" id="directorioColsWrap" style="position:relative">
+            <button type="button" class="suministros-cols-btn ${(dirPrvHiddenCols.size > 0 || dirCliHiddenCols.size > 0) ? 'is-active' : ''}" id="btnToggleDirColsMenu" aria-expanded="${isDirColsMenuOpen}" style="height:32px;padding:0 10px;font-size:0.75rem">
+              ${icon("columns", 13)}
+              <span>Columnas</span>
+              <span class="suministros-cols-count">(${visibleColsCount}/${activeDefaultOrder.length})</span>
+              ${icon("chevronDown", 11)}
+            </button>
+            <div class="suministros-cols-popover" id="directorioColsPopover" ${isDirColsMenuOpen ? '' : 'hidden'} style="top:calc(100% + 8px);right:0;width:290px;z-index:150">
+              <div class="suministros-cols-popover-head">
+                <div>
+                  <strong>Personalizar columnas</strong>
+                  <p>Arrastra cabeceras o usa flechas para ordenar; desmarca para ocultar.</p>
+                </div>
+                <button type="button" class="admin-quiet-button" id="btnResetDirColsConfig" title="Restablecer visibilidad y orden por defecto" style="font-size:0.72rem;color:var(--entity-accent)">
+                  Restablecer
+                </button>
+              </div>
+              <div class="suministros-cols-list">
+                ${activeColOrder.map((colId, idx) => {
+                  const colDef = activeColDefs[colId] || { label: colId };
+                  const isVis = !activeHiddenCols.has(colId);
+                  return `
+                    <div class="suministros-col-row" data-popover-dir-col="${colId}">
+                      <label class="suministros-col-check-label">
+                        <input type="checkbox" data-dir-col-toggle="${colId}" ${isVis ? "checked" : ""}>
+                        <span>${colDef.label}</span>
+                      </label>
+                      <div class="suministros-col-arrows">
+                        <button type="button" class="col-arrow-btn" data-dir-col-move="up" data-col-id="${colId}" title="Mover hacia arriba" ${idx === 0 ? "disabled" : ""}>↑</button>
+                        <button type="button" class="col-arrow-btn" data-dir-col-move="down" data-col-id="${colId}" title="Mover hacia abajo" ${idx === activeColOrder.length - 1 ? "disabled" : ""}>↓</button>
+                      </div>
+                    </div>
+                  `;
+                }).join("")}
+              </div>
+            </div>
           </div>
         </div>
 
@@ -7705,31 +7842,216 @@
       });
     });
 
-    // Clic en Cabeceras para ordenar Proveedores
-    document.querySelectorAll("[data-sort-dir-prv]").forEach(th => {
-      th.addEventListener("click", () => {
-        const col = th.dataset.sortDirPrv;
-        if (directorioPrvSortCol === col) {
-          directorioPrvSortDir = directorioPrvSortDir === "asc" ? "desc" : "asc";
-        } else {
-          directorioPrvSortCol = col;
-          directorioPrvSortDir = "asc";
+    // Menú Popover de Columnas en Directorio
+    const btnToggleDirCols = document.getElementById("btnToggleDirColsMenu");
+    if (btnToggleDirCols) {
+      btnToggleDirCols.addEventListener("click", (e) => {
+        e.stopPropagation();
+        isDirColsMenuOpen = !isDirColsMenuOpen;
+        const popover = document.getElementById("directorioColsPopover");
+        if (popover) {
+          popover.hidden = !isDirColsMenuOpen;
+          btnToggleDirCols.setAttribute("aria-expanded", String(isDirColsMenuOpen));
         }
+      });
+    }
+
+    // Cerrar menú de columnas de Directorio al hacer clic fuera
+    document.addEventListener("click", (e) => {
+      const wrap = document.getElementById("directorioColsWrap");
+      const popover = document.getElementById("directorioColsPopover");
+      if (wrap && popover && !popover.hidden) {
+        if (!wrap.contains(e.target)) {
+          isDirColsMenuOpen = false;
+          popover.hidden = true;
+          document.getElementById("btnToggleDirColsMenu")?.setAttribute("aria-expanded", "false");
+        }
+      }
+    });
+
+    // Ocultar/Mostrar Columnas de Directorio con Checkbox
+    document.querySelectorAll("[data-dir-col-toggle]").forEach(chk => {
+      chk.addEventListener("change", () => {
+        const colId = chk.dataset.dirColToggle;
+        const isCli = directorioTypeFilter === "clientes";
+        const activeOrder = isCli ? dirCliColOrder : dirPrvColOrder;
+        const activeHidden = isCli ? dirCliHiddenCols : dirPrvHiddenCols;
+
+        if (!chk.checked) {
+          const visibleCount = activeOrder.filter(c => !activeHidden.has(c)).length;
+          if (visibleCount <= 1) {
+            showToast("Al menos una columna debe permanecer visible");
+            chk.checked = true;
+            return;
+          }
+          activeHidden.add(colId);
+        } else {
+          activeHidden.delete(colId);
+        }
+        saveDirColPrefs();
         renderApp();
       });
     });
 
-    // Clic en Cabeceras para ordenar Clientes
-    document.querySelectorAll("[data-sort-dir-cli]").forEach(th => {
-      th.addEventListener("click", () => {
-        const col = th.dataset.sortDirCli;
-        if (directorioCliSortCol === col) {
-          directorioCliSortDir = directorioCliSortDir === "asc" ? "desc" : "asc";
-        } else {
-          directorioCliSortCol = col;
-          directorioCliSortDir = "asc";
+    // Reordenar Columnas de Directorio con Flechas
+    document.querySelectorAll("[data-dir-col-move]").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const dir = btn.dataset.dirColMove;
+        const colId = btn.dataset.colId;
+        const isCli = directorioTypeFilter === "clientes";
+        const activeOrder = isCli ? dirCliColOrder : dirPrvColOrder;
+        const idx = activeOrder.indexOf(colId);
+        if (idx === -1) return;
+
+        if (dir === "up" && idx > 0) {
+          const temp = activeOrder[idx - 1];
+          activeOrder[idx - 1] = colId;
+          activeOrder[idx] = temp;
+          saveDirColPrefs();
+          renderApp();
+        } else if (dir === "down" && idx < activeOrder.length - 1) {
+          const temp = activeOrder[idx + 1];
+          activeOrder[idx + 1] = colId;
+          activeOrder[idx] = temp;
+          saveDirColPrefs();
+          renderApp();
         }
+      });
+    });
+
+    // Ocultar columna directa desde cabecera (botón hover ojo tachado)
+    document.querySelectorAll("[data-hide-dir-col]").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        const colId = btn.dataset.hideDirCol;
+        const entity = btn.dataset.dirEntity;
+        const isCli = entity === "cliente";
+        const activeOrder = isCli ? dirCliColOrder : dirPrvColOrder;
+        const activeHidden = isCli ? dirCliHiddenCols : dirPrvHiddenCols;
+        const colDef = (isCli ? ALL_DIR_CLI_COL_DEFS : ALL_DIR_PRV_COL_DEFS)[colId] || { label: colId };
+
+        const visibleCount = activeOrder.filter(c => !activeHidden.has(c)).length;
+        if (visibleCount <= 1) {
+          showToast("Al menos una columna debe permanecer visible");
+          return;
+        }
+        activeHidden.add(colId);
+        saveDirColPrefs();
+        showToast(`Columna "${colDef.label}" ocultada. Puedes reactivarla desde "Columnas".`);
         renderApp();
+      });
+    });
+
+    // Restablecer Columnas de Directorio por Defecto
+    const btnResetDirCols = document.getElementById("btnResetDirColsConfig");
+    if (btnResetDirCols) {
+      btnResetDirCols.addEventListener("click", (e) => {
+        e.stopPropagation();
+        dirPrvColOrder = [...DEFAULT_DIR_PRV_COL_ORDER];
+        dirPrvHiddenCols.clear();
+        dirCliColOrder = [...DEFAULT_DIR_CLI_COL_ORDER];
+        dirCliHiddenCols.clear();
+        saveDirColPrefs();
+        showToast("Columnas de directorio restablecidas al orden y visibilidad por defecto");
+        renderApp();
+      });
+    }
+
+    // Drag and Drop & Ordenación en Cabeceras de Directorio
+    let draggedDirColId = null;
+    let draggedDirEntity = null;
+    let isDraggingDirColumn = false;
+
+    document.querySelectorAll(".b2b-dir-table th.is-sortable[draggable]").forEach(th => {
+      th.addEventListener("dragstart", (e) => {
+        draggedDirColId = th.dataset.dirColId;
+        draggedDirEntity = th.dataset.dirEntity;
+        isDraggingDirColumn = true;
+        e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData("text/plain", draggedDirColId);
+        th.classList.add("is-dragging");
+      });
+
+      th.addEventListener("dragend", () => {
+        th.classList.remove("is-dragging");
+        document.querySelectorAll(".b2b-dir-table th").forEach(t => t.classList.remove("drag-over-left", "drag-over-right"));
+        setTimeout(() => { isDraggingDirColumn = false; }, 80);
+      });
+
+      th.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+        const targetId = th.dataset.dirColId;
+        const targetEntity = th.dataset.dirEntity;
+        if (!draggedDirColId || targetId === draggedDirColId || targetEntity !== draggedDirEntity) return;
+
+        const rect = th.getBoundingClientRect();
+        const isLeft = e.clientX < rect.left + rect.width / 2;
+        if (isLeft) {
+          th.classList.add("drag-over-left");
+          th.classList.remove("drag-over-right");
+        } else {
+          th.classList.add("drag-over-right");
+          th.classList.remove("drag-over-left");
+        }
+      });
+
+      th.addEventListener("dragleave", () => {
+        th.classList.remove("drag-over-left", "drag-over-right");
+      });
+
+      th.addEventListener("drop", (e) => {
+        e.preventDefault();
+        th.classList.remove("drag-over-left", "drag-over-right");
+        const targetId = th.dataset.dirColId;
+        const targetEntity = th.dataset.dirEntity;
+        if (!draggedDirColId || !targetId || draggedDirColId === targetId || targetEntity !== draggedDirEntity) return;
+
+        const isCli = targetEntity === "cliente";
+        const activeOrder = isCli ? dirCliColOrder : dirPrvColOrder;
+
+        const rect = th.getBoundingClientRect();
+        const isInsertAfter = e.clientX >= rect.left + rect.width / 2;
+
+        const fromIdx = activeOrder.indexOf(draggedDirColId);
+        if (fromIdx === -1) return;
+        activeOrder.splice(fromIdx, 1);
+
+        let toIdx = activeOrder.indexOf(targetId);
+        if (toIdx === -1) toIdx = activeOrder.length;
+        if (isInsertAfter) toIdx += 1;
+
+        activeOrder.splice(toIdx, 0, draggedDirColId);
+        saveDirColPrefs();
+        renderApp();
+      });
+
+      // Clic para ordenar columna (solo si no se estaba arrastrando)
+      th.addEventListener("click", (e) => {
+        if (isDraggingDirColumn) return;
+        if (e.target.closest(".dir-th-drag-grip") || e.target.closest("[data-hide-dir-col]")) return;
+
+        if (th.dataset.sortDirPrv) {
+          const col = th.dataset.sortDirPrv;
+          if (directorioPrvSortCol === col) {
+            directorioPrvSortDir = directorioPrvSortDir === "asc" ? "desc" : "asc";
+          } else {
+            directorioPrvSortCol = col;
+            directorioPrvSortDir = "asc";
+          }
+          renderApp();
+        } else if (th.dataset.sortDirCli) {
+          const col = th.dataset.sortDirCli;
+          if (directorioCliSortCol === col) {
+            directorioCliSortDir = directorioCliSortDir === "asc" ? "desc" : "asc";
+          } else {
+            directorioCliSortCol = col;
+            directorioCliSortDir = "asc";
+          }
+          renderApp();
+        }
       });
     });
 
@@ -7778,6 +8100,7 @@
         const expId = btn.dataset.expId;
         const exp = getActiveExpediente(expId);
         const matching = ensureExpedienteMatching(exp);
+        if (activeRole === "cliente" && targetStep === "preseleccion") return;
         matching.faseSelector = targetStep;
         renderApp();
       });
