@@ -1638,6 +1638,11 @@
   };
   let docStatusFilter = "all"; // "all" | "complete" | "review" | "pending" | "rejected"
   let expKpiFilter = "all"; // "all" | "activos" | "accion_pendiente" | "completados" | "cerrados"
+  let expBandejaCollapseState = {
+    activos: true,
+    completados: false,
+    cerrados: false
+  };
   let expCardFilters = {
     fase: "all",
     cliente: "all",
@@ -1997,16 +2002,39 @@
         </div>
       </div>
 
+      <hr class="dossier-section-divider is-subtle" />
+
       ${mainSectionNotice}
 
-      <!-- Rejilla principal de expedientes -->
-      <div class="admin-exp-list">
-        ${mainCardsHTML}
-      </div>
+      <!-- Bloque principal de expedientes (plegable/desplegable con diseño sutil) -->
+      <details class="exp-collapsible-details is-main-active" data-exp-collapse="activos" ${expBandejaCollapseState.activos !== false ? "open" : ""}>
+        <summary>
+          <div class="exp-collapsible-summary-left">
+            <span class="scope-dot ${expKpiFilter === "accion_pendiente" ? "is-pending-pulse" : expKpiFilter === "completados" ? "info" : expKpiFilter === "cerrados" ? "closed" : "active"}"></span>
+            <strong>${
+              expKpiFilter === "completados"
+                ? `Expedientes completados (${mainListToRender.length})`
+                : expKpiFilter === "cerrados"
+                  ? `Expedientes cerrados (${mainListToRender.length})`
+                  : expKpiFilter === "accion_pendiente"
+                    ? `Expedientes con acción pendiente (${mainListToRender.length})`
+                    : `Expedientes activos (${mainListToRender.length})`
+            }</strong>
+          </div>
+          <span class="exp-collapsible-toggle-text">${icon("chevronDown", 14)}</span>
+        </summary>
+        <div class="exp-collapsible-content">
+          <div class="admin-exp-list">
+            ${mainCardsHTML}
+          </div>
+        </div>
+      </details>
+
+      <hr class="dossier-section-divider is-subtle" style="margin: 18px 0 14px" />
 
       <!-- Dos desplegables inferiores: Expedientes finalizados y Expedientes cerrados -->
       <div class="exp-bottom-collapsibles">
-        <details class="exp-collapsible-details" ${expKpiFilter === "completados" ? "open" : ""}>
+        <details class="exp-collapsible-details" data-exp-collapse="completados" ${expKpiFilter === "completados" || expBandejaCollapseState.completados ? "open" : ""}>
           <summary>
             <div class="exp-collapsible-summary-left">
               <span class="scope-dot info"></span>
@@ -2021,7 +2049,7 @@
           </div>
         </details>
 
-        <details class="exp-collapsible-details" ${expKpiFilter === "cerrados" ? "open" : ""}>
+        <details class="exp-collapsible-details" data-exp-collapse="cerrados" ${expKpiFilter === "cerrados" || expBandejaCollapseState.cerrados ? "open" : ""}>
           <summary>
             <div class="exp-collapsible-summary-left">
               <span class="scope-dot closed"></span>
@@ -2386,26 +2414,43 @@
     const isRoleCliente = activeRole === "cliente";
     const isRoleProveedor = activeRole === "proveedor";
 
+    // Sub-fase efectiva: en la vista de cliente no se muestra la fase 1 (preselección SOFEIN)
+    const effectiveFaseSelector = (isRoleCliente && matching.faseSelector === "preseleccion")
+      ? "seleccion_cliente"
+      : matching.faseSelector;
+
     // 4 Sub-fases oficiales del Selector de Proveedores
     const SUBSTEPS = [
-      { id: "preseleccion", num: 1, title: "1. Preselección SOFEIN", desc: "Mínimo 3 homologados" },
-      { id: "seleccion_cliente", num: 2, title: "2. Selección de Cliente", desc: "Elección para cotización" },
-      { id: "peticion_cotizaciones", num: 3, title: "3. Cotizaciones de Talleres", desc: "Ofertas vinculantes" },
-      { id: "comparativa", num: 4, title: "4. Comparativa & Elección", desc: "Adjudicación y requisitos" }
+      { id: "preseleccion", num: 1, title: "1. Preselección" },
+      { id: "seleccion_cliente", num: 2, title: "2. Selección" },
+      { id: "peticion_cotizaciones", num: 3, title: "3. Cotizaciones" },
+      { id: "comparativa", num: 4, title: "4. Elección" }
     ];
 
-    const currentStepIdx = SUBSTEPS.findIndex(s => s.id === matching.faseSelector);
-    const activeStepIndex = currentStepIdx >= 0 ? currentStepIdx : (matching.faseSelector === "adjudicado" ? 3 : 0);
+    const currentStepIdx = SUBSTEPS.findIndex(s => s.id === effectiveFaseSelector);
+    const activeStepIndex = currentStepIdx >= 0 ? currentStepIdx : (effectiveFaseSelector === "adjudicado" ? 3 : 0);
 
     const stepperHTML = SUBSTEPS.map((step, idx) => {
-      const isActive = idx === activeStepIndex;
-      const isDone = matching.faseSelector === "adjudicado" || idx < activeStepIndex;
+      const isClientDisabled = isRoleCliente && step.id === "preseleccion";
+      const isActive = !isClientDisabled && idx === activeStepIndex;
+      const isDone = !isClientDisabled && (effectiveFaseSelector === "adjudicado" || idx < activeStepIndex);
+
+      if (isClientDisabled) {
+        return `
+          <div class="selector-substep is-disabled-client" style="opacity:0.38;cursor:not-allowed;pointer-events:none;filter:grayscale(1)" title="Fase previa interna gestionada por SOFEIN">
+            <span class="selector-substep-num">${step.num}</span>
+            <div class="selector-substep-text">
+              <strong>${step.title}</strong>
+            </div>
+          </div>
+        `;
+      }
+
       return `
         <div class="selector-substep ${isActive ? "is-active" : isDone ? "is-done" : ""}" data-switch-selector-step="${step.id}" data-exp-id="${exp.id}" style="cursor:pointer" title="Ver sub-fase ${step.title}">
           <span class="selector-substep-num">${isDone ? icon("check", 13) : step.num}</span>
           <div class="selector-substep-text">
             <strong>${step.title}</strong>
-            <small>${step.desc}</small>
           </div>
         </div>
       `;
@@ -2416,29 +2461,16 @@
       <div class="dossier-breadcrumb" style="margin-bottom:14px">
         <a href="#${activeRole}/expedientes">← Volver a expedientes</a> / 
         <a href="#${activeRole}/expedientes/${exp.id}">${exp.id}</a> / 
-        <span>Selector de Proveedores & Matching</span>
+        <span>Cotizaciones</span>
       </div>
     `;
 
-    // Legal / Normative Banner (Apuntes 05 & 06: Mínimo 3 proveedores)
-    const legalBannerHTML = `
-      <div class="selector-legal-banner">
-        <div style="display:flex;align-items:center;gap:12px">
-          <span style="color:var(--entity-accent);display:grid;place-items:center;flex-shrink:0">
-            ${icon("shield", 22)}
-          </span>
-          <div>
-            <strong>Política de Homologación & Concurrencia SOFEIN</strong>
-            <p>El sistema aplica la concurrencia obligatoria: Mínimo 3 talleres homologados para garantizar neutralidad técnica, trazabilidad y libre concurrencia en la contratación de suministros ferroviarios (conforme a los pliegos técnicos y Ley 38/2015 del Sector Ferroviario).</p>
-          </div>
-        </div>
-        <div style="display:flex;gap:6px;align-items:center">
-          <span class="dossier-chip" style="font-size:0.7rem;color:var(--entity-accent);background:var(--entity-panel)">
-            ${matching.proveedoresPreseleccionadosPorAdmin.length} Homologados Aptos
-          </span>
-        </div>
-      </div>
-    `;
+    // Datos resumidos de cabecera: sólo suministro, tipo, unidades, fecha
+    const sumItem = (typeof SUMINISTROS !== "undefined" ? SUMINISTROS : INITIAL_SUMINISTROS).find(s => s.expId === exp.id);
+    const sumNombre = exp.producto || exp.tituloGenerico || (sumItem ? sumItem.tipo : "Suministro Ferroviario");
+    const sumTipo = exp.tipoMaterial || (sumItem ? sumItem.tipo : "Superestructura");
+    const sumUnidades = exp.unidades || (sumItem ? sumItem.unidades : "Según pliego");
+    const sumFecha = exp.fechaEntrega || (sumItem ? sumItem.fechaEntrega : null) || exp.fechaCierre || "14 oct 2026";
 
     // Candidate providers for preselection
     const matQuery = (exp.tipoMaterial || exp.producto || "").toLowerCase();
@@ -6790,11 +6822,18 @@
       });
     });
 
-    // Recordar estado de bloques colapsables dentro del expediente
+    // Recordar estado de bloques colapsables dentro del expediente y en bandeja de expedientes
     document.querySelectorAll("details[data-collapse-key]").forEach(det => {
       det.addEventListener("toggle", () => {
         const k = det.dataset.collapseKey;
         if (k) dossierCollapseState[k] = det.open;
+      });
+    });
+
+    document.querySelectorAll("details[data-exp-collapse]").forEach(det => {
+      det.addEventListener("toggle", () => {
+        const k = det.dataset.expCollapse;
+        if (k) expBandejaCollapseState[k] = det.open;
       });
     });
 

@@ -6559,3 +6559,53 @@ select:focus,
   word-break: break-word;
   line-height: 1.38;
 }
+
+
+/* ============================================================
+   MEJORA SUTIL DE USABILIDAD Y LEGIBILIDAD EN "EXPEDIENTES" / "MIS EXPEDIENTES" (v23)
+   ============================================================ */
+.dossier-section-divider.is-subtle {
+  margin: 4px 0 14px;
+  opacity: 0.7;
+}
+
+.admin-exp-list {
+  gap: 16px !important;
+}
+
+.admin-exp-card.exp-v2-card {
+  padding: 17px 19px !important;
+  gap: 11px !important;
+}
+
+.admin-exp-card.exp-v2-card .exp-v2-title {
+  padding: 1px 0 2px;
+  line-height: 1.36;
+}
+
+.exp-v2-data-grid {
+  gap: 8px !important;
+  padding-top: 11px !important;
+}
+
+.exp-v2-data-row {
+  padding: 1.5px 0;
+}
+
+.exp-v2-data-row.is-delivery {
+  padding-top: 8px !important;
+  margin-top: 3px !important;
+}
+
+.exp-collapsible-details.is-main-active {
+  border-color: var(--entity-line);
+}
+
+.exp-collapsible-details.is-main-active > summary {
+  padding: 10px 16px;
+}
+
+.exp-bottom-collapsibles {
+  margin-top: 0 !important;
+  gap: 12px !important;
+}
