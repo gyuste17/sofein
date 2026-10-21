@@ -5839,7 +5839,7 @@
       if (directorioViewMode === "table") {
         const prvTableHTML = showProveedores ? `
           <div style="margin-bottom:28px">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:12px;flex-wrap:wrap">
+            <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:4px;gap:12px;flex-wrap:wrap">
               <h3 style="margin:0;font-size:0.92rem;color:var(--entity-text);display:flex;align-items:center;gap:8px">
                 Proveedores homologados
                 <span class="dossier-chip" style="font-size:0.7rem">${prvActiveList.length} ${prvActiveList.length === 1 ? 'proveedor' : 'proveedores'}</span>
@@ -5902,7 +5902,7 @@
 
         const cliTableHTML = showClientes ? `
           <div ${showProveedores ? 'style="margin-top:24px"' : ''}>
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:12px;flex-wrap:wrap">
+            <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:4px;gap:12px;flex-wrap:wrap">
               <h3 style="margin:0;font-size:0.92rem;color:var(--entity-text);display:flex;align-items:center;gap:8px">
                 Clientes (Constructores de vía)
                 <span class="dossier-chip" style="font-size:0.7rem">${cliActiveList.length} ${cliActiveList.length === 1 ? 'cliente' : 'clientes'}</span>
@@ -6039,7 +6039,7 @@
         `).join("");
 
         contentHTML = `
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:12px;flex-wrap:wrap">
+          <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:10px;gap:12px;flex-wrap:wrap">
             <h3 style="margin:0;font-size:0.92rem;color:var(--entity-text);display:flex;align-items:center;gap:8px">
               ${directorioTypeFilter === 'clientes' ? 'Clientes (Constructores de vía)' : (directorioTypeFilter === 'proveedores' ? 'Proveedores homologados' : 'Directorio de entidades')}
               <span class="dossier-chip" style="font-size:0.7rem">${currentTotalCount}</span>
@@ -6069,7 +6069,7 @@
 
       return `
         <!-- Fila superior: Título 'Listado' y acciones principales -->
-        <div class="admin-view-head" style="margin-bottom:12px">
+        <div class="admin-view-head" style="margin-bottom:22px">
           <div class="b2b-dir-header-title">
             <h1 style="margin:0;font-size:1.75rem;font-weight:600;display:flex;align-items:center;gap:10px;letter-spacing:-0.03em">
               Listado
@@ -6175,45 +6175,7 @@
     }
 
     if (section === "perfil") {
-      return `
-        <div class="admin-view-head">
-          <div>
-            <h1>Perfil de constructor</h1>
-            <p>Información corporativa y certificaciones registradas en la plataforma SOFEIN.</p>
-          </div>
-        </div>
-
-        <section class="admin-client-card" style="padding:28px">
-          <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px">
-            <span class="admin-client-initials" style="width:52px;height:52px;font-size:1.2rem">IN</span>
-            <div>
-              <h2 style="margin:0;font-size:1.3rem">Infraestructuras del Norte, S.A.</h2>
-              <span style="color:var(--entity-accent);font-size:0.75rem">${icon("shield", 14)} Entidad verificada y homologada</span>
-            </div>
-          </div>
-
-          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;padding:20px 0;border-top:1px solid var(--entity-line);border-bottom:1px solid var(--entity-line)">
-            <div>
-              <span style="font-size:0.7rem;color:var(--entity-faint);text-transform:uppercase">CIF</span>
-              <strong style="display:block;margin-top:4px">A-48092311</strong>
-            </div>
-            <div>
-              <span style="font-size:0.7rem;color:var(--entity-faint);text-transform:uppercase">Representante Legal</span>
-              <strong style="display:block;margin-top:4px">María González López</strong>
-            </div>
-            <div>
-              <span style="font-size:0.7rem;color:var(--entity-faint);text-transform:uppercase">Contacto Técnico</span>
-              <strong style="display:block;margin-top:4px">proyectos@infraestructurasnorte.es</strong>
-            </div>
-          </div>
-
-          <div style="margin-top:20px;display:flex;gap:12px">
-            <span class="dossier-chip">${icon("shield", 14)} ISO 9001 Registrada</span>
-            <span class="dossier-chip">${icon("shield", 14)} ISO 14001 Registrada</span>
-            <span class="dossier-chip">${icon("check", 14)} Acuerdo Marco SOFEIN Firmado</span>
-          </div>
-        </section>
-      `;
+      return renderProfileView("cliente");
     }
 
     // Default
@@ -6268,43 +6230,669 @@
     }
 
     if (section === "perfil") {
+      return renderProfileView("proveedor");
+    }
+
+  /* ============================================================
+     VISTA DE PERFIL B2B: CLIENTE Y PROVEEDOR HOMOLOGADO
+     ============================================================ */
+  function renderProfileView(role) {
+    if (role === "proveedor") {
+      const prv = DIRECTORIO_PROVEEDORES.find(p => p.id === "PRV-01") || DIRECTORIO_PROVEEDORES[0];
+      const prvSums = SUMINISTROS.filter(s => s.proveedor && s.proveedor.toLowerCase().includes("iberrail"));
+      const activeSums = prvSums.filter(s => s.estado !== "cerrado" && s.faseActual < 3);
+      const completedSums = prvSums.filter(s => s.estado === "cerrado" || s.faseActual >= 3);
+      const prvExps = EXPEDIENTES.filter(e =>
+        (e.proveedor && e.proveedor.toLowerCase().includes("iberrail")) ||
+        e.id === "SFN-2026-K9M2" ||
+        e.id === "SFN-2026-W4P7"
+      );
+
+      const certs = prv.certificadosDetalle || [
+        {
+          nombre: "Homologación Técnica Adif NAV-2026",
+          norma: "ET Adif 03.360.571 · Traviesas y Fijaciones",
+          entidad: "Adif · Dirección Técnica",
+          vigencia: "31 dic 2028",
+          estado: "Vigente",
+          archivo: "Homologacion-Adif-NAV-2026-IberRail.pdf",
+          hash: "9f84b2c0e71a4d39"
+        },
+        {
+          nombre: "Certificación de Producto AENOR EN 13230",
+          norma: "UNE-EN 13230-1 / 13230-2 · Hormigón pretensado",
+          entidad: "AENOR / Laboratorio ENAC",
+          vigencia: "15 nov 2027",
+          estado: "Vigente",
+          archivo: "Certificado-AENOR-EN13230-PR22.pdf",
+          hash: "4a18d7e3b920f651"
+        },
+        {
+          nombre: "Acreditación de Laboratorio de Ensayos Propio",
+          norma: "UNE-EN ISO/IEC 17025 · Rotura dinámica y fatiga",
+          entidad: "ENAC (Acreditación Nº 412/LE984)",
+          vigencia: "30 jun 2028",
+          estado: "Vigente",
+          archivo: "Acreditacion-ENAC-IberRail-Lab.pdf",
+          hash: "7c31e9a4f082b512"
+        },
+        {
+          nombre: "Sistema de Gestión de Calidad y Ambiental",
+          norma: "ISO 9001:2015 · ISO 14001:2015 · Marcado CE",
+          entidad: "AENOR Internacional",
+          vigencia: "20 oct 2027",
+          estado: "Vigente",
+          archivo: "Certificados-ISO9001-14001-IberRail.pdf",
+          hash: "2d95c6b1a403e874"
+        },
+        {
+          nombre: "Acuerdo Marco de Proveedor Homologado SOFEIN",
+          norma: "Cláusula de trazabilidad por lote y mediación 5 días hábiles",
+          entidad: "SOFEIN Procurement B2B",
+          vigencia: "Renovación anual automática",
+          estado: "Firmado",
+          archivo: "Acuerdo-Marco-Proveedor-SOFEIN-2026.pdf",
+          hash: "6e02f4d8c197a360"
+        }
+      ];
+      prv.certificadosDetalle = certs;
+
+      const requisitos = prv.requisitosQueCumple && prv.requisitosQueCumple.length
+        ? prv.requisitosQueCumple
+        : [
+            "Trazabilidad lote a lote con código QR indeleble",
+            "Ensayos de rotura dinámica en laboratorio acreditado ENAC",
+            "Transporte y descarga a pie de vía con camión grúa o tren",
+            "Garantía anticorrosión y estructural de 10 años"
+          ];
+
+      const initials = (prv.nombre || "IR").slice(0, 2).toUpperCase();
+
       return `
-        <div class="admin-view-head">
+        <div class="admin-view-head" style="margin-bottom:14px">
           <div>
-            <h1>Perfil de proveedor</h1>
-            <p>Capacidad industrial, homologaciones vigentes y acreditaciones de laboratorio.</p>
+            <h1 style="margin:0;font-size:1.65rem;font-weight:600;letter-spacing:-0.03em">Perfil de proveedor</h1>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <button class="admin-quiet-button" type="button" data-open-upload-profile-cert="proveedor">
+              ${icon("upload", 13)} Subir certificado
+            </button>
+            <button class="admin-primary-button" type="button" data-edit-dir="proveedor" data-id="${prv.id}">
+              ${icon("edit", 13)} Editar datos del perfil
+            </button>
           </div>
         </div>
-        <section class="admin-client-card" style="padding:28px">
-          <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px">
-            <span class="admin-client-initials" style="width:52px;height:52px;font-size:1.2rem;background:#523d1d">IR</span>
-            <div>
-              <h2 style="margin:0;font-size:1.3rem">IberRail Components, S.L.</h2>
-              <span style="color:var(--entity-accent);font-size:0.75rem">${icon("shield", 14)} Proveedor Homologado por SOFEIN</span>
+
+        <!-- Resumen rápido (KPIs del proveedor) -->
+        <div class="exp-bandeja-summary-strip" style="margin-bottom:14px">
+          <span><strong>${prvSums.length}</strong> suministros asignados</span>
+          <span class="exp-strip-dot">·</span>
+          <span><strong>${activeSums.length}</strong> en ejecución activa</span>
+          <span class="exp-strip-dot">·</span>
+          <span><strong>${completedSums.length}</strong> completados</span>
+          <span class="exp-strip-dot">·</span>
+          <span><strong>${certs.length}</strong> homologaciones vigentes</span>
+        </div>
+
+        <div class="exp-kpi-filter-grid" style="margin-bottom:18px">
+          <div class="exp-kpi-filter-card" style="cursor:default">
+            <div class="exp-kpi-filter-top">
+              <span class="exp-kpi-label">Suministros activos</span>
+              <span class="exp-kpi-dot is-active"></span>
+            </div>
+            <strong class="exp-kpi-value">${activeSums.length}</strong>
+            <small class="exp-kpi-sub">En producción o entrega (${prvSums.length} totales)</small>
+          </div>
+          <div class="exp-kpi-filter-card" style="cursor:default">
+            <div class="exp-kpi-filter-top">
+              <span class="exp-kpi-label">Expedientes vinculados</span>
+              <span class="exp-kpi-dot" style="background:#60a5fa"></span>
+            </div>
+            <strong class="exp-kpi-value">${prvExps.length}</strong>
+            <small class="exp-kpi-sub">Adjudicados o en fase de cotización</small>
+          </div>
+          <div class="exp-kpi-filter-card" style="cursor:default">
+            <div class="exp-kpi-filter-top">
+              <span class="exp-kpi-label">Plazo medio (Lead time)</span>
+              <span class="exp-kpi-dot" style="background:#a78bfa"></span>
+            </div>
+            <strong class="exp-kpi-value" style="font-size:1.35rem">${prv.leadTimeMedio || "42 días"}</strong>
+            <small class="exp-kpi-sub">Fabricación y expedición desde planta</small>
+          </div>
+          <div class="exp-kpi-filter-card" style="cursor:default">
+            <div class="exp-kpi-filter-top">
+              <span class="exp-kpi-label">Índice de conformidad</span>
+              <span class="exp-kpi-dot is-complete"></span>
+            </div>
+            <strong class="exp-kpi-value" style="font-size:1.35rem;color:var(--entity-accent)">${prv.score || "98% Conforme"}</strong>
+            <small class="exp-kpi-sub">Auditoría documental y recepción SOFEIN</small>
+          </div>
+        </div>
+
+        <!-- Bloque 1: Ficha Corporativa e Industrial -->
+        <section class="b2b-profile-card">
+          <div class="b2b-profile-header">
+            <div style="display:flex;align-items:center;gap:14px;min-width:0">
+              <span class="admin-client-initials" style="width:48px;height:48px;font-size:1.1rem;background:#523d1d;flex-shrink:0">${initials}</span>
+              <div style="min-width:0">
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                  <span class="entity-code" style="font-size:0.72rem">${prv.id}</span>
+                  <h2 style="margin:0;font-size:1.22rem;font-weight:700;color:var(--entity-text)">${prv.nombre}</h2>
+                  <span class="dossier-chip is-active-chip" style="color:var(--entity-accent);border-color:rgba(16,185,129,0.3)">
+                    ${icon("shield", 12)} Proveedor Homologado SOFEIN
+                  </span>
+                </div>
+                <p style="margin:4px 0 0;font-size:0.78rem;color:var(--entity-muted)">
+                  ${prv.materiales || "Fabricante homologado de superestructura y armamento de vía ferroviaria"}
+                </p>
+              </div>
+            </div>
+            <button class="admin-quiet-button" type="button" data-edit-dir="proveedor" data-id="${prv.id}">
+              ${icon("edit", 13)} Editar ficha
+            </button>
+          </div>
+
+          <div class="b2b-profile-meta-grid">
+            <div class="b2b-profile-meta-item">
+              <span class="b2b-profile-meta-label">CIF / NIF</span>
+              <strong class="b2b-profile-meta-val">${prv.cif}</strong>
+            </div>
+            <div class="b2b-profile-meta-item">
+              <span class="b2b-profile-meta-label">Planta Principal y Sede</span>
+              <strong class="b2b-profile-meta-val">${prv.sede}</strong>
+            </div>
+            <div class="b2b-profile-meta-item">
+              <span class="b2b-profile-meta-label">Contacto Comercial / Técnico</span>
+              <strong class="b2b-profile-meta-val">${renderEmailCell(prv.email || prv.contacto)}</strong>
+            </div>
+            <div class="b2b-profile-meta-item">
+              <span class="b2b-profile-meta-label">Teléfono Directo</span>
+              <strong class="b2b-profile-meta-val">${prv.telefono ? renderTelefonoCell(prv.telefono) : "—"}</strong>
+            </div>
+            <div class="b2b-profile-meta-item">
+              <span class="b2b-profile-meta-label">Condiciones de Pago Marco</span>
+              <strong class="b2b-profile-meta-val">${prv.condicionesPago || "60 días confirmada"}</strong>
+            </div>
+            <div class="b2b-profile-meta-item">
+              <span class="b2b-profile-meta-label">Referencia Tarifaria Base</span>
+              <strong class="b2b-profile-meta-val">${prv.precioEstimado || "Según licitación"}</strong>
             </div>
           </div>
-          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;padding:20px 0;border-top:1px solid var(--entity-line);border-bottom:1px solid var(--entity-line)">
+        </section>
+
+        <!-- Bloque 2: Dos columnas (Capacidad Industrial y Catálogo | Homologaciones y Certificados) -->
+        <div class="b2b-profile-two-col">
+          <!-- Columna Izquierda: Catálogo Homologado y Capacidad Técnica -->
+          <section class="b2b-profile-card" style="margin-bottom:0;display:flex;flex-direction:column;justify-content:space-between">
             <div>
-              <span style="font-size:0.7rem;color:var(--entity-faint);text-transform:uppercase">CIF</span>
-              <strong style="display:block;margin-top:4px">B-48192837</strong>
+              <div class="b2b-profile-section-head">
+                <div>
+                  <h3>${icon("box", 15)} Catálogo homologado y capacidad técnica</h3>
+                  <p>Líneas de producto autorizadas para concurrir en licitaciones y matching SOFEIN.</p>
+                </div>
+              </div>
+
+              <div style="margin-bottom:16px">
+                <span class="b2b-profile-meta-label" style="display:block;margin-bottom:6px">Familias de suministro acreditadas</span>
+                ${renderSuministrosTags(prv.suministros || ["Traviesas", "Fijaciones"])}
+              </div>
+
+              <div style="margin-bottom:16px">
+                <span class="b2b-profile-meta-label" style="display:block;margin-bottom:6px">Alcance de fabricación registrado</span>
+                <div style="padding:10px 12px;border-radius:8px;background:var(--entity-panel-2);border:1px solid var(--entity-line);font-size:0.79rem;color:var(--entity-text);font-weight:500">
+                  ${prv.materiales || "Traviesas de Hormigón Monobloque PR-22 · Sujeciones SKL-14"}
+                </div>
+              </div>
+
+              <div>
+                <span class="b2b-profile-meta-label" style="display:block;margin-bottom:8px">Capacidades industriales y logísticas verificadas</span>
+                <ul class="b2b-profile-check-list">
+                  ${requisitos.map(req => `
+                    <li>
+                      <span class="b2b-profile-check-icon">${icon("check", 13)}</span>
+                      <span>${req}</span>
+                    </li>
+                  `).join("")}
+                </ul>
+              </div>
             </div>
+
+            <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--entity-line);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+              <span style="font-size:0.73rem;color:var(--entity-muted)">¿Nuevas líneas de fabricación o ensayos?</span>
+              <button class="admin-quiet-button" type="button" data-edit-dir="proveedor" data-id="${prv.id}">
+                ${icon("plus", 12)} Actualizar catálogo y capacidades
+              </button>
+            </div>
+          </section>
+
+          <!-- Columna Derecha: Homologaciones, Certificados y Acuerdo Marco -->
+          <section class="b2b-profile-card" style="margin-bottom:0">
+            <div class="b2b-profile-section-head">
+              <div>
+                <h3>${icon("shield", 15)} Homologaciones y certificaciones vigentes</h3>
+                <p>Documentación corporativa validada por SOFEIN e inyectada automáticamente en tus ofertas.</p>
+              </div>
+              <button class="admin-quiet-button" type="button" data-open-upload-profile-cert="proveedor">
+                ${icon("upload", 12)} Añadir
+              </button>
+            </div>
+
+            <div style="margin-bottom:12px">
+              ${renderConformidadesTags(prv.conformidades || prv.homologaciones)}
+            </div>
+
+            <div class="b2b-profile-cert-list">
+              ${certs.map(c => `
+                <div class="b2b-profile-cert-row">
+                  <div style="min-width:0;flex:1">
+                    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+                      <strong style="font-size:0.8rem;color:var(--entity-text)">${c.nombre}</strong>
+                      <span class="b2b-cert-badge is-valid">${c.estado}</span>
+                    </div>
+                    <div style="font-size:0.72rem;color:var(--entity-muted);margin-top:2px">
+                      ${c.norma} · <span style="color:var(--entity-faint)">Emisor: ${c.entidad}</span>
+                    </div>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
+                    <div style="text-align:right">
+                      <span style="display:block;font-size:0.66rem;color:var(--entity-faint);text-transform:uppercase">Vigencia</span>
+                      <strong style="font-size:0.73rem;color:var(--entity-text)">${c.vigencia}</strong>
+                    </div>
+                    <button class="admin-quiet-button" type="button"
+                      data-inspect-cert="${c.hash}"
+                      data-cert-name="${c.nombre}"
+                      data-cert-file="${c.archivo}"
+                      data-cert-lab="${c.entidad}"
+                      data-cert-norm="${c.norma}"
+                      data-cert-res="CONFORME Y VIGENTE (${c.vigencia})"
+                      style="padding:4px 9px;font-size:0.72rem">
+                      ${icon("file", 12)} Ver
+                    </button>
+                  </div>
+                </div>
+              `).join("")}
+            </div>
+          </section>
+        </div>
+
+        <!-- Bloque 3: Mis Suministros Vinculados -->
+        <section class="b2b-profile-card" style="margin-top:18px;margin-bottom:0">
+          <div class="b2b-profile-section-head">
             <div>
-              <span style="font-size:0.7rem;color:var(--entity-faint);text-transform:uppercase">Planta Principal</span>
-              <strong style="display:block;margin-top:4px">Amurrio (Álava)</strong>
+              <h3>${icon("layers", 15)} Mis suministros adjudicados en plataforma</h3>
+              <p>Trazabilidad directa de los lotes contratados con ${prv.nombre}.</p>
             </div>
-            <div>
-              <span style="font-size:0.7rem;color:var(--entity-faint);text-transform:uppercase">Contacto Comercial</span>
-              <strong style="display:block;margin-top:4px">carlos.m@iberrail.es</strong>
-            </div>
+            <button class="admin-quiet-button" type="button" data-go="#proveedor/suministros">
+              Ver bandeja de suministros ${icon("arrow", 12)}
+            </button>
           </div>
-          <div style="margin-top:20px;display:flex;gap:12px">
-            <span class="dossier-chip">${icon("shield", 14)} Homologación Adif NAV Vigente</span>
-            <span class="dossier-chip">${icon("shield", 14)} Laboratorio Acreditado ENAC</span>
-            <span class="dossier-chip">${icon("check", 14)} AENOR EN 13230</span>
+
+          <div class="b2b-dir-table-wrap">
+            <table class="b2b-dir-table">
+              <thead>
+                <tr>
+                  <th>Código</th>
+                  <th>Suministro y Volumen</th>
+                  <th>Expediente</th>
+                  <th>Destino de Obra</th>
+                  <th>Fase Actual</th>
+                  <th>Entrega Prevista</th>
+                  <th>Presupuesto</th>
+                  <th style="text-align:right">Acción</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${prvSums.map(s => `
+                  <tr>
+                    <td><span class="entity-code" style="font-size:0.74rem">${s.id}</span></td>
+                    <td>
+                      <strong style="display:block;font-size:0.78rem;color:var(--entity-text)">${s.tipo}</strong>
+                      <span style="font-size:0.71rem;color:var(--entity-muted)">${s.unidades}</span>
+                    </td>
+                    <td><span class="entity-code" style="font-size:0.73rem">${s.expId}</span></td>
+                    <td><span style="font-size:0.75rem;color:var(--entity-muted)">${s.destino}</span></td>
+                    <td><span class="dossier-chip" style="font-size:0.7rem">${SHORT_PHASE_NAMES[s.faseActual] || s.faseNombre}</span></td>
+                    <td><strong style="font-size:0.75rem;color:var(--entity-text)">${s.fechaEntrega}</strong></td>
+                    <td><strong style="font-size:0.76rem;color:var(--entity-text)">${s.presupuesto || "—"}</strong></td>
+                    <td style="text-align:right">
+                      <button class="admin-quiet-button" type="button" data-go="#proveedor/expedientes/${s.expId}" style="padding:4px 9px;font-size:0.72rem">
+                        Abrir expediente ${icon("arrow", 11)}
+                      </button>
+                    </td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
           </div>
         </section>
       `;
     }
+
+    // PERFIL DE CLIENTE (CONSTRUCTOR DE VÍA)
+    const cli = DIRECTORIO_CLIENTES.find(c => c.id === "CLI-01") || DIRECTORIO_CLIENTES[0];
+    const cliExps = EXPEDIENTES.filter(e =>
+      e.cliente && (
+        e.cliente.toLowerCase().includes("infraestructuras") ||
+        e.cliente.toLowerCase().includes((cli.nombre || "").split(",")[0].toLowerCase())
+      )
+    );
+    const cliSums = SUMINISTROS.filter(s =>
+      s.cliente && (
+        s.cliente.toLowerCase().includes("infraestructuras") ||
+        s.cliente.toLowerCase().includes((cli.nombre || "").split(",")[0].toLowerCase())
+      )
+    );
+    const activeCliExps = cliExps.filter(e => !e.cerradoManual && e.faseActual < 3);
+
+    const totalBudgetNum = cliSums.reduce((acc, s) => {
+      const n = parseInt(String(s.presupuesto || "0").replace(/[^\d]/g, ""), 10);
+      return acc + (isNaN(n) ? 0 : n);
+    }, 0);
+    const formattedBudget = totalBudgetNum > 0
+      ? totalBudgetNum.toLocaleString("es-ES") + " €"
+      : "853.150 €";
+
+    const cliCerts = cli.certificadosDetalle || [
+      {
+        nombre: "Acuerdo Marco de Gestión de Compras y Suministros SOFEIN",
+        norma: "Mandato de homologación, mediación técnica y Pasaporte Digital",
+        entidad: "SOFEIN Procurement B2B",
+        vigencia: "Vigente 2026–2028",
+        estado: "Firmado",
+        archivo: "Acuerdo-Marco-Constructor-SOFEIN-2026.pdf",
+        hash: "1a94e3c7b208d519"
+      },
+      {
+        nombre: "Clasificación Empresarial de Contratista Ferroviario",
+        norma: "Grupo B (Puentes y Viaductos) · Grupo D (Ferrocarriles Subgrupo 1-5)",
+        entidad: "ROLECE · Ministerio de Hacienda",
+        vigencia: "Indefinida (Anualidad al día)",
+        estado: "Vigente",
+        archivo: "Certificado-ROLECE-InfraestructurasNorte.pdf",
+        hash: "8b27f1d4c639a052"
+      },
+      {
+        nombre: "Certificación de Calidad y Gestión Ambiental en Obra Civil",
+        norma: "UNE-EN ISO 9001:2015 · UNE-EN ISO 14001:2015 · ISO 45001",
+        entidad: "AENOR Internacional",
+        vigencia: "12 dic 2027",
+        estado: "Vigente",
+        archivo: "Certificados-ISO-InfraestructurasNorte.pdf",
+        hash: "3c61a8f2e514b907"
+      },
+      {
+        nombre: "Escritura de Apoderamiento y Firma Digital Autorizada",
+        norma: "Representación legal para adjudicaciones, hojas de pedido y adendas",
+        entidad: "Registro Mercantil de Bizkaia",
+        vigencia: "Verificada",
+        estado: "Verificado",
+        archivo: "Poderes-Firma-InfraestructurasNorte.pdf",
+        hash: "5d83b0e9a142c768"
+      }
+    ];
+    cli.certificadosDetalle = cliCerts;
+
+    const reglasCliente = cli.reglasContratacion || [
+      "Concurrencia mínima garantizada: 3 proveedores homologados por lote en Fase 2",
+      "Exigencia obligatoria en pliego: Trazabilidad lote a lote y ensayos en laboratorio ENAC",
+      "Protocolo de mediación SOFEIN con cláusula de silencio positivo a los 5 días hábiles",
+      "Emisión de Pasaporte Digital criptográfico al cierre de recepción en obra"
+    ];
+
+    const cliInitials = (cli.nombre || "IN").slice(0, 2).toUpperCase();
+
+    return `
+      <div class="admin-view-head" style="margin-bottom:14px">
+        <div>
+          <h1 style="margin:0;font-size:1.65rem;font-weight:600;letter-spacing:-0.03em">Perfil de cliente</h1>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <button class="admin-quiet-button" type="button" data-open-upload-profile-cert="cliente">
+            ${icon("upload", 13)} Subir acreditación
+          </button>
+          <button class="admin-primary-button" type="button" data-edit-dir="cliente" data-id="${cli.id}">
+            ${icon("edit", 13)} Editar datos corporativos
+          </button>
+        </div>
+      </div>
+
+      <!-- Resumen rápido (KPIs del constructor) -->
+      <div class="exp-bandeja-summary-strip" style="margin-bottom:14px">
+        <span><strong>${cliExps.length}</strong> expedientes registrados</span>
+        <span class="exp-strip-dot">·</span>
+        <span><strong>${activeCliExps.length}</strong> en curso</span>
+        <span class="exp-strip-dot">·</span>
+        <span><strong>${cliSums.length}</strong> suministros gestionados</span>
+        <span class="exp-strip-dot">·</span>
+        <span><strong>${formattedBudget}</strong> volumen en plataforma</span>
+      </div>
+
+      <div class="exp-kpi-filter-grid" style="margin-bottom:18px">
+        <div class="exp-kpi-filter-card" style="cursor:default">
+          <div class="exp-kpi-filter-top">
+            <span class="exp-kpi-label">Expedientes en curso</span>
+            <span class="exp-kpi-dot is-active"></span>
+          </div>
+          <strong class="exp-kpi-value">${activeCliExps.length}</strong>
+          <small class="exp-kpi-sub">De ${cliExps.length} expedientes totales en plataforma</small>
+        </div>
+        <div class="exp-kpi-filter-card" style="cursor:default">
+          <div class="exp-kpi-filter-top">
+            <span class="exp-kpi-label">Suministros contratados</span>
+            <span class="exp-kpi-dot" style="background:#60a5fa"></span>
+          </div>
+          <strong class="exp-kpi-value">${cliSums.length}</strong>
+          <small class="exp-kpi-sub">Lotes supervisados por SOFEIN</small>
+        </div>
+        <div class="exp-kpi-filter-card" style="cursor:default">
+          <div class="exp-kpi-filter-top">
+            <span class="exp-kpi-label">Volumen presupuestario</span>
+            <span class="exp-kpi-dot" style="background:#a78bfa"></span>
+          </div>
+          <strong class="exp-kpi-value" style="font-size:1.35rem">${formattedBudget}</strong>
+          <small class="exp-kpi-sub">Presupuesto estimado acumulado</small>
+        </div>
+        <div class="exp-kpi-filter-card" style="cursor:default">
+          <div class="exp-kpi-filter-top">
+            <span class="exp-kpi-label">Estado de entidad</span>
+            <span class="exp-kpi-dot is-complete"></span>
+          </div>
+          <strong class="exp-kpi-value" style="font-size:1.25rem;color:var(--entity-accent)">Verificado</strong>
+          <small class="exp-kpi-sub">Acuerdo Marco SOFEIN activo</small>
+        </div>
+      </div>
+
+      <!-- Bloque 1: Ficha Corporativa y de Contratación -->
+      <section class="b2b-profile-card">
+        <div class="b2b-profile-header">
+          <div style="display:flex;align-items:center;gap:14px;min-width:0">
+            <span class="admin-client-initials" style="width:48px;height:48px;font-size:1.1rem;background:#1d426b;flex-shrink:0">${cliInitials}</span>
+            <div style="min-width:0">
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                <span class="entity-code" style="font-size:0.72rem">${cli.id}</span>
+                <h2 style="margin:0;font-size:1.22rem;font-weight:700;color:var(--entity-text)">${cli.nombre}</h2>
+                <span class="dossier-chip is-active-chip" style="color:#60a5fa;border-color:rgba(96,165,250,0.3)">
+                  ${icon("shield", 12)} Contratista Verificado SOFEIN
+                </span>
+              </div>
+              <p style="margin:4px 0 0;font-size:0.78rem;color:var(--entity-muted)">
+                ${cli.actividad || "Constructora Ferroviaria (Licitaciones Adif / Metro)"}
+              </p>
+            </div>
+          </div>
+          <button class="admin-quiet-button" type="button" data-edit-dir="cliente" data-id="${cli.id}">
+            ${icon("edit", 13)} Editar ficha
+          </button>
+        </div>
+
+        <div class="b2b-profile-meta-grid">
+          <div class="b2b-profile-meta-item">
+            <span class="b2b-profile-meta-label">CIF / NIF</span>
+            <strong class="b2b-profile-meta-val">${cli.cif}</strong>
+          </div>
+          <div class="b2b-profile-meta-item">
+            <span class="b2b-profile-meta-label">Sede Corporativa / Delegaciones</span>
+            <strong class="b2b-profile-meta-val">${cli.sede}</strong>
+          </div>
+          <div class="b2b-profile-meta-item">
+            <span class="b2b-profile-meta-label">Representante Legal / Compras</span>
+            <strong class="b2b-profile-meta-val">${cli.representante || "María González López (Dir. Compras)"}</strong>
+          </div>
+          <div class="b2b-profile-meta-item">
+            <span class="b2b-profile-meta-label">Contacto Técnico y Licitaciones</span>
+            <strong class="b2b-profile-meta-val">${renderEmailCell(cli.email || cli.contacto)}</strong>
+          </div>
+          <div class="b2b-profile-meta-item">
+            <span class="b2b-profile-meta-label">Teléfono Corporativo</span>
+            <strong class="b2b-profile-meta-val">${cli.telefono ? renderTelefonoCell(cli.telefono) : "—"}</strong>
+          </div>
+          <div class="b2b-profile-meta-item">
+            <span class="b2b-profile-meta-label">Condiciones de Pago Estándar</span>
+            <strong class="b2b-profile-meta-val">${cli.condicionesPago || "Confirming 60 días tras acta recepción"}</strong>
+          </div>
+        </div>
+      </section>
+
+      <!-- Bloque 2: Dos columnas (Condiciones Operativas | Acreditaciones y Acuerdo Marco) -->
+      <div class="b2b-profile-two-col">
+        <!-- Columna Izquierda: Parámetros de Contratación y Pliegos -->
+        <section class="b2b-profile-card" style="margin-bottom:0;display:flex;flex-direction:column;justify-content:space-between">
+          <div>
+            <div class="b2b-profile-section-head">
+              <div>
+                <h3>${icon("sliders", 15)} Parámetros de contratación y pliegos</h3>
+                <p>Directrices corporativas aplicadas por SOFEIN en tus expedientes de compra.</p>
+              </div>
+            </div>
+
+            <div style="margin-bottom:16px">
+              <span class="b2b-profile-meta-label" style="display:block;margin-bottom:6px">Especialidad y ámbito de actuación</span>
+              <div style="padding:10px 12px;border-radius:8px;background:var(--entity-panel-2);border:1px solid var(--entity-line);font-size:0.79rem;color:var(--entity-text);font-weight:500">
+                ${cli.actividad || "Constructora Ferroviaria · Obra Civil, Superestructura y Mantenimiento de Vía"}
+              </div>
+            </div>
+
+            <div>
+              <span class="b2b-profile-meta-label" style="display:block;margin-bottom:8px">Reglas activas en tus expedientes SOFEIN</span>
+              <ul class="b2b-profile-check-list">
+                ${reglasCliente.map(reg => `
+                  <li>
+                    <span class="b2b-profile-check-icon">${icon("check", 13)}</span>
+                    <span>${reg}</span>
+                  </li>
+                `).join("")}
+              </ul>
+            </div>
+          </div>
+
+          <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--entity-line);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+            <span style="font-size:0.73rem;color:var(--entity-muted)">¿Necesitas iniciar una nueva compra ferroviaria?</span>
+            <button class="admin-primary-button" type="button" data-go="#cliente/nuevo" style="padding:5px 12px;font-size:0.74rem">
+              ${icon("plus", 12)} Solicitar nuevo expediente
+            </button>
+          </div>
+        </section>
+
+        <!-- Columna Derecha: Acreditaciones Corporativas y Acuerdo Marco -->
+        <section class="b2b-profile-card" style="margin-bottom:0">
+          <div class="b2b-profile-section-head">
+            <div>
+              <h3>${icon("shield", 15)} Acuerdo marco y acreditaciones registradas</h3>
+              <p>Documentación legal y certificaciones de contratista verificadas en plataforma.</p>
+            </div>
+            <button class="admin-quiet-button" type="button" data-open-upload-profile-cert="cliente">
+              ${icon("upload", 12)} Añadir
+            </button>
+          </div>
+
+          <div class="b2b-profile-cert-list">
+            ${cliCerts.map(c => `
+              <div class="b2b-profile-cert-row">
+                <div style="min-width:0;flex:1">
+                  <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+                    <strong style="font-size:0.8rem;color:var(--entity-text)">${c.nombre}</strong>
+                    <span class="b2b-cert-badge is-valid">${c.estado}</span>
+                  </div>
+                  <div style="font-size:0.72rem;color:var(--entity-muted);margin-top:2px">
+                    ${c.norma} · <span style="color:var(--entity-faint)">${c.entidad}</span>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
+                  <div style="text-align:right">
+                    <span style="display:block;font-size:0.66rem;color:var(--entity-faint);text-transform:uppercase">Estado</span>
+                    <strong style="font-size:0.73rem;color:var(--entity-text)">${c.vigencia}</strong>
+                  </div>
+                  <button class="admin-quiet-button" type="button"
+                    data-inspect-cert="${c.hash}"
+                    data-cert-name="${c.nombre}"
+                    data-cert-file="${c.archivo}"
+                    data-cert-lab="${c.entidad}"
+                    data-cert-norm="${c.norma}"
+                    data-cert-res="DOCUMENTO VERIFICADO (${c.vigencia})"
+                    style="padding:4px 9px;font-size:0.72rem">
+                    ${icon("file", 12)} Ver
+                  </button>
+                </div>
+              </div>
+            `).join("")}
+          </div>
+        </section>
+      </div>
+
+      <!-- Bloque 3: Mis Expedientes de Suministro -->
+      <section class="b2b-profile-card" style="margin-top:18px;margin-bottom:0">
+        <div class="b2b-profile-section-head">
+          <div>
+            <h3>${icon("folder", 15)} Mis expedientes de suministro en curso e histórico</h3>
+            <p>Resumen ejecutivo de los expedientes contratados por ${cli.nombre}.</p>
+          </div>
+          <button class="admin-quiet-button" type="button" data-go="#cliente/expedientes">
+            Ver todos mis expedientes ${icon("arrow", 12)}
+          </button>
+        </div>
+
+        <div class="b2b-dir-table-wrap">
+          <table class="b2b-dir-table">
+            <thead>
+              <tr>
+                <th>Código</th>
+                <th>Título del Expediente</th>
+                <th>Destino de Obra</th>
+                <th>Suministros</th>
+                <th>Fase Actual</th>
+                <th>Presupuesto Total</th>
+                <th style="text-align:right">Acción</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${cliExps.map(exp => {
+                const meta = getExpCardData(exp);
+                return `
+                  <tr>
+                    <td><span class="entity-code" style="font-size:0.74rem">${exp.id}</span></td>
+                    <td>
+                      <strong style="display:block;font-size:0.78rem;color:var(--entity-text)">${meta.tituloGenerico}</strong>
+                      <span style="font-size:0.71rem;color:var(--entity-muted)">${exp.unidades || exp.subtipo}</span>
+                    </td>
+                    <td><span style="font-size:0.75rem;color:var(--entity-muted)">${meta.destinoCorto}</span></td>
+                    <td><span class="dossier-chip" style="font-size:0.7rem">${meta.numSuministros} ${meta.numSuministros === 1 ? 'suministro' : 'suministros'}</span></td>
+                    <td><span class="dossier-chip" style="font-size:0.7rem">${SHORT_PHASE_NAMES[meta.phaseIdx] || "Fase"}</span></td>
+                    <td><strong style="font-size:0.76rem;color:var(--entity-text)">${meta.presupuestoEstimado}</strong></td>
+                    <td style="text-align:right">
+                      <button class="admin-quiet-button" type="button" data-go="#cliente/expedientes/${exp.id}" style="padding:4px 9px;font-size:0.72rem">
+                        Abrir expediente ${icon("arrow", 11)}
+                      </button>
+                    </td>
+                  </tr>
+                `;
+              }).join("")}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    `;
+  }
+
 
     // Default
     return renderDossierBuilder("SFN-2026-H6T4");
@@ -10658,8 +11246,17 @@
                 <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
                   Conformidades y certificaciones (etiquetas separadas por coma)
                   <input name="conformidades" value="${(entityToEdit?.conformidades ? entityToEdit.conformidades.join(', ') : (entityToEdit?.homologaciones ? entityToEdit.homologaciones.join(', ') : 'ISO 9001, ISO 14001, Adif NAV-2026')).replace(/"/g, '&quot;')}" placeholder="Ej: ISO 9001, ISO 14001, Tratamiento UNE-EN 13145, Marcado CE" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0" />
-                  <span style="font-size:0.7rem;color:var(--entity-muted)">Ejemplos: ISO 9001, Tratamiento UNE-EN 13145, AENOR EN 13230, Adif NAV-2026</span>
                 </label>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                  <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
+                    Plazo medio (Lead time)
+                    <input name="leadTimeMedio" value="${(entityToEdit?.leadTimeMedio || '42 días').replace(/"/g, '&quot;')}" placeholder="Ej: 42 días" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0" />
+                  </label>
+                  <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
+                    Condiciones de pago marco
+                    <input name="condicionesPagoPrv" value="${(entityToEdit?.condicionesPago || '60 días confirmada').replace(/"/g, '&quot;')}" placeholder="Ej: Confirming 60 días" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0" />
+                  </label>
+                </div>
               </div>
 
               <!-- Campos específicos para Cliente -->
@@ -10668,6 +11265,16 @@
                   Actividad / Especialidad ferroviaria
                   <input name="actividad" value="${(entityToEdit?.actividad || '').replace(/"/g, '&quot;')}" placeholder="Ej: Constructora Ferroviaria (Licitaciones Adif / Metro)" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0" />
                 </label>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                  <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
+                    Representante Legal / Dirección Compras
+                    <input name="representante" value="${(entityToEdit?.representante || 'María González López (Dir. Compras)').replace(/"/g, '&quot;')}" placeholder="Ej: María González López" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0" />
+                  </label>
+                  <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
+                    Condiciones de pago corporativas
+                    <input name="condicionesPagoCli" value="${(entityToEdit?.condicionesPago || 'Confirming 60 días tras acta recepción').replace(/"/g, '&quot;')}" placeholder="Ej: Confirming 60 días" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0" />
+                  </label>
+                </div>
               </div>
             </div>
             <div class="procurement-modal-footer">
@@ -10731,8 +11338,9 @@
             prv.telefono = telefono;
             prv.suministros = suministros;
             prv.conformidades = conformidades;
-            prv.materiales = suministros.join(" · ");
-            showToast(`✓ Proveedor "${prv.nombre}" actualizado correctamente`);
+            prv.leadTimeMedio = (form.get("leadTimeMedio") || "").trim() || prv.leadTimeMedio || "42 días";
+            prv.condicionesPago = (form.get("condicionesPagoPrv") || "").trim() || prv.condicionesPago || "60 días confirmada";
+            showToast(`✓ Perfil de "${prv.nombre}" actualizado correctamente`);
           }
         } else {
           const newPrv = {
@@ -10764,7 +11372,9 @@
             cli.email = email;
             cli.contacto = email;
             cli.telefono = telefono;
-            showToast(`✓ Cliente "${cli.nombre}" actualizado correctamente`);
+            cli.representante = (form.get("representante") || "").trim() || cli.representante || "María González López (Dir. Compras)";
+            cli.condicionesPago = (form.get("condicionesPagoCli") || "").trim() || cli.condicionesPago || "Confirming 60 días tras acta recepción";
+            showToast(`✓ Perfil de "${cli.nombre}" actualizado correctamente`);
           }
         } else {
           const newCli = {
@@ -10784,6 +11394,101 @@
         }
       }
       close();
+      renderApp();
+    });
+  }
+
+
+  function openUploadProfileCertModal(roleType = "proveedor") {
+    const modalWrap = document.getElementById("modalContainer");
+    if (!modalWrap) return;
+
+    const isPrv = roleType === "proveedor";
+    const entity = isPrv
+      ? (DIRECTORIO_PROVEEDORES.find(p => p.id === "PRV-01") || DIRECTORIO_PROVEEDORES[0])
+      : (DIRECTORIO_CLIENTES.find(c => c.id === "CLI-01") || DIRECTORIO_CLIENTES[0]);
+
+    modalWrap.innerHTML = `
+      <div class="procurement-modal-backdrop" id="uploadProfileCertBackdrop">
+        <div class="procurement-modal" style="width:min(520px,100%)">
+          <div class="procurement-modal-head">
+            <div>
+              <h3>${isPrv ? "Subir certificado u homologación" : "Subir acreditación corporativa"}</h3>
+              <p style="margin:2px 0 0;font-size:0.75rem;color:var(--entity-muted)">
+                Se registrará en el perfil de <b>${entity.nombre}</b> para validación SOFEIN.
+              </p>
+            </div>
+            <button type="button" id="closeUploadProfileCertBtn" aria-label="Cerrar">×</button>
+          </div>
+          <form id="uploadProfileCertForm">
+            <div class="procurement-modal-body" style="gap:14px">
+              <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
+                Nombre del certificado / acreditación
+                <input name="nombre" required placeholder="${isPrv ? 'Ej: Homologación Adif Eje Ancho / ISO 45001' : 'Ej: Certificado ROLECE actualizado / ISO 45001'}" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box" />
+              </label>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
+                  Norma / Alcance técnico
+                  <input name="norma" required placeholder="${isPrv ? 'Ej: UNE-EN 13230 / ET Adif' : 'Ej: Grupo D Subgrupo 1'}" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box" />
+                </label>
+                <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
+                  Entidad emisora / Laboratorio
+                  <input name="entidad" required placeholder="Ej: AENOR / ENAC / Adif" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box" />
+                </label>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
+                  Fecha de vigencia / renovación
+                  <input name="vigencia" required value="31 dic 2028" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box" />
+                </label>
+                <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
+                  Archivo PDF acreditativo
+                  <input name="archivo" type="file" accept=".pdf" style="padding:6px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.76rem;width:100%;box-sizing:border-box" />
+                </label>
+              </div>
+            </div>
+            <div class="procurement-modal-footer">
+              <button class="admin-quiet-button" type="button" id="cancelUploadProfileCertBtn">Cancelar</button>
+              <button class="admin-primary-button" type="submit">${icon("upload", 13)} Registrar y vincular al perfil</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    `;
+
+    const close = () => { modalWrap.innerHTML = ""; };
+    document.getElementById("closeUploadProfileCertBtn")?.addEventListener("click", close);
+    document.getElementById("cancelUploadProfileCertBtn")?.addEventListener("click", close);
+    document.getElementById("uploadProfileCertBackdrop")?.addEventListener("click", e => {
+      if (e.target.id === "uploadProfileCertBackdrop") close();
+    });
+
+    document.getElementById("uploadProfileCertForm")?.addEventListener("submit", e => {
+      e.preventDefault();
+      const form = new FormData(e.currentTarget);
+      const nombre = (form.get("nombre") || "").trim();
+      const norma = (form.get("norma") || "").trim();
+      const entidad = (form.get("entidad") || "").trim();
+      const vigencia = (form.get("vigencia") || "").trim();
+      const fileObj = e.currentTarget.querySelector('input[type="file"]')?.files?.[0];
+      const archivo = fileObj ? fileObj.name : `${nombre.replace(/\s+/g, "-")}.pdf`;
+
+      if (!entity.certificadosDetalle) entity.certificadosDetalle = [];
+      entity.certificadosDetalle.unshift({
+        nombre,
+        norma,
+        entidad,
+        vigencia,
+        estado: "Vigente",
+        archivo,
+        hash: Math.random().toString(16).slice(2, 18)
+      });
+      if (isPrv) {
+        if (!entity.conformidades) entity.conformidades = [];
+        if (!entity.conformidades.includes(nombre)) entity.conformidades.push(nombre);
+      }
+      close();
+      showToast(`✓ Certificado "${nombre}" registrado en tu perfil`);
       renderApp();
     });
   }
@@ -10867,6 +11572,13 @@
       e.preventDefault();
       const exp = getActiveExpediente(cryptoPassportBtn.dataset.inspectPassportCrypto);
       openPassportCryptoModal(exp);
+      return;
+    }
+
+    const uploadProfileCertBtn = e.target.closest("[data-open-upload-profile-cert]");
+    if (uploadProfileCertBtn) {
+      e.preventDefault();
+      openUploadProfileCertModal(uploadProfileCertBtn.dataset.openUploadProfileCert);
       return;
     }
 

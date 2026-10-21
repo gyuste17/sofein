@@ -2879,11 +2879,13 @@ select:focus,
 .b2b-dir-type-tabs {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   background: var(--entity-panel);
   border: 1px solid var(--entity-line);
-  padding: 3px;
+  padding: 2px;
   border-radius: 8px;
+  height: 32px;
+  box-sizing: border-box;
 }
 .dir-type-btn {
   display: inline-flex;
@@ -2893,9 +2895,10 @@ select:focus,
   border: none;
   color: var(--entity-muted);
   font-family: inherit;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-weight: 550;
-  padding: 6px 12px;
+  height: 100%;
+  padding: 0 10px;
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -6671,4 +6674,171 @@ select:focus,
 .dossier-role-scope-badge b {
   color: var(--entity-text);
   font-weight: 650;
+}
+
+
+/* ============================================================
+   VISTAS DE PERFIL B2B (PROVEEDOR HOMOLOGADO Y CLIENTE)
+   ============================================================ */
+.b2b-profile-card {
+  background: var(--entity-panel);
+  border: 1px solid var(--entity-line);
+  border-radius: 12px;
+  padding: 20px 22px;
+  margin-bottom: 18px;
+}
+
+.b2b-profile-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--entity-line);
+  flex-wrap: wrap;
+}
+
+.b2b-profile-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px 22px;
+}
+
+.b2b-profile-meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.b2b-profile-meta-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--entity-faint);
+}
+
+.b2b-profile-meta-val {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--entity-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.b2b-profile-two-col {
+  display: grid;
+  grid-template-columns: 1fr 1.15fr;
+  gap: 18px;
+  align-items: stretch;
+}
+
+.b2b-profile-section-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--entity-line);
+}
+
+.b2b-profile-section-head h3 {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--entity-text);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.b2b-profile-section-head p {
+  margin: 3px 0 0;
+  font-size: 0.74rem;
+  color: var(--entity-muted);
+}
+
+.b2b-profile-check-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.b2b-profile-check-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.78rem;
+  color: var(--entity-text);
+  line-height: 1.45;
+  padding: 7px 10px;
+  border-radius: 7px;
+  background: var(--entity-panel-2);
+  border: 1px solid var(--entity-line);
+}
+
+.b2b-profile-check-icon {
+  color: var(--entity-accent);
+  display: inline-flex;
+  align-items: center;
+  margin-top: 1px;
+  flex-shrink: 0;
+}
+
+.b2b-profile-cert-list {
+  display: grid;
+  gap: 8px;
+}
+
+.b2b-profile-cert-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  background: var(--entity-panel-2);
+  border: 1px solid var(--entity-line);
+  transition: border-color 0.15s ease;
+}
+
+.b2b-profile-cert-row:hover {
+  border-color: var(--entity-line-strong);
+}
+
+.b2b-cert-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.b2b-cert-badge.is-valid {
+  background: rgba(16, 185, 129, 0.14);
+  color: var(--entity-accent);
+  border: 1px solid rgba(16, 185, 129, 0.28);
+}
+
+@media (max-width: 980px) {
+  .b2b-profile-two-col {
+    grid-template-columns: 1fr;
+  }
+  .b2b-profile-meta-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .b2b-profile-meta-grid {
+    grid-template-columns: 1fr;
+  }
 }
