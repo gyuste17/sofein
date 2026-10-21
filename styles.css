@@ -3473,6 +3473,24 @@ select:focus,
   opacity: 0.9;
 }
 
+.selector-substep.is-disabled-client {
+  opacity: 0.38;
+  cursor: not-allowed !important;
+  pointer-events: none;
+  filter: grayscale(0.85);
+  background: var(--entity-panel-2);
+}
+
+.selector-substep.is-disabled-client .selector-substep-num {
+  background: var(--entity-panel);
+  color: var(--entity-muted);
+  border-color: var(--entity-line);
+}
+
+.selector-substep.is-disabled-client .selector-substep-text strong {
+  color: var(--entity-muted);
+}
+
 .selector-substep-num {
   display: grid;
   place-items: center;
