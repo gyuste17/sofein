@@ -5283,7 +5283,7 @@
         else if (directorioPrvSortCol === "suministros") diff = (a.suministros || []).join(", ").localeCompare((b.suministros || []).join(", "), "es");
         else if (directorioPrvSortCol === "activos") diff = getProveedorActiveExpedientes(a.nombre).length - getProveedorActiveExpedientes(b.nombre).length;
         else if (directorioPrvSortCol === "conformidades") diff = (a.conformidades || []).join(", ").localeCompare((b.conformidades || []).join(", "), "es");
-        else if (directorioPrvSortCol === "email") diff = (a.email || a.contacto || "").localeCompare(b.email || b.contacto || "", "es");
+        else if (directorioPrvSortCol === "contacto" || directorioPrvSortCol === "email") diff = (a.email || a.contacto || "").localeCompare(b.email || b.contacto || "", "es");
         else if (directorioPrvSortCol === "telefono") diff = (a.telefono || "").localeCompare(b.telefono || "", "es");
         return directorioPrvSortDir === "asc" ? diff : -diff;
       });
@@ -5306,7 +5306,7 @@
         else if (directorioCliSortCol === "sede") diff = (a.sede || "").localeCompare(b.sede || "", "es");
         else if (directorioCliSortCol === "actividad") diff = (a.actividad || "").localeCompare(b.actividad || "", "es");
         else if (directorioCliSortCol === "activos") diff = getClienteActiveExpedientes(a.nombre).length - getClienteActiveExpedientes(b.nombre).length;
-        else if (directorioCliSortCol === "email") diff = (a.email || a.contacto || "").localeCompare(b.email || b.contacto || "", "es");
+        else if (directorioCliSortCol === "contacto" || directorioCliSortCol === "email") diff = (a.email || a.contacto || "").localeCompare(b.email || b.contacto || "", "es");
         else if (directorioCliSortCol === "telefono") diff = (a.telefono || "").localeCompare(b.telefono || "", "es");
         return directorioCliSortDir === "asc" ? diff : -diff;
       });
@@ -5365,16 +5365,10 @@
                         ${getDirectorioSortIcon('conformidades', directorioPrvSortCol, directorioPrvSortDir)}
                       </div>
                     </th>
-                    <th class="is-sortable ${directorioPrvSortCol === 'email' ? 'is-sorted' : ''}" data-sort-dir-prv="email">
+                    <th class="is-sortable ${directorioPrvSortCol === 'contacto' ? 'is-sorted' : ''}" data-sort-dir-prv="contacto">
                       <div class="th-sort-wrap">
-                        <span>Email</span>
-                        ${getDirectorioSortIcon('email', directorioPrvSortCol, directorioPrvSortDir)}
-                      </div>
-                    </th>
-                    <th class="is-sortable ${directorioPrvSortCol === 'telefono' ? 'is-sorted' : ''}" data-sort-dir-prv="telefono">
-                      <div class="th-sort-wrap">
-                        <span>Teléfono</span>
-                        ${getDirectorioSortIcon('telefono', directorioPrvSortCol, directorioPrvSortDir)}
+                        <span>Contacto</span>
+                        ${getDirectorioSortIcon('contacto', directorioPrvSortCol, directorioPrvSortDir)}
                       </div>
                     </th>
                     <th style="text-align:right">Acciones</th>
@@ -5400,8 +5394,12 @@
                       <td>${renderSuministrosTags(p.suministros || [p.materiales])}</td>
                       <td>${renderProveedorActivosCell(p, idx, prvActiveList.length)}</td>
                       <td>${renderConformidadesTags(p.conformidades || p.homologaciones)}</td>
-                      <td>${renderEmailCell(p.email || p.contacto)}</td>
-                      <td>${renderTelefonoCell(p.telefono)}</td>
+                      <td class="dir-cell-contact">
+                        <div style="display:flex;flex-direction:column;gap:3px;min-width:0">
+                          ${renderEmailCell(p.email || p.contacto)}
+                          ${p.telefono ? renderTelefonoCell(p.telefono) : ''}
+                        </div>
+                      </td>
                       <td style="text-align:right">
                         <button class="admin-quiet-button" type="button" data-edit-dir="proveedor" data-id="${p.id}">
                           ${icon("edit", 13)} Editar
@@ -5457,16 +5455,10 @@
                         ${getDirectorioSortIcon('activos', directorioCliSortCol, directorioCliSortDir)}
                       </div>
                     </th>
-                    <th class="is-sortable ${directorioCliSortCol === 'email' ? 'is-sorted' : ''}" data-sort-dir-cli="email">
+                    <th class="is-sortable ${directorioCliSortCol === 'contacto' ? 'is-sorted' : ''}" data-sort-dir-cli="contacto">
                       <div class="th-sort-wrap">
-                        <span>Email</span>
-                        ${getDirectorioSortIcon('email', directorioCliSortCol, directorioCliSortDir)}
-                      </div>
-                    </th>
-                    <th class="is-sortable ${directorioCliSortCol === 'telefono' ? 'is-sorted' : ''}" data-sort-dir-cli="telefono">
-                      <div class="th-sort-wrap">
-                        <span>Teléfono</span>
-                        ${getDirectorioSortIcon('telefono', directorioCliSortCol, directorioCliSortDir)}
+                        <span>Contacto</span>
+                        ${getDirectorioSortIcon('contacto', directorioCliSortCol, directorioCliSortDir)}
                       </div>
                     </th>
                     <th style="text-align:right">Acciones</th>
@@ -5491,8 +5483,12 @@
                       <td><span style="color:var(--entity-muted);font-size:0.78rem">${c.sede}</span></td>
                       <td><span style="font-size:0.75rem;color:var(--entity-muted)">${c.actividad}</span></td>
                       <td>${renderClienteActivosCell(c, idx, cliActiveList.length)}</td>
-                      <td>${renderEmailCell(c.email || c.contacto)}</td>
-                      <td>${renderTelefonoCell(c.telefono)}</td>
+                      <td class="dir-cell-contact">
+                        <div style="display:flex;flex-direction:column;gap:3px;min-width:0">
+                          ${renderEmailCell(c.email || c.contacto)}
+                          ${c.telefono ? renderTelefonoCell(c.telefono) : ''}
+                        </div>
+                      </td>
                       <td style="text-align:right">
                         <button class="admin-quiet-button" type="button" data-edit-dir="cliente" data-id="${c.id}">
                           ${icon("edit", 13)} Editar
@@ -5611,59 +5607,61 @@
           : (prvActiveList.length + cliActiveList.length);
 
       return `
-        <div class="b2b-dir-header-bar">
+        <!-- Fila superior: Título 'Listado' y acciones principales -->
+        <div class="admin-view-head" style="margin-bottom:18px">
           <div class="b2b-dir-header-title">
-            <h1>
+            <h1 style="margin:0;font-size:1.75rem;font-weight:600;display:flex;align-items:center;gap:10px;letter-spacing:-0.03em">
               Listado
               <span class="dir-count-pill" style="font-size:0.8rem;height:24px;padding:0 8px;border-radius:12px;background:var(--entity-panel-2);border:1px solid var(--entity-line);color:var(--entity-text);font-weight:600">
                 ${currentTotalCount}
               </span>
             </h1>
           </div>
-
-          <div class="b2b-dir-header-actions">
-            <div class="b2b-dir-type-tabs">
-              <button type="button" class="dir-type-btn ${directorioTypeFilter === 'all' ? 'is-active' : ''}" data-dir-type="all">
-                Todos <span class="dir-count-pill">${DIRECTORIO_PROVEEDORES.length + DIRECTORIO_CLIENTES.length}</span>
-              </button>
-              <button type="button" class="dir-type-btn ${directorioTypeFilter === 'proveedores' ? 'is-active' : ''}" data-dir-type="proveedores">
-                Proveedores <span class="dir-count-pill">${DIRECTORIO_PROVEEDORES.length}</span>
-              </button>
-              <button type="button" class="dir-type-btn ${directorioTypeFilter === 'clientes' ? 'is-active' : ''}" data-dir-type="clientes">
-                Clientes <span class="dir-count-pill">${DIRECTORIO_CLIENTES.length}</span>
-              </button>
-            </div>
-
-            <div class="b2b-dir-search-wrap" style="max-width:240px;min-width:180px">
-              <span class="dir-search-icon" style="left:9px">${icon("search", 13)}</span>
-              <input 
-                type="search" 
-                id="directorioSearchInput" 
-                class="b2b-dir-search-input" 
-                placeholder="Buscar..." 
-                value="${directorioSearchQuery.replace(/"/g, '&quot;')}"
-                autocomplete="off"
-                style="height:32px;font-size:0.77rem;padding-left:30px"
-              />
-              ${directorioSearchQuery ? `
-                <button type="button" id="clearDirectorioSearchBtn" class="dir-search-clear" title="Limpiar búsqueda">
-                  ${icon("x", 12)}
-                </button>
-              ` : ''}
-            </div>
-
-            <div class="view-mode-toggle" style="height:32px">
-              <button class="view-mode-btn ${directorioViewMode === 'table' ? 'is-active' : ''}" type="button" data-dir-mode="table" style="padding:0 8px;font-size:0.74rem">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div class="view-mode-toggle" style="height:34px">
+              <button class="view-mode-btn ${directorioViewMode === 'table' ? 'is-active' : ''}" type="button" data-dir-mode="table" style="padding:0 9px;font-size:0.75rem">
                 ${icon("table", 13)} Tabla
               </button>
-              <button class="view-mode-btn ${directorioViewMode === 'grid' ? 'is-active' : ''}" type="button" data-dir-mode="grid" style="padding:0 8px;font-size:0.74rem">
+              <button class="view-mode-btn ${directorioViewMode === 'grid' ? 'is-active' : ''}" type="button" data-dir-mode="grid" style="padding:0 9px;font-size:0.75rem">
                 ${icon("grid", 13)} Mosaico
               </button>
             </div>
-
-            <button class="admin-primary-button" type="button" data-open-add-dir-modal style="height:32px;padding:0 12px;font-size:0.74rem">
+            <button class="admin-primary-button" type="button" data-open-add-dir-modal style="height:34px;padding:0 14px;font-size:0.76rem">
               ${icon("plus", 13)} Añadir
             </button>
+          </div>
+        </div>
+
+        <!-- Fila inferior de filtros y buscador: situada cerca de la tabla -->
+        <div class="b2b-dir-filter-bar" style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px">
+          <div class="b2b-dir-type-tabs">
+            <button type="button" class="dir-type-btn ${directorioTypeFilter === 'all' ? 'is-active' : ''}" data-dir-type="all">
+              Todos <span class="dir-count-pill">${DIRECTORIO_PROVEEDORES.length + DIRECTORIO_CLIENTES.length}</span>
+            </button>
+            <button type="button" class="dir-type-btn ${directorioTypeFilter === 'proveedores' ? 'is-active' : ''}" data-dir-type="proveedores">
+              Proveedores <span class="dir-count-pill">${DIRECTORIO_PROVEEDORES.length}</span>
+            </button>
+            <button type="button" class="dir-type-btn ${directorioTypeFilter === 'clientes' ? 'is-active' : ''}" data-dir-type="clientes">
+              Clientes <span class="dir-count-pill">${DIRECTORIO_CLIENTES.length}</span>
+            </button>
+          </div>
+
+          <div class="b2b-dir-search-wrap" style="max-width:320px;min-width:220px">
+            <span class="dir-search-icon" style="left:10px">${icon("search", 14)}</span>
+            <input 
+              type="search" 
+              id="directorioSearchInput" 
+              class="b2b-dir-search-input" 
+              placeholder="Buscar por nombre, CIF, sede, suministro..." 
+              value="${directorioSearchQuery.replace(/"/g, '&quot;')}"
+              autocomplete="off"
+              style="height:34px;font-size:0.78rem;padding-left:32px"
+            />
+            ${directorioSearchQuery ? `
+              <button type="button" id="clearDirectorioSearchBtn" class="dir-search-clear" title="Limpiar búsqueda">
+                ${icon("x", 12)}
+              </button>
+            ` : ''}
           </div>
         </div>
 
@@ -8201,23 +8199,23 @@
             <div class="procurement-modal-body" style="gap:14px">
               <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
                 Fase Activa del Expediente
-                <select name="faseActual" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem">
+                <select name="faseActual" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0">
                   ${PHASES.map((p, idx) => `<option value="${idx}" ${exp.faseActual === idx ? "selected" : ""}>Fase ${p.num}: ${p.name}</option>`).join("")}
                 </select>
               </label>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;min-width:0;box-sizing:border-box">
                 <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
                   Plazo Pactado Contractual
-                  <input name="plazoPactado" value="${exp.plazoPactado}" required style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem" />
+                  <input name="plazoPactado" value="${exp.plazoPactado}" required style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0" />
                 </label>
                 <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
                   Plazo Real Estimado
-                  <input name="plazoRealEstimado" value="${exp.plazoRealEstimado}" required style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem" />
+                  <input name="plazoRealEstimado" value="${exp.plazoRealEstimado}" required style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0" />
                 </label>
               </div>
               <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
                 Estado de Desviación / Nota de Seguimiento
-                <input name="desviacionDias" value="${exp.desviacionDias}" required placeholder="Ej: 0 días (En cronograma) o +4 días (Ajuste logístico)" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem" />
+                <input name="desviacionDias" value="${exp.desviacionDias}" required placeholder="Ej: 0 días (En cronograma) o +4 días (Ajuste logístico)" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0" />
               </label>
             </div>
             <div class="procurement-modal-footer">
@@ -8305,18 +8303,18 @@
             <div class="procurement-modal-body" style="gap:14px">
               <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
                 Nombre del Documento Requerido
-                <input name="name" required placeholder="Ej: Certificado de Ultrasonidos y Colada EN 10204 3.1" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem" />
+                <input name="name" required placeholder="Ej: Certificado de Ultrasonidos y Colada EN 10204 3.1" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0" />
               </label>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
                 <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
                   Fase
-                  <select name="phaseIdx" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem">
+                  <select name="phaseIdx" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0">
                     ${PHASES.map((p, idx) => `<option value="${idx}" ${idx === activeDossierPhase ? "selected" : ""}>${p.num}. ${p.name}</option>`).join("")}
                   </select>
                 </label>
                 <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
                   Origen / Responsable
-                  <select name="owner" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem">
+                  <select name="owner" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0">
                     <option value="Proveedor">Proveedor</option>
                     <option value="Cliente">Cliente</option>
                     <option value="SOFEIN">SOFEIN</option>
@@ -8325,7 +8323,7 @@
               </div>
               <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
                 Notas / Indicaciones
-                <input name="notes" placeholder="Ej: Imprescindible sello de laboratorio ENAC" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem" />
+                <input name="notes" placeholder="Ej: Imprescindible sello de laboratorio ENAC" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0" />
               </label>
               ${activeRole === "admin" ? renderVisibilityCheckboxesHTML(["admin", "cliente", "proveedor"]) : ""}
             </div>
@@ -8396,23 +8394,23 @@
             <div class="procurement-modal-body" style="gap:14px">
               <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
                 Nombre del Documento
-                <input name="name" required placeholder="Ej: Informe Complementario de Trazabilidad de Lote" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem" />
+                <input name="name" required placeholder="Ej: Informe Complementario de Trazabilidad de Lote" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0" />
               </label>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
                 <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
                   Fase
-                  <select name="phaseIdx" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem">
+                  <select name="phaseIdx" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0">
                     ${PHASES.map((p, idx) => `<option value="${idx}" ${idx === activeDossierPhase ? "selected" : ""}>${p.num}. ${p.name}</option>`).join("")}
                   </select>
                 </label>
                 <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
                   Archivo
-                  <input name="fileName" value="Documento-${exp.id}.pdf" required style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem" />
+                  <input name="fileName" value="Documento-${exp.id}.pdf" required style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0" />
                 </label>
               </div>
               <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
                 Notas (Opcional)
-                <input name="notes" placeholder="Añade una nota sobre este documento..." style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem" />
+                <input name="notes" placeholder="Añade una nota sobre este documento..." style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0" />
               </label>
               ${activeRole === "admin" ? renderVisibilityCheckboxesHTML(["admin", "cliente", "proveedor"]) : ""}
             </div>
@@ -8486,11 +8484,11 @@
             <div class="procurement-modal-body" style="gap:14px">
               <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
                 Archivo a subir
-                <input name="fileName" value="${suggestedFile}" required style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem" />
+                <input name="fileName" value="${suggestedFile}" required style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0" />
               </label>
               <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
                 Notas
-                <input name="notes" value="${del.notes || ""}" placeholder="Añade notas o comentarios..." style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem" />
+                <input name="notes" value="${del.notes || ""}" placeholder="Añade notas o comentarios..." style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0" />
               </label>
               ${activeRole === "admin" ? renderVisibilityCheckboxesHTML(del.visibleTo || ["admin", "cliente", "proveedor"]) : ""}
             </div>
@@ -8558,7 +8556,7 @@
 
               <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
                 Resolución de SOFEIN Admin
-                <select name="decision" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem">
+                <select name="decision" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0">
                   <option value="complete" ${del.state !== "rejected" ? "selected" : ""}>✓ Validado (Aprobar y certificar)</option>
                   <option value="review" ${del.state === "review" ? "" : ""}>En revisión</option>
                   <option value="rejected" ${del.state === "rejected" ? "selected" : ""}>⚠️ Con observaciones (Solicitar subsanación)</option>
@@ -8905,7 +8903,7 @@
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
                 <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
                   Tipo de cambio
-                  <select name="tipo" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem">
+                  <select name="tipo" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0">
                     <option value="Cambio operativo">Cambio operativo</option>
                     <option value="Ajuste de entrega">Ajuste de fecha / entrega</option>
                     <option value="Modificación de alcance">Modificación de alcance</option>
@@ -8914,7 +8912,7 @@
                 </label>
                 <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
                   Suministro afectado
-                  <select name="suministro" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem">
+                  <select name="suministro" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0">
                     <option value="General">Todo el expediente</option>
                     ${expSuministros.map(s => `<option value="${s.id}" ${activeDossierSuministroId === s.id ? "selected" : ""}>${s.id} · ${s.tipo}</option>`).join("")}
                   </select>
@@ -8922,7 +8920,7 @@
               </div>
               <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
                 Título del cambio
-                <input name="titulo" required placeholder="Ej: Actualización de ventana de descarga en tajo de vía" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem" />
+                <input name="titulo" required placeholder="Ej: Actualización de ventana de descarga en tajo de vía" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0" />
               </label>
               <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
                 Detalle / Observaciones
@@ -9145,7 +9143,7 @@
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
                 <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
                   Notificante / Origen
-                  <select name="origen" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem">
+                  <select name="origen" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0">
                     <option value="Cliente (${exp.cliente})" ${activeRole === "cliente" ? "selected" : ""}>Cliente (${exp.cliente})</option>
                     <option value="Proveedor (${exp.proveedor || "Taller Homologado"})" ${activeRole === "proveedor" ? "selected" : ""}>Proveedor (${exp.proveedor || "Taller Homologado"})</option>
                     <option value="SOFEIN (De Oficio)" ${activeRole === "admin" ? "selected" : ""}>SOFEIN (De Oficio / Mediador)</option>
@@ -9153,7 +9151,7 @@
                 </label>
                 <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
                   Tipología de la Alteración
-                  <select name="categoria" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem">
+                  <select name="categoria" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0">
                     <option value="Retraso de fabricación">Retraso en fabricación / curado en taller</option>
                     <option value="No conformidad técnica / calidad">No conformidad técnica / ensayo de calidad</option>
                     <option value="Modificación de alcance / adenda">Modificación de alcance / unidades de vía (Cliente)</option>
@@ -9165,7 +9163,7 @@
               <!-- Título de la Incidencia -->
               <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
                 Título Resumen de la Alteración
-                <input name="tipo" placeholder="Ej: Demora en secado de hormigón por ola de calor" required style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem" />
+                <input name="tipo" placeholder="Ej: Demora en secado de hormigón por ola de calor" required style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0" />
               </label>
 
               <!-- Descripción técnica -->
@@ -9178,18 +9176,18 @@
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
                 <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
                   Impacto Estimado en Plazo
-                  <input name="impactoPlazo" placeholder="Ej: +6 días en la segunda mitad del lote" required style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem" />
+                  <input name="impactoPlazo" placeholder="Ej: +6 días en la segunda mitad del lote" required style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0" />
                 </label>
                 <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
                   Impacto Económico (€)
-                  <input name="impactoCoste" placeholder="Ej: 0 € (Sin coste) o +1.500 €" required value="0 € (Sin alteración económica)" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem" />
+                  <input name="impactoCoste" placeholder="Ej: 0 € (Sin coste) o +1.500 €" required value="0 € (Sin alteración económica)" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0" />
                 </label>
               </div>
 
               <!-- Evidencia técnica adjunta -->
               <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
                 Documento de Evidencia / Soporte Técnico
-                <input name="evidenciaDoc" placeholder="Ej: Informe-Laboratorio-Curado-Taller.pdf" value="Informe-Tecnico-Soporte.pdf" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem" />
+                <input name="evidenciaDoc" placeholder="Ej: Informe-Laboratorio-Curado-Taller.pdf" value="Informe-Tecnico-Soporte.pdf" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0" />
               </label>
 
               ${isRoleAdmin ? `
@@ -9346,11 +9344,11 @@
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
                 <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
                   Nuevo Plazo Oficial Comprometido
-                  <input name="nuevoPlazo" required value="${inc.nuevoPlazoAcordado || "48 días (Lote A: 42d / Lote B: 48d)"}" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem" />
+                  <input name="nuevoPlazo" required value="${inc.nuevoPlazoAcordado || "48 días (Lote A: 42d / Lote B: 48d)"}" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0" />
                 </label>
                 <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
                   Ajuste Económico Pactado
-                  <input name="nuevoCoste" required value="${inc.nuevoCosteAcordado || "482.000 € (Sin alteración económica)"}" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem" />
+                  <input name="nuevoCoste" required value="${inc.nuevoCosteAcordado || "482.000 € (Sin alteración económica)"}" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0" />
                 </label>
               </div>
 
@@ -9459,7 +9457,7 @@
               <!-- Identidad del firmante -->
               <div style="display:grid;gap:6px">
                 <label style="font-size:0.75rem;font-weight:600;color:var(--entity-muted)">Entidad y Apoderado Firmante</label>
-                <input name="signerUser" required value="${isCliente ? `Luis M. Aranzadi (Jefe de Obra, ${partyName})` : `Carlos Mendía (Director Industrial, ${partyName})`}" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem" />
+                <input name="signerUser" required value="${isCliente ? `Luis M. Aranzadi (Jefe de Obra, ${partyName})` : `Carlos Mendía (Director Industrial, ${partyName})`}" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0" />
               </div>
 
               <!-- Declaración legal de conformidad -->
@@ -9751,7 +9749,7 @@
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
                 <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
                   Expediente Vinculado
-                  <select name="expId" required style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem">
+                  <select name="expId" required style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0">
                     ${EXPEDIENTES.map(e => `
                       <option value="${e.id}" ${preselectedExpId === e.id ? "selected" : ""}>
                         ${e.id} · ${e.producto.split(" ")[0]} (${e.cliente.split(" ")[0]})
@@ -9761,7 +9759,7 @@
                 </label>
                 <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
                   Suministro Vinculado
-                  <select name="suministro" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem">
+                  <select name="suministro" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0">
                     <option value="General del Expediente">General del Expediente</option>
                     ${SUMINISTROS.map(s => `
                       <option value="${s.num} · ${s.tipo.split(' ')[0]} ${s.tipo.split(' ')[1] || ''}">
@@ -9776,7 +9774,7 @@
               <div>
                 <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
                   Destinatarios
-                  <select name="targetRoles" required style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem">
+                  <select name="targetRoles" required style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0">
                     <option value="both">Ambos (Cliente & Proveedor)</option>
                     <option value="cliente">Solo Constructor (Cliente)</option>
                     <option value="proveedor">Solo Taller (Proveedor)</option>
@@ -9788,7 +9786,7 @@
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
                 <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
                   Categoría del Aviso
-                  <select name="categoria" required style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem">
+                  <select name="categoria" required style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0">
                     <option value="Requerimiento Documental">Requerimiento Documental (Certificados / Ensayos)</option>
                     <option value="Aviso de Plazo / Calendario">Aviso de Plazo / Calendario de Fabricación</option>
                     <option value="Instrucción Técnica de Obra">Instrucción Técnica de Obra / Replanteo</option>
@@ -9798,7 +9796,7 @@
                 </label>
                 <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
                   Nivel de Prioridad / Urgencia
-                  <select name="prioridad" required style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem">
+                  <select name="prioridad" required style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0">
                     <option value="normal">Normal (Informativa)</option>
                     <option value="urgente">Urgente (Respuesta en < 24h)</option>
                     <option value="critica">Crítica (Riesgo de paralización de vía)</option>
@@ -9809,7 +9807,7 @@
               <!-- Asunto -->
               <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
                 Asunto del Aviso
-                <input name="titulo" required placeholder="Ej: Aportar certificado de tracción EN 13230 antes del despacho" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem" />
+                <input name="titulo" required placeholder="Ej: Aportar certificado de tracción EN 13230 antes del despacho" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0" />
               </label>
 
               <!-- Mensaje Detallado -->
@@ -9821,7 +9819,7 @@
               <!-- Botón de Acción Sugerida -->
               <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
                 Etiqueta del Botón de Acción
-                <input name="accion" value="Subir Documento" required placeholder="Ej: Subir Certificado, Revisar Oferta, etc." style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem" />
+                <input name="accion" value="Subir Documento" required placeholder="Ej: Subir Certificado, Revisar Oferta, etc." style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0" />
               </label>
 
             </div>
@@ -9911,40 +9909,40 @@
             <button type="button" id="closeAddEntityModalBtn" aria-label="Cerrar">×</button>
           </div>
           <form id="modalAddEntityForm">
-            <div class="procurement-modal-body" style="gap:14px;max-height:calc(85vh - 140px);overflow-y:auto;padding-right:18px">
+            <div class="procurement-modal-body" style="gap:14px;max-height:calc(85vh - 140px);overflow-y:auto;overflow-x:hidden;padding:20px 24px;box-sizing:border-box">
               <div style="display:grid;gap:6px">
                 <label style="font-size:0.75rem;font-weight:600;color:var(--entity-muted)">Tipo de entidad</label>
-                <select id="entityTypeSelect" name="tipo" ${isEdit ? "disabled" : ""} style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem">
+                <select id="entityTypeSelect" name="tipo" ${isEdit ? "disabled" : ""} style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0">
                   <option value="proveedor" ${targetType === "proveedor" ? "selected" : ""}>Proveedor Homologado (Fabricante / Distribuidor)</option>
                   <option value="cliente" ${targetType === "cliente" ? "selected" : ""}>Cliente (Constructor de vía / Contratista)</option>
                 </select>
                 ${isEdit ? `<input type="hidden" name="tipo" value="${targetType}">` : ''}
               </div>
 
-              <div style="display:grid;grid-template-columns:1fr 130px;gap:12px">
+              <div style="display:grid;grid-template-columns:1fr 140px;gap:12px;min-width:0;box-sizing:border-box">
                 <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
                   Razón Social / Nombre
-                  <input name="nombre" required value="${(entityToEdit?.nombre || '').replace(/"/g, '&quot;')}" placeholder="Ej: Aceros Ferroviarios del Cantábrico, S.L." style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem" />
+                  <input name="nombre" required value="${(entityToEdit?.nombre || '').replace(/"/g, '&quot;')}" placeholder="Ej: Aceros Ferroviarios del Cantábrico, S.L." style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0" />
                 </label>
                 <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
                   CIF
-                  <input name="cif" required value="${(entityToEdit?.cif || '').replace(/"/g, '&quot;')}" placeholder="Ej: B-48192837" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem" />
+                  <input name="cif" required value="${(entityToEdit?.cif || '').replace(/"/g, '&quot;')}" placeholder="Ej: B-48192837" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0" />
                 </label>
               </div>
 
               <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
                 Sede / Fábrica principal
-                <input name="sede" required value="${(entityToEdit?.sede || '').replace(/"/g, '&quot;')}" placeholder="Ej: Amurrio (Álava) / Bilbao" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem" />
+                <input name="sede" required value="${(entityToEdit?.sede || '').replace(/"/g, '&quot;')}" placeholder="Ej: Amurrio (Álava) / Bilbao" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0" />
               </label>
 
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
                 <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
                   Email de contacto
-                  <input name="email" type="email" required value="${(entityToEdit?.email || entityToEdit?.contacto || '').replace(/"/g, '&quot;')}" placeholder="contacto@empresa.es" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem" />
+                  <input name="email" type="email" required value="${(entityToEdit?.email || entityToEdit?.contacto || '').replace(/"/g, '&quot;')}" placeholder="contacto@empresa.es" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0" />
                 </label>
                 <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
                   Teléfono de contacto
-                  <input name="telefono" type="tel" value="${(entityToEdit?.telefono || '').replace(/"/g, '&quot;')}" placeholder="Ej: +34 945 393 210" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem" />
+                  <input name="telefono" type="tel" value="${(entityToEdit?.telefono || '').replace(/"/g, '&quot;')}" placeholder="Ej: +34 945 393 210" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0" />
                 </label>
               </div>
 
@@ -9952,12 +9950,12 @@
               <div id="proveedorFields" style="display:${targetType === 'proveedor' ? 'grid' : 'none'};gap:14px">
                 <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
                   Suministros acreditados (etiquetas breves separadas por coma)
-                  <input name="suministros" value="${(entityToEdit?.suministros ? entityToEdit.suministros.join(', ') : (entityToEdit?.materiales || '')).replace(/"/g, '&quot;')}" placeholder="Ej: Traviesas, Fijaciones, Carril" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem" />
+                  <input name="suministros" value="${(entityToEdit?.suministros ? entityToEdit.suministros.join(', ') : (entityToEdit?.materiales || '')).replace(/"/g, '&quot;')}" placeholder="Ej: Traviesas, Fijaciones, Carril" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0" />
                   <span style="font-size:0.7rem;color:var(--entity-muted)">Etiquetas breves: Traviesas, Fijaciones, Carril 54E1, Balasto</span>
                 </label>
                 <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
                   Conformidades y certificaciones (etiquetas separadas por coma)
-                  <input name="conformidades" value="${(entityToEdit?.conformidades ? entityToEdit.conformidades.join(', ') : (entityToEdit?.homologaciones ? entityToEdit.homologaciones.join(', ') : 'ISO 9001, ISO 14001, Adif NAV-2026')).replace(/"/g, '&quot;')}" placeholder="Ej: ISO 9001, ISO 14001, Tratamiento UNE-EN 13145, Marcado CE" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem" />
+                  <input name="conformidades" value="${(entityToEdit?.conformidades ? entityToEdit.conformidades.join(', ') : (entityToEdit?.homologaciones ? entityToEdit.homologaciones.join(', ') : 'ISO 9001, ISO 14001, Adif NAV-2026')).replace(/"/g, '&quot;')}" placeholder="Ej: ISO 9001, ISO 14001, Tratamiento UNE-EN 13145, Marcado CE" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0" />
                   <span style="font-size:0.7rem;color:var(--entity-muted)">Ejemplos: ISO 9001, Tratamiento UNE-EN 13145, AENOR EN 13230, Adif NAV-2026</span>
                 </label>
               </div>
@@ -9966,7 +9964,7 @@
               <div id="clienteFields" style="display:${targetType === 'cliente' ? 'grid' : 'none'};gap:14px">
                 <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
                   Actividad / Especialidad ferroviaria
-                  <input name="actividad" value="${(entityToEdit?.actividad || '').replace(/"/g, '&quot;')}" placeholder="Ej: Constructora Ferroviaria (Licitaciones Adif / Metro)" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem" />
+                  <input name="actividad" value="${(entityToEdit?.actividad || '').replace(/"/g, '&quot;')}" placeholder="Ej: Constructora Ferroviaria (Licitaciones Adif / Metro)" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0" />
                 </label>
               </div>
             </div>

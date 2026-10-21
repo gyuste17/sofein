@@ -1950,7 +1950,21 @@ select:focus,
   gap: 16px;
   flex: 1 1 auto;
   overflow-y: auto;
+  overflow-x: hidden !important;
+  box-sizing: border-box !important;
   min-height: 0;
+}
+.procurement-modal-body input,
+.procurement-modal-body select,
+.procurement-modal-body textarea {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  min-width: 0 !important;
+}
+.procurement-modal-body label {
+  min-width: 0 !important;
+  box-sizing: border-box !important;
 }
 
 .procurement-modal-footer {
@@ -3040,11 +3054,11 @@ select:focus,
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
   padding: 12px 14px;
   z-index: 120;
+  display: none;
   opacity: 0;
-  visibility: hidden;
   pointer-events: none;
   transform: translateY(-4px);
-  transition: opacity 0.16s ease, transform 0.16s ease, visibility 0.16s ease;
+  transition: opacity 0.16s ease, transform 0.16s ease;
 }
 .dir-hover-popover::before {
   content: "";
@@ -3056,10 +3070,30 @@ select:focus,
 }
 .dir-popover-wrapper:hover .dir-hover-popover,
 .dir-popover-wrapper:focus-within .dir-hover-popover {
+  display: block;
   opacity: 1;
-  visibility: visible;
   pointer-events: auto;
   transform: translateY(0);
+}
+
+@media (min-width: 1024px) {
+  .b2b-dir-table-wrap {
+    overflow: visible;
+  }
+}
+
+.dir-cell-contact {
+  min-width: 155px;
+}
+.dir-cell-contact .dir-contact-link {
+  font-size: 0.72rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 190px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .dir-hover-popover.dir-popover-up {
   top: auto;
