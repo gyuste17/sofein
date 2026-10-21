@@ -6912,3 +6912,177 @@ select:focus,
     display: none;
   }
 }
+
+
+/* ============================================================
+   TARJETAS KPI EN COLUMNAS Y BLOQUES FLOTANTES COLAPSABLES (v28)
+   ============================================================ */
+.exp-bandeja-summary-strip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 0.78rem;
+  color: var(--entity-muted);
+}
+
+.exp-bandeja-summary-strip strong {
+  color: var(--entity-text);
+  font-weight: 700;
+}
+
+.exp-strip-dot {
+  color: var(--entity-faint);
+}
+
+.exp-kpi-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.exp-kpi-filter-card {
+  background: var(--entity-panel);
+  border: 1px solid var(--entity-line);
+  border-radius: 12px;
+  padding: 15px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.exp-kpi-filter-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.exp-kpi-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--entity-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.exp-kpi-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--entity-accent);
+  flex-shrink: 0;
+}
+
+.exp-kpi-dot.is-active {
+  background: #10b981;
+}
+
+.exp-kpi-dot.is-complete {
+  background: var(--entity-accent);
+}
+
+.exp-kpi-value {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--entity-text);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.exp-kpi-sub {
+  font-size: 0.72rem;
+  color: var(--entity-muted);
+  line-height: 1.35;
+}
+
+/* Dos columnas independientes y asimétricas para bloques flotantes */
+.b2b-profile-two-col {
+  display: grid;
+  grid-template-columns: 1fr 1.15fr;
+  gap: 18px;
+  align-items: start !important;
+}
+
+/* Bloques flotantes colapsables manteniendo el diseño limpio de tarjeta */
+details.b2b-profile-card.is-collapsible {
+  padding: 0;
+  overflow: hidden;
+}
+
+details.b2b-profile-card.is-collapsible > summary.is-collapsible-summary {
+  list-style: none;
+  padding: 18px 22px;
+  margin: 0;
+  border-bottom: none;
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  transition: background 0.15s ease;
+}
+
+details.b2b-profile-card.is-collapsible > summary.is-collapsible-summary::-webkit-details-marker {
+  display: none;
+}
+
+details.b2b-profile-card.is-collapsible > summary.is-collapsible-summary:hover {
+  background: rgba(128, 128, 128, 0.03);
+}
+
+details.b2b-profile-card.is-collapsible[open] > summary.is-collapsible-summary {
+  border-bottom: 1px solid var(--entity-line);
+  padding-bottom: 15px;
+}
+
+.b2b-profile-card-body {
+  padding: 18px 22px 20px;
+}
+
+.b2b-profile-summary-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.b2b-profile-chevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  border: 1px solid var(--entity-line);
+  background: var(--entity-panel-2);
+  color: var(--entity-muted);
+  transition: transform 0.18s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+details.b2b-profile-card.is-collapsible > summary.is-collapsible-summary:hover .b2b-profile-chevron {
+  color: var(--entity-text);
+  border-color: var(--entity-line-strong);
+}
+
+details.b2b-profile-card.is-collapsible[open] > summary.is-collapsible-summary .b2b-profile-chevron {
+  transform: rotate(180deg);
+}
+
+@media (max-width: 1024px) {
+  .exp-kpi-filter-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .b2b-profile-two-col {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .exp-kpi-filter-grid {
+    grid-template-columns: 1fr;
+  }
+}
