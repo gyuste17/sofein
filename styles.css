@@ -6842,3 +6842,73 @@ select:focus,
     grid-template-columns: 1fr;
   }
 }
+
+/* KPIs multi-columna de datos corporativos y desplegables de perfil (v27) */
+.b2b-profile-kpi-strip {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.b2b-mini-kpi-card {
+  background: var(--entity-panel);
+  border: 1px solid var(--entity-line);
+  border-radius: 10px;
+  padding: 11px 13px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.b2b-mini-kpi-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--entity-faint);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.b2b-mini-kpi-val {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--entity-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.b2b-profile-collapsibles-stack {
+  display: grid;
+  gap: 12px;
+}
+
+.b2b-profile-details {
+  margin-top: 0 !important;
+}
+
+.b2b-summary-inline-tags {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 6px;
+}
+
+@media (max-width: 1180px) {
+  .b2b-profile-kpi-strip {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 680px) {
+  .b2b-profile-kpi-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .b2b-summary-inline-tags {
+    display: none;
+  }
+}
