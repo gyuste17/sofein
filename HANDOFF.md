@@ -6,6 +6,8 @@
 - Bandeja: los expedientes activos van ahora en un `<details data-exp-collapse="activos">` limpio (`.exp-collapsible-clean`, sin caja), abierto por defecto.
 - Tarjetas: orden Suministros → Cliente → Destino → Presupuesto → Próxima entrega. Si hay más de un suministro, aparece un icono de info con un tooltip CSS «Fases por suministro». El handler global ignora `[data-exp-sum-info]`, así que pulsar el icono no navega.
 - Nuevos helpers en `app.js`: `getExpedientesForRole`, `getExpSuministrosForRole`, `hasExpPendingActionForRole` y `getExpVisualMeta(exp, role)`. El cliente ve solo su entidad. El proveedor ve solo expedientes con algún suministro de IberRail, y cuenta y lista únicamente esos. La sidebar (`getRolePendingCount`) usa la misma lógica.
+- **Presupuesto en vista de proveedor:** En las tarjetas de la vista de proveedor y en los filtros de rango de presupuesto se calcula y muestra exclusivamente la suma de los suministros adjudicados a ese proveedor (ej. 402.000 € en H6T4 y 58.000 € en W4P7), nunca el presupuesto total del expediente completo.
+- **Acciones pendientes en vista de proveedor:** Las acciones pendientes se circunscriben estrictamente a lo que le compete al proveedor (entregables requeridos en fases alcanzadas, incidencias de su suministro pendientes de su firma, o suministros adjudicados con acciones pendientes), sin verse afectado por tareas que son responsabilidad de SOFEIN Admin.
 
 **Decisiones**
 - Para cliente y proveedor, los entregables pendientes solo cuentan en fases ya alcanzadas (`<= faseActual`); los de fases futuras no son accionables.

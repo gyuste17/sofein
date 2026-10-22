@@ -1926,7 +1926,8 @@
     if (role === "proveedor") {
       const incPendienteFirma = (exp.incidencias || []).some(i => !i.adendaId && !i.firmaProveedor && i.firmaSofein);
       const docsPendientes = getReachedDeliverables(exp).some(d => d.owner === "Proveedor" && (d.state === "pending" || d.state === "rejected"));
-      return incPendienteFirma || docsPendientes;
+      const sumConAcciones = getExpSuministrosForRole(exp, "proveedor").some(s => (s.accionesPendientes || 0) > 0);
+      return incPendienteFirma || docsPendientes || sumConAcciones;
     }
     const preset = EXP_GENERIC_META[exp.id] || {};
     const hasOpenInc = (exp.incidencias || []).some(i => !i.adendaId);
@@ -1974,7 +1975,11 @@
     const proximaEntregaFecha = exp.proximaEntregaFecha || preset.proximaEntregaFecha || "02 nov 2026";
     const proximaEntregaDiff = exp.proximaEntregaDiff || preset.proximaEntregaDiff || "En 13 días";
     const proximaEntregaTone = exp.proximaEntregaTone || preset.proximaEntregaTone || "ontime";
-    const budgetNum = parseBudgetNumber(exp.presupuestoTotal);
+    const cardSuministros = getExpSuministrosForRole(exp, role);
+    const presupuestoVal = role === "proveedor"
+      ? formatSuministrosBudgetSum(cardSuministros, exp.presupuestoTotal)
+      : exp.presupuestoTotal;
+    const budgetNum = parseBudgetNumber(presupuestoVal);
     const budgetRange = budgetNum < 200000 ? "low" : budgetNum <= 500000 ? "mid" : "high";
 
     return {
@@ -1993,7 +1998,8 @@
       proximaEntregaFecha,
       proximaEntregaDiff,
       proximaEntregaTone,
-      budgetRange
+      budgetRange,
+      presupuesto: presupuestoVal
     };
   }
 
@@ -2073,7 +2079,7 @@
           </div>
           <div class="exp-v2-data-row">
             <span class="exp-v2-label">Presupuesto est.</span>
-            <strong class="exp-v2-val">${exp.presupuestoTotal}</strong>
+            <strong class="exp-v2-val">${v.presupuesto}</strong>
           </div>
           <div class="exp-v2-data-row is-delivery">
             <span class="exp-v2-label">Próxima entrega</span>
@@ -2103,7 +2109,7 @@
     const q = expSearchQuery.trim().toLowerCase();
     const matchesSearchAndSelects = ({ exp, meta }) => {
       if (q) {
-        const haystack = `${exp.id} ${meta.tituloGenerico} ${exp.producto} ${exp.cliente} ${exp.destinatarioFinal} ${exp.presupuestoTotal} ${meta.shortPhase} ${meta.proximaEntregaFecha}`.toLowerCase();
+        const haystack = `${exp.id} ${meta.tituloGenerico} ${exp.producto} ${exp.cliente} ${exp.destinatarioFinal} ${meta.presupuesto} ${meta.shortPhase} ${meta.proximaEntregaFecha}`.toLowerCase();
         if (!haystack.includes(q)) return false;
       }
       if (expCardFilters.fase !== "all" && String(exp.faseActual) !== expCardFilters.fase) return false;
