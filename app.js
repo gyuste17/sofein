@@ -60,7 +60,7 @@
   const PLAYERS = {
     admin: {
       id: "admin",
-      shortLabel: "Admin (SOFEIN)",
+      shortLabel: "SOFEIN (Admin)",
       label: "SOFEIN Admin",
       badge: "Administración Central",
       entity: "SOFEIN Digital HQ",
