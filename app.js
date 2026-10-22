@@ -89,8 +89,8 @@
     },
     proveedor: {
       id: "proveedor",
-      shortLabel: "Proveedor Homologado",
-      label: "Proveedor Homologado",
+      shortLabel: "Proveedor",
+      label: "Proveedor",
       badge: "Taller & Suministrador",
       entity: "IberRail Components, S.L.",
       avatar: "IR",
@@ -2248,7 +2248,7 @@
               <button class="role-popover-item ${activeRole === "proveedor" ? "is-active" : ""}" type="button" data-switch-role="proveedor">
                 <span class="role-badge-dot proveedor"></span>
                 <div>
-                  <strong>Proveedor Homologado</strong>
+                  <strong>Proveedor</strong>
                   <small>IberRail Components</small>
                 </div>
                 ${activeRole === "proveedor" ? icon("check", 14) : ""}
