@@ -7280,3 +7280,195 @@ details.b2b-profile-card.is-collapsible[open] > summary.is-collapsible-summary .
   .catalog-toolbar .b2b-dir-search-wrap { max-width: none !important; min-width: 0 !important; width: 100%; }
   .admin-hub-card { padding: 14px; }
 }
+
+/* ============================================================
+   EXPEDIENTES: DESPLEGABLE LIMPIO DE ACTIVOS + TOOLTIP DE FASES POR SUMINISTRO
+   ============================================================ */
+
+/* Desplegable "Expedientes activos" sin caja exterior */
+.exp-collapsible-details.exp-collapsible-clean {
+  border: none;
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
+  overflow: visible;
+}
+
+.exp-collapsible-details.exp-collapsible-clean > summary {
+  padding: 4px 2px;
+  background: transparent;
+  border-radius: 6px;
+}
+
+.exp-collapsible-details.exp-collapsible-clean > summary:hover {
+  background: transparent;
+}
+
+.exp-collapsible-details.exp-collapsible-clean > summary:hover strong,
+.exp-collapsible-details.exp-collapsible-clean > summary:hover .exp-collapsible-toggle-text {
+  color: var(--entity-accent);
+}
+
+.exp-collapsible-details.exp-collapsible-clean > summary:focus-visible {
+  outline: 2px solid var(--entity-accent);
+  outline-offset: 2px;
+}
+
+.exp-collapsible-details.exp-collapsible-clean > .exp-collapsible-content {
+  padding: 12px 0 0;
+  border-top: none;
+  background: transparent;
+}
+
+/* Valor de suministros + mini icono de información */
+.exp-v2-sum-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 5px;
+  min-width: 0;
+}
+
+.exp-sum-info {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--entity-faint);
+  cursor: help;
+  border-radius: 50%;
+  outline: none;
+  transition: color 0.15s ease;
+}
+
+.exp-sum-info:hover,
+.exp-sum-info:focus-visible {
+  color: var(--entity-accent);
+}
+
+.exp-sum-info:focus-visible {
+  box-shadow: 0 0 0 2px var(--entity-accent-soft);
+}
+
+/* Tooltip flotante */
+.exp-sum-tooltip {
+  position: absolute;
+  z-index: 80;
+  right: -10px;
+  bottom: calc(100% + 9px);
+  width: min(290px, 78vw);
+  display: grid;
+  gap: 6px;
+  padding: 10px 12px;
+  text-align: left;
+  white-space: normal;
+  cursor: default;
+  background: var(--entity-panel);
+  border: 1px solid var(--entity-line-strong);
+  border-radius: 9px;
+  box-shadow: var(--entity-shadow), 0 4px 14px rgba(0, 0, 0, 0.08);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(4px);
+  transition: opacity 0.15s ease, transform 0.15s ease, visibility 0s linear 0.15s;
+}
+
+/* Puente invisible para que el hover no se corte entre icono y tooltip */
+.exp-sum-tooltip::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  height: 10px;
+}
+
+/* Flecha */
+.exp-sum-tooltip::after {
+  content: "";
+  position: absolute;
+  right: 13px;
+  top: 100%;
+  width: 8px;
+  height: 8px;
+  margin-top: -4px;
+  background: var(--entity-panel);
+  border-right: 1px solid var(--entity-line-strong);
+  border-bottom: 1px solid var(--entity-line-strong);
+  transform: rotate(45deg);
+}
+
+.exp-sum-info:hover .exp-sum-tooltip,
+.exp-sum-info:focus-within .exp-sum-tooltip {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0);
+  transition: opacity 0.15s ease, transform 0.15s ease, visibility 0s;
+}
+
+/* Elevar la tarjeta activa para que el tooltip quede sobre las tarjetas vecinas */
+.admin-exp-card.exp-v2-card:has(.exp-sum-info:hover),
+.admin-exp-card.exp-v2-card:has(.exp-sum-info:focus-within) {
+  position: relative;
+  z-index: 40;
+}
+
+.exp-sum-tooltip-head {
+  font-size: 0.64rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--entity-faint);
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--entity-line);
+}
+
+.exp-sum-tooltip-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+}
+
+.exp-sum-tooltip-name {
+  min-width: 0;
+  font-size: 0.72rem;
+  font-weight: 550;
+  color: var(--entity-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.exp-sum-tooltip-name b {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.66rem;
+  color: var(--entity-muted);
+}
+
+.exp-sum-tooltip-phase {
+  --phase-color: #2f9e66;
+  flex-shrink: 0;
+  font-size: 0.64rem;
+  font-weight: 700;
+  white-space: nowrap;
+  padding: 2px 7px;
+  border-radius: 999px;
+  color: var(--phase-color);
+  background: color-mix(in srgb, var(--phase-color) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--phase-color) 26%, transparent);
+}
+
+.exp-sum-tooltip-phase.phase-tone-1 { --phase-color: #52b788; }
+.exp-sum-tooltip-phase.phase-tone-2 { --phase-color: #2b8a5e; }
+.exp-sum-tooltip-phase.phase-tone-3 { --phase-color: #165b3a; }
+.exp-sum-tooltip-phase.phase-tone-4 { --phase-color: #09301d; }
+
+[data-theme="dark"] .exp-sum-tooltip-phase.phase-tone-1 { --phase-color: #95d5b2; }
+[data-theme="dark"] .exp-sum-tooltip-phase.phase-tone-2 { --phase-color: #6fcf97; }
+[data-theme="dark"] .exp-sum-tooltip-phase.phase-tone-3 { --phase-color: #52b788; }
+[data-theme="dark"] .exp-sum-tooltip-phase.phase-tone-4 { --phase-color: #3fa274; }

@@ -1,5 +1,16 @@
 # HANDOFF — SOFEIN Procurement (Auditoría y Validación Final)
 
+## 2026-10-22 · Claude · rama `procurement` · bandeja de expedientes por perfil
+
+**Hecho** (según `claude_instructions.txt`)
+- Bandeja: los expedientes activos van ahora en un `<details data-exp-collapse="activos">` limpio (`.exp-collapsible-clean`, sin caja), abierto por defecto.
+- Tarjetas: orden Suministros → Cliente → Destino → Presupuesto → Próxima entrega. Si hay más de un suministro, aparece un icono de info con un tooltip CSS «Fases por suministro». El handler global ignora `[data-exp-sum-info]`, así que pulsar el icono no navega.
+- Nuevos helpers en `app.js`: `getExpedientesForRole`, `getExpSuministrosForRole`, `hasExpPendingActionForRole` y `getExpVisualMeta(exp, role)`. El cliente ve solo su entidad. El proveedor ve solo expedientes con algún suministro de IberRail, y cuenta y lista únicamente esos. La sidebar (`getRolePendingCount`) usa la misma lógica.
+
+**Decisiones**
+- Para cliente y proveedor, los entregables pendientes solo cuentan en fases ya alcanzadas (`<= faseActual`); los de fases futuras no son accionables.
+- El admin conserva su lógica anterior (`forcePendingAction` y presets).
+
 ## 2026-10-22 · Claude · rama `procurement` · assets `?v=procurement-v29`
 
 **Hecho — Administración SOFEIN + catálogos maestros**

@@ -1878,16 +1878,68 @@
     return digits ? parseInt(digits, 10) : 0;
   }
 
-  function getExpVisualMeta(exp) {
+  /* ---------- Alcance de expedientes y suministros por perfil ---------- */
+  function isSuministroOfActiveProveedor(s) {
+    return !!s.proveedor && s.proveedor.toLowerCase().includes("iberrail");
+  }
+
+  function isExpOfActiveCliente(exp) {
+    return exp.cliente === PLAYERS.cliente.entity;
+  }
+
+  // Cliente: solo sus expedientes · Proveedor: solo expedientes con ≥1 suministro adjudicado a él
+  function getExpedientesForRole(role) {
+    if (role === "cliente") {
+      return EXPEDIENTES.filter(isExpOfActiveCliente);
+    }
+    if (role === "proveedor") {
+      return EXPEDIENTES.filter(exp => SUMINISTROS.some(s => s.expId === exp.id && isSuministroOfActiveProveedor(s)));
+    }
+    return EXPEDIENTES;
+  }
+
+  // Suministros del expediente relevantes para el perfil (proveedor: solo los adjudicados a él)
+  function getExpSuministrosForRole(exp, role) {
+    const all = SUMINISTROS.filter(s => s.expId === exp.id);
+    if (role === "proveedor") return all.filter(isSuministroOfActiveProveedor);
+    return all;
+  }
+
+  // Entregables de las fases ya alcanzadas (las futuras aún no son accionables)
+  function getReachedDeliverables(exp) {
+    const out = [];
+    Object.keys(exp.deliverables || {}).forEach(k => {
+      if (Number(k) <= exp.faseActual) out.push(...(exp.deliverables[k] || []));
+    });
+    return out;
+  }
+
+  // Acciones pendientes que competen exclusivamente al perfil indicado
+  function hasExpPendingActionForRole(exp, role = "admin") {
+    if (role === "cliente") {
+      const incPendienteFirma = (exp.incidencias || []).some(i => !i.adendaId && !i.firmaCliente && i.firmaSofein);
+      const docsPendientes = getReachedDeliverables(exp).some(d => d.owner === "Cliente" && d.state !== "complete");
+      const faseSelector = exp.matching?.faseSelector;
+      const matchingPendiente = exp.faseActual === 1 && (faseSelector === "seleccion_cliente" || faseSelector === "comparativa");
+      return incPendienteFirma || docsPendientes || matchingPendiente;
+    }
+    if (role === "proveedor") {
+      const incPendienteFirma = (exp.incidencias || []).some(i => !i.adendaId && !i.firmaProveedor && i.firmaSofein);
+      const docsPendientes = getReachedDeliverables(exp).some(d => d.owner === "Proveedor" && (d.state === "pending" || d.state === "rejected"));
+      return incPendienteFirma || docsPendientes;
+    }
+    const preset = EXP_GENERIC_META[exp.id] || {};
+    const hasOpenInc = (exp.incidencias || []).some(i => !i.adendaId);
+    return preset.forcePendingAction !== undefined
+      ? preset.forcePendingAction
+      : (exp.estado === "pending_validation" || hasOpenInc || exp.faseActual === 1);
+  }
+
+  function getExpVisualMeta(exp, role = "admin") {
     const preset = EXP_GENERIC_META[exp.id] || {};
     const isClosed = !!exp.cerrado;
     const isCompleted = !isClosed && (!!preset.isFinalizado || !!exp.finalizado || exp.faseActual >= 3);
-    const hasOpenInc = (exp.incidencias || []).some(i => !i.adendaId);
-    const hasPendingAction = !isClosed && !isCompleted && (
-      preset.forcePendingAction !== undefined
-        ? preset.forcePendingAction
-        : (exp.estado === "pending_validation" || hasOpenInc || exp.faseActual === 1)
-    );
+    const hasPendingAction = !isClosed && !isCompleted && hasExpPendingActionForRole(exp, role);
 
     let kpiGroup = "activos";
     if (isClosed) {
@@ -1946,8 +1998,33 @@
   }
 
   function renderVisualExpCard(exp, role = "admin") {
-    const v = getExpVisualMeta(exp);
+    const v = getExpVisualMeta(exp, role);
     const goTarget = `#${role}/expedientes/${exp.id}`;
+
+    // Suministros relevantes para el perfil (proveedor: solo los adjudicados a él)
+    const cardSuministros = getExpSuministrosForRole(exp, role);
+    const sumCount = cardSuministros.length || v.numSuministros;
+    const sumLabel = role === "proveedor"
+      ? `${sumCount} ${sumCount === 1 ? "suministro adjudicado" : "suministros adjudicados"}`
+      : `${sumCount} ${sumCount === 1 ? "suministro" : "suministros"}`;
+    const sumInfoHTML = cardSuministros.length > 1 ? `
+      <span class="exp-sum-info" data-exp-sum-info tabindex="0" role="button" aria-label="Ver fases por suministro">
+        ${icon("info", 13)}
+        <span class="exp-sum-tooltip" role="tooltip">
+          <span class="exp-sum-tooltip-head">Fases por suministro</span>
+          ${cardSuministros.map(s => {
+            const step = Math.min(s.faseActual + 1, PHASES.length);
+            const phaseName = SHORT_PHASE_NAMES[s.faseActual] || PHASES[s.faseActual]?.name || "En curso";
+            return `
+              <span class="exp-sum-tooltip-row">
+                <span class="exp-sum-tooltip-name" title="${s.tipo}">${s.num ? `<b>${s.num}</b> · ` : ""}${s.tipo}</span>
+                <span class="exp-sum-tooltip-phase phase-tone-${step}">${step}/${PHASES.length} · ${phaseName}</span>
+              </span>
+            `;
+          }).join("")}
+        </span>
+      </span>
+    ` : "";
 
     // Mini gráfico minimalista de fases (ej. 4/7)
     const miniBarsHTML = PHASES.map((p, idx) => {
@@ -1981,15 +2058,18 @@
         <div class="exp-v2-data-grid">
           <div class="exp-v2-data-row">
             <span class="exp-v2-label">Suministros</span>
-            <strong class="exp-v2-val">${v.numSuministros} suministros</strong>
-          </div>
-          <div class="exp-v2-data-row">
-            <span class="exp-v2-label">Destino</span>
-            <strong class="exp-v2-val" title="${exp.destinatarioFinal}">${exp.destinatarioFinal}</strong>
+            <span class="exp-v2-sum-wrap">
+              <strong class="exp-v2-val">${sumLabel}</strong>
+              ${sumInfoHTML}
+            </span>
           </div>
           <div class="exp-v2-data-row">
             <span class="exp-v2-label">Cliente</span>
             <strong class="exp-v2-val" title="${exp.cliente}">${exp.cliente}</strong>
+          </div>
+          <div class="exp-v2-data-row">
+            <span class="exp-v2-label">Destino</span>
+            <strong class="exp-v2-val" title="${exp.destinatarioFinal}">${exp.destinatarioFinal}</strong>
           </div>
           <div class="exp-v2-data-row">
             <span class="exp-v2-label">Presupuesto est.</span>
@@ -2009,7 +2089,7 @@
 
   function renderExpedientesBandejaVisual(role, roleExpedientes) {
     // 1. Calcular contadores de los 4 KPIs sobre la lista del rol
-    const enriched = roleExpedientes.map(exp => ({ exp, meta: getExpVisualMeta(exp) }));
+    const enriched = roleExpedientes.map(exp => ({ exp, meta: getExpVisualMeta(exp, role) }));
     const countActivos = enriched.filter(x => x.meta.kpiGroup === "activos").length;
     const countAccionPendiente = enriched.filter(x => x.meta.hasPendingAction).length;
     const countCompletados = enriched.filter(x => x.meta.kpiGroup === "completados").length;
@@ -2170,10 +2250,21 @@
 
       ${mainSectionNotice}
 
-      <!-- Rejilla principal de expedientes activos (siempre desplegada y sin caja exterior) -->
-      <div class="admin-exp-list">
-        ${mainCardsHTML}
-      </div>
+      <!-- Rejilla principal de expedientes activos (desplegable limpio, abierto por defecto y sin caja exterior) -->
+      <details class="exp-collapsible-details exp-collapsible-clean" data-exp-collapse="activos" ${expBandejaCollapseState.activos !== false ? "open" : ""}>
+        <summary>
+          <div class="exp-collapsible-summary-left">
+            <span class="scope-dot active"></span>
+            <strong>${expKpiFilter === "completados" ? `Expedientes finalizados (${completedItems.length})` : expKpiFilter === "cerrados" ? `Expedientes cerrados (${closedItems.length})` : `Expedientes activos (${activeItems.length})`}</strong>
+          </div>
+          <span class="exp-collapsible-toggle-text">${icon("chevronDown", 14)}</span>
+        </summary>
+        <div class="exp-collapsible-content">
+          <div class="admin-exp-list">
+            ${mainCardsHTML}
+          </div>
+        </div>
+      </details>
 
       <hr class="dossier-section-divider is-subtle" style="margin: 18px 0 14px" />
 
@@ -3530,7 +3621,7 @@
     const isRoleProveedor = activeRole === "proveedor";
 
     // Metadatos visuales resumidos del expediente
-    const v = getExpVisualMeta(exp);
+    const v = getExpVisualMeta(exp, activeRole);
     const miniBarsHTML = PHASES.map((p, idx) => {
       const isDone = idx < exp.faseActual || v.isClosed || v.isCompleted;
       const isCurrent = !v.isClosed && !v.isCompleted && idx === exp.faseActual;
@@ -4931,14 +5022,9 @@
       return sumList.filter(s => s.estado === "activo").length;
     }
     if (navId === "expedientes") {
-      let roleExps = EXPEDIENTES;
-      if (role === "cliente") {
-        roleExps = EXPEDIENTES.filter(e => e.cliente.toLowerCase().includes("infraestructuras"));
-      } else if (role === "proveedor") {
-        roleExps = EXPEDIENTES.filter(e => e.proveedor.toLowerCase().includes("iberrail") || e.id === "SFN-2026-K9M2" || e.id === "SFN-2026-W4P7");
-      }
+      const roleExps = getExpedientesForRole(role);
       const pendingActionCount = roleExps.filter(e => {
-        const meta = getExpVisualMeta(e);
+        const meta = getExpVisualMeta(e, role);
         return meta.hasPendingAction;
       }).length;
       return pendingActionCount > 0 ? pendingActionCount : roleExps.filter(e => !e.cerrado).length;
@@ -6539,8 +6625,7 @@
 
     if (section === "expedientes") {
       if (param) return renderDossierBuilder(param);
-      const clientAll = EXPEDIENTES.filter(e => e.cliente.includes("Infraestructuras") || e.cliente.includes("Adif") || e.cliente.includes("Metro") || e.cliente.includes("Ferrocarrils"));
-      return renderExpedientesBandejaVisual("cliente", clientAll);
+      return renderExpedientesBandejaVisual("cliente", getExpedientesForRole("cliente"));
     }
     if (section === "suministros") {
       return renderSuministrosSection("cliente");
@@ -6569,8 +6654,7 @@
     if (section === "expedientes") {
       if (param) return renderDossierBuilder(param);
 
-      const prvAll = EXPEDIENTES.filter(e => e.proveedor.includes("IberRail") || e.id === "SFN-2026-K9M2" || e.id === "SFN-2026-W4P7");
-      return renderExpedientesBandejaVisual("proveedor", prvAll);
+      return renderExpedientesBandejaVisual("proveedor", getExpedientesForRole("proveedor"));
     }
 
     if (section === "cotizaciones") {
@@ -11957,6 +12041,12 @@
 
   // Navegación y acciones delegadas globales
   document.addEventListener("click", e => {
+    // El mini icono de fases por suministro solo muestra tooltip: no navega al expediente
+    if (e.target.closest("[data-exp-sum-info]")) {
+      e.preventDefault();
+      return;
+    }
+
     const go = e.target.closest("[data-go]");
     if (go) {
       e.preventDefault();
