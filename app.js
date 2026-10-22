@@ -75,8 +75,8 @@
     },
     cliente: {
       id: "cliente",
-      shortLabel: "Cliente (Constructor)",
-      label: "Constructor (Cliente)",
+      shortLabel: "Cliente",
+      label: "Cliente",
       badge: "Constructor de Vía",
       entity: "Infraestructuras del Norte, S.A.",
       avatar: "IN",
@@ -2240,7 +2240,7 @@
               <button class="role-popover-item ${activeRole === "cliente" ? "is-active" : ""}" type="button" data-switch-role="cliente">
                 <span class="role-badge-dot cliente"></span>
                 <div>
-                  <strong>Constructor (Cliente)</strong>
+                  <strong>Cliente</strong>
                   <small>Infraestructuras del Norte</small>
                 </div>
                 ${activeRole === "cliente" ? icon("check", 14) : ""}
