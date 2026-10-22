@@ -1382,30 +1382,38 @@
   let overviewFilter = null; // "validados" | "review" | "pending" | "futuras" | "expedientes" | "incidencias" | "proveedores"
   let expSearchQuery = "";
   let suministrosFilters = {
-    fase: "all",
+    suministro: "all",
+    tipo: "all",
+    descripcion: "all",
+    unidades: "all",
+    expediente: "all",
     proveedor: "all",
     cliente: "all",
+    destino: "all",
     ano: "all",
-    acciones: "all"
+    fase: "all",
+    acciones: "all",
+    fechaEntrega: "all"
   };
   let suministrosSortCol = "suministro";
   let suministrosSortDir = "asc";
   let suministrosSearchQuery = "";
   let isColsMenuOpen = false;
+  let isClosedTableOpen = false;
 
   const ALL_SUMINISTROS_COL_DEFS = {
-    suministro: { id: "suministro", label: "Suministro", minWidth: "90px" },
-    tipo: { id: "tipo", label: "Tipo", minWidth: "220px" },
-    descripcion: { id: "descripcion", label: "Descripción", minWidth: "220px" },
-    unidades: { id: "unidades", label: "Unidades", minWidth: "125px" },
-    expediente: { id: "expediente", label: "Expediente", minWidth: "135px" },
-    proveedor: { id: "proveedor", label: "Proveedor", minWidth: "165px" },
-    cliente: { id: "cliente", label: "Cliente", minWidth: "165px" },
-    destino: { id: "destino", label: "Destino", minWidth: "180px" },
+    suministro: { id: "suministro", label: "Suministro", minWidth: "85px" },
+    tipo: { id: "tipo", label: "Tipo", minWidth: "115px" },
+    descripcion: { id: "descripcion", label: "Descripción", minWidth: "200px" },
+    unidades: { id: "unidades", label: "Unidades", minWidth: "90px" },
+    expediente: { id: "expediente", label: "Expediente", minWidth: "130px" },
+    proveedor: { id: "proveedor", label: "Proveedor", minWidth: "155px" },
+    cliente: { id: "cliente", label: "Cliente", minWidth: "155px" },
+    destino: { id: "destino", label: "Destino", minWidth: "160px" },
     ano: { id: "ano", label: "Año", minWidth: "75px" },
-    fase: { id: "fase", label: "Fase", minWidth: "145px" },
-    acciones: { id: "acciones", label: "Acciones pendientes", minWidth: "125px" },
-    fechaEntrega: { id: "fechaEntrega", label: "Fecha entrega", minWidth: "130px" }
+    fase: { id: "fase", label: "Fase", minWidth: "135px" },
+    acciones: { id: "acciones", label: "Acciones", minWidth: "90px" },
+    fechaEntrega: { id: "fechaEntrega", label: "Fecha entrega", minWidth: "145px" }
   };
 
   const DEFAULT_SUMINISTROS_COL_ORDER = [
@@ -1423,12 +1431,14 @@
     "fechaEntrega"
   ];
 
+  const DEFAULT_SUMINISTROS_HIDDEN_COLS = ["proveedor", "cliente", "descripcion", "destino"];
+
   let suministrosColumnOrder = [...DEFAULT_SUMINISTROS_COL_ORDER];
-  let suministrosHiddenCols = new Set();
+  let suministrosHiddenCols = new Set(DEFAULT_SUMINISTROS_HIDDEN_COLS);
 
   function loadSuministrosColPrefs() {
     try {
-      const saved = localStorage.getItem("sofein_suministros_columns_cfg");
+      const saved = localStorage.getItem("sofein_suministros_columns_cfg_v3");
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed.order) && parsed.order.length > 0) {
@@ -1441,14 +1451,19 @@
         if (Array.isArray(parsed.hidden)) {
           suministrosHiddenCols = new Set(parsed.hidden.filter(id => DEFAULT_SUMINISTROS_COL_ORDER.includes(id)));
         }
+      } else {
+        suministrosHiddenCols = new Set(DEFAULT_SUMINISTROS_HIDDEN_COLS);
       }
-    } catch (e) {}
+    } catch (e) {
+      suministrosColumnOrder = [...DEFAULT_SUMINISTROS_COL_ORDER];
+      suministrosHiddenCols = new Set(DEFAULT_SUMINISTROS_HIDDEN_COLS);
+    }
   }
   loadSuministrosColPrefs();
 
   function saveSuministrosColPrefs() {
     try {
-      localStorage.setItem("sofein_suministros_columns_cfg", JSON.stringify({
+      localStorage.setItem("sofein_suministros_columns_cfg_v3", JSON.stringify({
         order: suministrosColumnOrder,
         hidden: Array.from(suministrosHiddenCols)
       }));
@@ -5154,66 +5169,159 @@
     return item ? (item.count || 0) : 0;
   }
 
-  function renderSuministrosSection(role) {
-    loadSuministrosColPrefs();
-    const roleAll = getSuministrosForRole(role);
+  // Mini KPI de días hasta la fecha de entrega
+  function getDeliveryKpi(s) {
+    if (!s.fechaEntregaIso && !s.fechaEntrega) return null;
+    const isoStr = s.fechaEntregaIso || s.fechaEntrega;
+    const target = new Date(isoStr);
+    if (isNaN(target.getTime())) return null;
+    target.setHours(0, 0, 0, 0);
 
-    // Opciones dinámicas para los filtros selectores
-    const uniquePhaseIndices = Array.from(new Set(roleAll.map(s => s.faseActual))).sort((a, b) => a - b);
-    const uniqueProveedores = Array.from(new Set(roleAll.map(s => s.proveedor))).sort();
-    const uniqueClientes = Array.from(new Set(roleAll.map(s => s.cliente))).sort();
-    const uniqueAnos = Array.from(new Set(roleAll.map(s => s.ano))).sort((a, b) => b - a);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-    // Filtrar según búsqueda y selectores
-    const q = suministrosSearchQuery.trim().toLowerCase();
-    const filtered = roleAll.filter(s => {
-      // 1. Buscador libre
-      if (q) {
-        const haystack = `${s.num} ${s.tipo} ${s.descripcion || ""} ${s.unidades} ${s.expId} ${s.proveedor} ${s.cliente} ${s.destino} ${s.ano} ${s.faseNombre} ${s.fechaEntrega}`.toLowerCase();
-        if (!haystack.includes(q)) return false;
+    const diffDays = Math.round((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
+    if (s.estado === "finalizado" || s.estado === "cerrado") {
+      return {
+        days: 0,
+        text: s.estado === "cerrado" ? "Cerrado" : "Entregado",
+        class: "is-delivered",
+        label: s.estado === "cerrado" ? "Suministro cerrado formalmente" : "Lote entregado y conforme"
+      };
+    }
+
+    if (diffDays > 0) {
+      return {
+        days: diffDays,
+        text: `+${diffDays} d`,
+        class: "is-positive",
+        label: `Quedan ${diffDays} días para la entrega prevista`
+      };
+    } else if (diffDays < 0) {
+      const abs = Math.abs(diffDays);
+      return {
+        days: diffDays,
+        text: `-${abs} d`,
+        class: "is-negative",
+        label: `Retraso de ${abs} días sobre la fecha prevista`
+      };
+    } else {
+      return {
+        days: 0,
+        text: "Hoy",
+        class: "is-today",
+        label: "Entrega programada para hoy"
+      };
+    }
+  }
+
+  // Opciones dinámicas para el filtro embebido en cabecera TH
+  function getColFilterOptions(colId, roleAll, role) {
+    switch (colId) {
+      case "suministro": {
+        const nums = Array.from(new Set(roleAll.map(s => s.num))).sort();
+        return nums.map(n => `<option value="${n}" ${suministrosFilters.suministro === n ? "selected" : ""}>Suministro ${n}</option>`).join("");
       }
-
-      // 2. Filtro por Fase
-      if (suministrosFilters.fase !== "all" && String(s.faseActual) !== suministrosFilters.fase) {
-        return false;
+      case "tipo": {
+        const tipos = Array.from(new Set(roleAll.map(s => s.tipo))).sort();
+        return tipos.map(t => `<option value="${t}" ${suministrosFilters.tipo === t ? "selected" : ""}>${t}</option>`).join("");
       }
-
-      // 3. Filtro por Proveedor
-      if (suministrosFilters.proveedor !== "all" && s.proveedor !== suministrosFilters.proveedor) {
-        return false;
+      case "descripcion": {
+        const descs = Array.from(new Set(roleAll.map(s => s.descripcion).filter(Boolean))).sort();
+        return descs.map(d => `<option value="${d}" ${suministrosFilters.descripcion === d ? "selected" : ""}>${d.length > 28 ? d.slice(0, 26) + "…" : d}</option>`).join("");
       }
-
-      // 4. Filtro por Cliente
-      if (suministrosFilters.cliente !== "all" && s.cliente !== suministrosFilters.cliente) {
-        return false;
+      case "unidades": {
+        return `
+          <option value="gt10k" ${suministrosFilters.unidades === "gt10k" ? "selected" : ""}>&gt; 10.000</option>
+          <option value="1k-10k" ${suministrosFilters.unidades === "1k-10k" ? "selected" : ""}>1.000 – 10.000</option>
+          <option value="lt1k" ${suministrosFilters.unidades === "lt1k" ? "selected" : ""}>&lt; 1.000</option>
+        `;
       }
-
-      // 5. Filtro por Año
-      if (suministrosFilters.ano !== "all" && String(s.ano) !== suministrosFilters.ano) {
-        return false;
+      case "expediente": {
+        const exps = Array.from(new Set(roleAll.map(s => s.expId))).sort();
+        return exps.map(e => `<option value="${e}" ${suministrosFilters.expediente === e ? "selected" : ""}>${e}</option>`).join("");
       }
+      case "proveedor": {
+        const provs = Array.from(new Set(roleAll.map(s => s.proveedor))).sort();
+        return provs.map(p => `<option value="${p}" ${suministrosFilters.proveedor === p ? "selected" : ""}>${p.length > 22 ? p.slice(0, 20) + "…" : p}</option>`).join("");
+      }
+      case "cliente": {
+        const clis = Array.from(new Set(roleAll.map(s => s.cliente))).sort();
+        return clis.map(c => `<option value="${c}" ${suministrosFilters.cliente === c ? "selected" : ""}>${c.length > 22 ? c.slice(0, 20) + "…" : c}</option>`).join("");
+      }
+      case "destino": {
+        const dests = Array.from(new Set(roleAll.map(s => s.destino))).sort();
+        return dests.map(d => `<option value="${d}" ${suministrosFilters.destino === d ? "selected" : ""}>${d.length > 24 ? d.slice(0, 22) + "…" : d}</option>`).join("");
+      }
+      case "ano": {
+        const anos = Array.from(new Set(roleAll.map(s => s.ano))).sort((a, b) => b - a);
+        return anos.map(a => `<option value="${a}" ${suministrosFilters.ano === String(a) ? "selected" : ""}>Año ${a}</option>`).join("");
+      }
+      case "fase": {
+        const fIndices = Array.from(new Set(roleAll.map(s => s.faseActual))).sort((a, b) => a - b);
+        return fIndices.map(fIdx => {
+          const name = SHORT_PHASE_NAMES[fIdx] || `Fase ${fIdx + 1}`;
+          return `<option value="${fIdx}" ${suministrosFilters.fase === String(fIdx) ? "selected" : ""}>Fase ${fIdx + 1}: ${name}</option>`;
+        }).join("");
+      }
+      case "acciones": {
+        return `
+          <option value="has_pending" ${suministrosFilters.acciones === "has_pending" ? "selected" : ""}>Con pendientes</option>
+          <option value="none" ${suministrosFilters.acciones === "none" ? "selected" : ""}>Al día (0)</option>
+        `;
+      }
+      case "fechaEntrega": {
+        return `
+          <option value="upcoming" ${suministrosFilters.fechaEntrega === "upcoming" ? "selected" : ""}>Próximas (+d)</option>
+          <option value="delayed" ${suministrosFilters.fechaEntrega === "delayed" ? "selected" : ""}>Retrasadas (-d)</option>
+          <option value="today" ${suministrosFilters.fechaEntrega === "today" ? "selected" : ""}>Hoy</option>
+        `;
+      }
+      default:
+        return "";
+    }
+  }
 
-      // 6. Filtro por Acciones pendientes
+  function matchesSuministroFilter(s, q, role) {
+    if (q) {
+      const haystack = `${s.num} ${s.tipo} ${s.descripcion || ""} ${s.unidades} ${s.expId} ${s.proveedor} ${s.cliente} ${s.destino} ${s.ano} ${s.faseNombre} ${s.fechaEntrega}`.toLowerCase();
+      if (!haystack.includes(q)) return false;
+    }
+    if (suministrosFilters.suministro !== "all" && s.num !== suministrosFilters.suministro) return false;
+    if (suministrosFilters.tipo !== "all" && s.tipo !== suministrosFilters.tipo) return false;
+    if (suministrosFilters.descripcion !== "all" && s.descripcion !== suministrosFilters.descripcion) return false;
+    if (suministrosFilters.unidades !== "all") {
+      const num = s.unidadesNum || parseInt(String(s.unidades).replace(/\./g, ""), 10) || 0;
+      if (suministrosFilters.unidades === "gt10k" && num <= 10000) return false;
+      if (suministrosFilters.unidades === "1k-10k" && (num < 1000 || num > 10000)) return false;
+      if (suministrosFilters.unidades === "lt1k" && num >= 1000) return false;
+    }
+    if (suministrosFilters.expediente !== "all" && s.expId !== suministrosFilters.expediente) return false;
+    if (suministrosFilters.proveedor !== "all" && s.proveedor !== suministrosFilters.proveedor) return false;
+    if (suministrosFilters.cliente !== "all" && s.cliente !== suministrosFilters.cliente) return false;
+    if (suministrosFilters.destino !== "all" && s.destino !== suministrosFilters.destino) return false;
+    if (suministrosFilters.ano !== "all" && String(s.ano) !== suministrosFilters.ano) return false;
+    if (suministrosFilters.fase !== "all" && String(s.faseActual) !== suministrosFilters.fase) return false;
+    if (suministrosFilters.acciones !== "all") {
       const accionesRol = getSuministroAccionesPendientes(s, role);
-      if (suministrosFilters.acciones === "has_pending" && accionesRol === 0) {
-        return false;
-      }
-      if (suministrosFilters.acciones === "none" && accionesRol > 0) {
-        return false;
-      }
+      if (suministrosFilters.acciones === "has_pending" && accionesRol === 0) return false;
+      if (suministrosFilters.acciones === "none" && accionesRol > 0) return false;
+    }
+    if (suministrosFilters.fechaEntrega !== "all") {
+      const kpi = getDeliveryKpi(s);
+      if (suministrosFilters.fechaEntrega === "upcoming" && (!kpi || kpi.days <= 0)) return false;
+      if (suministrosFilters.fechaEntrega === "delayed" && (!kpi || kpi.days >= 0)) return false;
+      if (suministrosFilters.fechaEntrega === "today" && (!kpi || kpi.days !== 0)) return false;
+    }
+    return true;
+  }
 
-      return true;
-    });
-
-    const hasActiveFilters =
-      suministrosSearchQuery.trim() !== "" ||
-      Object.values(suministrosFilters).some(v => v !== "all");
-
-    // Ordenación por columnas
-    const mult = suministrosSortDir === "desc" ? -1 : 1;
-    const sorted = [...filtered].sort((a, b) => {
+  function sortSuministrosList(list, sortCol, sortDir, role) {
+    const mult = sortDir === "desc" ? -1 : 1;
+    return [...list].sort((a, b) => {
       let valA, valB;
-      switch (suministrosSortCol) {
+      switch (sortCol) {
         case "suministro":
         case "num":
           return (parseInt(a.num, 10) - parseInt(b.num, 10)) * mult;
@@ -5222,8 +5330,8 @@
         case "descripcion":
           return (a.descripcion || "").localeCompare(b.descripcion || "", "es") * mult;
         case "unidades":
-          valA = a.unidadesNum || 0;
-          valB = b.unidadesNum || 0;
+          valA = a.unidadesNum || parseInt(String(a.unidades).replace(/\./g, ""), 10) || 0;
+          valB = b.unidadesNum || parseInt(String(b.unidades).replace(/\./g, ""), 10) || 0;
           return (valA - valB) * mult;
         case "expediente":
           valA = a.expId.localeCompare(b.expId, "es");
@@ -5249,15 +5357,44 @@
           return 0;
       }
     });
+  }
+
+  function renderSuministrosSection(role) {
+    loadSuministrosColPrefs();
+    const roleAll = getSuministrosForRole(role);
+
+    // Separar suministros activos vs finalizados/cerrados
+    const activeRoleList = roleAll.filter(s => s.estado !== "finalizado" && s.estado !== "cerrado");
+    const closedRoleList = roleAll.filter(s => s.estado === "finalizado" || s.estado === "cerrado");
+
+    const q = suministrosSearchQuery.trim().toLowerCase();
+
+    // Filtrar ambas listas con el buscador y los filtros por cabecera
+    const activeFiltered = activeRoleList.filter(s => matchesSuministroFilter(s, q, role));
+    const closedFiltered = closedRoleList.filter(s => matchesSuministroFilter(s, q, role));
+
+    // Ordenar listas
+    const activeSorted = sortSuministrosList(activeFiltered, suministrosSortCol, suministrosSortDir, role);
+    const closedSorted = sortSuministrosList(closedFiltered, suministrosSortCol, suministrosSortDir, role);
+
+    const hasActiveFilters =
+      suministrosSearchQuery.trim() !== "" ||
+      Object.values(suministrosFilters).some(v => v !== "all");
 
     // Columnas visibles calculadas
     const visibleCols = suministrosColumnOrder.filter(cId => !suministrosHiddenCols.has(cId));
     if (visibleCols.length === 0) {
       visibleCols.push("suministro", "tipo");
     }
-    suministrosExportSnapshot = { role, cols: [...visibleCols], rows: sorted };
 
-    const renderTableHeadHTML = () => `
+    // Snapshot para exportar a Excel (ambas listas)
+    suministrosExportSnapshot = {
+      role,
+      cols: [...visibleCols],
+      rows: activeSorted.concat(closedSorted)
+    };
+
+    const renderTableHeadHTML = (includeFilters = true) => `
       <thead>
         <tr>
           ${visibleCols.map(colId => {
@@ -5266,21 +5403,35 @@
             const sortIndicator = isSorted
               ? `<span class="suministros-sort-icon is-active">${suministrosSortDir === "asc" ? "↑" : "↓"}</span>`
               : '<span class="suministros-sort-icon">↕</span>';
+            const isColFiltered = suministrosFilters[colId] && suministrosFilters[colId] !== "all";
+            const filterOptions = includeFilters ? getColFilterOptions(colId, roleAll, role) : "";
             return `
               <th class="suministros-th ${isSorted ? 'is-sorted' : ''}"
-                  data-sort-suministro="${colId}"
                   data-col-id="${colId}"
                   draggable="true"
-                  title="Clic para ordenar · Arrastra para reordenar columna"
-                  style="min-width:${colDef.minWidth || '100px'}">
+                  title="Arrastra para reordenar columna"
+                  style="min-width:${colDef.minWidth || '90px'}">
                 <div class="suministros-th-inner">
-                  <span class="suministros-th-drag-grip" title="Arrastrar para mover">⠿</span>
-                  <span class="suministros-th-label">${colDef.label}</span>
-                  ${sortIndicator}
+                  <span class="suministros-th-drag-grip" title="Arrastrar para mover columna">⠿</span>
+                  <span class="suministros-th-label" data-sort-suministro="${colId}" title="Clic para ordenar por ${colDef.label}">
+                    ${colDef.label}
+                  </span>
+                  <span class="suministros-sort-icon ${isSorted ? 'is-active' : ''}" data-sort-suministro="${colId}">${sortIndicator}</span>
                   <button type="button" class="suministros-th-hide-btn" data-hide-col="${colId}" title="Ocultar columna «${colDef.label}»" aria-label="Ocultar columna «${colDef.label}»">
                     ${icon("eyeOff", 12)}
                   </button>
                 </div>
+                ${includeFilters ? `
+                  <div class="suministros-th-filter-wrap" draggable="false">
+                    <select class="suministros-th-filter-select ${isColFiltered ? 'is-filtered' : ''}"
+                            data-th-filter="${colId}"
+                            title="Filtrar por ${colDef.label}"
+                            aria-label="Filtrar por ${colDef.label}">
+                      <option value="all">Todos</option>
+                      ${filterOptions}
+                    </select>
+                  </div>
+                ` : ""}
               </th>
             `;
           }).join("")}
@@ -5318,92 +5469,101 @@
           return `
             <td>
               <a href="#${role}/expedientes/${s.expId}" class="suministro-exp-link" title="Abrir expediente ${s.expId}">
-                ${icon("folder", 12)}
-                <span>${s.expId}</span>
+                ${s.expId}
               </a>
             </td>
           `;
         case "proveedor":
           return `
-            <td>
-              ${s.proveedor === "Por determinar" ? `
-                <span class="suministro-prv-tbd">Por determinar</span>
-              ` : `
-                <span class="suministro-supplier-name" title="${s.proveedor}">${s.proveedor}</span>
-              `}
+            <td class="suministro-prov-cell">
+              <span title="${s.proveedor}">${s.proveedor}</span>
             </td>
           `;
         case "cliente":
           return `
-            <td>
-              <span class="suministro-client-name" title="${s.cliente}">${s.cliente}</span>
+            <td class="suministro-cli-cell">
+              <span title="${s.cliente}">${s.cliente}</span>
             </td>
           `;
         case "destino":
           return `
-            <td>
-              <span class="suministro-dest-name" title="${s.destino}">${s.destino}</span>
+            <td class="suministro-dest-cell">
+              <span title="${s.destino}">${s.destino}</span>
             </td>
           `;
         case "ano":
           return `
-            <td style="text-align:center">
-              <span class="suministro-year-badge">${s.ano}</span>
+            <td class="suministro-ano-cell">
+              <span>${s.ano}</span>
             </td>
           `;
-        case "fase":
+        case "fase": {
+          const fInfo = PHASES[s.faseActual] || {};
+          const fName = SHORT_PHASE_NAMES[s.faseActual] || fInfo.name || `Fase ${s.faseActual + 1}`;
           return `
             <td>
-              <span class="suministro-phase-tag fase-${s.faseActual}">
-                ${s.faseNombre || `Fase ${s.faseActual + 1}`}
+              <span class="dossier-phase-pill is-active" title="Fase ${s.faseActual + 1}: ${fInfo.name || ''}">
+                Fase ${s.faseActual + 1}: ${fName}
               </span>
             </td>
           `;
+        }
         case "acciones": {
           const accionesRol = getSuministroAccionesPendientes(s, role);
+          const expHash = getSuministroDossierHash(s, role);
+          if (accionesRol > 0) {
+            return `
+              <td>
+                <a href="${expHash}" class="suministro-acciones-link has-actions" title="Ver ${accionesRol} acciones pendientes en ${s.expId}">
+                  ${icon("alert", 12)}
+                  <span>${accionesRol} pendiente${accionesRol > 1 ? "s" : ""}</span>
+                </a>
+              </td>
+            `;
+          }
           return `
-            <td style="text-align:center">
-              ${accionesRol > 0 ? `
-                <button class="suministro-actions-chip has-pending" type="button" data-go="${getSuministroDossierHash(s, role)}" title="Ver ${accionesRol} acción(es) pendiente(s) en ${s.expId}">
-                  ${icon("alert", 11)} <span>${accionesRol}</span>
-                </button>
-              ` : `
-                <span class="suministro-actions-chip is-zero">0</span>
-              `}
+            <td>
+              <span class="suministro-acciones-none" title="Sin acciones pendientes">
+                ${icon("check", 12)} 0
+              </span>
             </td>
           `;
         }
-        case "fechaEntrega":
+        case "fechaEntrega": {
+          const kpi = getDeliveryKpi(s);
           return `
-            <td>
-              <div class="suministro-date-cell">
-                ${icon("calendar", 12)}
+            <td class="suministro-date-cell">
+              <div class="suministro-date-wrap">
                 <span>${s.fechaEntrega}</span>
+                ${kpi ? `<span class="suministro-kpi-pill ${kpi.class}" title="${kpi.label}">${kpi.text}</span>` : ""}
               </div>
             </td>
           `;
+        }
         default:
-          return `<td></td>`;
+          return `<td>-</td>`;
       }
     };
 
-    const renderRowHTML = (s) => `
-      <tr class="suministros-tr status-${s.estado || 'activo'}" data-suministro-id="${s.id}" data-go="${getSuministroDossierHash(s, role)}" style="cursor:pointer" title="Abrir ${s.id} en el expediente ${s.expId}">
-        ${visibleCols.map(colId => renderCellHTML(s, colId)).join("")}
-      </tr>
-    `;
+    const renderRowHTML = s => {
+      const expHash = getSuministroDossierHash(s, role);
+      return `
+        <tr class="suministros-row" data-go="${expHash}" title="Ver suministro ${s.num} en expediente ${s.expId}">
+          ${visibleCols.map(colId => renderCellHTML(s, colId)).join("")}
+        </tr>
+      `;
+    };
 
     let mainContentHTML = "";
-
-    if (sorted.length === 0) {
+    if (activeSorted.length === 0) {
       mainContentHTML = `
         <div class="suministros-empty-state">
-          ${icon("box", 32)}
-          <h3>No se han encontrado suministros</h3>
-          <p>${q ? `No hay resultados para "<b>${q}</b>"` : "No hay suministros que cumplan los filtros seleccionados."}</p>
+          ${icon("inbox", 38)}
+          <h3>No se encontraron suministros activos</h3>
+          <p>Prueba a ajustar o limpiar los filtros por columna o el término de búsqueda.</p>
           ${hasActiveFilters ? `
-            <button class="admin-primary-button" type="button" data-reset-suministros-filters style="margin-top:12px;font-size:0.78rem">
-              ${icon("x", 14)} Limpiar todos los filtros
+            <button type="button" class="admin-primary-button" data-reset-suministros-filters style="margin-top:12px">
+              Restablecer filtros
             </button>
           ` : ""}
         </div>
@@ -5412,14 +5572,48 @@
       mainContentHTML = `
         <div class="suministros-table-wrap">
           <table class="suministros-table">
-            ${renderTableHeadHTML()}
+            ${renderTableHeadHTML(true)}
             <tbody>
-              ${sorted.map(s => renderRowHTML(s)).join("")}
+              ${activeSorted.map(s => renderRowHTML(s)).join("")}
             </tbody>
           </table>
         </div>
       `;
     }
+
+    const closedContentHTML = closedRoleList.length > 0 ? `
+      <div class="suministros-closed-section" style="margin-top:28px">
+        <details class="dossier-collapsible-block suministros-closed-block" id="suministrosClosedBlock" ${isClosedTableOpen ? "open" : ""}>
+          <summary class="dossier-collapsible-summary">
+            <div class="dossier-collapsible-summary-left">
+              <span class="dossier-section-kicker">Suministros Finalizados y Cerrados</span>
+              <span class="dossier-chip complete" style="font-size:0.72rem;padding:2px 8px">
+                ${closedSorted.length} de ${closedRoleList.length} finalizados
+              </span>
+            </div>
+            <span class="dossier-collapsible-chevron" title="Colapsar / Expandir suministros finalizados">
+              ${icon("chevronDown", 15)}
+            </span>
+          </summary>
+          <div class="dossier-collapsible-body" style="padding:16px 0 0 0">
+            ${closedSorted.length === 0 ? `
+              <div class="suministros-empty-closed" style="padding:24px;text-align:center;color:var(--entity-muted);font-size:0.82rem">
+                No hay suministros finalizados que coincidan con la búsqueda o filtros aplicados.
+              </div>
+            ` : `
+              <div class="suministros-table-wrap">
+                <table class="suministros-table is-closed-table">
+                  ${renderTableHeadHTML(false)}
+                  <tbody>
+                    ${closedSorted.map(s => renderRowHTML(s)).join("")}
+                  </tbody>
+                </table>
+              </div>
+            `}
+          </div>
+        </details>
+      </div>
+    ` : "";
 
     const titles = {
       admin: {
@@ -5458,48 +5652,11 @@
             <input type="search" id="suministrosSearchInput" placeholder="Buscar por tipo, exp., taller, destino..." value="${suministrosSearchQuery}">
             ${suministrosSearchQuery ? `<button type="button" id="clearSuministrosSearchBtn" class="admin-quiet-button" style="padding:0 4px">${icon("x", 12)}</button>` : ""}
           </div>
-
-          <div class="suministros-filters-wrap">
-            <select class="exp-filter-select ${suministrosFilters.fase !== 'all' ? 'is-filtered' : ''}" id="suministroFilterFase" name="filter_fase" data-suministro-filter="fase" aria-label="Fase">
-              <option value="all" ${suministrosFilters.fase === "all" ? "selected" : ""}>Fase</option>
-              ${uniquePhaseIndices.map(fIdx => {
-                const fInfo = PHASES[fIdx] || {};
-                const name = SHORT_PHASE_NAMES[fIdx] || fInfo.name || `Fase ${fIdx + 1}`;
-                return `<option value="${fIdx}" ${suministrosFilters.fase === String(fIdx) ? "selected" : ""}>Fase ${fIdx + 1}: ${name}</option>`;
-              }).join("")}
-            </select>
-
-            ${role !== "proveedor" ? `
-              <select class="exp-filter-select ${suministrosFilters.proveedor !== 'all' ? 'is-filtered' : ''}" id="suministroFilterProveedor" name="filter_proveedor" data-suministro-filter="proveedor" aria-label="Proveedor">
-                <option value="all" ${suministrosFilters.proveedor === "all" ? "selected" : ""}>Proveedor</option>
-                ${uniqueProveedores.map(p => `<option value="${p}" ${suministrosFilters.proveedor === p ? "selected" : ""}>${p}</option>`).join("")}
-              </select>
-            ` : ""}
-
-            ${role !== "cliente" ? `
-              <select class="exp-filter-select ${suministrosFilters.cliente !== 'all' ? 'is-filtered' : ''}" id="suministroFilterCliente" name="filter_cliente" data-suministro-filter="cliente" aria-label="Cliente">
-                <option value="all" ${suministrosFilters.cliente === "all" ? "selected" : ""}>Cliente</option>
-                ${uniqueClientes.map(c => `<option value="${c}" ${suministrosFilters.cliente === c ? "selected" : ""}>${c}</option>`).join("")}
-              </select>
-            ` : ""}
-
-            <select class="exp-filter-select ${suministrosFilters.ano !== 'all' ? 'is-filtered' : ''}" id="suministroFilterAno" name="filter_ano" data-suministro-filter="ano" aria-label="Año">
-              <option value="all" ${suministrosFilters.ano === "all" ? "selected" : ""}>Año</option>
-              ${uniqueAnos.map(a => `<option value="${a}" ${suministrosFilters.ano === String(a) ? "selected" : ""}>Año ${a}</option>`).join("")}
-            </select>
-
-            <select class="exp-filter-select ${suministrosFilters.acciones !== 'all' ? 'is-filtered' : ''}" id="suministroFilterAcciones" name="filter_acciones" data-suministro-filter="acciones" aria-label="Acciones pendientes">
-              <option value="all" ${suministrosFilters.acciones === "all" ? "selected" : ""}>Acciones pendientes</option>
-              <option value="has_pending" ${suministrosFilters.acciones === "has_pending" ? "selected" : ""}>Con acciones pendientes</option>
-              <option value="none" ${suministrosFilters.acciones === "none" ? "selected" : ""}>Sin acciones pendientes</option>
-            </select>
-
-            ${hasActiveFilters ? `
-              <button type="button" class="admin-quiet-button" data-reset-suministros-filters style="color:var(--entity-accent);padding:4px 8px;font-size:0.75rem;white-space:nowrap" title="Limpiar todos los filtros">
-                ${icon("x", 12)} Limpiar filtros
-              </button>
-            ` : ""}
-          </div>
+          ${hasActiveFilters ? `
+            <button type="button" class="admin-quiet-button" data-reset-suministros-filters style="color:var(--entity-accent);padding:4px 10px;font-size:0.75rem;white-space:nowrap;display:inline-flex;align-items:center;gap:4px" title="Limpiar todos los filtros">
+              ${icon("x", 12)} Limpiar filtros
+            </button>
+          ` : ""}
         </div>
 
         <div class="suministros-toolbar-right">
@@ -5548,16 +5705,17 @@
           </button>
 
           <span class="suministros-count-badge">
-            <b>${sorted.length}</b> de ${roleAll.length} suministros
+            <b>${activeSorted.length}</b> de ${activeRoleList.length} activos
           </span>
         </div>
       </div>
 
       ${mainContentHTML}
+      ${closedContentHTML}
     `;
   }
 
-  const OVERVIEW_FILTER_LABELS = {
+    const OVERVIEW_FILTER_LABELS = {
     validados: "Entregables técnicos validados y conformes (18)",
     review: "Entregables en revisión por SOFEIN (5)",
     pending: "Entregables pendientes de carga por taller o cliente (8)",
@@ -8140,6 +8298,7 @@
 
   /* ---------- Asignación de Eventos Interactivos ---------- */
   function bindEvents() {
+    try {
     // Popover del Selector de Rol Sutil
     const roleBtn = document.getElementById("roleDropdownBtn");
     const roleMenu = document.getElementById("roleDropdownMenu");
@@ -9008,26 +9167,36 @@
       });
     });
 
-    // Selectores de Filtro en Suministros (Fase, Proveedor, Cliente, Año, Acciones)
-    document.querySelectorAll("[data-suministro-filter]").forEach(sel => {
-      sel.addEventListener("change", () => {
-        const key = sel.dataset.suministroFilter;
+    // Selectores de Filtro en Suministros (Cabeceras de tabla TH y selectores legacy)
+    document.querySelectorAll("[data-th-filter], [data-suministro-filter]").forEach(sel => {
+      sel.addEventListener("change", (e) => {
+        e.stopPropagation();
+        const key = sel.dataset.thFilter || sel.dataset.suministroFilter;
         if (key && suministrosFilters.hasOwnProperty(key)) {
           suministrosFilters[key] = sel.value;
           renderApp();
         }
       });
+      sel.addEventListener("mousedown", (e) => e.stopPropagation());
+      sel.addEventListener("click", (e) => e.stopPropagation());
     });
 
     // Botones de restablecer/limpiar filtros en Suministros
     document.querySelectorAll("[data-reset-suministros-filters]").forEach(btn => {
       btn.addEventListener("click", () => {
         suministrosFilters = {
-          fase: "all",
+          suministro: "all",
+          tipo: "all",
+          descripcion: "all",
+          unidades: "all",
+          expediente: "all",
           proveedor: "all",
           cliente: "all",
+          destino: "all",
           ano: "all",
-          acciones: "all"
+          fase: "all",
+          acciones: "all",
+          fechaEntrega: "all"
         };
         suministrosSearchQuery = "";
         renderApp();
@@ -9112,13 +9281,13 @@
       });
     });
 
-    // Restablecer Columnas a Valores por Defecto
+    // Restablecer Columnas a Valores por Defecto (respetando las 4 ocultas para evitar scroll)
     const btnResetCols = document.getElementById("btnResetColsConfig");
     if (btnResetCols) {
       btnResetCols.addEventListener("click", (e) => {
         e.stopPropagation();
         suministrosColumnOrder = [...DEFAULT_SUMINISTROS_COL_ORDER];
-        suministrosHiddenCols.clear();
+        suministrosHiddenCols = new Set(DEFAULT_SUMINISTROS_HIDDEN_COLS);
         saveSuministrosColPrefs();
         showToast("Columnas restablecidas al orden y visibilidad por defecto");
         renderApp();
@@ -9131,12 +9300,32 @@
       exportSuministrosCSV();
     });
 
+    // Mantener estado del bloque colapsado de suministros finalizados
+    const closedBlock = document.getElementById("suministrosClosedBlock");
+    if (closedBlock) {
+      closedBlock.addEventListener("toggle", () => {
+        isClosedTableOpen = closedBlock.open;
+      });
+    }
+
     // Drag and Drop & Ordenación en Cabeceras de Suministros
     let draggedColId = null;
     let isDraggingColumn = false;
 
     document.querySelectorAll(".suministros-th[draggable]").forEach(th => {
       th.addEventListener("dragstart", (e) => {
+        if (
+          e.target.closest(".suministros-th-filter-wrap") ||
+          e.target.closest(".suministros-th-filter-select") ||
+          e.target.closest("[data-th-filter]") ||
+          e.target.closest("[data-hide-col]") ||
+          e.target.closest("select") ||
+          e.target.closest("button")
+        ) {
+          e.preventDefault();
+          return;
+        }
+
         draggedColId = th.dataset.colId;
         isDraggingColumn = true;
         e.dataTransfer.effectAllowed = "move";
@@ -9193,11 +9382,24 @@
         renderApp();
       });
 
-      // Clic para ordenar columna (solo si no se estaba arrastrando)
+      // Clic para ordenar columna (solo si no se estaba arrastrando ni pulsando controles)
       th.addEventListener("click", (e) => {
         if (isDraggingColumn) return;
-        if (e.target.closest(".suministros-th-drag-grip") || e.target.closest("[data-hide-col]")) return;
-        const col = th.dataset.sortSuministro;
+        if (
+          e.target.closest(".suministros-th-drag-grip") ||
+          e.target.closest("[data-hide-col]") ||
+          e.target.closest(".suministros-th-filter-wrap") ||
+          e.target.closest(".suministros-th-filter-select") ||
+          e.target.closest("[data-th-filter]") ||
+          e.target.closest("select") ||
+          e.target.closest("button")
+        ) {
+          return;
+        }
+
+        const col = th.dataset.colId;
+        if (!col) return;
+
         if (suministrosSortCol === col) {
           suministrosSortDir = suministrosSortDir === "asc" ? "desc" : "asc";
         } else {
@@ -10108,6 +10310,9 @@
     document.querySelectorAll("[data-download]").forEach(el => {
       el.addEventListener("click", () => showToast(`Descarga iniciada: ${el.dataset.download}`));
     });
+    } catch (err) {
+      console.error("CRITICAL ERROR in bindEvents:", err);
+    }
   }
 
   function openUpdateTimelineModal(expId) {
