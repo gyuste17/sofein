@@ -1,5 +1,24 @@
 # HANDOFF — SOFEIN Procurement (Auditoría y Validación Final)
 
+## 2026-10-22 · Claude · rama `procurement` · Suministros (v33)
+
+**Hecho** (según `docs/claude_suministros_prompt.txt`, puntos 1–6)
+- `INITIAL_SUMINISTROS`: `tipo` reducido al nombre normalizado (Traviesas, Placas, Tirafondos, Clips, Balasto, Otros), `unidades` solo con el número (por ejemplo «14.500») y un campo nuevo `descripcion` con la especificación de cada SUM-01…12.
+- Acciones pendientes por rol: el campo nuevo `accionesPendientesRol: { admin, cliente, proveedor }` se lee con el helper `getSuministroAccionesPendientes(s, role)`. Este helper alimenta el filtro, la ordenación, la columna de acciones y la burbuja «Suministros» de la sidebar (`getRolePendingCount`).
+- Columna «Descripción» añadida en `ALL_SUMINISTROS_COL_DEFS` y en `DEFAULT_SUMINISTROS_COL_ORDER`, detrás de «tipo». Se puede ordenar por ella y entra en el buscador libre.
+- Cabecera por rol:
+  - Admin: «Suministros», con el subtítulo «…para facilitar su gestión.» y sin el botón «Nuevo Expediente».
+  - Cliente: «Mis Suministros», sin subtítulo y con el botón «Solicitar Expediente».
+  - Proveedor: «Mis Suministros», sin subtítulo y sin botón.
+- Clic en una fila: abre `#<rol>/expedientes/<expId>?tab=deliverables&sumId=<id>` (el chip de acciones usa la misma ruta). Si se pulsa el enlace del expediente dentro de la fila, se sigue su propio `href`. `parseHash` aplica `sumId` una sola vez por cada hash (`lastAppliedSumIdHash`), porque `renderApp` llama a `parseHash` en cada render y, sin esa guarda, el selector de suministro quedaría bloqueado. `renderDossierBuilder` activa ese suministro y su fase.
+- Botón «Exportar Excel» en `suministros-toolbar-right`: genera un CSV con BOM UTF-8 y separador `;`, con las columnas visibles en su orden y las filas filtradas/ordenadas (`suministros-sofein.csv`).
+- `node -c app.js` sin errores. Assets en `?v=procurement-v33`.
+
+**Pendiente / decisiones**
+- Al reducir `tipo` a «Otros», `getSuministroTypeIcon` del constructor muestra el icono genérico para carril, desvíos, suelas y arandelas. No se ha tocado porque queda fuera del alcance de Suministros. Si se quiere recuperar el icono específico, se le puede pasar `tipo + descripcion`.
+- Los suministros creados desde el constructor no llevan `accionesPendientesRol`: el helper usa `accionesPendientes` para admin y devuelve 0 para cliente y proveedor.
+- No se ha probado en el navegador; queda para Antigravity.
+
 ## 2026-10-22 · Claude · rama `procurement` · bandeja de expedientes por perfil
 
 **Hecho** (según `claude_instructions.txt`)

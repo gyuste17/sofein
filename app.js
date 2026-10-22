@@ -474,8 +474,9 @@
     {
       id: "SUM-01",
       num: "01",
-      tipo: "Traviesas de hormigón monobloque PR-22",
-      unidades: "14.500 uds (7.250 m)",
+      tipo: "Traviesas",
+      descripcion: "Hormigón monobloque PR-22 (7.250 m)",
+      unidades: "14.500",
       unidadesNum: 14500,
       presupuesto: "280.000 €",
       expId: "SFN-2026-H6T4",
@@ -486,6 +487,7 @@
       faseActual: 2,
       faseNombre: "3. Gestión del pedido",
       accionesPendientes: 2,
+      accionesPendientesRol: { admin: 2, cliente: 1, proveedor: 2 },
       fechaEntrega: "14 oct 2026",
       fechaEntregaIso: "2026-10-14",
       estado: "activo"
@@ -493,8 +495,9 @@
     {
       id: "SUM-02",
       num: "02",
-      tipo: "Sujeciones elásticas y placas de asiento PR-22",
-      unidades: "29.000 cjtos",
+      tipo: "Placas",
+      descripcion: "Sujeciones elásticas y placas de asiento PR-22",
+      unidades: "29.000",
       unidadesNum: 29000,
       presupuesto: "122.000 €",
       expId: "SFN-2026-H6T4",
@@ -505,6 +508,7 @@
       faseActual: 2,
       faseNombre: "3. Gestión del pedido",
       accionesPendientes: 1,
+      accionesPendientesRol: { admin: 1, cliente: 0, proveedor: 1 },
       fechaEntrega: "18 oct 2026",
       fechaEntregaIso: "2026-10-18",
       estado: "activo"
@@ -512,8 +516,9 @@
     {
       id: "SUM-03",
       num: "03",
-      tipo: "Balasto silíceo certificado Tipo 1",
-      unidades: "8.500 t",
+      tipo: "Balasto",
+      descripcion: "Silíceo certificado Tipo 1",
+      unidades: "8.500",
       unidadesNum: 8500,
       presupuesto: "80.000 €",
       expId: "SFN-2026-H6T4",
@@ -524,6 +529,7 @@
       faseActual: 1,
       faseNombre: "2. Proveedores",
       accionesPendientes: 0,
+      accionesPendientesRol: { admin: 0, cliente: 1, proveedor: 0 },
       fechaEntrega: "28 oct 2026",
       fechaEntregaIso: "2026-10-28",
       estado: "activo"
@@ -531,8 +537,9 @@
     {
       id: "SUM-04",
       num: "01",
-      tipo: "Carril laminado 54E1 Grado R260",
-      unidades: "1.200 t (18 km)",
+      tipo: "Otros",
+      descripcion: "Carril laminado 54E1 Grado R260 (18 km)",
+      unidades: "1.200",
       unidadesNum: 1200,
       presupuesto: "920.000 €",
       expId: "SFN-2026-K9M2",
@@ -543,6 +550,7 @@
       faseActual: 1,
       faseNombre: "2. Proveedores",
       accionesPendientes: 1,
+      accionesPendientesRol: { admin: 1, cliente: 1, proveedor: 0 },
       fechaEntrega: "04 nov 2026",
       fechaEntregaIso: "2026-11-04",
       estado: "activo"
@@ -550,8 +558,9 @@
     {
       id: "SUM-05",
       num: "02",
-      tipo: "Aparatos de dilatación y bridas aislantes 54E1",
-      unidades: "24 parejas",
+      tipo: "Otros",
+      descripcion: "Aparatos de dilatación y bridas aislantes 54E1",
+      unidades: "24",
       unidadesNum: 24,
       presupuesto: "220.000 €",
       expId: "SFN-2026-K9M2",
@@ -562,6 +571,7 @@
       faseActual: 0,
       faseNombre: "1. Alcance",
       accionesPendientes: 1,
+      accionesPendientesRol: { admin: 1, cliente: 1, proveedor: 0 },
       fechaEntrega: "12 nov 2026",
       fechaEntregaIso: "2026-11-12",
       estado: "activo"
@@ -569,8 +579,9 @@
     {
       id: "SUM-06",
       num: "01",
-      tipo: "Traviesas de madera tratada creosotada",
-      unidades: "3.200 uds",
+      tipo: "Traviesas",
+      descripcion: "Madera tratada creosotada",
+      unidades: "3.200",
       unidadesNum: 3200,
       presupuesto: "110.000 €",
       expId: "SFN-2026-W4P7",
@@ -581,6 +592,7 @@
       faseActual: 2,
       faseNombre: "3. Gestión del pedido",
       accionesPendientes: 1,
+      accionesPendientesRol: { admin: 1, cliente: 0, proveedor: 1 },
       fechaEntrega: "25 oct 2026",
       fechaEntregaIso: "2026-10-25",
       estado: "activo"
@@ -588,8 +600,9 @@
     {
       id: "SUM-07",
       num: "02",
-      tipo: "Desvíos y cruzamientos monobloque tipo C",
-      unidades: "4 desvíos cjtos",
+      tipo: "Otros",
+      descripcion: "Desvíos y cruzamientos monobloque tipo C",
+      unidades: "4",
       unidadesNum: 4,
       presupuesto: "58.000 €",
       expId: "SFN-2026-W4P7",
@@ -600,6 +613,7 @@
       faseActual: 2,
       faseNombre: "3. Gestión del pedido",
       accionesPendientes: 0,
+      accionesPendientesRol: { admin: 0, cliente: 1, proveedor: 1 },
       fechaEntrega: "15 nov 2026",
       fechaEntregaIso: "2026-11-15",
       estado: "activo"
@@ -607,8 +621,9 @@
     {
       id: "SUM-08",
       num: "03",
-      tipo: "Placas de asiento para traviesa de madera",
-      unidades: "6.400 uds",
+      tipo: "Placas",
+      descripcion: "Placas de asiento para traviesa de madera",
+      unidades: "6.400",
       unidadesNum: 6400,
       presupuesto: "30.000 €",
       expId: "SFN-2026-W4P7",
@@ -619,6 +634,7 @@
       faseActual: 1,
       faseNombre: "2. Proveedores",
       accionesPendientes: 0,
+      accionesPendientesRol: { admin: 0, cliente: 0, proveedor: 0 },
       fechaEntrega: "20 nov 2026",
       fechaEntregaIso: "2026-11-20",
       estado: "activo"
@@ -626,8 +642,9 @@
     {
       id: "SUM-09",
       num: "01",
-      tipo: "Sujeciones elásticas y fijaciones SKL-14",
-      unidades: "29.000 cjtos",
+      tipo: "Clips",
+      descripcion: "Sujeciones elásticas y fijaciones SKL-14",
+      unidades: "29.000",
       unidadesNum: 29000,
       presupuesto: "145.000 €",
       expId: "SFN-2026-B3R8",
@@ -638,6 +655,7 @@
       faseActual: 3,
       faseNombre: "4. Cierre",
       accionesPendientes: 0,
+      accionesPendientesRol: { admin: 0, cliente: 0, proveedor: 0 },
       fechaEntrega: "18 oct 2026",
       fechaEntregaIso: "2026-10-18",
       estado: "finalizado"
@@ -645,8 +663,9 @@
     {
       id: "SUM-10",
       num: "02",
-      tipo: "Suelas bajo traviesa y elastómeros antivibratorios",
-      unidades: "14.500 uds",
+      tipo: "Otros",
+      descripcion: "Suelas bajo traviesa y elastómeros antivibratorios",
+      unidades: "14.500",
       unidadesNum: 14500,
       presupuesto: "70.000 €",
       expId: "SFN-2026-B3R8",
@@ -657,6 +676,7 @@
       faseActual: 3,
       faseNombre: "4. Cierre",
       accionesPendientes: 0,
+      accionesPendientesRol: { admin: 0, cliente: 0, proveedor: 0 },
       fechaEntrega: "18 oct 2026",
       fechaEntregaIso: "2026-10-18",
       estado: "finalizado"
@@ -664,8 +684,9 @@
     {
       id: "SUM-11",
       num: "01",
-      tipo: "Tirafondos de acero tratado TF-24",
-      unidades: "62.000 uds",
+      tipo: "Tirafondos",
+      descripcion: "Acero tratado TF-24",
+      unidades: "62.000",
       unidadesNum: 62000,
       presupuesto: "48.400 €",
       expId: "SFN-2026-D8J5",
@@ -676,6 +697,7 @@
       faseActual: 3,
       faseNombre: "4. Cierre",
       accionesPendientes: 0,
+      accionesPendientesRol: { admin: 0, cliente: 0, proveedor: 0 },
       fechaEntrega: "29 abr 2026",
       fechaEntregaIso: "2026-04-29",
       estado: "cerrado"
@@ -683,8 +705,9 @@
     {
       id: "SUM-12",
       num: "02",
-      tipo: "Arandelas elásticas dobles Fe6",
-      unidades: "124.000 uds",
+      tipo: "Otros",
+      descripcion: "Arandelas elásticas dobles Fe6",
+      unidades: "124.000",
       unidadesNum: 124000,
       presupuesto: "26.000 €",
       expId: "SFN-2026-D8J5",
@@ -695,6 +718,7 @@
       faseActual: 3,
       faseNombre: "4. Cierre",
       accionesPendientes: 0,
+      accionesPendientesRol: { admin: 0, cliente: 0, proveedor: 0 },
       fechaEntrega: "29 abr 2026",
       fechaEntregaIso: "2026-04-29",
       estado: "cerrado"
@@ -1372,6 +1396,7 @@
   const ALL_SUMINISTROS_COL_DEFS = {
     suministro: { id: "suministro", label: "Suministro", minWidth: "90px" },
     tipo: { id: "tipo", label: "Tipo", minWidth: "220px" },
+    descripcion: { id: "descripcion", label: "Descripción", minWidth: "220px" },
     unidades: { id: "unidades", label: "Unidades", minWidth: "125px" },
     expediente: { id: "expediente", label: "Expediente", minWidth: "135px" },
     proveedor: { id: "proveedor", label: "Proveedor", minWidth: "165px" },
@@ -1386,6 +1411,7 @@
   const DEFAULT_SUMINISTROS_COL_ORDER = [
     "suministro",
     "tipo",
+    "descripcion",
     "unidades",
     "expediente",
     "proveedor",
@@ -1817,6 +1843,8 @@
 
   /* ---------- Helpers de Vista de Expedientes ---------- */
   let activeDossierSuministroId = null;
+  let pendingDossierSumFocus = false;
+  let lastAppliedSumIdHash = null;
 
   const SHORT_PHASE_NAMES = [
     "Alcance",
@@ -2335,6 +2363,17 @@
       if (qParams.get("openMediation")) {
         pendingOpenMediation = qParams.get("openMediation");
       }
+      // sumId: se aplica una sola vez por navegación para no bloquear el selector de suministro
+      const sumIdParam = qParams.get("sumId");
+      if (sumIdParam && location.hash !== lastAppliedSumIdHash) {
+        lastAppliedSumIdHash = location.hash;
+        activeDossierSuministroId = sumIdParam;
+        pendingDossierSumFocus = true;
+      } else if (!sumIdParam) {
+        lastAppliedSumIdHash = null;
+      }
+    } else {
+      lastAppliedSumIdHash = null;
     }
     const [role, rawSection, param] = pathPart.split("/");
     let section = rawSection;
@@ -3384,8 +3423,8 @@
   /* ============================================================
      HELPERS DE SUMINISTROS, ICONOS, REGISTRO Y LÓGICA ESTANCA POR PERFILES
      ============================================================ */
-  function getSuministroTypeIcon(tipo = "") {
-    const t = String(tipo).toLowerCase();
+  function getSuministroTypeIcon(tipo = "", desc = "") {
+    const t = (String(tipo) + " " + String(desc)).toLowerCase();
     if (t.includes("traviesa")) return "route";
     if (t.includes("carril")) return "activity";
     if (t.includes("sujeci") || t.includes("fijaci") || t.includes("clip") || t.includes("tirafondo") || t.includes("placa") || t.includes("arandela") || t.includes("clavaz")) return "cog";
@@ -3604,11 +3643,15 @@
     const expSuministros = getRoleVisibleExpSuministros(exp, activeRole);
     const cambiosLog = ensureExpedienteRegistroCambios(exp);
 
-    if (lastOpenedExpId !== exp.id) {
+    // Suministro pedido desde la tabla de Suministros (?sumId=) si pertenece a este expediente
+    const requestedSum = pendingDossierSumFocus ? expSuministros.find(s => s.id === activeDossierSuministroId) : null;
+    pendingDossierSumFocus = false;
+
+    if (lastOpenedExpId !== exp.id || requestedSum) {
       lastOpenedExpId = exp.id;
-      activeDossierSuministroId = expSuministros.length ? expSuministros[0].id : null;
-      const firstSum = expSuministros[0];
-      activeDossierPhase = firstSum ? Math.min(firstSum.faseActual, PHASES.length - 1) : Math.min(exp.faseActual, PHASES.length - 1);
+      const focusSum = requestedSum || expSuministros[0];
+      activeDossierSuministroId = focusSum ? focusSum.id : null;
+      activeDossierPhase = focusSum ? Math.min(focusSum.faseActual, PHASES.length - 1) : Math.min(exp.faseActual, PHASES.length - 1);
     }
 
     if (activeDossierTab === "passport") {
@@ -3640,7 +3683,7 @@
       return `<i class="exp-v2-bar ${isDone ? "is-done" : isCurrent ? "is-current" : ""}" title="${p.name}"></i>`;
     }).join("");
 
-    const currentSumIconName = currentSum ? getSuministroTypeIcon(currentSum.tipo) : getSuministroTypeIcon(exp.producto);
+    const currentSumIconName = currentSum ? getSuministroTypeIcon(currentSum.tipo, currentSum.descripcion) : getSuministroTypeIcon(exp.producto);
 
     // Datos de la tarjeta de expediente adaptados al perfil (el Proveedor solo ve el alcance e importe de SUS suministros)
     const summaryNumSuministrosLabel = isRoleProveedor ? "Mis suministros asignados" : "Número de suministros";
@@ -3688,7 +3731,7 @@
               const sStep = isSumClosed ? PHASES.length : Math.min((s.faseActual ?? 0) + 1, PHASES.length);
               const sPhaseName = SHORT_PHASE_NAMES[Math.min(s.faseActual ?? 0, PHASES.length - 1)] || "Alcance";
               const sDotClass = isSumClosed ? "is-closed" : s.estado === "finalizado" ? "is-completed" : s.accionesPendientes > 0 ? "is-pending-pulse" : "is-active";
-              const sumIconName = getSuministroTypeIcon(s.tipo);
+              const sumIconName = getSuministroTypeIcon(s.tipo, s.descripcion);
               return `
                 <article class="dossier-sum-card ${isSelected ? "is-selected" : ""} ${isSumClosed ? "is-closed" : ""}" data-select-exp-suministro="${s.id}">
                   <div class="dossier-sum-card-top">
@@ -5023,13 +5066,72 @@
     return SUMINISTROS;
   }
 
+  // Acciones pendientes de un suministro según el rol activo (SOFEIN / cliente / proveedor).
+  // Los suministros finalizados o cerrados no tienen acciones; los creados sin desglose por rol
+  // solo cuentan para SOFEIN.
+  function getSuministroAccionesPendientes(s, role = activeRole) {
+    if (!s || (s.estado && s.estado !== "activo")) return 0;
+    const byRole = s.accionesPendientesRol;
+    if (byRole && typeof byRole[role] === "number") return byRole[role];
+    return role === "admin" ? (s.accionesPendientes || 0) : 0;
+  }
+
+  // Última vista renderizada de Suministros (columnas visibles + filas filtradas) para exportar
+  let suministrosExportSnapshot = null;
+
+  function getSuministroExportValue(s, colId, role) {
+    switch (colId) {
+      case "suministro": return s.num;
+      case "tipo": return s.tipo;
+      case "descripcion": return s.descripcion || "";
+      case "unidades": return s.unidades;
+      case "expediente": return s.expId;
+      case "proveedor": return s.proveedor;
+      case "cliente": return s.cliente;
+      case "destino": return s.destino;
+      case "ano": return s.ano;
+      case "fase": return s.faseNombre || `Fase ${s.faseActual + 1}`;
+      case "acciones": return getSuministroAccionesPendientes(s, role);
+      case "fechaEntrega": return s.fechaEntrega;
+      default: return "";
+    }
+  }
+
+  function exportSuministrosCSV() {
+    const snap = suministrosExportSnapshot;
+    if (!snap || !snap.rows.length) {
+      showToast("No hay suministros visibles para exportar");
+      return;
+    }
+    const esc = v => `"${String(v ?? "").replace(/"/g, '""')}"`;
+    const header = snap.cols.map(c => esc((ALL_SUMINISTROS_COL_DEFS[c] || { label: c }).label));
+    const lines = [header.join(";")].concat(
+      snap.rows.map(s => snap.cols.map(c => esc(getSuministroExportValue(s, c, snap.role))).join(";"))
+    );
+    const blob = new Blob(["\uFEFF" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "suministros-sofein.csv";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    showToast(`✓ Exportados ${snap.rows.length} suministros a Excel (CSV)`);
+  }
+
+  // Ruta al suministro dentro de su expediente (pestaña de entregables con el suministro activo)
+  function getSuministroDossierHash(s, role = activeRole) {
+    return `#${role}/expedientes/${s.expId}?tab=deliverables&sumId=${s.id}`;
+  }
+
   // Cálculo reactivo de pendientes para las burbujas del menú lateral (pendientes, no activos)
   function getRolePendingCount(role, navId) {
     if (navId === "suministros") {
       // Cuenta suministros con acciones pendientes en ese rol, o suministros activos pendientes de cierre
       // Ejemplo del usuario: 5 suministros pendientes
       const sumList = getSuministrosForRole(role);
-      const withActions = sumList.filter(s => (s.accionesPendientes || 0) > 0).length;
+      const withActions = sumList.filter(s => getSuministroAccionesPendientes(s, role) > 0).length;
       if (withActions > 0) return withActions;
       return sumList.filter(s => s.estado === "activo").length;
     }
@@ -5067,7 +5169,7 @@
     const filtered = roleAll.filter(s => {
       // 1. Buscador libre
       if (q) {
-        const haystack = `${s.num} ${s.tipo} ${s.unidades} ${s.expId} ${s.proveedor} ${s.cliente} ${s.destino} ${s.ano} ${s.faseNombre} ${s.fechaEntrega}`.toLowerCase();
+        const haystack = `${s.num} ${s.tipo} ${s.descripcion || ""} ${s.unidades} ${s.expId} ${s.proveedor} ${s.cliente} ${s.destino} ${s.ano} ${s.faseNombre} ${s.fechaEntrega}`.toLowerCase();
         if (!haystack.includes(q)) return false;
       }
 
@@ -5092,10 +5194,11 @@
       }
 
       // 6. Filtro por Acciones pendientes
-      if (suministrosFilters.acciones === "has_pending" && s.accionesPendientes === 0) {
+      const accionesRol = getSuministroAccionesPendientes(s, role);
+      if (suministrosFilters.acciones === "has_pending" && accionesRol === 0) {
         return false;
       }
-      if (suministrosFilters.acciones === "none" && s.accionesPendientes > 0) {
+      if (suministrosFilters.acciones === "none" && accionesRol > 0) {
         return false;
       }
 
@@ -5116,6 +5219,8 @@
           return (parseInt(a.num, 10) - parseInt(b.num, 10)) * mult;
         case "tipo":
           return a.tipo.localeCompare(b.tipo, "es") * mult;
+        case "descripcion":
+          return (a.descripcion || "").localeCompare(b.descripcion || "", "es") * mult;
         case "unidades":
           valA = a.unidadesNum || 0;
           valB = b.unidadesNum || 0;
@@ -5135,7 +5240,7 @@
         case "fase":
           return ((a.faseActual ?? 0) - (b.faseActual ?? 0)) * mult;
         case "acciones":
-          return ((a.accionesPendientes || 0) - (b.accionesPendientes || 0)) * mult;
+          return (getSuministroAccionesPendientes(a, role) - getSuministroAccionesPendientes(b, role)) * mult;
         case "fechaEntrega":
           valA = new Date(a.fechaEntregaIso || a.fechaEntrega).getTime() || 0;
           valB = new Date(b.fechaEntregaIso || b.fechaEntrega).getTime() || 0;
@@ -5150,6 +5255,7 @@
     if (visibleCols.length === 0) {
       visibleCols.push("suministro", "tipo");
     }
+    suministrosExportSnapshot = { role, cols: [...visibleCols], rows: sorted };
 
     const renderTableHeadHTML = () => `
       <thead>
@@ -5194,6 +5300,12 @@
           return `
             <td class="suministro-tipo-cell">
               <strong title="${s.tipo}">${s.tipo}</strong>
+            </td>
+          `;
+        case "descripcion":
+          return `
+            <td class="suministro-desc-cell">
+              <span title="${s.descripcion || ''}">${s.descripcion || '—'}</span>
             </td>
           `;
         case "unidades":
@@ -5247,18 +5359,20 @@
               </span>
             </td>
           `;
-        case "acciones":
+        case "acciones": {
+          const accionesRol = getSuministroAccionesPendientes(s, role);
           return `
             <td style="text-align:center">
-              ${s.accionesPendientes > 0 ? `
-                <button class="suministro-actions-chip has-pending" type="button" data-go="#${role}/expedientes/${s.expId}" title="Ver ${s.accionesPendientes} acción(es) pendiente(s) en ${s.expId}">
-                  ${icon("alert", 11)} <span>${s.accionesPendientes}</span>
+              ${accionesRol > 0 ? `
+                <button class="suministro-actions-chip has-pending" type="button" data-go="${getSuministroDossierHash(s, role)}" title="Ver ${accionesRol} acción(es) pendiente(s) en ${s.expId}">
+                  ${icon("alert", 11)} <span>${accionesRol}</span>
                 </button>
               ` : `
                 <span class="suministro-actions-chip is-zero">0</span>
               `}
             </td>
           `;
+        }
         case "fechaEntrega":
           return `
             <td>
@@ -5274,7 +5388,7 @@
     };
 
     const renderRowHTML = (s) => `
-      <tr class="suministros-tr status-${s.estado || 'activo'}" data-suministro-id="${s.id}">
+      <tr class="suministros-tr status-${s.estado || 'activo'}" data-suministro-id="${s.id}" data-go="${getSuministroDossierHash(s, role)}" style="cursor:pointer" title="Abrir ${s.id} en el expediente ${s.expId}">
         ${visibleCols.map(colId => renderCellHTML(s, colId)).join("")}
       </tr>
     `;
@@ -5310,15 +5424,15 @@
     const titles = {
       admin: {
         h1: "Suministros",
-        p: "Registro integral de lotes de material ferroviario, unidades, expedientes vinculados y plazos de entrega."
+        p: "Registro integral de lotes de material ferroviario, unidades, expedientes vinculados y plazos de entrega para facilitar su gestión."
       },
       cliente: {
         h1: "Mis Suministros",
-        p: "Seguimiento operativo de los lotes de material contratados para tus obras, unidades y fechas de recepción a pie de vía."
+        p: ""
       },
       proveedor: {
-        h1: "Suministros Adjudicados",
-        p: "Control de producción y expedición de tus lotes homologados, plazos de entrega y estado de fabricación."
+        h1: "Mis Suministros",
+        p: ""
       }
     };
     const headerInfo = titles[role] || titles.admin;
@@ -5327,13 +5441,9 @@
       <div class="admin-view-head">
         <div>
           <h1>${headerInfo.h1}</h1>
-          <p>${headerInfo.p}</p>
+          ${headerInfo.p ? `<p>${headerInfo.p}</p>` : ""}
         </div>
-        ${role === "admin" ? `
-          <button class="admin-primary-button" type="button" data-go="#admin/nuevo">
-            ${icon("plus", 14)} Nuevo Expediente
-          </button>
-        ` : role === "cliente" ? `
+        ${role === "cliente" ? `
           <button class="admin-primary-button" type="button" data-go="#cliente/nuevo">
             ${icon("plus", 14)} Solicitar Expediente
           </button>
@@ -5431,6 +5541,11 @@
               </div>
             </div>
           </div>
+
+          <button type="button" class="admin-quiet-button" id="btnExportSuministrosExcel" title="Exportar suministros visibles a Excel (CSV)">
+            ${icon("download", 13)}
+            <span>Exportar Excel</span>
+          </button>
 
           <span class="suministros-count-badge">
             <b>${sorted.length}</b> de ${roleAll.length} suministros
@@ -9010,6 +9125,12 @@
       });
     }
 
+    // Exportar suministros visibles a Excel (CSV ; con BOM UTF-8)
+    document.getElementById("btnExportSuministrosExcel")?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      exportSuministrosCSV();
+    });
+
     // Drag and Drop & Ordenación en Cabeceras de Suministros
     let draggedColId = null;
     let isDraggingColumn = false;
@@ -12060,6 +12181,10 @@
     }
 
     const go = e.target.closest("[data-go]");
+    // En filas de Suministros, los enlaces internos (p. ej. el del expediente) siguen su propio href
+    if (go && go.classList.contains("suministros-tr") && e.target.closest("a[href]")) {
+      return;
+    }
     if (go) {
       e.preventDefault();
       let target = go.dataset.go;
