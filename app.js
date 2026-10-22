@@ -2013,24 +2013,29 @@
     const sumLabel = role === "proveedor"
       ? `${sumCount} ${sumCount === 1 ? "suministro adjudicado" : "suministros adjudicados"}`
       : `${sumCount} ${sumCount === 1 ? "suministro" : "suministros"}`;
-    const sumInfoHTML = cardSuministros.length > 1 ? `
-      <span class="exp-sum-info" data-exp-sum-info tabindex="0" role="button" aria-label="Ver fases por suministro">
-        ${icon("info", 13)}
-        <span class="exp-sum-tooltip" role="tooltip">
-          <span class="exp-sum-tooltip-head">Fases por suministro</span>
-          ${cardSuministros.map(s => {
-            const step = Math.min(s.faseActual + 1, PHASES.length);
-            const phaseName = SHORT_PHASE_NAMES[s.faseActual] || PHASES[s.faseActual]?.name || "En curso";
-            return `
-              <span class="exp-sum-tooltip-row">
-                <span class="exp-sum-tooltip-name" title="${s.tipo}">${s.num ? `<b>${s.num}</b> · ` : ""}${s.tipo}</span>
-                <span class="exp-sum-tooltip-phase phase-tone-${step}">${step}/${PHASES.length} · ${phaseName}</span>
-              </span>
-            `;
-          }).join("")}
+    function buildSumInfoTooltip(extraClass = "") {
+      if (cardSuministros.length <= 1) return "";
+      return `
+        <span class="exp-sum-info ${extraClass}" data-exp-sum-info tabindex="0" role="button" aria-label="Ver fases por suministro">
+          ${icon("info", 13)}
+          <span class="exp-sum-tooltip" role="tooltip">
+            <span class="exp-sum-tooltip-head">Fases por suministro</span>
+            ${cardSuministros.map(s => {
+              const step = Math.min(s.faseActual + 1, PHASES.length);
+              const phaseName = SHORT_PHASE_NAMES[s.faseActual] || PHASES[s.faseActual]?.name || "En curso";
+              return `
+                <span class="exp-sum-tooltip-row">
+                  <span class="exp-sum-tooltip-name" title="${s.tipo}">${s.num ? `<b>${s.num}</b> · ` : ""}${s.tipo}</span>
+                  <span class="exp-sum-tooltip-phase phase-tone-${step}">${step}/${PHASES.length} · ${phaseName}</span>
+                </span>
+              `;
+            }).join("")}
+          </span>
         </span>
-      </span>
-    ` : "";
+      `;
+    }
+    const sumInfoHTML = buildSumInfoTooltip();
+    const phaseInfoHTML = buildSumInfoTooltip("is-phase-info");
 
     // Mini gráfico minimalista de fases (ej. 4/7)
     const miniBarsHTML = PHASES.map((p, idx) => {
@@ -2054,6 +2059,7 @@
             <div class="exp-v2-minichart" aria-label="Fase ${v.currentStep} de ${v.totalPhases}">
               ${miniBarsHTML}
             </div>
+            ${phaseInfoHTML}
           </div>
         </div>
 

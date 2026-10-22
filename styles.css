@@ -7472,3 +7472,38 @@ details.b2b-profile-card.is-collapsible[open] > summary.is-collapsible-summary .
 [data-theme="dark"] .exp-sum-tooltip-phase.phase-tone-2 { --phase-color: #6fcf97; }
 [data-theme="dark"] .exp-sum-tooltip-phase.phase-tone-3 { --phase-color: #52b788; }
 [data-theme="dark"] .exp-sum-tooltip-phase.phase-tone-4 { --phase-color: #3fa274; }
+
+/* Hover de fase superior a la derecha de la fase */
+.exp-sum-info.is-phase-info {
+  margin-left: 2px;
+}
+
+.exp-sum-info.is-phase-info .exp-sum-tooltip {
+  bottom: auto;
+  top: calc(100% + 8px);
+  right: 0;
+  transform: translateY(-4px);
+}
+
+.exp-sum-info.is-phase-info:hover .exp-sum-tooltip,
+.exp-sum-info.is-phase-info:focus-within .exp-sum-tooltip {
+  transform: translateY(0);
+}
+
+.exp-sum-info.is-phase-info .exp-sum-tooltip::before {
+  top: auto;
+  bottom: 100%;
+  height: 9px;
+}
+
+.exp-sum-info.is-phase-info .exp-sum-tooltip::after {
+  top: auto;
+  bottom: 100%;
+  right: 11px;
+  margin-top: 0;
+  margin-bottom: -5px;
+  border-right: none;
+  border-bottom: none;
+  border-left: 1px solid var(--entity-line-strong);
+  border-top: 1px solid var(--entity-line-strong);
+}
