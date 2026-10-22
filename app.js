@@ -703,6 +703,82 @@
 
   let SUMINISTROS = [...INITIAL_SUMINISTROS];
 
+  /* ---------- Catálogos maestros de SOFEIN (Administración) ----------
+     Fuente única de Productos y Conformidades que alimenta los selectores del
+     constructor de expedientes, el alta/edición de proveedores y el registro de
+     certificados. Se persisten en localStorage para sobrevivir a recargas. */
+  const CATALOG_STORAGE_KEYS = {
+    productos: "sofein_catalogo_productos_v1",
+    conformidades: "sofein_catalogo_conformidades_v1"
+  };
+
+  const DEFAULT_CATALOGO_PRODUCTOS = [
+    { id: "PRD-01", nombre: "Traviesas de madera", etiqueta: "Traviesas de madera", familia: "Superestructura", norma: "UNE-EN 13145", unidad: "uds", activo: true },
+    { id: "PRD-02", nombre: "Traviesas de hormigón", etiqueta: "Traviesas", familia: "Superestructura", norma: "EN 13230", unidad: "uds", activo: true },
+    { id: "PRD-03", nombre: "Carril ferroviario", etiqueta: "Carril", familia: "Superestructura", norma: "EN 13674-1", unidad: "t / ml", activo: true },
+    { id: "PRD-04", nombre: "Sujeciones y fijaciones", etiqueta: "Fijaciones", familia: "Superestructura", norma: "EN 13481", unidad: "cjtos", activo: true },
+    { id: "PRD-05", nombre: "Placas de asiento", etiqueta: "Placas de asiento", familia: "Superestructura", norma: "EN 13481-2", unidad: "uds", activo: true },
+    { id: "PRD-06", nombre: "Aparatos de vía", etiqueta: "Aparatos de vía", familia: "Aparatos de vía", norma: "EN 13232", unidad: "uds", activo: true },
+    { id: "PRD-07", nombre: "Balasto", etiqueta: "Balasto", familia: "Plataforma", norma: "UNE-EN 13450", unidad: "t", activo: true },
+    { id: "PRD-08", nombre: "Otro suministro", etiqueta: "Otro", familia: "Otros", norma: "", unidad: "", activo: true }
+  ];
+
+  const DEFAULT_CATALOGO_CONFORMIDADES = [
+    { id: "CNF-01", nombre: "ISO 9001", tipo: "Sistema de gestión", emisor: "ENAC / AENOR", ambito: "Gestión de la calidad", activo: true },
+    { id: "CNF-02", nombre: "ISO 14001", tipo: "Sistema de gestión", emisor: "ENAC / AENOR", ambito: "Gestión ambiental", activo: true },
+    { id: "CNF-03", nombre: "ISO 45001", tipo: "Sistema de gestión", emisor: "ENAC / AENOR", ambito: "Seguridad y salud laboral", activo: true },
+    { id: "CNF-04", nombre: "AENOR EN 13230", tipo: "Norma de producto", emisor: "AENOR", ambito: "Traviesas de hormigón", activo: true },
+    { id: "CNF-05", nombre: "EN 13230-2", tipo: "Norma de producto", emisor: "Laboratorio ENAC", ambito: "Traviesas monobloque", activo: true },
+    { id: "CNF-06", nombre: "EN 13674-1", tipo: "Norma de producto", emisor: "Laboratorio ENAC", ambito: "Carril", activo: true },
+    { id: "CNF-07", nombre: "EN 13481", tipo: "Norma de producto", emisor: "Laboratorio ENAC", ambito: "Sistemas de fijación", activo: true },
+    { id: "CNF-08", nombre: "UNE-EN 13450", tipo: "Norma de producto", emisor: "AENOR", ambito: "Balasto", activo: true },
+    { id: "CNF-09", nombre: "Tratamiento UNE-EN 13145", tipo: "Norma de producto", emisor: "AENOR", ambito: "Traviesas de madera", activo: true },
+    { id: "CNF-10", nombre: "Tratamiento autoclave", tipo: "Norma de producto", emisor: "Laboratorio ENAC", ambito: "Traviesas de madera", activo: true },
+    { id: "CNF-11", nombre: "Certificado CE", tipo: "Marcado / Certificado", emisor: "Organismo notificado", ambito: "Producto", activo: true },
+    { id: "CNF-12", nombre: "Marcado CE 2+", tipo: "Marcado / Certificado", emisor: "Organismo notificado", ambito: "Áridos y balasto", activo: true },
+    { id: "CNF-13", nombre: "Certificado Lloyd's", tipo: "Marcado / Certificado", emisor: "Lloyd's Register", ambito: "Carril", activo: true },
+    { id: "CNF-14", nombre: "Cadena FSC/PEFC", tipo: "Sostenibilidad", emisor: "FSC / PEFC", ambito: "Madera", activo: true },
+    { id: "CNF-15", nombre: "PEFC Sostenible", tipo: "Sostenibilidad", emisor: "PEFC", ambito: "Madera", activo: true },
+    { id: "CNF-16", nombre: "Adif NAV-2026", tipo: "Homologación Adif", emisor: "Adif", ambito: "Traviesas y fijaciones", activo: true },
+    { id: "CNF-17", nombre: "Adif 03.360.501", tipo: "Homologación Adif", emisor: "Adif", ambito: "Carril y aparatos", activo: true },
+    { id: "CNF-18", nombre: "Adif Normativa Vía", tipo: "Homologación Adif", emisor: "Adif", ambito: "Superestructura", activo: true },
+    { id: "CNF-19", nombre: "Adif Homologada", tipo: "Homologación Adif", emisor: "Adif", ambito: "Superestructura", activo: true },
+    { id: "CNF-20", nombre: "Adif Tipo 1", tipo: "Homologación Adif", emisor: "Adif", ambito: "Balasto", activo: true },
+    { id: "CNF-21", nombre: "Adif Tipo 1 AV", tipo: "Homologación Adif", emisor: "Adif", ambito: "Balasto alta velocidad", activo: true }
+  ];
+
+  function loadCatalog(kind, defaults) {
+    try {
+      const raw = localStorage.getItem(CATALOG_STORAGE_KEYS[kind]);
+      const parsed = raw ? JSON.parse(raw) : null;
+      if (Array.isArray(parsed)) return parsed;
+    } catch (e) { /* catálogo corrupto: se restauran los valores por defecto */ }
+    return defaults.map(item => ({ ...item }));
+  }
+
+  const CATALOGOS = {
+    productos: loadCatalog("productos", DEFAULT_CATALOGO_PRODUCTOS),
+    conformidades: loadCatalog("conformidades", DEFAULT_CATALOGO_CONFORMIDADES)
+  };
+
+  function saveCatalog(kind) {
+    try {
+      localStorage.setItem(CATALOG_STORAGE_KEYS[kind], JSON.stringify(CATALOGOS[kind]));
+    } catch (e) { /* almacenamiento no disponible: el catálogo sigue vivo en memoria */ }
+  }
+
+  const getActiveProductos = () => CATALOGOS.productos.filter(p => p.activo !== false);
+  const getActiveConformidades = () => CATALOGOS.conformidades.filter(c => c.activo !== false);
+
+  const escHTML = str => String(str ?? "").replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
+
+  // Opciones del selector "Tipo de Suministro" del constructor de expedientes
+  function renderProductoOptions() {
+    const list = getActiveProductos();
+    if (!list.length) return `<option value="Otro suministro">Otro suministro</option>`;
+    return list.map(p => `<option value="${escHTML(p.nombre)}">${escHTML(p.nombre)}</option>`).join("");
+  }
+
   /* ---------- Avisos Categorizados (Apuntes 06 — Inbox Central) ---------- */
   const NOTICES = [
     {
@@ -2190,7 +2266,7 @@
         </a>
         <nav>${navItems}</nav>
         <div class="admin-sidebar-foot">
-          <div class="admin-admin-user has-profile-link${((activeRole === "admin" && activeSection === "overview") || ((activeRole === "cliente" || activeRole === "proveedor") && activeSection === "perfil")) ? " is-active" : ""}" data-go="#${activeRole === "admin" ? "admin/overview" : activeRole + "/perfil"}" style="cursor:pointer" title="${activeRole === "admin" ? "Ver visión global de métricas" : "Ver perfil corporativo"}">
+          <div class="admin-admin-user has-profile-link${((activeRole === "admin" && ADMIN_HUB_SECTIONS.includes(activeSection)) || ((activeRole === "cliente" || activeRole === "proveedor") && activeSection === "perfil")) ? " is-active" : ""}" data-go="#${activeRole === "admin" ? "admin/administracion" : activeRole + "/perfil"}" style="cursor:pointer" title="${activeRole === "admin" ? "Administración de la plataforma" : "Ver perfil corporativo"}">
             <span>${player.avatar}</span>
             <div style="min-width:0;flex:1">
               <strong style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${player.entity}</strong>
@@ -2206,7 +2282,7 @@
   /* ---------- Componente: Topbar Interna con Switcher Sutil ---------- */
   function renderTopbar() {
     const player = PLAYERS[activeRole];
-    const sectionName = activeSection === "perfil" ? "Perfil corporativo" : (activeSection === "overview" ? "Visión global" : ((player.nav.find(n => n.id === activeSection) || {}).label || activeSection));
+    const sectionName = activeSection === "perfil" ? "Perfil corporativo" : ((activeRole === "admin" && ADMIN_HUB_LABELS[activeSection]) || ((player.nav.find(n => n.id === activeSection) || {}).label || activeSection));
     const currentTheme = document.documentElement.dataset.theme || "dark";
 
     return `
@@ -2215,6 +2291,7 @@
         <div class="admin-crumbs">
           <span>${player.label}</span>
           <i>/</i>
+          ${activeRole === "admin" && ADMIN_HUB_SECTIONS.includes(activeSection) && activeSection !== "administracion" ? `<a href="#admin/administracion" data-go="#admin/administracion" style="color:inherit;text-decoration:none">Administración</a><i>/</i>` : ""}
           <b>${sectionName}</b>
           ${activeParam ? `<i>/</i><b style="color:var(--entity-accent)">${activeParam}</b>` : ""}
         </div>
@@ -2380,14 +2457,7 @@
                 <label class="create-exp-label">
                   Tipo de Suministro
                   <select name="suministro_material_0" class="create-exp-select" required>
-                    <option value="Traviesas de madera">Traviesas de madera</option>
-                    <option value="Traviesas de hormigón">Traviesas de hormigón</option>
-                    <option value="Carril ferroviario">Carril ferroviario</option>
-                    <option value="Sujeciones y fijaciones">Sujeciones y fijaciones</option>
-                    <option value="Placas de asiento">Placas de asiento</option>
-                    <option value="Aparatos de vía">Aparatos de vía</option>
-                    <option value="Balasto">Balasto</option>
-                    <option value="Otro suministro">Otro suministro</option>
+                    ${renderProductoOptions()}
                   </select>
                 </label>
                 <label class="create-exp-label">
@@ -5532,7 +5602,302 @@
     `;
   }
 
+  /* ============================================================
+     ADMINISTRACIÓN SOFEIN (Hub + Catálogos maestros)
+     ============================================================ */
+  const ADMIN_HUB_SECTIONS = ["administracion", "overview", "productos", "conformidades", "configuracion"];
+  const ADMIN_HUB_LABELS = {
+    administracion: "Administración",
+    overview: "Visión global",
+    productos: "Productos",
+    conformidades: "Conformidades",
+    configuracion: "Configuración"
+  };
+
+  let catalogEditing = null; // { kind: "productos" | "conformidades", id: string | "__new" }
+  const catalogSearch = { productos: "", conformidades: "" };
+
+  const CONFORMIDAD_TIPOS = ["Sistema de gestión", "Norma de producto", "Homologación Adif", "Marcado / Certificado", "Sostenibilidad", "Otra"];
+
+  const CATALOG_DEFS = {
+    productos: {
+      title: "Productos",
+      singular: "producto",
+      idPrefix: "PRD",
+      intro: "Catálogo base de suministros ferroviarios de SOFEIN. Alimenta el tipo de suministro al crear expedientes y las etiquetas de suministros acreditados de cada proveedor.",
+      fields: [
+        { key: "nombre", label: "Producto", placeholder: "Ej: Traviesas bibloque", required: true, minWidth: "190px" },
+        { key: "etiqueta", label: "Etiqueta breve", placeholder: "Ej: Traviesas", minWidth: "130px" },
+        { key: "familia", label: "Familia", placeholder: "Ej: Superestructura", minWidth: "140px" },
+        { key: "norma", label: "Norma de referencia", placeholder: "Ej: EN 13230", minWidth: "140px" },
+        { key: "unidad", label: "Unidad", placeholder: "Ej: uds", minWidth: "80px" }
+      ],
+      usageLabel: "Proveedores",
+      usage: item => {
+        const key = (item.etiqueta || item.nombre || "").toLowerCase();
+        if (!key) return 0;
+        return DIRECTORIO_PROVEEDORES.filter(p => (p.suministros || []).some(s => s.toLowerCase().includes(key))).length;
+      }
+    },
+    conformidades: {
+      title: "Conformidades",
+      singular: "conformidad",
+      idPrefix: "CNF",
+      intro: "Certificaciones, normas y homologaciones reconocidas por SOFEIN. Alimentan la selección de conformidades en la ficha de cada proveedor y el registro de certificados.",
+      fields: [
+        { key: "nombre", label: "Conformidad", placeholder: "Ej: ISO 50001", required: true, minWidth: "190px" },
+        { key: "tipo", label: "Tipo", type: "select", options: CONFORMIDAD_TIPOS, minWidth: "160px" },
+        { key: "emisor", label: "Entidad emisora", placeholder: "Ej: AENOR", minWidth: "140px" },
+        { key: "ambito", label: "Ámbito / aplicación", placeholder: "Ej: Traviesas de hormigón", minWidth: "170px" }
+      ],
+      usageLabel: "Proveedores",
+      usage: item => DIRECTORIO_PROVEEDORES.filter(p => (p.conformidades || p.homologaciones || []).includes(item.nombre)).length
+    }
+  };
+
+  function renderAdminHubTabs(active) {
+    const tabs = [
+      { id: "administracion", label: "Resumen", icon: "grid" },
+      { id: "overview", label: "Visión global", icon: "activity" },
+      { id: "productos", label: "Productos", icon: "box", count: CATALOGOS.productos.length },
+      { id: "conformidades", label: "Conformidades", icon: "shield", count: CATALOGOS.conformidades.length }
+    ];
+    return `
+      <nav class="b2b-dir-type-tabs admin-hub-tabs" aria-label="Secciones de administración">
+        ${tabs.map(t => `
+          <button type="button" class="dir-type-btn ${active === t.id ? "is-active" : ""}" data-go="#admin/${t.id}">
+            ${icon(t.icon, 13)} ${t.label}${t.count != null ? ` <span class="dir-count-pill">${t.count}</span>` : ""}
+          </button>
+        `).join("")}
+      </nav>
+    `;
+  }
+
+  function renderAdministracionHub() {
+    const prodActivos = getActiveProductos().length;
+    const confActivas = getActiveConformidades().length;
+    const incidenciasAbiertas = EXPEDIENTES.reduce((acc, e) => acc + (e.incidencias || []).filter(i => !/resuelt|cerrad|consolidad/i.test(i.estado || "")).length, 0);
+    const cards = [
+      {
+        go: "#admin/overview",
+        icon: "activity",
+        title: "Visión global",
+        desc: "Métricas de expedientes, incidencias en mediación y estado de ranuras documentales.",
+        meta: `<span><b>${EXPEDIENTES.length}</b> ${EXPEDIENTES.length === 1 ? "expediente" : "expedientes"}</span><span><b>${incidenciasAbiertas}</b> ${incidenciasAbiertas === 1 ? "incidencia abierta" : "incidencias abiertas"}</span>`,
+        featured: true
+      },
+      {
+        go: "#admin/productos",
+        icon: "box",
+        title: "Productos",
+        desc: "Catálogo base de suministros que usan expedientes y proveedores.",
+        meta: `<span><b>${prodActivos}</b> activos</span><span><b>${CATALOGOS.productos.length - prodActivos}</b> inactivos</span>`
+      },
+      {
+        go: "#admin/conformidades",
+        icon: "shield",
+        title: "Conformidades",
+        desc: "Normas, certificaciones y homologaciones seleccionables en la ficha de proveedor.",
+        meta: `<span><b>${confActivas}</b> activas</span><span><b>${CATALOGOS.conformidades.length - confActivas}</b> inactivas</span>`
+      },
+      {
+        go: "#admin/configuracion",
+        icon: "cog",
+        title: "Configuración",
+        desc: "Apariencia, reglas de mediación y concurrencia mínima de proveedores.",
+        meta: `<span>Parámetros operativos</span>`
+      }
+    ];
+
+    return `
+      <div class="admin-view-head">
+        <div>
+          <h1>Administración</h1>
+          <p>Panel central de SOFEIN: métricas de la plataforma y catálogos maestros que alimentan expedientes, suministros y directorio.</p>
+        </div>
+      </div>
+      ${renderAdminHubTabs("administracion")}
+      <section class="admin-hub-grid">
+        ${cards.map(c => `
+          <button type="button" class="admin-hub-card ${c.featured ? "is-featured" : ""}" data-go="${c.go}">
+            <span class="admin-hub-card-icon">${icon(c.icon, 18)}</span>
+            <span class="admin-hub-card-body">
+              <strong>${c.title}</strong>
+              <span class="admin-hub-card-desc">${c.desc}</span>
+              <span class="admin-hub-card-meta">${c.meta}</span>
+            </span>
+            <span class="admin-hub-card-arrow">${icon("arrow", 15)}</span>
+          </button>
+        `).join("")}
+      </section>
+    `;
+  }
+
+  function renderCatalogEditRow(kind, item) {
+    const def = CATALOG_DEFS[kind];
+    const rowId = item ? item.id : "__new";
+    const cells = def.fields.map(f => {
+      const val = item ? (item[f.key] ?? "") : (f.type === "select" ? f.options[0] : "");
+      const control = f.type === "select"
+        ? `<select class="catalog-input" data-cat-field="${f.key}" aria-label="${f.label}">
+             ${f.options.map(o => `<option value="${escHTML(o)}" ${o === val ? "selected" : ""}>${escHTML(o)}</option>`).join("")}
+           </select>`
+        : `<input class="catalog-input" data-cat-field="${f.key}" value="${escHTML(val)}" placeholder="${escHTML(f.placeholder || "")}" aria-label="${f.label}" ${f.required ? "required" : ""} autocomplete="off" />`;
+      return `<td>${control}</td>`;
+    }).join("");
+    return `
+      <tr class="catalog-row is-editing" data-cat-row="${rowId}" data-cat-kind="${kind}">
+        ${cells}
+        <td class="catalog-num">${item ? def.usage(item) : "—"}</td>
+        <td>
+          <label class="catalog-active-toggle">
+            <input type="checkbox" data-cat-field="activo" ${!item || item.activo !== false ? "checked" : ""} /> Activo
+          </label>
+        </td>
+        <td class="catalog-actions">
+          <button type="button" class="admin-primary-button catalog-btn" data-cat-save="${rowId}" data-cat-kind="${kind}">${icon("check", 12)} Guardar</button>
+          <button type="button" class="admin-quiet-button catalog-btn" data-cat-cancel>Cancelar</button>
+        </td>
+      </tr>
+    `;
+  }
+
+  function renderCatalogView(kind) {
+    const def = CATALOG_DEFS[kind];
+    const list = CATALOGOS[kind];
+    const q = (catalogSearch[kind] || "").toLowerCase().trim();
+    const isEditing = id => catalogEditing && catalogEditing.kind === kind && catalogEditing.id === id;
+    const searchText = item => def.fields.map(f => item[f.key] || "").join(" ").toLowerCase();
+
+    const rows = list.map(item => {
+      if (isEditing(item.id)) return renderCatalogEditRow(kind, item);
+      const hidden = q && !searchText(item).includes(q);
+      const inactive = item.activo === false;
+      return `
+        <tr class="catalog-row ${inactive ? "is-inactive" : ""}" data-cat-row="${item.id}" data-cat-search="${escHTML(searchText(item))}" ${hidden ? "hidden" : ""}>
+          ${def.fields.map((f, idx) => `<td>${idx === 0 ? `<strong>${escHTML(item[f.key])}</strong>` : (item[f.key] ? escHTML(item[f.key]) : `<span class="catalog-empty">—</span>`)}</td>`).join("")}
+          <td class="catalog-num">${def.usage(item)}</td>
+          <td><span class="catalog-status ${inactive ? "is-off" : "is-on"}">${inactive ? "Inactivo" : "Activo"}</span></td>
+          <td class="catalog-actions">
+            <button type="button" class="admin-quiet-button catalog-btn" data-cat-edit="${item.id}" data-cat-kind="${kind}" title="Editar">${icon("edit", 12)} Editar</button>
+            <button type="button" class="admin-quiet-button catalog-btn" data-cat-toggle="${item.id}" data-cat-kind="${kind}" title="${inactive ? "Activar" : "Desactivar"} en selectores">${icon(inactive ? "eye" : "eyeOff", 12)}</button>
+            <button type="button" class="admin-quiet-button catalog-btn is-danger" data-cat-delete="${item.id}" data-cat-kind="${kind}" title="Eliminar del catálogo">${icon("x", 12)}</button>
+          </td>
+        </tr>
+      `;
+    }).join("");
+
+    const newRow = isEditing("__new") ? renderCatalogEditRow(kind, null) : "";
+    const activeCount = list.filter(i => i.activo !== false).length;
+
+    return `
+      <div class="admin-view-head">
+        <div>
+          <h1>${def.title}</h1>
+          <p>${def.intro}</p>
+        </div>
+        <button class="admin-primary-button" type="button" data-cat-add="${kind}" ${isEditing("__new") ? "disabled" : ""}>
+          ${icon("plus", 13)} Añadir ${def.singular}
+        </button>
+      </div>
+      ${renderAdminHubTabs(kind)}
+
+      <div class="catalog-toolbar">
+        <h3>
+          ${def.title}
+          <span class="dossier-chip" style="font-size:0.7rem">${activeCount} activos · ${list.length} en total</span>
+        </h3>
+        <div class="b2b-dir-search-wrap" style="max-width:260px;min-width:180px">
+          <span class="dir-search-icon" style="left:10px">${icon("search", 14)}</span>
+          <input type="search" class="b2b-dir-search-input" data-catalog-search="${kind}" placeholder="Buscar ${def.singular}..." value="${escHTML(catalogSearch[kind])}" autocomplete="off" style="height:32px;font-size:0.77rem;padding-left:32px" />
+        </div>
+      </div>
+
+      <div class="b2b-dir-table-wrap">
+        <table class="b2b-dir-table catalog-table">
+          <thead>
+            <tr>
+              ${def.fields.map(f => `<th style="min-width:${f.minWidth || "100px"}">${f.label}</th>`).join("")}
+              <th style="text-align:right">${def.usageLabel}</th>
+              <th>Estado</th>
+              <th style="text-align:right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${newRow}
+            ${rows || ""}
+            <tr class="catalog-empty-row" ${list.length && !(q && list.every(i => !searchText(i).includes(q))) ? "hidden" : ""}>
+              <td colspan="${def.fields.length + 3}">No hay ${def.title.toLowerCase()} que coincidan.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="catalog-footnote">${icon("info", 13)} Los elementos inactivos dejan de ofrecerse en los selectores, pero se conservan en expedientes y fichas de proveedor existentes. Renombrar un elemento actualiza automáticamente las fichas de proveedor que lo usan.</p>
+    `;
+  }
+
+  function saveCatalogRow(kind, rowId) {
+    const def = CATALOG_DEFS[kind];
+    const row = document.querySelector(`[data-cat-row="${rowId}"][data-cat-kind="${kind}"]`);
+    if (!row) return;
+    const values = {};
+    row.querySelectorAll("[data-cat-field]").forEach(el => {
+      values[el.dataset.catField] = el.type === "checkbox" ? el.checked : el.value.trim();
+    });
+    if (!values.nombre) {
+      showToast(`Indica el nombre del ${def.singular}`);
+      row.querySelector('[data-cat-field="nombre"]')?.focus();
+      return;
+    }
+    const list = CATALOGOS[kind];
+    const duplicate = list.find(i => i.id !== rowId && i.nombre.toLowerCase() === values.nombre.toLowerCase());
+    if (duplicate) {
+      showToast(`Ya existe "${duplicate.nombre}" en el catálogo`);
+      return;
+    }
+
+    if (rowId === "__new") {
+      const maxNum = list.reduce((m, i) => Math.max(m, parseInt(String(i.id).split("-")[1], 10) || 0), 0);
+      const item = { id: `${def.idPrefix}-${String(maxNum + 1).padStart(2, "0")}`, ...values };
+      list.unshift(item);
+      showToast(`✓ ${def.singular.charAt(0).toUpperCase() + def.singular.slice(1)} "${item.nombre}" añadido al catálogo`);
+    } else {
+      const item = list.find(i => i.id === rowId);
+      if (!item) return;
+      syncCatalogRename(kind, item, values);
+      Object.assign(item, values);
+      showToast(`✓ "${item.nombre}" actualizado`);
+    }
+    saveCatalog(kind);
+    catalogEditing = null;
+    renderApp();
+  }
+
+  // Propaga renombrados del catálogo a las fichas de proveedor que ya usan el valor
+  function syncCatalogRename(kind, item, values) {
+    if (kind === "conformidades" && values.nombre !== item.nombre) {
+      DIRECTORIO_PROVEEDORES.forEach(p => {
+        ["conformidades", "homologaciones"].forEach(field => {
+          if (Array.isArray(p[field])) p[field] = p[field].map(c => (c === item.nombre ? values.nombre : c));
+        });
+      });
+    }
+    if (kind === "productos" && item.etiqueta && values.etiqueta && values.etiqueta !== item.etiqueta) {
+      DIRECTORIO_PROVEEDORES.forEach(p => {
+        if (Array.isArray(p.suministros)) p.suministros = p.suministros.map(s => (s === item.etiqueta ? values.etiqueta : s));
+      });
+    }
+  }
+
   function renderAdminView(section, param) {
+    if (section === "administracion") {
+      return renderAdministracionHub();
+    }
+
+    if (section === "productos" || section === "conformidades") {
+      return renderCatalogView(section);
+    }
+
     if (section === "overview") {
       return `
         <div class="admin-view-head">
@@ -5544,6 +5909,7 @@
             Ver expedientes ${icon("arrow", 14)}
           </button>
         </div>
+        ${renderAdminHubTabs("overview")}
 
         <section class="admin-top-insight">
           <div class="admin-metrics">
@@ -8006,14 +8372,7 @@
             <label class="create-exp-label">
               Tipo de Suministro
               <select name="suministro_material_${suministroRowCount}" class="create-exp-select" required>
-                <option value="Traviesas de madera">Traviesas de madera</option>
-                <option value="Traviesas de hormigón">Traviesas de hormigón</option>
-                <option value="Carril ferroviario">Carril ferroviario</option>
-                <option value="Sujeciones y fijaciones">Sujeciones y fijaciones</option>
-                <option value="Placas de asiento">Placas de asiento</option>
-                <option value="Aparatos de vía">Aparatos de vía</option>
-                <option value="Balasto">Balasto</option>
-                <option value="Otro suministro">Otro suministro</option>
+                ${renderProductoOptions()}
               </select>
             </label>
             <label class="create-exp-label">
@@ -11250,6 +11609,15 @@
     const isEdit = !!entityToEdit;
     const targetType = isEdit ? (entityToEdit.id && entityToEdit.id.startsWith("CLI") ? "cliente" : "proveedor") : defaultType;
 
+    // Conformidades seleccionables: catálogo activo + las ya asignadas que no estén en él
+    const defaultConfIds = ["CNF-01", "CNF-02", "CNF-16"]; // ISO 9001, ISO 14001, Adif NAV-2026 (por id: sobrevive a renombrados)
+    const selectedConformidades = entityToEdit?.conformidades || entityToEdit?.homologaciones
+      || (isEdit ? [] : getActiveConformidades().filter(c => defaultConfIds.includes(c.id)).map(c => c.nombre));
+    const catalogConfOptions = getActiveConformidades().map(c => ({ nombre: c.nombre, title: [c.tipo, c.emisor].filter(Boolean).join(" · ") }));
+    selectedConformidades.forEach(nombre => {
+      if (!catalogConfOptions.some(c => c.nombre === nombre)) catalogConfOptions.push({ nombre, title: "Fuera del catálogo activo", extra: true });
+    });
+
     modalWrap.innerHTML = `
       <div class="procurement-modal-backdrop" id="addEntityModalBackdrop">
         <div class="procurement-modal" style="width:min(580px,100%)">
@@ -11305,12 +11673,26 @@
                 <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
                   Suministros acreditados (etiquetas breves separadas por coma)
                   <input name="suministros" value="${(entityToEdit?.suministros ? entityToEdit.suministros.join(', ') : (entityToEdit?.materiales || '')).replace(/"/g, '&quot;')}" placeholder="Ej: Traviesas, Fijaciones, Carril" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0" />
-                  <span style="font-size:0.7rem;color:var(--entity-muted)">Etiquetas breves: Traviesas, Fijaciones, Carril 54E1, Balasto</span>
+                  <span class="catalog-chip-row">
+                    <span style="font-size:0.7rem;color:var(--entity-muted);font-weight:500">Catálogo SOFEIN:</span>
+                    ${getActiveProductos().filter(p => p.nombre !== "Otro suministro").map(p => `<button type="button" class="catalog-chip" data-append-suministro="${escHTML(p.etiqueta || p.nombre)}" title="${escHTML(p.nombre)}">+ ${escHTML(p.etiqueta || p.nombre)}</button>`).join("")}
+                  </span>
                 </label>
-                <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
-                  Conformidades y certificaciones (etiquetas separadas por coma)
-                  <input name="conformidades" value="${(entityToEdit?.conformidades ? entityToEdit.conformidades.join(', ') : (entityToEdit?.homologaciones ? entityToEdit.homologaciones.join(', ') : 'ISO 9001, ISO 14001, Adif NAV-2026')).replace(/"/g, '&quot;')}" placeholder="Ej: ISO 9001, ISO 14001, Tratamiento UNE-EN 13145, Marcado CE" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0" />
-                </label>
+                <div style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
+                  <span>Conformidades y certificaciones <span style="font-weight:500">(catálogo SOFEIN)</span></span>
+                  <div class="catalog-check-grid">
+                    ${catalogConfOptions.map(c => `
+                      <label class="catalog-check ${c.extra ? "is-extra" : ""}" title="${escHTML(c.title)}">
+                        <input type="checkbox" name="conformidades_cat" value="${escHTML(c.nombre)}" ${selectedConformidades.includes(c.nombre) ? "checked" : ""} />
+                        <span>${escHTML(c.nombre)}</span>
+                      </label>
+                    `).join("")}
+                  </div>
+                  <label style="display:grid;gap:6px;font-weight:500">
+                    Otras conformidades (separadas por coma)
+                    <input name="conformidades_otras" value="" placeholder="Ej: ISO 50001, Homologación Metro Bilbao" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0" />
+                  </label>
+                </div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
                   <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
                     Plazo medio (Lead time)
@@ -11361,6 +11743,18 @@
     const prvFields = document.getElementById("proveedorFields");
     const cliFields = document.getElementById("clienteFields");
 
+    modalWrap.querySelectorAll("[data-append-suministro]").forEach(chip => {
+      chip.addEventListener("click", e => {
+        e.preventDefault();
+        const input = modalWrap.querySelector('input[name="suministros"]');
+        if (!input) return;
+        const tags = input.value.split(",").map(t => t.trim()).filter(Boolean);
+        const tag = chip.dataset.appendSuministro;
+        if (!tags.some(t => t.toLowerCase() === tag.toLowerCase())) tags.push(tag);
+        input.value = tags.join(", ");
+      });
+    });
+
     typeSelect?.addEventListener("change", e => {
       if (e.target.value === "proveedor") {
         prvFields.style.display = "grid";
@@ -11385,10 +11779,9 @@
 
       if (tipo === "proveedor") {
         const rawSum = form.get("suministros") || "";
-        const rawConf = form.get("conformidades") || "";
         let suministros = parseTags(rawSum);
         if (!suministros.length) suministros = ["Suministros homologados"];
-        let conformidades = parseTags(rawConf);
+        let conformidades = [...new Set([...form.getAll("conformidades_cat"), ...parseTags(form.get("conformidades_otras"))])];
         if (!conformidades.length) conformidades = ["ISO 9001"];
 
         if (isEdit && entityToEdit) {
@@ -11488,7 +11881,8 @@
             <div class="procurement-modal-body" style="gap:14px">
               <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
                 Nombre del certificado / acreditación
-                <input name="nombre" required placeholder="${isPrv ? 'Ej: Homologación Adif Eje Ancho / ISO 45001' : 'Ej: Certificado ROLECE actualizado / ISO 45001'}" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box" />
+                <input name="nombre" required ${isPrv ? 'list="catalogConformidadesList"' : ""} autocomplete="off" placeholder="${isPrv ? 'Ej: Homologación Adif Eje Ancho / ISO 45001' : 'Ej: Certificado ROLECE actualizado / ISO 45001'}" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box" />
+                ${isPrv ? `<datalist id="catalogConformidadesList">${getActiveConformidades().map(c => `<option value="${escHTML(c.nombre)}">${escHTML([c.tipo, c.emisor].filter(Boolean).join(" · "))}</option>`).join("")}</datalist>` : ""}
               </label>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
                 <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
@@ -11572,6 +11966,60 @@
       }
       location.hash = target;
       document.getElementById("app")?.classList.remove("nav-open");
+      return;
+    }
+
+    // Catálogos maestros de Administración (Productos / Conformidades)
+    const catAdd = e.target.closest("[data-cat-add]");
+    if (catAdd) {
+      catalogEditing = { kind: catAdd.dataset.catAdd, id: "__new" };
+      renderApp();
+      document.querySelector('[data-cat-row="__new"] [data-cat-field="nombre"]')?.focus();
+      return;
+    }
+    const catEdit = e.target.closest("[data-cat-edit]");
+    if (catEdit) {
+      catalogEditing = { kind: catEdit.dataset.catKind, id: catEdit.dataset.catEdit };
+      renderApp();
+      document.querySelector(`[data-cat-row="${catEdit.dataset.catEdit}"] [data-cat-field="nombre"]`)?.focus();
+      return;
+    }
+    const catSave = e.target.closest("[data-cat-save]");
+    if (catSave) {
+      saveCatalogRow(catSave.dataset.catKind, catSave.dataset.catSave);
+      return;
+    }
+    if (e.target.closest("[data-cat-cancel]")) {
+      catalogEditing = null;
+      renderApp();
+      return;
+    }
+    const catToggle = e.target.closest("[data-cat-toggle]");
+    if (catToggle) {
+      const kind = catToggle.dataset.catKind;
+      const item = CATALOGOS[kind].find(i => i.id === catToggle.dataset.catToggle);
+      if (item) {
+        item.activo = item.activo === false;
+        saveCatalog(kind);
+        showToast(`"${item.nombre}" ${item.activo ? "activado" : "desactivado"} en los selectores`);
+        renderApp();
+      }
+      return;
+    }
+    const catDelete = e.target.closest("[data-cat-delete]");
+    if (catDelete) {
+      const kind = catDelete.dataset.catKind;
+      const list = CATALOGOS[kind];
+      const idx = list.findIndex(i => i.id === catDelete.dataset.catDelete);
+      if (idx === -1) return;
+      const item = list[idx];
+      const enUso = CATALOG_DEFS[kind].usage(item);
+      const aviso = enUso ? `\n\nLo usan ${enUso} proveedor(es); sus fichas lo conservarán como histórico.` : "";
+      if (!window.confirm(`¿Eliminar "${item.nombre}" del catálogo de ${CATALOG_DEFS[kind].title.toLowerCase()}?${aviso}`)) return;
+      list.splice(idx, 1);
+      saveCatalog(kind);
+      showToast(`"${item.nombre}" eliminado del catálogo`);
+      renderApp();
       return;
     }
 
@@ -11686,7 +12134,40 @@
     if (modalWrap && modalWrap.firstElementChild) modalWrap.innerHTML = "";
   });
 
-  window.addEventListener("hashchange", renderApp);
+  // Catálogos: Enter guarda y Escape cancela la fila en edición
+  document.addEventListener("keydown", e => {
+    const field = e.target.closest?.("[data-cat-field]");
+    if (!field || !catalogEditing) return;
+    if (e.key === "Enter") {
+      e.preventDefault();
+      saveCatalogRow(catalogEditing.kind, catalogEditing.id);
+    } else if (e.key === "Escape") {
+      catalogEditing = null;
+      renderApp();
+    }
+  });
+
+  // Catálogos: filtrado en vivo sin re-renderizar (conserva el foco del buscador)
+  document.addEventListener("input", e => {
+    const input = e.target.closest?.("[data-catalog-search]");
+    if (!input) return;
+    const kind = input.dataset.catalogSearch;
+    const q = input.value.toLowerCase().trim();
+    catalogSearch[kind] = input.value;
+    let visible = 0;
+    document.querySelectorAll(".catalog-table tbody tr[data-cat-search]").forEach(tr => {
+      const match = !q || tr.dataset.catSearch.includes(q);
+      tr.hidden = !match;
+      if (match) visible++;
+    });
+    const emptyRow = document.querySelector(".catalog-table .catalog-empty-row");
+    if (emptyRow) emptyRow.hidden = visible > 0 || !!document.querySelector(".catalog-table tr.is-editing");
+  });
+
+  window.addEventListener("hashchange", () => {
+    catalogEditing = null;
+    renderApp();
+  });
 
   // Inicializar al cargar
   if (!location.hash) {

@@ -7086,3 +7086,197 @@ details.b2b-profile-card.is-collapsible[open] > summary.is-collapsible-summary .
     grid-template-columns: 1fr;
   }
 }
+
+/* ============================================================
+   ADMINISTRACIÓN SOFEIN · Hub + catálogos maestros
+   ============================================================ */
+.admin-hub-tabs {
+  margin: -6px 0 20px;
+  max-width: 100%;
+  overflow-x: auto;
+}
+.admin-hub-tabs .dir-type-btn { white-space: nowrap; }
+
+.admin-hub-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+}
+.admin-hub-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid var(--entity-line);
+  border-radius: 10px;
+  background: var(--entity-panel);
+  box-shadow: var(--entity-shadow);
+  color: var(--entity-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+.admin-hub-card:hover {
+  border-color: var(--entity-line-strong);
+  transform: translateY(-1px);
+}
+.admin-hub-card:focus-visible {
+  outline: 2px solid var(--entity-accent);
+  outline-offset: 2px;
+}
+.admin-hub-card.is-featured {
+  border-color: var(--entity-accent);
+  box-shadow: 0 0 0 1px var(--entity-accent-soft), var(--entity-shadow);
+}
+.admin-hub-card-icon {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: var(--entity-accent-soft);
+  color: var(--entity-accent);
+}
+.admin-hub-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  flex: 1;
+}
+.admin-hub-card-body strong { font-size: 0.92rem; font-weight: 600; }
+.admin-hub-card-desc { color: var(--entity-muted); font-size: 0.76rem; line-height: 1.45; }
+.admin-hub-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin-top: 8px;
+  color: var(--entity-faint);
+  font-size: 0.72rem;
+}
+.admin-hub-card-meta b { color: var(--entity-text); font-weight: 600; }
+.admin-hub-card-arrow {
+  flex-shrink: 0;
+  color: var(--entity-faint);
+  align-self: center;
+  transition: color 0.15s ease, transform 0.15s ease;
+}
+.admin-hub-card:hover .admin-hub-card-arrow { color: var(--entity-accent); transform: translateX(2px); }
+
+/* Tablas editables de catálogo */
+.catalog-toolbar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.catalog-toolbar h3 {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.92rem;
+  color: var(--entity-text);
+}
+.catalog-table td strong { font-weight: 600; }
+.catalog-table .catalog-num { text-align: right; font-variant-numeric: tabular-nums; color: var(--entity-muted); }
+.catalog-table .catalog-actions { text-align: right; white-space: nowrap; }
+.catalog-table .catalog-actions .catalog-btn + .catalog-btn { margin-left: 4px; }
+.catalog-btn { height: 28px; padding: 0 9px; font-size: 0.72rem; gap: 4px; }
+.catalog-btn.is-danger:hover { color: #ef4444; border-color: rgba(239, 68, 68, 0.4); }
+.catalog-empty { color: var(--entity-faint); }
+.catalog-row.is-inactive td { color: var(--entity-faint); }
+.catalog-row.is-editing td { background: var(--entity-accent-soft); }
+.catalog-empty-row td { text-align: center; color: var(--entity-muted); padding: 18px 8px; }
+.catalog-input {
+  width: 100%;
+  min-width: 0;
+  height: 30px;
+  padding: 0 8px;
+  border: 1px solid var(--entity-line-strong);
+  border-radius: 6px;
+  background: var(--entity-bg);
+  color: var(--entity-text);
+  font: inherit;
+  font-size: 0.76rem;
+  box-sizing: border-box;
+}
+.catalog-input:focus { outline: none; border-color: var(--entity-accent); box-shadow: 0 0 0 2px var(--entity-accent-soft); }
+.catalog-active-toggle { display: inline-flex; align-items: center; gap: 5px; font-size: 0.72rem; color: var(--entity-muted); white-space: nowrap; }
+.catalog-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 0.67rem;
+  font-weight: 600;
+  border: 1px solid var(--entity-line);
+}
+.catalog-status.is-on { color: var(--entity-accent); background: var(--entity-accent-soft); border-color: transparent; }
+.catalog-status.is-off { color: var(--entity-faint); background: var(--entity-panel-2); }
+.catalog-footnote {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: -14px 0 0;
+  color: var(--entity-faint);
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+.catalog-footnote svg { flex-shrink: 0; margin-top: 2px; }
+
+/* Selectores alimentados por catálogo (modal de proveedor) */
+.catalog-chip-row { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+.catalog-chip {
+  padding: 2px 7px;
+  border: 1px dashed var(--entity-line-strong);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--entity-muted);
+  font: inherit;
+  font-size: 0.68rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+.catalog-chip:hover { color: var(--entity-accent); border-color: var(--entity-accent); }
+.catalog-check-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 4px 10px;
+  max-height: 168px;
+  overflow-y: auto;
+  padding: 8px 10px;
+  border: 1px solid var(--entity-line);
+  border-radius: 6px;
+  background: var(--entity-bg);
+}
+.catalog-check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  font-size: 0.74rem;
+  font-weight: 500;
+  color: var(--entity-text);
+  cursor: pointer;
+}
+.procurement-modal-body .catalog-check input[type="checkbox"] {
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  accent-color: var(--entity-accent);
+}
+.catalog-check span { flex: 1; min-width: 0; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.catalog-check.is-extra span { color: var(--entity-faint); font-style: italic; }
+
+@media (max-width: 760px) {
+  .catalog-toolbar .b2b-dir-search-wrap { max-width: none !important; min-width: 0 !important; width: 100%; }
+  .admin-hub-card { padding: 14px; }
+}

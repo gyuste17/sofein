@@ -1,5 +1,22 @@
 # HANDOFF — SOFEIN Procurement (Auditoría y Validación Final)
 
+## 2026-10-22 · Claude · rama `procurement` · assets `?v=procurement-v29`
+
+**Hecho — Administración SOFEIN + catálogos maestros**
+- El perfil de admin de la sidebar ahora lleva a `#admin/administracion` (antes, a `#admin/overview`). Es un hub con tarjetas para Visión global (destacada), Productos, Conformidades y Configuración.
+- Pestañas comunes (Resumen · Visión global · Productos · Conformidades) en las cuatro vistas, y migas `SOFEIN Admin / Administración / …`. Visión global no cambia (KPIs y filtros siguen funcionando).
+- `#admin/productos` y `#admin/conformidades`: tablas editables en línea (añadir, editar, activar/desactivar, eliminar y buscar; Enter guarda y Esc cancela). Contador de proveedores que usan cada elemento.
+- Fuente de datos: `CATALOGOS.productos` y `CATALOGOS.conformidades` en `app.js`, que se persisten en localStorage (`sofein_catalogo_productos_v1`, `sofein_catalogo_conformidades_v1`). Alimentan:
+  - el selector «Tipo de Suministro» del constructor de expedientes (`renderProductoOptions()`);
+  - el modal de alta/edición de proveedor, que muestra chips de productos y casillas de conformidades más un campo «Otras»;
+  - el datalist del modal «Subir certificado» del perfil de proveedor.
+- Al renombrar una conformidad (o la etiqueta de un producto) el cambio se propaga a `DIRECTORIO_PROVEEDORES`. Desactivar o eliminar quita el elemento de los selectores, pero no lo borra de las fichas existentes.
+- Verificado con Chrome headless: 0 errores de JS, ningún `undefined`/`NaN` y sin desbordamiento en 390 px.
+
+**Pendiente / decisiones**
+- Persistencia solo local (localStorage). Si se migra a Supabase, crear las tablas `catalogo_productos` y `catalogo_conformidades` con los grants de PostgREST.
+- Para restablecer los catálogos por defecto hay que borrar esas dos claves de localStorage.
+
 **Fecha:** 18 de Octubre de 2026  
 **Rama Git:** `procurement`  
 **Entorno de Producción:** [https://sofein-procurement.vercel.app](https://sofein-procurement.vercel.app) (Proyecto Vercel: `sofein-procurement`)  
