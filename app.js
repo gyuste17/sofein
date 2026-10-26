@@ -10792,25 +10792,20 @@
   }
 
   function renderVisibilityCheckboxesHTML(selectedRoles = ["admin", "cliente", "proveedor"]) {
-    const hasCliente = selectedRoles.includes("cliente");
-    const hasProveedor = selectedRoles.includes("proveedor");
-    const hasDestinatario = selectedRoles.includes("destinatario");
+    const opt = (role, label) => `
+      <label class="doc-vis-check-item">
+        <input type="checkbox" name="vis_${role}" value="${role}" ${selectedRoles.includes(role) ? "checked" : ""} />
+        <span>${label}</span>
+      </label>
+    `;
     return `
       <div class="doc-visibility-box">
-        <span class="doc-visibility-title">${icon("eye", 14)} ¿Quién puede ver este documento? (Permisos SOFEIN Admin)</span>
+        <span class="doc-visibility-title">${icon("eye", 14)} ¿Quién puede ver este documento?</span>
         <div class="doc-visibility-checks">
-          <label class="doc-vis-check-item">
-            <input type="checkbox" name="vis_cliente" value="cliente" ${hasCliente ? "checked" : ""} />
-            <span>Cliente (Constructor)</span>
-          </label>
-          <label class="doc-vis-check-item">
-            <input type="checkbox" name="vis_proveedor" value="proveedor" ${hasProveedor ? "checked" : ""} />
-            <span>Proveedor Homologado</span>
-          </label>
-          <label class="doc-vis-check-item">
-            <input type="checkbox" name="vis_destinatario" value="destinatario" ${hasDestinatario ? "checked" : ""} />
-            <span>Destinatario Final (Auditor)</span>
-          </label>
+          <span class="doc-vis-check-item is-fixed" title="SOFEIN siempre puede ver los documentos">${icon("check", 13)} SOFEIN</span>
+          ${opt("cliente", "Cliente")}
+          ${opt("proveedor", "Proveedor")}
+          ${opt("destinatario", "Destinatario final")}
         </div>
       </div>
     `;

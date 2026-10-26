@@ -8558,3 +8558,36 @@ details.b2b-profile-card.is-collapsible[open] > summary.is-collapsible-summary .
     margin-left: 0;
   }
 }
+
+/* Casillas de visibilidad de documentos: en una fila, alineadas y sin estirarse */
+.doc-visibility-checks {
+  display: flex;
+  align-items: center;
+  gap: 8px 20px;
+  flex-wrap: wrap;
+}
+.doc-vis-check-item {
+  display: inline-flex !important;
+  grid-template-columns: none !important;
+  align-items: center;
+  gap: 7px !important;
+  width: auto !important;
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 550;
+  color: var(--entity-text);
+  white-space: nowrap;
+}
+.doc-vis-check-item input[type="checkbox"] {
+  width: 16px !important;
+  height: 16px !important;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  flex: none;
+  accent-color: var(--entity-accent);
+}
+.doc-vis-check-item.is-fixed {
+  color: var(--entity-muted);
+  cursor: default;
+}

@@ -2,6 +2,14 @@
 
 Registro de relevo entre agentes. **Entradas nuevas arriba.** Reglas del proyecto en `AGENTS.md`.
 
+## 2026-10-26 · Claude · rama `procurement` · Casillas de visibilidad ordenadas (v51), publicado
+
+- `renderVisibilityCheckboxesHTML`, que se usa en Requerir, Subir, Subir requerido, Validar y Editar documento:
+  - las casillas van en una sola fila: «SOFEIN» (siempre, fijo), «Cliente», «Proveedor» y «Destinatario final»;
+  - se quitan los textos «(Constructor)», «Homologado», «(Auditor)» y «(Permisos SOFEIN Admin)»;
+  - el CSS evita que las casillas hereden el ancho del 100 % de los inputs del modal.
+- Push a `procurement` y despliegue en producción de sofein-procurement (`?v=procurement-v51`).
+
 ## 2026-10-26 · Claude · rama `procurement` · Push y despliegue (v50)
 
 - `gitleaks` sobre los commits nuevos: sin fugas.
