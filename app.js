@@ -3531,7 +3531,7 @@
     return exp.registroCambios;
   }
 
-  function addExpedienteCambioLog(exp, { tipo = "Cambio operativo", suministro = "General", titulo, detalle = "" }) {
+  function addExpedienteCambioLog(exp, { tipo = "Cambio operativo", suministro = "General", titulo, detalle = "", soloAdmin = false }) {
     if (!exp) return;
     const list = ensureExpedienteRegistroCambios(exp);
     const nowStr = new Date().toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" }).replace(/\./g, "") + " · Ahora";
@@ -3543,7 +3543,8 @@
       tipo,
       suministro,
       titulo,
-      detalle
+      detalle,
+      soloAdmin: !!soloAdmin
     });
   }
 
@@ -4123,9 +4124,11 @@
         ? exp.incidencias.filter(inc => !inc.sumId || visibleSumIds.has(inc.sumId))
         : exp.incidencias;
 
-      const roleCambiosLog = isRoleProveedor
-        ? cambiosLog.filter(c => !c.suministro || c.suministro === "General" || c.suministro === "Todos" || visibleSumIds.has(c.suministro))
-        : cambiosLog;
+      const roleCambiosLog = cambiosLog.filter(c => {
+        if (!isRoleAdmin && c.soloAdmin) return false;
+        if (isRoleProveedor && c.suministro && c.suministro !== "General" && c.suministro !== "Todos" && !visibleSumIds.has(c.suministro)) return false;
+        return true;
+      });
 
       const totalInc = roleIncidents.length;
       const totalCambios = roleCambiosLog.length;
@@ -4171,10 +4174,13 @@
                   </thead>
                   <tbody>
                     ${roleCambiosLog.map(c => `
-                      <tr>
+                      <tr ${c.soloAdmin ? 'style="background:rgba(16, 69, 29, 0.04)"' : ''}>
                         <td><span class="dossier-sum-code">${c.id}</span></td>
                         <td><span class="doc-tbl-date">${c.fecha}</span></td>
-                        <td><span class="dossier-chip" style="font-size:0.68rem">${c.tipo}</span></td>
+                        <td>
+                          <span class="dossier-chip" style="font-size:0.68rem">${c.tipo}</span>
+                          ${c.soloAdmin ? `<span class="dossier-chip" style="font-size:0.65rem;background:#FEF3C7;color:#92400E;border-color:#FDE68A;margin-left:4px" title="Anotación interna confidencial visible exclusivamente para SOFEIN">${icon("lock", 11)} Solo SOFEIN</span>` : ''}
+                        </td>
                         <td><span class="doc-tbl-phase">${c.suministro || "General"}</span></td>
                         <td>
                           <div class="doc-tbl-name-wrap">
@@ -4792,7 +4798,7 @@
             ${icon("file", 16)} Documentación
           </button>
           <button class="dossier-tab-btn ${activeDossierTab === "incidents" ? "is-active" : ""}" type="button" data-switch-dossier-tab="incidents">
-            ${icon("alert", 16)} Registro de incidencias
+            ${icon("alert", 16)} Registro
             ${totalRegistroBadge ? `<b class="badge">${totalRegistroBadge}</b>` : ""}
           </button>
           <button class="dossier-tab-btn ${activeDossierTab === "comms" ? "is-active" : ""}" type="button" data-switch-dossier-tab="comms">
@@ -11037,8 +11043,9 @@
             <div class="procurement-modal-body" style="gap:12px">
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
                 <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
-                  Tipo de cambio
-                  <select name="tipo" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0">
+                  Tipo de cambio / registro
+                  <select name="tipo" id="addCambioTipoSelect" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0">
+                    <option value="Anotación interna (SOFEIN)">Anotación interna (Solo SOFEIN)</option>
                     <option value="Cambio operativo">Cambio operativo</option>
                     <option value="Ajuste de entrega">Ajuste de fecha / entrega</option>
                     <option value="Modificación de alcance">Modificación de alcance</option>
@@ -11059,8 +11066,15 @@
               </label>
               <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
                 Detalle / Observaciones
-                <textarea name="detalle" rows="3" placeholder="Describe el cambio acordado o registrado..." style="padding:9px 11px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;line-height:1.45"></textarea>
+                <textarea name="detalle" rows="3" placeholder="Describe el cambio acordado o anotación interna de seguimiento..." style="padding:9px 11px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;line-height:1.45"></textarea>
               </label>
+              <div style="padding:10px 12px;background:rgba(16, 69, 29, 0.05);border:1px solid rgba(16, 69, 29, 0.15);border-radius:8px;display:flex;align-items:flex-start;gap:10px">
+                <input type="checkbox" name="soloAdmin" id="checkSoloAdmin" checked style="margin-top:2px;cursor:pointer;accent-color:#10451D" />
+                <label for="checkSoloAdmin" style="font-size:0.75rem;color:var(--entity-text);cursor:pointer;line-height:1.4">
+                  <strong style="display:block;color:#10451D">Anotación interna confidencial (Solo visible para SOFEIN)</strong>
+                  Esta anotación no será visible para el Cliente ni para el Proveedor dentro del expediente.
+                </label>
+              </div>
             </div>
             <div class="procurement-modal-footer">
               <button class="admin-quiet-button" type="button" id="cancelAddCambioLogBtn">Cancelar</button>
@@ -11078,6 +11092,15 @@
       if (e.target.id === "addCambioLogBackdrop") close();
     });
 
+    // Sincronizar checkbox si cambia el tipo a/desde Anotación interna
+    const tipoSelect = document.getElementById("addCambioTipoSelect");
+    const soloAdminCheck = document.getElementById("checkSoloAdmin");
+    tipoSelect?.addEventListener("change", () => {
+      if (tipoSelect.value.includes("Anotación interna")) {
+        if (soloAdminCheck) soloAdminCheck.checked = true;
+      }
+    });
+
     document.getElementById("modalAddCambioLogForm")?.addEventListener("submit", e => {
       e.preventDefault();
       const form = new FormData(e.currentTarget);
@@ -11085,9 +11108,10 @@
       const suministro = form.get("suministro") || "General";
       const titulo = (form.get("titulo") || "").trim();
       const detalle = (form.get("detalle") || "").trim();
-      addExpedienteCambioLog(exp, { tipo, suministro, titulo, detalle });
+      const soloAdmin = form.get("soloAdmin") !== null;
+      addExpedienteCambioLog(exp, { tipo, suministro, titulo, detalle, soloAdmin });
       close();
-      showToast(`✓ Cambio añadido al Registro de ${exp.id}`);
+      showToast(soloAdmin ? `✓ Anotación interna SOFEIN añadida a ${exp.id}` : `✓ Registro añadido a ${exp.id}`);
       renderApp();
     });
   }
