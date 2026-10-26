@@ -5032,7 +5032,6 @@
       <div class="admin-view-head">
         <div>
           <h1>Avisos</h1>
-          <p>Registro unificado de avisos, requerimientos de documentación e incidencias de los expedientes.</p>
         </div>
         ${role === "admin" ? `
           <button class="admin-primary-button" type="button" data-open-create-notice-modal>
