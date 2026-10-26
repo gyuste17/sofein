@@ -733,19 +733,17 @@
      constructor de expedientes, el alta/edición de proveedores y el registro de
      certificados. Se persisten en localStorage para sobrevivir a recargas. */
   const CATALOG_STORAGE_KEYS = {
-    productos: "sofein_catalogo_productos_v1",
+    productos: "sofein_catalogo_productos_v2",
     conformidades: "sofein_catalogo_conformidades_v1"
   };
 
   const DEFAULT_CATALOGO_PRODUCTOS = [
-    { id: "PRD-01", nombre: "Traviesas de madera", etiqueta: "Traviesas de madera", familia: "Superestructura", norma: "UNE-EN 13145", unidad: "uds", activo: true },
-    { id: "PRD-02", nombre: "Traviesas de hormigón", etiqueta: "Traviesas", familia: "Superestructura", norma: "EN 13230", unidad: "uds", activo: true },
-    { id: "PRD-03", nombre: "Carril ferroviario", etiqueta: "Carril", familia: "Superestructura", norma: "EN 13674-1", unidad: "t / ml", activo: true },
-    { id: "PRD-04", nombre: "Sujeciones y fijaciones", etiqueta: "Fijaciones", familia: "Superestructura", norma: "EN 13481", unidad: "cjtos", activo: true },
-    { id: "PRD-05", nombre: "Placas de asiento", etiqueta: "Placas de asiento", familia: "Superestructura", norma: "EN 13481-2", unidad: "uds", activo: true },
-    { id: "PRD-06", nombre: "Aparatos de vía", etiqueta: "Aparatos de vía", familia: "Aparatos de vía", norma: "EN 13232", unidad: "uds", activo: true },
-    { id: "PRD-07", nombre: "Balasto", etiqueta: "Balasto", familia: "Plataforma", norma: "UNE-EN 13450", unidad: "t", activo: true },
-    { id: "PRD-08", nombre: "Otro suministro", etiqueta: "Otro", familia: "Otros", norma: "", unidad: "", activo: true }
+    { id: "PRD-01", nombre: "Traviesas", etiqueta: "Traviesas", familia: "Superestructura", norma: "EN 13230 / UNE-EN 13145", unidad: "uds", activo: true },
+    { id: "PRD-02", nombre: "Placas", etiqueta: "Placas", familia: "Superestructura", norma: "EN 13481-2", unidad: "uds", activo: true },
+    { id: "PRD-03", nombre: "Tirafondos", etiqueta: "Tirafondos", familia: "Superestructura", norma: "EN 13481", unidad: "uds", activo: true },
+    { id: "PRD-04", nombre: "Clips", etiqueta: "Clips", familia: "Superestructura", norma: "EN 13481", unidad: "uds", activo: true },
+    { id: "PRD-05", nombre: "Balasto", etiqueta: "Balasto", familia: "Plataforma", norma: "UNE-EN 13450", unidad: "t", activo: true },
+    { id: "PRD-06", nombre: "Otros", etiqueta: "Otros", familia: "Otros", norma: "", unidad: "", activo: true }
   ];
 
   const DEFAULT_CATALOGO_CONFORMIDADES = [
@@ -800,7 +798,7 @@
   // Opciones del selector "Tipo de Suministro" del constructor de expedientes
   function renderProductoOptions() {
     const list = getActiveProductos();
-    if (!list.length) return `<option value="Otro suministro">Otro suministro</option>`;
+    if (!list.length) return `<option value="Otros">Otros</option>`;
     return list.map(p => `<option value="${escHTML(p.nombre)}">${escHTML(p.nombre)}</option>`).join("");
   }
 
@@ -1928,7 +1926,6 @@
     return `<a href="tel:${cleanTel}" class="dir-contact-link" style="font-size:0.72rem;display:inline-flex;align-items:center;gap:4px;white-space:nowrap">${icon("phone", 12)} <span>${tel}</span></a>`;
   }
   let previousRouteKey = null;
-  let stagedPliegoFile = null;
   let suministroRowCount = 1;
   let docScopeMode = "phase"; // "phase" | "all"
   let commsPhaseScope = "all"; // "phase" | "all"
@@ -2625,6 +2622,130 @@
   /* ============================================================
      CONSTRUCTOR DE EXPEDIENTES (PANTALLA 1 - APUNTES 05 Y 06)
      ============================================================ */
+  // Bloque de adjuntos del constructor (máx. 3): cada adjunto lleva su nombre y, si crea SOFEIN, quién lo ve
+  const CREATE_ATTACH_MAX = 3;
+
+  function renderCreateAttachHTML(scope, isRoleAdmin) {
+    return `
+      <div class="create-attach" data-attach-scope="${scope}" data-attach-vis="${isRoleAdmin ? "1" : "0"}">
+        <div class="create-attach-head">
+          <span class="create-attach-title">${scope === "general" ? "Adjuntos adicionales" : "Adjuntos del suministro"} <em>(opcional · máx. ${CREATE_ATTACH_MAX})</em></span>
+          <input type="file" class="create-attach-input" style="display:none" accept=".pdf,.dwg,.xlsx,.docx,.jpg,.png" multiple />
+          <button type="button" class="slot-upload-btn create-attach-add">${icon("upload", 13)} Añadir adjunto</button>
+        </div>
+        <div class="create-attach-list"></div>
+        ${!isRoleAdmin ? `<p class="create-attach-hint">SOFEIN decidirá quién puede ver cada adjunto al validar la solicitud.</p>` : ""}
+      </div>
+    `;
+  }
+
+  // Archivo real de cada fila de adjunto (no cabe en el DOM)
+  const stagedAttachFiles = new WeakMap();
+
+  function updateCreateAttachAddState(box) {
+    const count = box.querySelectorAll(".create-attach-row").length;
+    const addBtn = box.querySelector(".create-attach-add");
+    if (addBtn) addBtn.style.display = count >= CREATE_ATTACH_MAX ? "none" : "";
+  }
+
+  function addCreateAttachRow(box, file) {
+    const list = box.querySelector(".create-attach-list");
+    if (!list || list.children.length >= CREATE_ATTACH_MAX) return false;
+    const withVis = box.dataset.attachVis === "1";
+    const uid = `att${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+    const baseName = file.name.replace(/\.[^.]+$/, "");
+    const row = document.createElement("div");
+    row.className = "create-attach-row";
+    row.innerHTML = `
+      <span class="create-attach-file" title="${escHTML(file.name)}">${icon("file", 13)} <span>${escHTML(file.name)}</span></span>
+      <input class="create-exp-input create-attach-name" value="${escHTML(baseName)}" placeholder="Nombre del documento" aria-label="Nombre del documento" required />
+      ${withVis ? `
+        <div class="create-attach-vis" title="¿Quién puede ver este adjunto?">
+          <span class="create-attach-vis-fixed">${icon("eye", 12)} SOFEIN</span>
+          <label><input type="checkbox" name="${uid}_cliente" value="cliente" checked /> Cliente</label>
+          <label><input type="checkbox" name="${uid}_proveedor" value="proveedor" checked /> Proveedor</label>
+        </div>
+      ` : ""}
+      <button type="button" class="suministro-remove-btn create-attach-remove" title="Quitar adjunto">${icon("x", 12)}</button>
+    `;
+    stagedAttachFiles.set(row, file);
+    row.querySelector(".create-attach-remove").addEventListener("click", () => {
+      row.remove();
+      updateCreateAttachAddState(box);
+    });
+    list.appendChild(row);
+    updateCreateAttachAddState(box);
+    return true;
+  }
+
+  function bindCreateAttachments(root = document) {
+    root.querySelectorAll(".create-attach").forEach(box => {
+      if (box.dataset.bound) return;
+      box.dataset.bound = "1";
+      const input = box.querySelector(".create-attach-input");
+      box.querySelector(".create-attach-add")?.addEventListener("click", () => input?.click());
+      input?.addEventListener("change", e => {
+        const files = Array.from(e.target.files || []);
+        let skipped = 0;
+        files.forEach(f => { if (!addCreateAttachRow(box, f)) skipped++; });
+        if (skipped) showToast(`Máximo ${CREATE_ATTACH_MAX} adjuntos: se han descartado ${skipped}.`);
+        input.value = "";
+      });
+    });
+  }
+
+  // Lee los adjuntos de un bloque: [{ file, nombre, visibleTo|null }]
+  function readCreateAttachments(box) {
+    if (!box) return [];
+    const withVis = box.dataset.attachVis === "1";
+    return Array.from(box.querySelectorAll(".create-attach-row")).map(row => {
+      const file = stagedAttachFiles.get(row);
+      const nombre = row.querySelector(".create-attach-name")?.value.trim() || (file ? file.name : "Adjunto");
+      const visibleTo = withVis
+        ? ["admin", ...Array.from(row.querySelectorAll(".create-attach-vis input:checked")).map(i => i.value)]
+        : null;
+      return { file, nombre, visibleTo };
+    }).filter(a => a.file);
+  }
+
+  function renderCreateSuministroRowHTML(idx, isRoleAdmin, defaultDate, removable) {
+    return `
+      <div class="suministro-item" data-suministro-index="${idx}">
+        <div class="suministro-item-top">
+          <span class="suministro-item-title">${icon("route", 14)} Lote de Suministro <span class="suministro-item-num">${idx}</span></span>
+          ${removable ? `<button type="button" class="suministro-remove-btn" data-remove-suministro>${icon("x", 12)} Eliminar lote</button>` : ""}
+        </div>
+        <div class="create-exp-grid-3" style="margin-bottom:10px">
+          <label class="create-exp-label">
+            Tipo de Suministro
+            <select name="suministro_material_${idx}" class="create-exp-select" required>
+              ${renderProductoOptions()}
+            </select>
+          </label>
+          <label class="create-exp-label">
+            Volumen / Unidades
+            <input name="suministro_unidades_${idx}" class="create-exp-input" required placeholder="Ej: 14.500 unidades" />
+          </label>
+          <label class="create-exp-label">
+            Presupuesto Estimado (Opcional)
+            <input name="suministro_presupuesto_${idx}" class="create-exp-input" placeholder="Ej: 120.000 €" />
+          </label>
+        </div>
+        <div class="create-exp-grid-3" style="margin-bottom:10px">
+          <label class="create-exp-label">
+            Fecha Objetivo (Opcional)
+            <input type="date" name="suministro_fecha_${idx}" class="create-exp-input suministro-fecha-input" value="${defaultDate}" data-custom-date="0" style="color:#9ca3af" />
+          </label>
+        </div>
+        <label class="create-exp-label" style="margin-bottom:10px">
+          Especificaciones
+          <textarea name="suministro_especificaciones_${idx}" class="create-exp-input create-exp-textarea" rows="4" placeholder="Describe el suministro con el detalle necesario: material, dimensiones, normativa, tolerancias, condiciones de entrega…"></textarea>
+        </label>
+        ${renderCreateAttachHTML("suministro", isRoleAdmin)}
+      </div>
+    `;
+  }
+
   function renderCreateExpedienteView(creatorRole) {
     const isRoleAdmin = creatorRole === "admin";
     const breadcrumbBase = isRoleAdmin
@@ -2645,7 +2766,7 @@
       ${!isRoleAdmin ? `
         <div style="display:flex;justify-content:center;margin-bottom:22px">
           <span class="create-exp-badge info" style="font-size:0.78rem;padding:6px 16px">
-            ${icon("file", 15)} Solicitud constructor · Requiere validación SOFEIN
+            ${icon("file", 15)} Solicitud del cliente · Requiere validación SOFEIN
           </span>
         </div>
       ` : ""}
@@ -2713,46 +2834,7 @@
           </div>
 
           <div id="suministrosContainer" style="display:grid;gap:12px">
-            <div class="suministro-item" data-suministro-index="0">
-              <div class="suministro-item-top">
-                <span class="suministro-item-title">${icon("route", 14)} Lote de Suministro 1</span>
-              </div>
-              <div class="create-exp-grid-3" style="margin-bottom:10px">
-                <label class="create-exp-label">
-                  Tipo de Suministro
-                  <select name="suministro_material_0" class="create-exp-select" required>
-                    ${renderProductoOptions()}
-                  </select>
-                </label>
-                <label class="create-exp-label">
-                  Volumen / Unidades
-                  <input name="suministro_unidades_0" class="create-exp-input" required placeholder="Ej: 14.500 unidades" />
-                </label>
-                <label class="create-exp-label">
-                  Especificaciones
-                  <input name="suministro_especificaciones_0" class="create-exp-input" placeholder="Ej: Madera de roble tratada, 2,60 m" />
-                </label>
-              </div>
-              <div class="create-exp-grid-3">
-                <label class="create-exp-label">
-                  Presupuesto Estimado (Opcional)
-                  <input name="suministro_presupuesto_0" class="create-exp-input" placeholder="Ej: 120.000 €" />
-                </label>
-                <label class="create-exp-label">
-                  Fecha Objetivo (Opcional)
-                  <input type="date" name="suministro_fecha_0" class="create-exp-input suministro-fecha-input" value="2026-11-30" data-custom-date="0" style="color:#9ca3af" />
-                </label>
-                <label class="create-exp-label">
-                  Adjunto (Opcional)
-                  <div style="display:flex;align-items:center;gap:8px">
-                    <input type="file" class="suministro-file-input" style="display:none" accept=".pdf,.dwg,.xlsx,.docx" multiple />
-                    <button type="button" class="slot-upload-btn suministro-file-trigger" style="height:38px;width:100%;justify-content:center">
-                      ${icon("upload", 14)} <span class="suministro-file-label">Subir docs</span>
-                    </button>
-                  </div>
-                </label>
-              </div>
-            </div>
+            ${renderCreateSuministroRowHTML(1, isRoleAdmin, "2026-11-30", false)}
           </div>
 
           <button class="suministro-add-btn" type="button" id="addSuministroRowBtn">
@@ -2771,25 +2853,10 @@
           <div style="display:grid;gap:14px">
             <label class="create-exp-label">
               Notas (Opcional)
-              <textarea name="notasExpediente" class="create-exp-input" rows="2" style="height:auto;padding:10px 12px;resize:vertical" placeholder="Añade notas o comentarios adicionales del expediente..."></textarea>
+              <textarea name="notasExpediente" class="create-exp-input create-exp-textarea" rows="3" placeholder="Añade notas o comentarios adicionales del expediente. Las verán SOFEIN y el cliente en la cabecera del expediente."></textarea>
             </label>
 
-            <input type="file" id="createExpFileInput" style="display:none" accept=".pdf,.dwg,.xlsx" />
-            
-            <div class="slot-dropzone" id="createExpDropzone">
-              <div class="slot-dropzone-copy">
-                ${icon("upload", 24)}
-                <div>
-                  <div><b>Añadir adjuntos</b></div>
-                  <span class="sub">Formatos admitidos: .pdf, .dwg, .xlsx (Máximo 25 MB)</span>
-                </div>
-              </div>
-              <button class="slot-upload-btn" type="button" id="triggerFileSelectBtn">
-                ${icon("plus", 14)} Añadir adjuntos
-              </button>
-            </div>
-
-            <div id="fileUploadedPreview" style="display:none;margin-top:4px"></div>
+            ${renderCreateAttachHTML("general", isRoleAdmin)}
           </div>
         </section>
 
@@ -2799,7 +2866,7 @@
             ← Expedientes
           </button>
           <button class="admin-primary-button" type="submit" id="submitCreateExpBtn" style="padding:10px 22px;font-size:0.85rem">
-            ${icon("check", 16)} Crear Expediente
+            ${icon("check", 16)} ${isRoleAdmin ? "Crear Expediente" : "Solicitar Expediente"}
           </button>
         </div>
       </form>
@@ -4874,6 +4941,12 @@
               </div>
             </div>
           </div>
+          ${exp.notas && (isRoleAdmin || isRoleCliente) ? `
+            <div class="dossier-exp-notes">
+              <span class="exp-v2-label">${icon("edit", 12)} Notas del expediente</span>
+              <p>${escHTML(exp.notas)}</p>
+            </div>
+          ` : ""}
         </section>
 
         <!-- 2. Suministros del expediente (Filtrados por perfil, con título más legible) -->
@@ -8807,25 +8880,8 @@
     // Validación de Expediente Pendiente (Admin valida solicitud de Cliente - Apuntes 06)
     document.querySelectorAll("[data-validate-exp]").forEach(btn => {
       btn.addEventListener("click", () => {
-        const id = btn.dataset.validateExp;
-        const targetExp = getActiveExpediente(id);
-        if (targetExp) {
-          targetExp.estado = "review";
-          targetExp.faseActual = 1;
-          targetExp.desviacionDias = "0 días (En plazo)";
-          targetExp.plazoRealEstimado = "45 días";
-          targetExp.plazoPactado = "45 días";
-          if (targetExp.deliverables[0] && targetExp.deliverables[0][0]) {
-            targetExp.deliverables[0][0].state = "complete";
-          }
-          if (!targetExp.deliverables[1] || !targetExp.deliverables[1].length) {
-            targetExp.deliverables[1] = [
-              { name: "Preselección de 3 Proveedores Homologados", owner: "SOFEIN", state: "review", format: "PDF", file: null, date: "Listo para lanzar" }
-            ];
-          }
-          showToast(`✓ Expediente ${id} validado por SOFEIN. Avanza a Fase 1: Preselección`);
-          renderApp();
-        }
+        if (activeRole !== "admin") return;
+        openValidateExpedienteModal(btn.dataset.validateExp);
       });
     });
 
@@ -8834,20 +8890,6 @@
 
     function bindSuministroFileInputs(root = document) {
       root.querySelectorAll(".suministro-item").forEach(row => {
-        const trigger = row.querySelector(".suministro-file-trigger");
-        const input = row.querySelector(".suministro-file-input");
-        const label = row.querySelector(".suministro-file-label");
-        if (trigger && input && !trigger.dataset.bound) {
-          trigger.dataset.bound = "1";
-          trigger.addEventListener("click", () => input.click());
-          input.addEventListener("change", e => {
-            const files = e.target.files;
-            if (files && files.length > 0 && label) {
-              label.textContent = files.length === 1 ? files[0].name : `${files.length} archivos`;
-            }
-          });
-        }
-
         const fechaInput = row.querySelector(".suministro-fecha-input");
         if (fechaInput && !fechaInput.dataset.bound) {
           fechaInput.dataset.bound = "1";
@@ -8863,6 +8905,7 @@
       });
     }
     bindSuministroFileInputs();
+    bindCreateAttachments();
 
     if (mainFechaInput && !mainFechaInput.dataset.syncBound) {
       mainFechaInput.dataset.syncBound = "1";
@@ -8882,123 +8925,23 @@
     const addSuministroBtn = document.getElementById("addSuministroRowBtn");
     const suministrosWrap = document.getElementById("suministrosContainer");
     if (addSuministroBtn && suministrosWrap) {
+      const renumberSuministroRows = () => {
+        suministrosWrap.querySelectorAll(".suministro-item-num").forEach((el, i) => { el.textContent = i + 1; });
+      };
       addSuministroBtn.addEventListener("click", () => {
         suministroRowCount++;
         const defaultDate = mainFechaInput ? mainFechaInput.value : "2026-11-30";
-        const item = document.createElement("div");
-        item.className = "suministro-item";
-        item.dataset.suministroIndex = suministroRowCount;
-        item.innerHTML = `
-          <div class="suministro-item-top">
-            <span class="suministro-item-title">${icon("route", 14)} Lote de Suministro ${suministroRowCount}</span>
-            <button type="button" class="suministro-remove-btn" data-remove-suministro>${icon("x", 12)} Eliminar lote</button>
-          </div>
-          <div class="create-exp-grid-3" style="margin-bottom:10px">
-            <label class="create-exp-label">
-              Tipo de Suministro
-              <select name="suministro_material_${suministroRowCount}" class="create-exp-select" required>
-                ${renderProductoOptions()}
-              </select>
-            </label>
-            <label class="create-exp-label">
-              Volumen / Unidades
-              <input name="suministro_unidades_${suministroRowCount}" class="create-exp-input" required placeholder="Ej: 5.000 unidades o 12 km" />
-            </label>
-            <label class="create-exp-label">
-              Especificaciones
-              <input name="suministro_especificaciones_${suministroRowCount}" class="create-exp-input" placeholder="Ej: Madera de roble tratada, 2,60 m" />
-            </label>
-          </div>
-          <div class="create-exp-grid-3">
-            <label class="create-exp-label">
-              Presupuesto Estimado (Opcional)
-              <input name="suministro_presupuesto_${suministroRowCount}" class="create-exp-input" placeholder="Ej: 120.000 €" />
-            </label>
-            <label class="create-exp-label">
-              Fecha Objetivo (Opcional)
-              <input type="date" name="suministro_fecha_${suministroRowCount}" class="create-exp-input suministro-fecha-input" value="${defaultDate}" data-custom-date="0" style="color:#9ca3af" />
-            </label>
-            <label class="create-exp-label">
-              Adjunto (Opcional)
-              <div style="display:flex;align-items:center;gap:8px">
-                <input type="file" class="suministro-file-input" style="display:none" accept=".pdf,.dwg,.xlsx,.docx" multiple />
-                <button type="button" class="slot-upload-btn suministro-file-trigger" style="height:38px;width:100%;justify-content:center">
-                  ${icon("upload", 14)} <span class="suministro-file-label">Subir docs</span>
-                </button>
-              </div>
-            </label>
-          </div>
-        `;
+        const holder = document.createElement("div");
+        holder.innerHTML = renderCreateSuministroRowHTML(suministroRowCount, activeRole === "admin", defaultDate, true);
+        const item = holder.firstElementChild;
         suministrosWrap.appendChild(item);
+        renumberSuministroRows();
         bindSuministroFileInputs(item);
+        bindCreateAttachments(item);
         item.querySelector("[data-remove-suministro]")?.addEventListener("click", () => {
           item.remove();
+          renumberSuministroRows();
         });
-      });
-    }
-
-    // Constructor de Expediente: Dropzone de Pliegos Técnicos
-    const dropzone = document.getElementById("createExpDropzone");
-    const fileInput = document.getElementById("createExpFileInput");
-    const previewWrap = document.getElementById("fileUploadedPreview");
-    const triggerBtn = document.getElementById("triggerFileSelectBtn");
-
-    function displaySelectedFile(fileName) {
-      stagedPliegoFile = fileName;
-      if (previewWrap) {
-        previewWrap.style.display = "block";
-        previewWrap.innerHTML = `
-          <div class="file-preview-card">
-            <div style="display:flex;align-items:center;gap:12px">
-              <span style="display:grid;place-items:center;width:34px;height:34px;border-radius:6px;background:rgba(82,223,127,0.12);color:var(--entity-accent)">
-                ${icon("file", 18)}
-              </span>
-              <div>
-                <strong style="color:var(--entity-text);font-size:0.84rem">${fileName}</strong>
-                <p style="margin:2px 0 0;font-size:0.72rem;color:var(--entity-muted)">2.4 MB · Indexado para ranura de Fase 0 (Alcance y Requisitos)</p>
-              </div>
-            </div>
-            <div style="display:flex;align-items:center;gap:8px">
-              <span class="dossier-chip" style="color:var(--entity-accent)">✓ Listo</span>
-              <button type="button" id="removePliegoBtn" class="suministro-remove-btn">${icon("x", 12)} Quitar</button>
-            </div>
-          </div>
-        `;
-        document.getElementById("removePliegoBtn")?.addEventListener("click", () => {
-          stagedPliegoFile = null;
-          previewWrap.style.display = "none";
-          previewWrap.innerHTML = "";
-          if (fileInput) fileInput.value = "";
-        });
-      }
-    }
-
-    if (dropzone && fileInput) {
-      dropzone.addEventListener("click", () => fileInput.click());
-      triggerBtn?.addEventListener("click", e => {
-        e.stopPropagation();
-        fileInput.click();
-      });
-
-      fileInput.addEventListener("change", e => {
-        const file = e.target.files && e.target.files[0];
-        if (file) {
-          displaySelectedFile(file.name);
-        }
-      });
-
-      dropzone.addEventListener("dragover", e => {
-        e.preventDefault();
-        dropzone.classList.add("dragover");
-      });
-      dropzone.addEventListener("dragleave", () => {
-        dropzone.classList.remove("dragover");
-      });
-      dropzone.addEventListener("drop", e => {
-        e.preventDefault();
-        dropzone.classList.remove("dragover");
-        const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
-        displaySelectedFile(file ? file.name : "PPTP-Suministro-Ferroviario-2026.pdf");
       });
     }
 
@@ -9014,41 +8957,60 @@
         const fechaObj = form.get("fechaObjetivo");
         const presupuesto = (form.get("presupuestoTotal") || "").trim() || "En licitación";
 
-        // Recopilar lotes de suministros
+        // Recopilar lotes de suministros (cada uno con sus adjuntos)
         const items = document.querySelectorAll("#suministrosContainer .suministro-item");
         const suministrosList = [];
         items.forEach(it => {
-          const mat = it.querySelector("select")?.value || "Traviesas de madera";
-          const units = it.querySelector('input[name^="suministro_unidades"]')?.value.trim() || "Cantidad según pliego";
-          const espec = it.querySelector('input[name^="suministro_especificaciones"]')?.value.trim() || "Especificación estándar";
-          const pres = it.querySelector('input[name^="suministro_presupuesto"]')?.value.trim() || "";
-          const fechaSum = it.querySelector('input[name^="suministro_fecha"]')?.value || "";
-          const fileSum = it.querySelector('.suministro-file-input')?.files?.[0]?.name || null;
+          const mat = it.querySelector("select")?.value || "Otros";
+          const units = it.querySelector('[name^="suministro_unidades"]')?.value.trim() || "Cantidad según pliego";
+          const espec = it.querySelector('[name^="suministro_especificaciones"]')?.value.trim() || "";
+          const pres = it.querySelector('[name^="suministro_presupuesto"]')?.value.trim() || "";
+          const fechaSum = it.querySelector('[name^="suministro_fecha"]')?.value || "";
           suministrosList.push({
             material: mat,
             unidades: units,
-            tramo: espec,
             especificaciones: espec,
             presupuesto: pres,
             fechaObjetivo: fechaSum,
-            adjunto: fileSum
+            adjuntos: readCreateAttachments(it.querySelector(".create-attach"))
           });
         });
+        const notasExpediente = (form.get("notasExpediente") || "").trim();
+        const adjuntosGenerales = readCreateAttachments(document.querySelector('#createExpedienteFullForm .create-attach[data-attach-scope="general"]'));
 
         const primaryMat = suministrosList[0] ? suministrosList[0].material : "Material Ferroviario";
-        const unitsSummary = suministrosList.map(s => `${s.unidades} (${s.especificaciones})`).join(" + ");
-        const fileName = stagedPliegoFile || "Pliego-Prescripciones-Tecnicas-PPTP.pdf";
+        const unitsSummary = suministrosList.map(s => s.especificaciones ? `${s.unidades} (${s.especificaciones})` : s.unidades).join(" + ");
 
-        // Generar ID correlativo
-        const existingNums = EXPEDIENTES.map(exp => {
-          const m = exp.id.match(/\d+$/);
-          return m ? parseInt(m[0], 10) : 0;
-        });
-        const nextNum = Math.max(...existingNums, 22) + 1;
         const newYear = fechaObj ? new Date(fechaObj).getFullYear() : 2026;
         const newId = generateExpedienteId(newYear);
 
         const isRoleAdmin = activeRole === "admin";
+        const todayStr = new Date().toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" }).replace(/\./g, "");
+
+        // Adjunto de creación → documento de Fase 1 (Alcance). SOFEIN fija la visibilidad al crear;
+        // si lo solicita el cliente, queda visible solo para SOFEIN y el cliente hasta que SOFEIN valide.
+        const toCreationDoc = (att, scope) => {
+          const ext = (att.file.name.split(".").pop() || "").toUpperCase();
+          return {
+            docId: `DOC-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
+            fromCreation: true,
+            scope,
+            name: att.nombre,
+            reqDate: null,
+            owner: isRoleAdmin ? "SOFEIN" : "Cliente",
+            state: isRoleAdmin ? "complete" : "review",
+            format: ext || "Archivo",
+            file: att.file.name,
+            fileUrl: URL.createObjectURL(att.file),
+            date: todayStr,
+            visibleTo: att.visibleTo || ["admin", "cliente"],
+            notes: "Adjunto de la creación del expediente"
+          };
+        };
+        const generalDocs = adjuntosGenerales.map(a => toCreationDoc(a, "General"));
+        const fase2Docs = isRoleAdmin ? [
+          { name: "Preselección de 3 Proveedores Homologados", owner: "SOFEIN", state: "review", format: "PDF", file: null, date: "Listo para lanzar" }
+        ] : [];
 
         const newExpediente = {
           id: newId,
@@ -9065,6 +9027,7 @@
           destinatarioFinal: dest,
           proveedor: isRoleAdmin ? "Pendiente de matching y cotización" : "Pendiente de asignación por SOFEIN",
           presupuestoTotal: presupuesto,
+          notas: notasExpediente,
           faseActual: isRoleAdmin ? 1 : 0, // Admin valida directo a Fase 1 (Apuntes 06); Cliente requiere validación previa
           plazoPactado: isRoleAdmin ? "45 días" : "Pendiente de cotización",
           plazoRealEstimado: isRoleAdmin ? "45 días" : "Pendiente de validación",
@@ -9072,38 +9035,32 @@
           estado: isRoleAdmin ? "review" : "pending_validation",
           incidencias: [],
           deliverables: {
-            0: [
-              {
-                name: "Pliego de Prescripciones Técnicas Particulares (PPTP)",
-                owner: "Cliente",
-                state: isRoleAdmin ? "complete" : "review",
-                format: fileName.toLowerCase().endsWith(".dwg") ? "DWG / PDF" : "PDF",
-                file: fileName,
-                date: "Hoy, recién indexado"
-              }
-            ],
-            1: isRoleAdmin ? [
-              { name: "Preselección de 3 Proveedores Homologados", owner: "SOFEIN", state: "review", format: "PDF", file: null, date: "Listo para lanzar" }
-            ] : [],
+            0: [...generalDocs],
+            1: fase2Docs.map(d => ({ ...d })),
             2: [], 3: [], 4: [], 5: [], 6: []
           }
         };
 
         EXPEDIENTES.unshift(newExpediente);
 
-        suministrosList.forEach((s) => {
-          const nextIndex = SUMINISTROS.length + 1;
+        const isMultiSum = suministrosList.length > 1;
+        const newSums = [];
+        suministrosList.forEach((s, i) => {
+          const nextIndex = SUMINISTROS.length + 1 + i;
           const numStr = String(nextIndex).padStart(2, "0");
           const effectiveDate = s.fechaObjetivo || fechaObj;
-          SUMINISTROS.unshift({
-            id: `SUM-${numStr}`,
+          const sumId = `SUM-${numStr}`;
+          const sumDocs = s.adjuntos.map(a => toCreationDoc(a, sumId));
+          const newSum = {
+            id: sumId,
             num: numStr,
             tipo: s.material,
+            descripcion: s.especificaciones,
             unidades: s.unidades,
             unidadesNum: parseInt(s.unidades.replace(/\D/g, ""), 10) || 1,
             especificaciones: s.especificaciones,
             presupuesto: s.presupuesto || null,
-            adjunto: s.adjunto || null,
+            adjunto: sumDocs[0] ? sumDocs[0].file : null,
             expId: newId,
             proveedor: "Por determinar",
             cliente: cliente,
@@ -9115,8 +9072,20 @@
             fechaEntrega: effectiveDate ? new Date(effectiveDate).toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" }) : "10 nov 2026",
             fechaEntregaIso: effectiveDate || "2026-11-10",
             estado: "activo"
-          });
+          };
+          if (isMultiSum) {
+            // Con varios suministros, cada uno tiene su propia Documentación: adjuntos generales + los suyos
+            newSum.deliverables = {
+              0: [...generalDocs.map(d => ({ ...d, visibleTo: [...d.visibleTo] })), ...sumDocs],
+              1: fase2Docs.map(d => ({ ...d })),
+              2: [], 3: []
+            };
+          } else {
+            newExpediente.deliverables[0].push(...sumDocs);
+          }
+          newSums.push(newSum);
         });
+        SUMINISTROS.unshift(...newSums);
 
         if (isRoleAdmin) {
           NOTICES.unshift({
@@ -10614,6 +10583,115 @@
     if (form.get("vis_proveedor")) roles.push("proveedor");
     if (form.get("vis_destinatario")) roles.push("destinatario");
     return roles;
+  }
+
+  // Adjuntos de la creación del expediente (uno por docId: los generales se copian en cada suministro)
+  function getExpCreationDocs(exp) {
+    const all = [];
+    (exp.deliverables?.[0] || []).forEach(d => all.push(d));
+    SUMINISTROS.filter(s => s.expId === exp.id).forEach(s => (s.deliverables?.[0] || []).forEach(d => all.push(d)));
+    return all.filter(d => d.fromCreation);
+  }
+
+  // SOFEIN valida la solicitud de un cliente y decide quién ve cada adjunto
+  function openValidateExpedienteModal(expId) {
+    const exp = getActiveExpediente(expId);
+    const modalWrap = document.getElementById("modalContainer");
+    if (!exp || !modalWrap) return;
+
+    const allDocs = getExpCreationDocs(exp);
+    const uniqueDocs = [];
+    const seen = new Set();
+    allDocs.forEach(d => {
+      if (seen.has(d.docId)) return;
+      seen.add(d.docId);
+      uniqueDocs.push(d);
+    });
+
+    modalWrap.innerHTML = `
+      <div class="procurement-modal-backdrop" id="validateExpModalBackdrop">
+        <div class="procurement-modal" style="width:min(640px,100%)">
+          <div class="procurement-modal-head">
+            <div>
+              <h3>Validar solicitud (${exp.id})</h3>
+            </div>
+            <button type="button" id="closeValidateExpModalBtn">×</button>
+          </div>
+          <form id="modalValidateExpForm">
+            <div class="procurement-modal-body" style="gap:14px">
+              ${exp.notas ? `
+                <div class="dossier-exp-notes" style="margin:0">
+                  <span class="exp-v2-label">${icon("edit", 12)} Notas del cliente</span>
+                  <p>${escHTML(exp.notas)}</p>
+                </div>
+              ` : ""}
+              <div style="display:grid;gap:8px">
+                <span style="font-size:0.75rem;font-weight:650;color:var(--entity-muted)">Adjuntos de la solicitud · ¿Quién puede ver cada uno?</span>
+                ${uniqueDocs.length ? uniqueDocs.map(d => `
+                  <div class="validate-exp-doc-row">
+                    <div class="validate-exp-doc-info">
+                      <strong>${escHTML(d.name)}</strong>
+                      <span>${icon("file", 11)} ${escHTML(d.file)} · ${d.scope === "General" ? "General del expediente" : escHTML(d.scope)}</span>
+                    </div>
+                    <div class="create-attach-vis">
+                      <span class="create-attach-vis-fixed">${icon("eye", 12)} SOFEIN</span>
+                      <label><input type="checkbox" name="${d.docId}_cliente" checked /> Cliente</label>
+                      <label><input type="checkbox" name="${d.docId}_proveedor" checked /> Proveedor</label>
+                    </div>
+                  </div>
+                `).join("") : `<p style="margin:0;font-size:0.78rem;color:var(--entity-muted)">La solicitud no incluye adjuntos.</p>`}
+              </div>
+            </div>
+            <div class="procurement-modal-footer">
+              <button class="admin-quiet-button" type="button" id="cancelValidateExpModalBtn">Cancelar</button>
+              <button class="admin-primary-button" type="submit">${icon("check", 14)} Validar y Activar Expediente</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    `;
+
+    const close = () => { modalWrap.innerHTML = ""; };
+    document.getElementById("closeValidateExpModalBtn")?.addEventListener("click", close);
+    document.getElementById("cancelValidateExpModalBtn")?.addEventListener("click", close);
+    document.getElementById("validateExpModalBackdrop")?.addEventListener("click", e => {
+      if (e.target.id === "validateExpModalBackdrop") close();
+    });
+
+    document.getElementById("modalValidateExpForm")?.addEventListener("submit", e => {
+      e.preventDefault();
+      const form = new FormData(e.currentTarget);
+      const visById = {};
+      uniqueDocs.forEach(d => {
+        const roles = ["admin"];
+        if (form.get(`${d.docId}_cliente`)) roles.push("cliente");
+        if (form.get(`${d.docId}_proveedor`)) roles.push("proveedor");
+        visById[d.docId] = roles;
+      });
+      allDocs.forEach(d => {
+        d.visibleTo = [...(visById[d.docId] || d.visibleTo)];
+        d.state = "complete";
+      });
+
+      exp.estado = "review";
+      exp.faseActual = 1;
+      exp.desviacionDias = "0 días (En plazo)";
+      exp.plazoRealEstimado = "45 días";
+      exp.plazoPactado = "45 días";
+      const preseleccion = { name: "Preselección de 3 Proveedores Homologados", owner: "SOFEIN", state: "review", format: "PDF", file: null, date: "Listo para lanzar" };
+      if (!exp.deliverables[1] || !exp.deliverables[1].length) exp.deliverables[1] = [{ ...preseleccion }];
+      SUMINISTROS.filter(s => s.expId === exp.id).forEach(s => {
+        if ((s.faseActual ?? 0) < 1) {
+          s.faseActual = 1;
+          s.faseNombre = "Fase 2: Cotización";
+        }
+        if (s.deliverables && (!s.deliverables[1] || !s.deliverables[1].length)) s.deliverables[1] = [{ ...preseleccion }];
+      });
+
+      close();
+      showToast(`✓ Expediente ${exp.id} validado por SOFEIN. Avanza a Fase 2: Proveedores`);
+      renderApp();
+    });
   }
 
   function openAddDeliverableModal(expId) {

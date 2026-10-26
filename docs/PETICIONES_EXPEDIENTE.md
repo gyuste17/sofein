@@ -9,7 +9,7 @@ Las va implementando Claude por bloques, en ramas `claude/…`, y las integra en
 | Bloque | Alcance | Estado |
 |---|---|---|
 | A. Ficha y tarjetas (3 perfiles) | Fase fuera de la cabecera; en las tarjetas, rayitas de fase, días hasta la entrega, descripción y unidades; pestañas renombradas; quitar «Vista …»; Completar/Reabrir fase solo Admin; «Requerido a» | ✅ Hecho (v42, integrado en `procurement`) |
-| B. Creación de expediente (Admin y Cliente) | Especificaciones en textarea; tipo genérico del catálogo; hasta 3 adjuntos por suministro y 3 adicionales, con nombre y visibilidad; textos del cliente; notas visibles; validación de la solicitud con visibilidad de adjuntos | Pendiente |
+| B. Creación de expediente (Admin y Cliente) | Especificaciones en textarea; tipo genérico del catálogo; hasta 3 adjuntos por suministro y 3 adicionales, con nombre y visibilidad; textos del cliente; notas visibles; validación de la solicitud con visibilidad de adjuntos | ✅ Hecho (v44, integrado en `procurement`) |
 | C. Documentación | Columnas nuevas; editar visibilidad, nombre y fase, y eliminar (Admin); «Ver» abre el archivo; «Subsanar» sustituye el archivo | Pendiente |
 | D. Registro de incidencias y cambios | Registro único REG-xxx creado solo por Admin; firmas de Cliente y Proveedor; editar borra las firmas; eliminar; sin silencio positivo; historial de cerrados | Pendiente |
 | E. Avisos dentro del expediente | Quitar «Bandeja Central»; solo Admin emite; modal «Emitir Aviso» simplificado con reglas de destinatario | Pendiente |
@@ -19,8 +19,8 @@ Las va implementando Claude por bloques, en ramas `claude/…`, y las integra en
 
 Entre paréntesis, la propuesta por defecto de Claude.
 
-1. **(B)** ¿Dónde se muestran las notas de creación? Hoy se pierden al crear el expediente. (Propuesta: en la cabecera del expediente, visibles para SOFEIN y el cliente.)
-2. **(B)** ¿Dónde aparecen los adjuntos de creación? (Propuesta: en Documentación, Fase 1; los de cada suministro, ligados a ese suministro, y los adicionales, al expediente en general.)
+1. ~~**(B)** Notas de creación~~ → Resuelto: se muestran en la cabecera del expediente, visibles para SOFEIN y el cliente.
+2. ~~**(B)** Adjuntos de creación~~ → Resuelto: van a Documentación, Fase 1. Los de cada suministro quedan en ese suministro y los adicionales en todos.
 3. **(C)** «Ver» el documento: la plataforma es una maqueta sin almacenamiento. (Propuesta: abrir los archivos subidos durante la sesión y un PDF de muestra para los documentos de ejemplo.)
 4. **(D)** Unificar las incidencias con mediación y el historial de cambios en un registro REG único. ¿Qué pasa con las «anotaciones internas solo SOFEIN» que se añadieron el 26/10? ¿Se mantiene el enlace con las adendas y el pasaporte?
 5. **(F)** El paso «el cliente confirma el expediente que SOFEIN creó para él» no existe todavía: hay que añadirlo.

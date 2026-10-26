@@ -2,6 +2,39 @@
 
 Registro de relevo entre agentes. **Entradas nuevas arriba.** Reglas del proyecto en `AGENTS.md`.
 
+## 2026-10-26 · Claude · rama `claude/expediente` · Creación de expediente, bloque B (v44)
+
+**Hecho** (ver `docs/PETICIONES_EXPEDIENTE.md`)
+- Catálogo de productos reducido a los 6 genéricos: Traviesas, Placas, Tirafondos, Clips, Balasto y Otros.
+  - La clave de localStorage pasa a `sofein_catalogo_productos_v2`, para que no se carguen los productos antiguos.
+  - El selector «Tipo de Suministro» sigue tirando de `CATALOGOS.productos`.
+- Constructor de expediente:
+  - Las filas de suministro salen de `renderCreateSuministroRowHTML`, tanto la inicial como las añadidas.
+  - Especificaciones en un textarea grande. Su contenido se guarda también como `descripcion`, que es lo que muestran las tarjetas.
+  - Los lotes se numeran solos y se guardan en el orden del formulario.
+- Adjuntos: hasta 3 por suministro y 3 adicionales (`renderCreateAttachHTML`, `bindCreateAttachments`, `readCreateAttachments`).
+  - Cada adjunto lleva un nombre editable.
+  - Si crea SOFEIN, elige además quién lo ve (Cliente/Proveedor; SOFEIN siempre lo ve).
+  - El `File` real se guarda en un `WeakMap` y se publica con `URL.createObjectURL` (`fileUrl`), para el «Ver» del bloque C.
+- Los adjuntos pasan a ser documentos de Fase 1 (Alcance), marcados con `fromCreation` y un `docId`.
+  - Con un solo suministro van a `exp.deliverables[0]`.
+  - Con varios, cada suministro recibe en su `deliverables[0]` los generales (copiados con el mismo `docId`) y los suyos.
+- Notas de creación: se guardan en `exp.notas` y se muestran en la cabecera de la ficha (solo Admin y Cliente).
+- Se elimina el antiguo dropzone «Pliego PPTP» y su documento de relleno.
+- Cliente: el badge dice «Solicitud del cliente · Requiere validación SOFEIN», el botón dice «Solicitar Expediente» y el formulario no muestra la visibilidad de los adjuntos.
+  - Hasta que SOFEIN valide, los adjuntos del cliente los ven solo SOFEIN y el cliente.
+- Validación de la solicitud: «Validar y Activar Expediente» abre `openValidateExpedienteModal`.
+  - El modal muestra las notas del cliente y cada adjunto con casillas Cliente/Proveedor.
+  - Al confirmar, aplica esa visibilidad a todas las copias del `docId`, deja los adjuntos validados y pasa el expediente y sus suministros a Fase 2.
+- Verificado en Chrome:
+  - Admin crea 2 suministros con 3+1+1 adjuntos (el 4.º se descarta).
+  - Cliente solicita, Admin valida y el Proveedor queda excluido de un adjunto.
+  - 0 errores de consola y sin desbordamiento a 390 px.
+
+**Pendiente / decisiones**
+- La columna «Requerimiento» de Documentación muestra la fecha de subida en los adjuntos de creación (`reqDate: null`). En el bloque C pasará a «-».
+- Coordinación: Antigravity y Claude hemos repetido número de versión de assets dos veces (v41 y v43). Antes de subirlo, mirar `git log procurement`.
+
 ## 2026-10-26 · Claude · rama `claude/expediente` · Ficha del expediente, bloque A (v42)
 
 Primer bloque de las peticiones de Guillermo sobre gestión y creación del expediente. El listado completo y su estado están en `docs/PETICIONES_EXPEDIENTE.md`.

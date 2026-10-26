@@ -7775,3 +7775,163 @@ details.b2b-profile-card.is-collapsible[open] > summary.is-collapsible-summary .
 .dossier-sum-card-top .exp-v2-phase-row {
   white-space: nowrap;
 }
+
+/* Constructor de expediente: textareas, adjuntos con nombre y visibilidad */
+.create-exp-textarea {
+  height: auto;
+  min-height: 92px;
+  padding: 10px 12px;
+  line-height: 1.45;
+  resize: vertical;
+}
+.create-attach {
+  display: grid;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px dashed var(--entity-line-strong, var(--entity-line));
+  border-radius: 8px;
+  background: var(--entity-panel-2, transparent);
+}
+.create-attach-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.create-attach-title {
+  font-size: 0.76rem;
+  font-weight: 650;
+  color: var(--entity-text);
+}
+.create-attach-title em {
+  font-style: normal;
+  font-weight: 500;
+  color: var(--entity-muted);
+}
+.create-attach-list {
+  display: grid;
+  gap: 6px;
+}
+.create-attach-list:empty {
+  display: none;
+}
+.create-attach-row {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.2fr) auto auto;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border: 1px solid var(--entity-line);
+  border-radius: 6px;
+  background: var(--entity-panel, var(--entity-bg));
+}
+.create-attach-file {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  font-size: 0.74rem;
+  color: var(--entity-muted);
+}
+.create-attach-file span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.create-attach-row .create-attach-name {
+  height: 32px;
+  font-size: 0.8rem;
+}
+.create-attach-vis {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.72rem;
+  color: var(--entity-text);
+  white-space: nowrap;
+}
+.create-attach-vis label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+.create-attach-vis-fixed {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--entity-muted);
+}
+.create-attach-remove {
+  padding: 4px 6px;
+}
+.create-attach-hint {
+  margin: 0;
+  font-size: 0.72rem;
+  color: var(--entity-muted);
+}
+@media (max-width: 720px) {
+  .create-attach-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .create-attach-row .create-attach-name,
+  .create-attach-row .create-attach-vis {
+    grid-column: 1 / -1;
+  }
+  .create-attach-row .create-attach-remove {
+    grid-row: 1;
+    grid-column: 2;
+  }
+}
+
+/* Notas del expediente en la cabecera de la ficha */
+.dossier-exp-notes {
+  display: grid;
+  gap: 4px;
+  margin-top: 14px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--entity-panel-2, rgba(0, 0, 0, 0.03));
+  border: 1px solid var(--entity-line);
+}
+.dossier-exp-notes .exp-v2-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.dossier-exp-notes p {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--entity-text);
+  white-space: pre-line;
+}
+
+/* Modal de validación de solicitud: un adjunto por fila */
+.validate-exp-doc-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 8px 10px;
+  border: 1px solid var(--entity-line);
+  border-radius: 6px;
+}
+.validate-exp-doc-info {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.validate-exp-doc-info strong {
+  font-size: 0.8rem;
+  color: var(--entity-text);
+}
+.validate-exp-doc-info span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.7rem;
+  color: var(--entity-muted);
+}
