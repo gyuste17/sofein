@@ -2,6 +2,33 @@
 
 Registro de relevo entre agentes. **Entradas nuevas arriba.** Reglas del proyecto en `AGENTS.md`.
 
+## 2026-10-26 · Claude · rama `claude/expediente` · Documentación del expediente, bloque C (v45)
+
+**Hecho** (en `renderDossierBuilder`, pestaña Documentación, y en sus modales)
+- Columnas de la tabla (`.doc-clean-table.is-detailed`):
+  - Nombre, Archivo, Quién lo ve (solo Admin), F. requerimiento, F. subida, Subido por, Fase, Estado, Acciones y Notas.
+  - Se muestra «-» cuando no hubo requerimiento (`reqDate` vacío) o todavía no hay archivo.
+  - Helpers: `getDocUploadDateText` y `getDocUploaderText`. Los campos nuevos `uploadDate` y `uploadedBy` se rellenan al subir.
+- «Ver» abre el archivo directamente (`viewDocFile`) en lugar del antiguo modal inspector. `openInspectDeliverableModal` sigue en el código, pero ya no se usa.
+  - Archivos subidos en la sesión: se abre su `fileUrl` (object URL).
+  - Documentos de ejemplo: se abre un PDF de muestra generado en el navegador (`getSamplePdfUrl`).
+  - «Descargar» (`downloadDocFile`) funciona igual.
+- Admin:
+  - «Validar» no cambia.
+  - Nuevos botones ✎ «Editar» (`openEditDocModal`: nombre, fase y quién lo ve; cambiar la fase mueve el documento a esa fase) y × «Eliminar» (`openDeleteDocModal`, con confirmación).
+- Cliente y Proveedor: «Subir» cuando falta el archivo, y «Subsanar» cuando ya existe, que sustituye el archivo y deja el documento «En revisión».
+- Los modales de subida (`openUploadFreeDocModal` y `openUploadSlotDocModal`) usan ahora un selector de archivo real (`applyUploadedFileToDoc`). La subida libre ya no inventa una fecha de requerimiento.
+- La tabla vuelve a admitir scroll lateral dentro de su caja si no cabe. A 1366 px cabe entera.
+- Verificado en Chrome:
+  - Admin renombra, mueve a Fase 4, cambia la visibilidad, elimina y hace una subida libre.
+  - Cliente subsana y Proveedor sube un requerido.
+  - El PDF de muestra es válido.
+  - 0 errores de consola y sin desbordamiento de página a 390 px.
+
+**Pendiente**
+- En el panel del navegador de Claude no se abren pestañas nuevas, así que «Ver» no se ha podido ver abriéndose ahí. El enlace y el PDF se han comprobado, pero falta confirmarlo en Chrome normal.
+- Las filas de Admin son altas porque los botones de acción se apilan. Si molesta, se pueden pasar a solo iconos.
+
 ## 2026-10-26 · Claude · rama `claude/expediente` · Creación de expediente, bloque B (v44)
 
 **Hecho** (ver `docs/PETICIONES_EXPEDIENTE.md`)

@@ -7964,3 +7964,85 @@ details.b2b-profile-card.is-collapsible[open] > summary.is-collapsible-summary .
   font-size: 0.7rem;
   color: var(--entity-muted);
 }
+
+/* Documentación detallada (bloque C): más columnas, celdas compactas y scroll lateral solo si no caben */
+.doc-clean-table-wrap {
+  overflow-x: auto !important;
+}
+.doc-clean-table.is-detailed th,
+.doc-clean-table.is-detailed td {
+  padding: 9px 7px !important;
+  font-size: 0.74rem;
+}
+.doc-clean-table.is-detailed th {
+  font-size: 0.68rem;
+}
+.doc-clean-table.is-detailed .col-doc-name {
+  width: auto;
+  min-width: 130px;
+}
+.doc-clean-table.is-detailed .col-doc-file {
+  max-width: 150px;
+}
+.doc-clean-table.is-detailed .col-doc-file .doc-tbl-file {
+  display: inline-flex;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.doc-clean-table.is-detailed .col-doc-vis,
+.doc-clean-table.is-detailed .col-doc-upload {
+  white-space: nowrap;
+}
+.doc-clean-table.is-detailed .col-doc-actions {
+  width: 150px;
+}
+.doc-clean-table.is-detailed .col-doc-notes {
+  width: 16%;
+  min-width: 130px;
+}
+.doc-tbl-dash {
+  color: var(--entity-faint);
+}
+.doc-tbl-action-btn.is-icon {
+  padding: 3px 5px !important;
+}
+.doc-tbl-action-btn.is-danger:hover {
+  border-color: #dc2626;
+  color: #dc2626;
+}
+.admin-primary-button.is-danger {
+  background: #dc2626;
+  border-color: #dc2626;
+}
+.doc-clean-table.is-detailed th {
+  white-space: normal;
+  line-height: 1.25;
+}
+.doc-clean-table.is-detailed .col-doc-phase,
+.doc-clean-table.is-detailed .col-doc-vis,
+.doc-clean-table.is-detailed .doc-tbl-phase,
+.doc-clean-table.is-detailed .doc-tbl-vis-chip {
+  white-space: normal;
+}
+.doc-clean-table.is-detailed .col-doc-file,
+.doc-clean-table.is-detailed .col-doc-file .doc-tbl-file {
+  max-width: 120px;
+}
+.doc-clean-table.is-detailed .col-doc-req,
+.doc-clean-table.is-detailed .col-doc-upload,
+.doc-clean-table.is-detailed .col-doc-origin,
+.doc-clean-table.is-detailed .col-doc-state {
+  width: 1%;
+}
+.doc-clean-table.is-detailed .col-doc-notes {
+  min-width: 115px;
+}
+.doc-clean-table.is-detailed .col-doc-name {
+  min-width: 115px;
+}
+.doc-clean-table.is-detailed .col-doc-file,
+.doc-clean-table.is-detailed .col-doc-file .doc-tbl-file {
+  max-width: 105px;
+}

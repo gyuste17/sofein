@@ -3811,6 +3811,79 @@
     return false;
   }
 
+  const todayDocDate = () => new Date().toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" }).replace(/\./g, "");
+
+  // Fecha de subida legible: "-" si no hay archivo o si el dato es un estado ("Pendiente", "En curso"…)
+  function getDocUploadDateText(del) {
+    if (!del.file) return "-";
+    const d = del.uploadDate || del.date;
+    if (!d || /pendiente|listo|en curso|al cierre/i.test(d)) return "-";
+    return d.replace(/, recién indexado$/i, "");
+  }
+
+  function getDocUploaderText(del) {
+    if (!del.file) return "-";
+    return del.uploadedBy || del.owner || "-";
+  }
+
+  // PDF mínimo de una página para los documentos de ejemplo (la maqueta no guarda archivos reales)
+  const samplePdfUrlCache = new Map();
+  function getSamplePdfUrl(title) {
+    if (samplePdfUrlCache.has(title)) return samplePdfUrlCache.get(title);
+    const ascii = s => String(s).normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^\x20-\x7E]/g, "?").replace(/([()\\])/g, "\\$1");
+    const lines = ["SOFEIN Procurement - Documento de muestra", "", ascii(title), "", "La maqueta no almacena archivos: este PDF sustituye al documento real."];
+    const stream = "BT /F1 13 Tf 60 780 Td 18 TL " + lines.map(l => `(${l}) Tj T*`).join(" ") + " ET";
+    const objs = [
+      "<< /Type /Catalog /Pages 2 0 R >>",
+      "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+      "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>",
+      "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+      `<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`
+    ];
+    let pdf = "%PDF-1.4\n";
+    const offsets = [];
+    objs.forEach((o, i) => { offsets.push(pdf.length); pdf += `${i + 1} 0 obj\n${o}\nendobj\n`; });
+    const xref = pdf.length;
+    pdf += `xref\n0 ${objs.length + 1}\n0000000000 65535 f \n` + offsets.map(o => `${String(o).padStart(10, "0")} 00000 n \n`).join("");
+    pdf += `trailer\n<< /Size ${objs.length + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`;
+    const url = URL.createObjectURL(new Blob([pdf], { type: "application/pdf" }));
+    samplePdfUrlCache.set(title, url);
+    return url;
+  }
+
+  const getDocFileUrl = del => del.fileUrl || getSamplePdfUrl(`${del.name} (${del.file})`);
+
+  function viewDocFile(del) {
+    if (!del || !del.file) return;
+    const a = document.createElement("a");
+    a.href = getDocFileUrl(del);
+    a.target = "_blank";
+    a.rel = "noopener";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+
+  function downloadDocFile(del) {
+    if (!del || !del.file) return;
+    const a = document.createElement("a");
+    a.href = getDocFileUrl(del);
+    a.download = del.fileUrl ? del.file : del.file.replace(/\.[^.]+$/, "") + ".pdf";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+
+  // Archivo elegido en un modal → campos del documento
+  function applyUploadedFileToDoc(del, file) {
+    del.file = file.name;
+    del.fileUrl = URL.createObjectURL(file);
+    del.format = (file.name.split(".").pop() || "Archivo").toUpperCase();
+    del.date = todayDocDate();
+    del.uploadDate = del.date;
+    del.uploadedBy = activeRole === "admin" ? "SOFEIN" : activeRole === "cliente" ? "Cliente" : activeRole === "proveedor" ? "Proveedor" : "—";
+  }
+
   function getTableDocStatusBadge(state) {
     if (state === "complete") {
       return `<span class="entity-status complete"><i></i>Validado</span>`;
@@ -4191,40 +4264,35 @@
       `;
 
       const tableRowsHTML = filteredDocs.length ? filteredDocs.map(({ del, phaseIdx, phaseName, slotIdx }) => {
-        const reqDateText = del.reqDate || del.date || "12 jun 2026";
         const notesText = del.rejectReason
           ? `⚠️ ${del.rejectReason}`
           : (del.notes || (isDestinatario ? "—" : "Añadir nota..."));
         const hasRealNote = Boolean(del.rejectReason || (del.notes && del.notes.trim()));
         const visLabel = formatVisibleToLabel(del.visibleTo);
         const allowUploadSlot = !isCurrentContextClosed && canRoleUploadToSlot(del, activeRole);
+        const docRef = `data-exp="${exp.id}" data-phase="${phaseIdx}" data-slot="${slotIdx}"`;
 
         return `
           <tr>
-            <td class="col-doc-name">
-              <div class="doc-tbl-name-wrap">
-                <strong class="doc-tbl-name">${del.name}</strong>
-                <div class="doc-tbl-submeta">
-                  ${del.file ? `<span class="doc-tbl-file">${icon("file", 11)} ${del.file}</span>` : `<span class="doc-tbl-nofile">Sin archivo subido</span>`}
-                  ${isRoleAdmin ? `<span class="doc-tbl-vis-chip" title="Actores con permiso de lectura">${icon("eye", 11)} ${visLabel}</span>` : ""}
-                </div>
-              </div>
-            </td>
-            <td class="col-doc-req"><span class="doc-tbl-date">${reqDateText}</span></td>
-            <td class="col-doc-origin"><span class="doc-tbl-origin">${del.owner}</span></td>
+            <td class="col-doc-name"><strong class="doc-tbl-name">${escHTML(del.name)}</strong></td>
+            <td class="col-doc-file">${del.file ? `<span class="doc-tbl-file" title="${escHTML(del.file)}">${icon("file", 11)} ${escHTML(del.file)}</span>` : `<span class="doc-tbl-dash">-</span>`}</td>
+            ${isRoleAdmin ? `<td class="col-doc-vis"><span class="doc-tbl-vis-chip" title="Actores con permiso de lectura">${icon("eye", 11)} ${visLabel}</span></td>` : ""}
+            <td class="col-doc-req"><span class="doc-tbl-date">${del.reqDate || "-"}</span></td>
+            <td class="col-doc-upload"><span class="doc-tbl-date">${getDocUploadDateText(del)}</span></td>
+            <td class="col-doc-origin"><span class="doc-tbl-origin">${getDocUploaderText(del)}</span></td>
             <td class="col-doc-phase"><span class="doc-tbl-phase">${phaseIdx + 1}. ${SHORT_PHASE_NAMES[phaseIdx] || phaseName}</span></td>
             <td class="col-doc-state">${getTableDocStatusBadge(del.state)}</td>
             <td class="col-doc-actions">
               <div class="doc-tbl-actions">
                 ${del.file ? `
-                  <button class="doc-tbl-action-btn" type="button" data-inspect-doc="${exp.id}" data-phase="${phaseIdx}" data-slot="${slotIdx}" title="Ver documento">
+                  <button class="doc-tbl-action-btn" type="button" data-view-doc ${docRef} title="Abrir el documento">
                     ${icon("eye", 13)} Ver
                   </button>
-                  <button class="doc-tbl-action-btn" type="button" data-download="${del.file}" title="Descargar documento">
+                  <button class="doc-tbl-action-btn" type="button" data-download-doc ${docRef} title="Descargar documento">
                     ${icon("download", 13)} Descargar
                   </button>
-                  ${allowUploadSlot && del.state === "rejected" ? `
-                    <button class="doc-tbl-action-btn is-upload" type="button" data-upload-slot-doc="${exp.id}" data-phase="${phaseIdx}" data-slot="${slotIdx}" title="Subir nueva versión subsanada">
+                  ${!isRoleAdmin && allowUploadSlot ? `
+                    <button class="doc-tbl-action-btn is-upload" type="button" data-upload-slot-doc="${exp.id}" data-phase="${phaseIdx}" data-slot="${slotIdx}" title="Sustituir el archivo por uno nuevo">
                       ${icon("upload", 13)} Subsanar
                     </button>
                   ` : ""}
@@ -4238,6 +4306,12 @@
                 ${isRoleAdmin ? `
                   <button class="doc-tbl-action-btn is-validate" type="button" data-admin-approve="${exp.id}" data-phase="${phaseIdx}" data-slot="${slotIdx}" title="Validar documento y configurar quién puede verlo">
                     ${icon("check", 13)} Validar
+                  </button>
+                  <button class="doc-tbl-action-btn is-icon" type="button" data-edit-doc ${docRef} title="Editar nombre, fase y quién lo ve" aria-label="Editar documento">
+                    ${icon("edit", 13)}
+                  </button>
+                  <button class="doc-tbl-action-btn is-icon is-danger" type="button" data-delete-doc ${docRef} title="Eliminar documento" aria-label="Eliminar documento">
+                    ${icon("x", 13)}
                   </button>
                 ` : ""}
               </div>
@@ -4256,7 +4330,7 @@
         `;
       }).join("") : `
         <tr>
-          <td colspan="7" style="padding:28px;text-align:center;color:var(--entity-muted)">
+          <td colspan="${isRoleAdmin ? 10 : 9}" style="padding:28px;text-align:center;color:var(--entity-muted)">
             No hay documentos visibles para tu perfil con el filtro seleccionado.
           </td>
         </tr>
@@ -4269,12 +4343,15 @@
             <span>${filteredDocs.length} documento(s)${!isDestinatario ? " · Haz clic en cualquier nota para editarla" : ""}</span>
           </div>
           <div class="doc-clean-table-wrap">
-            <table class="doc-clean-table">
+            <table class="doc-clean-table is-detailed">
               <thead>
                 <tr>
                   <th class="col-doc-name">Nombre</th>
-                  <th class="col-doc-req">Requerimiento</th>
-                  <th class="col-doc-origin">Origen</th>
+                  <th class="col-doc-file">Archivo</th>
+                  ${isRoleAdmin ? `<th class="col-doc-vis">Quién lo ve</th>` : ""}
+                  <th class="col-doc-req">F. requerimiento</th>
+                  <th class="col-doc-upload">F. subida</th>
+                  <th class="col-doc-origin">Subido por</th>
                   <th class="col-doc-phase">Fase</th>
                   <th class="col-doc-state">Estado</th>
                   <th class="col-doc-actions">Acciones</th>
@@ -8779,13 +8856,32 @@
       });
     });
 
-    // Inspector / Visor de Auditoría Documental (Pantalla 4)
-    document.querySelectorAll("[data-inspect-doc]").forEach(btn => {
+    // Documentación: Ver / Descargar abren el archivo; Editar y Eliminar (SOFEIN Admin)
+    const getDocFromBtn = btn => {
+      const exp = getActiveExpediente(btn.dataset.exp);
+      const delivMap = getActiveDeliverablesMap(exp);
+      const phaseIdx = Number(btn.dataset.phase);
+      const slotIdx = Number(btn.dataset.slot);
+      return { exp, delivMap, phaseIdx, slotIdx, del: delivMap[phaseIdx] && delivMap[phaseIdx][slotIdx] };
+    };
+    document.querySelectorAll("[data-view-doc]").forEach(btn => {
+      btn.addEventListener("click", () => viewDocFile(getDocFromBtn(btn).del));
+    });
+    document.querySelectorAll("[data-download-doc]").forEach(btn => {
+      btn.addEventListener("click", () => downloadDocFile(getDocFromBtn(btn).del));
+    });
+    document.querySelectorAll("[data-edit-doc]").forEach(btn => {
       btn.addEventListener("click", () => {
-        const expId = btn.dataset.inspectDoc;
-        const phaseIdx = Number(btn.dataset.phase);
-        const slotIdx = Number(btn.dataset.slot);
-        openInspectDeliverableModal(expId, phaseIdx, slotIdx);
+        if (activeRole !== "admin") return;
+        const ref = getDocFromBtn(btn);
+        if (ref.del) openEditDocModal(ref);
+      });
+    });
+    document.querySelectorAll("[data-delete-doc]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        if (activeRole !== "admin") return;
+        const ref = getDocFromBtn(btn);
+        if (ref.del) openDeleteDocModal(ref);
       });
     });
 
@@ -10785,6 +10881,108 @@
     });
   }
 
+  // Editar documento (SOFEIN Admin): nombre, fase y quién lo ve
+  function openEditDocModal({ exp, delivMap, phaseIdx, slotIdx, del }) {
+    const modalWrap = document.getElementById("modalContainer");
+    if (!modalWrap) return;
+
+    modalWrap.innerHTML = `
+      <div class="procurement-modal-backdrop" id="editDocModalBackdrop">
+        <div class="procurement-modal" style="width:min(540px,100%)">
+          <div class="procurement-modal-head">
+            <div>
+              <h3>Editar documento</h3>
+              <p style="margin:2px 0 0;font-size:0.75rem;color:var(--entity-muted)">${escHTML(del.file || "Sin archivo")} · ${exp.id}</p>
+            </div>
+            <button type="button" id="closeEditDocModalBtn">×</button>
+          </div>
+          <form id="modalEditDocForm">
+            <div class="procurement-modal-body" style="gap:14px">
+              <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
+                Nombre del documento
+                <input name="name" required value="${escHTML(del.name)}" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0" />
+              </label>
+              <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
+                Fase
+                <select name="phaseIdx" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0">
+                  ${PHASES.map((p, idx) => `<option value="${idx}" ${idx === phaseIdx ? "selected" : ""}>${p.num}. ${p.name}</option>`).join("")}
+                </select>
+              </label>
+              ${renderVisibilityCheckboxesHTML(del.visibleTo || ["admin", "cliente", "proveedor"])}
+            </div>
+            <div class="procurement-modal-footer">
+              <button class="admin-quiet-button" type="button" id="cancelEditDocModalBtn">Cancelar</button>
+              <button class="admin-primary-button" type="submit">${icon("check", 14)} Guardar cambios</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    `;
+
+    const close = () => { modalWrap.innerHTML = ""; };
+    document.getElementById("closeEditDocModalBtn")?.addEventListener("click", close);
+    document.getElementById("cancelEditDocModalBtn")?.addEventListener("click", close);
+    document.getElementById("editDocModalBackdrop")?.addEventListener("click", e => {
+      if (e.target.id === "editDocModalBackdrop") close();
+    });
+
+    document.getElementById("modalEditDocForm")?.addEventListener("submit", e => {
+      e.preventDefault();
+      const form = new FormData(e.currentTarget);
+      del.name = (form.get("name") || "").trim() || del.name;
+      del.visibleTo = readVisibilityFromForm(form);
+      const newPhase = parseInt(form.get("phaseIdx"), 10);
+      if (!isNaN(newPhase) && newPhase !== phaseIdx) {
+        delivMap[phaseIdx].splice(slotIdx, 1);
+        if (!delivMap[newPhase]) delivMap[newPhase] = [];
+        delivMap[newPhase].push(del);
+      }
+      close();
+      showToast(`✓ Documento "${del.name}" actualizado`);
+      renderApp();
+    });
+  }
+
+  function openDeleteDocModal({ exp, delivMap, phaseIdx, slotIdx, del }) {
+    const modalWrap = document.getElementById("modalContainer");
+    if (!modalWrap) return;
+
+    modalWrap.innerHTML = `
+      <div class="procurement-modal-backdrop" id="deleteDocModalBackdrop">
+        <div class="procurement-modal" style="width:min(460px,100%)">
+          <div class="procurement-modal-head">
+            <div>
+              <h3>Eliminar documento</h3>
+            </div>
+            <button type="button" id="closeDeleteDocModalBtn">×</button>
+          </div>
+          <div class="procurement-modal-body">
+            <p style="margin:0;font-size:0.82rem;color:var(--entity-text)">
+              Se eliminará <b>${escHTML(del.name)}</b>${del.file ? ` (${escHTML(del.file)})` : ""} de la documentación de ${exp.id}. Esta acción no se puede deshacer.
+            </p>
+          </div>
+          <div class="procurement-modal-footer">
+            <button class="admin-quiet-button" type="button" id="cancelDeleteDocModalBtn">Cancelar</button>
+            <button class="admin-primary-button is-danger" type="button" id="confirmDeleteDocBtn">${icon("x", 14)} Eliminar</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    const close = () => { modalWrap.innerHTML = ""; };
+    document.getElementById("closeDeleteDocModalBtn")?.addEventListener("click", close);
+    document.getElementById("cancelDeleteDocModalBtn")?.addEventListener("click", close);
+    document.getElementById("deleteDocModalBackdrop")?.addEventListener("click", e => {
+      if (e.target.id === "deleteDocModalBackdrop") close();
+    });
+    document.getElementById("confirmDeleteDocBtn")?.addEventListener("click", () => {
+      delivMap[phaseIdx].splice(slotIdx, 1);
+      close();
+      showToast(`✓ Documento "${del.name}" eliminado`);
+      renderApp();
+    });
+  }
+
   function openUploadFreeDocModal(expId) {
     const exp = getActiveExpediente(expId);
     const delivMap = getActiveDeliverablesMap(exp);
@@ -10817,7 +11015,7 @@
                 </label>
                 <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
                   Archivo
-                  <input name="fileName" value="Documento-${exp.id}.pdf" required style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0" />
+                  <input name="file" type="file" required accept=".pdf,.dwg,.xlsx,.docx,.jpg,.png" style="padding:7px 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.8rem;width:100%;box-sizing:border-box;min-width:0" />
                 </label>
               </div>
               <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
@@ -10847,27 +11045,26 @@
       const form = new FormData(e.currentTarget);
       const docName = (form.get("name") || "").trim();
       const targetPhase = parseInt(form.get("phaseIdx"), 10);
-      const fileName = (form.get("fileName") || "").trim() || `${docName.replace(/[^a-zA-Z0-9]/g, "-")}.pdf`;
+      const file = form.get("file");
+      if (!file || !file.name) return;
       const notes = (form.get("notes") || "").trim();
       const visibleTo = activeRole === "admin" ? readVisibilityFromForm(form) : ["admin", activeRole];
-      const todayStr = new Date().toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" }).replace(/\./g, "");
 
       if (!delivMap[targetPhase]) delivMap[targetPhase] = [];
-      delivMap[targetPhase].push({
+      const newDoc = {
         name: docName,
-        reqDate: todayStr,
+        reqDate: null, // subido sin requerimiento previo
         owner: defaultOwner,
         state: activeRole === "admin" ? "complete" : "review",
-        format: "PDF",
-        file: fileName,
-        date: "Hoy",
         visibleTo,
         notes: notes || (activeRole === "admin" ? `Validado · Visible: ${formatVisibleToLabel(visibleTo)}` : "Pendiente de validación SOFEIN")
-      });
+      };
+      applyUploadedFileToDoc(newDoc, file);
+      delivMap[targetPhase].push(newDoc);
 
       activeDossierPhase = targetPhase;
       close();
-      showToast(`✓ Documento "${fileName}" subido en ${PHASES[targetPhase].name}`);
+      showToast(`✓ Documento "${newDoc.file}" subido en ${PHASES[targetPhase].name}`);
       renderApp();
     });
   }
@@ -10880,23 +11077,23 @@
     const modalWrap = document.getElementById("modalContainer");
     if (!modalWrap) return;
 
-    const suggestedFile = `${del.name.replace(/[^a-zA-Z0-9]/g, "-").slice(0, 28)}-${exp.id}.pdf`;
+    const isReplacing = !!del.file;
 
     modalWrap.innerHTML = `
       <div class="procurement-modal-backdrop" id="slotUploadModalBackdrop">
         <div class="procurement-modal" style="width:min(540px,100%)">
           <div class="procurement-modal-head">
             <div>
-              <h3>Subir Documento Requerido</h3>
-              <p style="margin:2px 0 0;font-size:0.75rem;color:var(--entity-muted)">${del.name} (${exp.id})</p>
+              <h3>${isReplacing ? "Subsanar documento" : "Subir Documento Requerido"}</h3>
+              <p style="margin:2px 0 0;font-size:0.75rem;color:var(--entity-muted)">${escHTML(del.name)} (${exp.id})${isReplacing ? ` · Sustituye a ${escHTML(del.file)}` : ""}</p>
             </div>
             <button type="button" id="closeSlotUploadModalBtn">×</button>
           </div>
           <form id="modalSlotUploadForm">
             <div class="procurement-modal-body" style="gap:14px">
               <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
-                Archivo a subir
-                <input name="fileName" value="${suggestedFile}" required style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0" />
+                ${isReplacing ? "Nuevo archivo" : "Archivo a subir"}
+                <input name="file" type="file" required accept=".pdf,.dwg,.xlsx,.docx,.jpg,.png" style="padding:7px 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.8rem;width:100%;box-sizing:border-box;min-width:0" />
               </label>
               <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
                 Notas
@@ -10923,8 +11120,9 @@
     document.getElementById("modalSlotUploadForm")?.addEventListener("submit", e => {
       e.preventDefault();
       const form = new FormData(e.currentTarget);
-      del.file = (form.get("fileName") || "").trim() || suggestedFile;
-      del.date = "Hoy";
+      const file = form.get("file");
+      if (!file || !file.name) return;
+      applyUploadedFileToDoc(del, file);
       del.rejectReason = null;
       const notes = (form.get("notes") || "").trim();
       if (activeRole === "admin") {
