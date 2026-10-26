@@ -8337,3 +8337,150 @@ details.b2b-profile-card.is-collapsible[open] > summary.is-collapsible-summary .
   background: rgba(37, 99, 235, 0.12);
   color: #2563eb;
 }
+
+/* Documentación v49: acciones en iconos con tooltip, archivo recortado, cabeceras en una línea y celdas centradas */
+.doc-clean-table.is-detailed th {
+  white-space: nowrap !important;
+}
+.doc-clean-table.is-detailed td {
+  vertical-align: middle !important;
+}
+.doc-clean-table.is-detailed .col-doc-req,
+.doc-clean-table.is-detailed .col-doc-upload,
+.doc-clean-table.is-detailed .col-doc-origin,
+.doc-clean-table.is-detailed .col-doc-phase,
+.doc-clean-table.is-detailed .col-doc-state,
+.doc-clean-table.is-detailed .col-doc-vis,
+.doc-clean-table.is-detailed .col-doc-actions {
+  text-align: center;
+}
+.doc-clean-table.is-detailed .col-doc-file {
+  max-width: 130px;
+  width: 130px;
+}
+.doc-tbl-file-cut {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 130px;
+  font-size: 0.69rem;
+  color: var(--entity-muted);
+}
+.doc-tbl-file-cut svg {
+  flex: none;
+}
+.doc-tbl-file-cut span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.doc-clean-table.is-detailed .col-doc-actions {
+  width: 1%;
+}
+.doc-tbl-actions.is-icons {
+  display: inline-flex !important;
+  flex-wrap: nowrap !important;
+  align-items: center;
+  justify-content: center;
+  gap: 4px !important;
+}
+.doc-tbl-icon-btn {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-radius: 6px;
+  border: 1px solid var(--entity-line);
+  background: var(--entity-panel);
+  color: var(--entity-text);
+  cursor: pointer;
+  transition: border-color 0.14s ease, color 0.14s ease, background 0.14s ease;
+}
+.doc-tbl-icon-btn:hover,
+.doc-tbl-icon-btn:focus-visible {
+  border-color: var(--entity-accent);
+  color: var(--entity-accent);
+}
+.doc-tbl-icon-btn.is-validate {
+  background: var(--entity-accent-soft);
+  border-color: rgba(47, 158, 102, 0.35);
+  color: var(--entity-accent);
+}
+.doc-tbl-icon-btn.is-validate:hover {
+  background: var(--entity-accent);
+  color: #fff;
+}
+.doc-tbl-icon-btn.is-upload {
+  color: var(--entity-accent);
+}
+.doc-tbl-icon-btn.is-danger:hover {
+  border-color: #dc2626;
+  color: #dc2626;
+}
+.doc-tbl-icon-btn[data-tip]::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 3px 7px;
+  border-radius: 4px;
+  background: var(--entity-text);
+  color: var(--entity-bg);
+  font-size: 0.66rem;
+  font-weight: 600;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+  z-index: 5;
+}
+.doc-tbl-icon-btn[data-tip]:hover::after,
+.doc-tbl-icon-btn[data-tip]:focus-visible::after {
+  opacity: 1;
+}
+.doc-tbl-waiting {
+  font-size: 0.69rem;
+  color: var(--entity-faint);
+  font-style: italic;
+  white-space: nowrap;
+}
+.doc-clean-table.is-detailed .col-doc-name {
+  min-width: 140px;
+}
+@media (min-width: 1440px) {
+  .doc-clean-table.is-detailed .col-doc-name {
+    min-width: 170px;
+  }
+  .doc-clean-table.is-detailed .doc-tbl-phase {
+    white-space: nowrap;
+  }
+}
+/* Por debajo de 1440 px la vista de SOFEIN (10 columnas) se compacta para caber sin scroll */
+@media (max-width: 1439px) {
+  .doc-clean-table.is-detailed th,
+  .doc-clean-table.is-detailed td {
+    padding: 8px 5px !important;
+  }
+  .doc-clean-table.is-detailed .col-doc-name {
+    min-width: 125px;
+  }
+  .doc-clean-table.is-detailed .col-doc-file,
+  .doc-clean-table.is-detailed .col-doc-file .doc-tbl-file-cut {
+    width: 100px;
+    max-width: 100px;
+  }
+  .doc-clean-table.is-detailed .col-doc-notes {
+    min-width: 100px;
+  }
+  .doc-tbl-icon-btn {
+    width: 26px;
+    height: 26px;
+  }
+  .doc-tbl-actions.is-icons {
+    gap: 3px !important;
+  }
+}

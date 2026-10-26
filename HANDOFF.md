@@ -2,6 +2,16 @@
 
 Registro de relevo entre agentes. **Entradas nuevas arriba.** Reglas del proyecto en `AGENTS.md`.
 
+## 2026-10-26 · Claude · rama `claude/expediente` · Ajustes de diseño de Documentación (v49)
+
+**Hecho** (a partir de una captura de Guillermo)
+- Acciones convertidas en botones de icono de 28 px en una sola fila (`.doc-tbl-icon-btn`), con tooltip CSS (`data-tip`) y `aria-label`. Son las mismas acciones de antes: Ver, Descargar, Subir/Subsanar, Validar, Editar y Eliminar.
+- Columna Archivo: el nombre se recorta con «…» dentro de su celda (`.doc-tbl-file-cut`) y ya no invade la columna siguiente.
+- Cabeceras en una sola línea: «Requerido» y «Subido» sustituyen a «F. requerimiento» y «F. subida».
+- Celdas centradas en vertical. Fechas, autor, fase, estado, visibilidad y acciones van además centradas en horizontal.
+- Por debajo de 1440 px la tabla se compacta (padding, anchos de nombre, archivo y notas, botones de 26 px), de modo que la vista de SOFEIN (10 columnas) cabe a 1366 px sin scroll. Si no cabe, el scroll lateral queda dentro de la tarjeta.
+- Verificado en Chrome a 1500, 1366 y 390 px con los 3 perfiles. 0 errores de consola.
+
 ## 2026-10-26 · Claude · rama `claude/expediente` · Avisos automáticos, bloque F (v48)
 
 **Hecho**

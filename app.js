@@ -4570,7 +4570,7 @@
         return `
           <tr>
             <td class="col-doc-name"><strong class="doc-tbl-name">${escHTML(del.name)}</strong></td>
-            <td class="col-doc-file">${del.file ? `<span class="doc-tbl-file" title="${escHTML(del.file)}">${icon("file", 11)} ${escHTML(del.file)}</span>` : `<span class="doc-tbl-dash">-</span>`}</td>
+            <td class="col-doc-file">${del.file ? `<span class="doc-tbl-file-cut" title="${escHTML(del.file)}">${icon("file", 11)}<span>${escHTML(del.file)}</span></span>` : `<span class="doc-tbl-dash">-</span>`}</td>
             ${isRoleAdmin ? `<td class="col-doc-vis"><span class="doc-tbl-vis-chip" title="Actores con permiso de lectura">${icon("eye", 11)} ${visLabel}</span></td>` : ""}
             <td class="col-doc-req"><span class="doc-tbl-date">${del.reqDate || "-"}</span></td>
             <td class="col-doc-upload"><span class="doc-tbl-date">${getDocUploadDateText(del)}</span></td>
@@ -4578,35 +4578,35 @@
             <td class="col-doc-phase"><span class="doc-tbl-phase">${phaseIdx + 1}. ${SHORT_PHASE_NAMES[phaseIdx] || phaseName}</span></td>
             <td class="col-doc-state">${getTableDocStatusBadge(del.state)}</td>
             <td class="col-doc-actions">
-              <div class="doc-tbl-actions">
+              <div class="doc-tbl-actions is-icons">
                 ${del.file ? `
-                  <button class="doc-tbl-action-btn" type="button" data-view-doc ${docRef} title="Abrir el documento">
-                    ${icon("eye", 13)} Ver
+                  <button class="doc-tbl-icon-btn" type="button" data-view-doc ${docRef} data-tip="Ver" aria-label="Ver documento">
+                    ${icon("eye", 14)}
                   </button>
-                  <button class="doc-tbl-action-btn" type="button" data-download-doc ${docRef} title="Descargar documento">
-                    ${icon("download", 13)} Descargar
+                  <button class="doc-tbl-icon-btn" type="button" data-download-doc ${docRef} data-tip="Descargar" aria-label="Descargar documento">
+                    ${icon("download", 14)}
                   </button>
                   ${!isRoleAdmin && allowUploadSlot ? `
-                    <button class="doc-tbl-action-btn is-upload" type="button" data-upload-slot-doc="${exp.id}" data-phase="${phaseIdx}" data-slot="${slotIdx}" title="Sustituir el archivo por uno nuevo">
-                      ${icon("upload", 13)} Subsanar
+                    <button class="doc-tbl-icon-btn is-upload" type="button" data-upload-slot-doc="${exp.id}" data-phase="${phaseIdx}" data-slot="${slotIdx}" data-tip="Subsanar" aria-label="Subsanar: sustituir el archivo">
+                      ${icon("upload", 14)}
                     </button>
                   ` : ""}
                 ` : (allowUploadSlot ? `
-                  <button class="doc-tbl-action-btn is-upload" type="button" data-upload-slot-doc="${exp.id}" data-phase="${phaseIdx}" data-slot="${slotIdx}" title="Subir archivo requerido">
-                    ${icon("upload", 13)} Subir
+                  <button class="doc-tbl-icon-btn is-upload" type="button" data-upload-slot-doc="${exp.id}" data-phase="${phaseIdx}" data-slot="${slotIdx}" data-tip="Subir" aria-label="Subir archivo requerido">
+                    ${icon("upload", 14)}
                   </button>
                 ` : `
-                  <span style="font-size:0.69rem;color:var(--entity-faint);font-style:italic">Pendiente de ${del.owner}</span>
+                  <span class="doc-tbl-waiting">Pendiente de ${del.owner}</span>
                 `)}
                 ${isRoleAdmin ? `
-                  <button class="doc-tbl-action-btn is-validate" type="button" data-admin-approve="${exp.id}" data-phase="${phaseIdx}" data-slot="${slotIdx}" title="Validar documento y configurar quién puede verlo">
-                    ${icon("check", 13)} Validar
+                  <button class="doc-tbl-icon-btn is-validate" type="button" data-admin-approve="${exp.id}" data-phase="${phaseIdx}" data-slot="${slotIdx}" data-tip="Validar" aria-label="Validar documento">
+                    ${icon("check", 14)}
                   </button>
-                  <button class="doc-tbl-action-btn is-icon" type="button" data-edit-doc ${docRef} title="Editar nombre, fase y quién lo ve" aria-label="Editar documento">
-                    ${icon("edit", 13)}
+                  <button class="doc-tbl-icon-btn" type="button" data-edit-doc ${docRef} data-tip="Editar" aria-label="Editar documento">
+                    ${icon("edit", 14)}
                   </button>
-                  <button class="doc-tbl-action-btn is-icon is-danger" type="button" data-delete-doc ${docRef} title="Eliminar documento" aria-label="Eliminar documento">
-                    ${icon("x", 13)}
+                  <button class="doc-tbl-icon-btn is-danger" type="button" data-delete-doc ${docRef} data-tip="Eliminar" aria-label="Eliminar documento">
+                    ${icon("x", 14)}
                   </button>
                 ` : ""}
               </div>
@@ -4644,8 +4644,8 @@
                   <th class="col-doc-name">Nombre</th>
                   <th class="col-doc-file">Archivo</th>
                   ${isRoleAdmin ? `<th class="col-doc-vis">Quién lo ve</th>` : ""}
-                  <th class="col-doc-req">F. requerimiento</th>
-                  <th class="col-doc-upload">F. subida</th>
+                  <th class="col-doc-req">Requerido</th>
+                  <th class="col-doc-upload">Subido</th>
                   <th class="col-doc-origin">Subido por</th>
                   <th class="col-doc-phase">Fase</th>
                   <th class="col-doc-state">Estado</th>
