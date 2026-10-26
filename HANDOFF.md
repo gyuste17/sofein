@@ -2,6 +2,17 @@
 
 Registro de relevo entre agentes. **Entradas nuevas arriba.** Reglas del proyecto en `AGENTS.md`.
 
+## 2026-10-26 · Antigravity · rama procurement · Fix diseño dropdowns multiselección en modal (v43)
+
+**Hecho**
+- Corregido el problema visual del desplegable multiselección en modal (Suministros y Conformidades):
+  - Eliminada la interferencia de la regla global .procurement-modal-body input { width: 100% !important; } que estiraba los checkboxes a 400px y desplazaba las etiquetas al extremo derecho.
+  - Fijadas las dimensiones de los checkboxes a 16x16px fijos alineados verticalmente a la izquierda.
+  - Opciones estructuradas con flexbox gap: 10px e interlineado limpio, con padding y hover refinados.
+  - Fondo sólido ar(--entity-panel) y sombras con soporte automático para modo oscuro y claro.
+- Assets actualizados con cachebuster ?v=procurement-v43.
+- Verificado en DevTools local y capturado en screenshot.
+
 ## 2026-10-26 · Claude · rama `claude/expediente` · Ficha del expediente, bloque A (v42)
 
 Primer bloque de las peticiones de Guillermo sobre gestión y creación del expediente. El listado completo y su estado están en `docs/PETICIONES_EXPEDIENTE.md`.

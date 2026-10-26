@@ -3129,7 +3129,7 @@ select:focus,
   min-height: 40px;
   padding: 5px 10px;
   border-radius: 6px;
-  border: 1px solid var(--entity-line);
+  border: 1px solid var(--entity-line) !important;
   background: var(--entity-bg);
   color: var(--entity-text);
   display: flex;
@@ -3138,10 +3138,12 @@ select:focus,
   gap: 8px;
   cursor: pointer;
   box-sizing: border-box;
-  transition: border-color 0.15s;
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
-.dir-multiselect-box:focus {
-  border-color: var(--entity-accent, #38bdf8);
+.dir-multiselect-box:focus,
+.dir-multiselect-wrap.is-open .dir-multiselect-box {
+  border-color: var(--entity-accent, #38bdf8) !important;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.12);
   outline: none;
 }
 .dir-multiselect-tags {
@@ -3184,31 +3186,58 @@ select:focus,
   top: calc(100% + 4px);
   left: 0;
   right: 0;
-  background: var(--entity-panel, #1e293b);
-  border: 1px solid var(--entity-line, #334155);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.45);
-  border-radius: 6px;
+  background: var(--entity-panel, #0f172a) !important;
+  border: 1px solid var(--entity-line, #334155) !important;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45) !important;
+  border-radius: 8px !important;
   max-height: 220px;
   overflow-y: auto;
-  z-index: 250;
-  padding: 6px 0;
+  z-index: 300;
+  padding: 4px 0;
+}
+[data-theme="light"] .dir-multiselect-menu {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.12) !important;
 }
 .dir-multiselect-option {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 12px;
-  font-size: 0.78rem;
-  color: var(--entity-text);
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 10px !important;
+  width: 100% !important;
+  padding: 8px 14px !important;
+  margin: 0 !important;
   cursor: pointer;
-  transition: background 0.15s;
+  box-sizing: border-box !important;
+  text-align: left !important;
+  transition: background 0.12s ease;
   user-select: none;
 }
 .dir-multiselect-option:hover {
-  background: var(--entity-panel-2, rgba(255, 255, 255, 0.06));
+  background: var(--entity-panel-2, rgba(255, 255, 255, 0.08)) !important;
 }
+[data-theme="light"] .dir-multiselect-option:hover {
+  background: #f1f5f9 !important;
+}
+.procurement-modal-body .dir-multiselect-option input[type="checkbox"],
 .dir-multiselect-option input[type="checkbox"] {
+  width: 16px !important;
+  min-width: 16px !important;
+  max-width: 16px !important;
+  height: 16px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  flex: 0 0 16px !important;
   cursor: pointer;
+  accent-color: var(--entity-accent, #38bdf8);
+}
+.dir-multiselect-option .dir-tag {
+  margin: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  flex-shrink: 0 !important;
 }
 
 /* Popover desplegable en hover para Suministros y Expedientes Activos */
