@@ -2,6 +2,30 @@
 
 Registro de relevo entre agentes. **Entradas nuevas arriba.** Reglas del proyecto en `AGENTS.md`.
 
+## 2026-10-26 · Claude · rama `claude/expediente` · Ficha del expediente, bloque A (v41)
+
+Primer bloque de las peticiones de Guillermo sobre gestión y creación del expediente. El listado completo y su estado están en `docs/PETICIONES_EXPEDIENTE.md`.
+
+**Hecho** (en `renderDossierBuilder` y en los handlers de `app.js`)
+- Se quita la fase de la cabecera del expediente, porque cada suministro tiene la suya.
+- Tarjetas de suministro:
+  - fase con las 4 rayitas (`exp-v2-minichart`, como antes en la cabecera);
+  - descripción bajo el tipo (`.dossier-sum-desc`);
+  - fila «Unidades»;
+  - píldora de días junto a la fecha de entrega, que reutiliza `getDeliveryKpi`: verde si queda margen y roja si hay retraso.
+- Pestañas renombradas a «Documentación», «Registro de incidencias y cambios» y «Avisos».
+- Se quita la tira «Vista Cliente/Proveedor: …». Solo se mantiene para el Destinatario.
+- «Completar fase» sigue siendo exclusivo de Admin. En una fase completada, el botón pasa a ser «Reabrir fase» (`data-reopen-dossier-phase`).
+  - Al reabrir, la fase seleccionada vuelve a quedar en curso para ese suministro y se anota en el registro de cambios.
+  - Si el suministro o el expediente están cerrados, el botón aparece deshabilitado.
+- Modal «Requerir documento»: el campo «Origen / Responsable» pasa a llamarse «Requerido a», con «Proveedor · <nombre>» y «Cliente · <nombre>». Se quita la opción SOFEIN.
+- Nuevo icono `refresh`. Assets en `?v=procurement-v41`.
+- Verificado en Chrome (Admin, Cliente y Proveedor sobre H6T4): 0 errores de consola, ningún `undefined`/`NaN`, sin desbordamiento a 390 px y Reabrir/Completar funcionando.
+
+**Pendiente**
+- Bloques B–F (ver `docs/PETICIONES_EXPEDIENTE.md`).
+- Reabrir una fase anterior hace retroceder el suministro hasta esa fase. Los documentos de las fases siguientes se mantienen.
+
 ## 2026-10-26 · Antigravity · rama procurement · Clientes y Proveedores (Directorio v40)
 
 **Hecho**

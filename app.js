@@ -45,6 +45,7 @@
     table: '<path d="M12 3v18M3 9h18M3 15h18M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/>',
     calendar: '<rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/>',
     archive: '<rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/>',
+    refresh: '<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/>',
     box: '<path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>',
     edit: '<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>',
     mail: '<rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>',
@@ -3799,11 +3800,6 @@
 
     // Metadatos visuales resumidos del expediente
     const v = getExpVisualMeta(exp, activeRole);
-    const miniBarsHTML = PHASES.map((p, idx) => {
-      const isDone = idx < exp.faseActual || v.isClosed || v.isCompleted;
-      const isCurrent = !v.isClosed && !v.isCompleted && idx === exp.faseActual;
-      return `<i class="exp-v2-bar ${isDone ? "is-done" : isCurrent ? "is-current" : ""}" title="${p.name}"></i>`;
-    }).join("");
 
     const currentSumIconName = currentSum ? getSuministroTypeIcon(currentSum.tipo, currentSum.descripcion) : getSuministroTypeIcon(exp.producto);
 
@@ -3854,6 +3850,14 @@
               const sPhaseName = SHORT_PHASE_NAMES[Math.min(s.faseActual ?? 0, PHASES.length - 1)] || "Alcance";
               const sDotClass = isSumClosed ? "is-closed" : s.estado === "finalizado" ? "is-completed" : s.accionesPendientes > 0 ? "is-pending-pulse" : "is-active";
               const sumIconName = getSuministroTypeIcon(s.tipo, s.descripcion);
+              const sFaseIdx = Math.min(s.faseActual ?? 0, PHASES.length - 1);
+              const sIsFinished = isSumClosed || s.estado === "finalizado";
+              const sMiniBarsHTML = PHASES.map((p, idx) => {
+                const isDone = idx < sFaseIdx || sIsFinished;
+                const isCurrent = !sIsFinished && idx === sFaseIdx;
+                return `<i class="exp-v2-bar ${isDone ? "is-done" : isCurrent ? "is-current" : ""}" title="${p.name}"></i>`;
+              }).join("");
+              const sKpi = getDeliveryKpi(s);
               return `
                 <article class="dossier-sum-card ${isSelected ? "is-selected" : ""} ${isSumClosed ? "is-closed" : ""}" data-select-exp-suministro="${s.id}">
                   <div class="dossier-sum-card-top">
@@ -3863,9 +3867,12 @@
                       <span class="dossier-sum-code">${s.id}</span>
                     </div>
                     <div style="display:inline-flex;align-items:center;gap:8px">
-                      <div class="exp-v2-phase-row phase-tone-${sStep}">
+                      <div class="exp-v2-phase-row phase-tone-${sStep}" title="Fase ${sStep} de ${PHASES.length}: ${sPhaseName}">
                         <span class="exp-v2-phase-num">${sStep}/${PHASES.length}</span>
                         <span class="exp-v2-phase-name">${sPhaseName}</span>
+                        <div class="exp-v2-minichart" aria-label="Fase ${sStep} de ${PHASES.length}">
+                          ${sMiniBarsHTML}
+                        </div>
                       </div>
                       ${isRoleAdmin ? (
                         !isSumClosed ? `
@@ -3884,10 +3891,15 @@
                     <span class="sum-title-icon-inline">${icon(sumIconName, 14)}</span>
                     <span>${s.tipo}</span>
                   </h4>
+                  ${s.descripcion || s.especificaciones ? `<p class="dossier-sum-desc">${s.descripcion || s.especificaciones}</p>` : ""}
                   <div class="dossier-sum-meta-rows">
                     <div class="dossier-sum-meta-row">
                       <span>Código de suministro</span>
                       <strong>${s.id}</strong>
+                    </div>
+                    <div class="dossier-sum-meta-row">
+                      <span>Unidades</span>
+                      <strong>${s.unidades || "—"}</strong>
                     </div>
                     <div class="dossier-sum-meta-row">
                       <span>Presupuesto estimado</span>
@@ -3895,7 +3907,10 @@
                     </div>
                     <div class="dossier-sum-meta-row">
                       <span>Fecha de entrega</span>
-                      <strong>${s.fechaEntrega}</strong>
+                      <span class="suministro-date-wrap">
+                        <strong>${s.fechaEntrega}</strong>
+                        ${sKpi ? `<span class="suministro-kpi-pill ${sKpi.class}" title="${sKpi.label}">${sKpi.text}</span>` : ""}
+                      </span>
                     </div>
                   </div>
                 </article>
@@ -3945,11 +3960,15 @@
         : `<span class="entity-status pending"><i></i>Pendiente</span>`;
 
     const adminCompletePhaseBtnHTML = isRoleAdmin ? (
-      isSelectedPhaseCompleted ? `
-        <button class="admin-primary-button is-disabled-phase-btn" type="button" disabled title="Esta fase ya ha sido completada y no puede completarse de nuevo">
-          ${icon("check", 14)} Fase completada
+      isSelectedPhaseCompleted ? (isCurrentContextClosed ? `
+        <button class="admin-quiet-button is-disabled-phase-btn" type="button" disabled title="Reabre primero el ${exp.cerrado ? "expediente" : "suministro"} para poder reabrir una fase">
+          ${icon("refresh", 14)} Reabrir fase
         </button>
-      ` : isSelectedPhaseFuture ? `
+      ` : `
+        <button class="admin-quiet-button" type="button" data-reopen-dossier-phase="${exp.id}" title="Vuelve a dejar esta fase en curso">
+          ${icon("refresh", 14)} Reabrir fase
+        </button>
+      `) : isSelectedPhaseFuture ? `
         <button class="admin-primary-button is-disabled-phase-btn" type="button" disabled title="Debes completar primero la Fase ${activeEntityPhaseActual + 1}">
           ${icon("check", 14)} Completar fase
         </button>
@@ -4757,18 +4776,13 @@
       ? exp.incidencias.filter(inc => !inc.sumId || visibleSumIdsForBadge.has(inc.sumId)).length
       : exp.incidencias.length;
 
-    // Indicador contextual de alcance por perfil (para Cliente, Proveedor y Destinatario)
-    const roleScopeNoticeHTML = !isRoleAdmin ? `
+    // Indicador contextual de alcance (solo Destinatario; Cliente y Proveedor no lo necesitan)
+    const roleScopeNoticeHTML = isDestinatario ? `
       <div class="dossier-role-scope-strip">
         <span class="dossier-role-scope-badge">
-          ${icon(isRoleProveedor ? "truck" : isRoleCliente ? "building" : "eye", 13)}
+          ${icon("eye", 13)}
           <b>Vista ${PLAYERS[activeRole]?.shortLabel || activeRole}:</b>
-          ${isRoleProveedor
-            ? `Acceso estanco a tus suministros adjudicados (${expSuministros.map(s => s.id).join(", ")}) y su documentación asociada.`
-            : isRoleCliente
-              ? `Seguimiento de tus suministros, pliegos y entregas como constructor (${exp.cliente}).`
-              : `Modo auditoría de trazabilidad para destinatario final (${exp.destinatarioFinal}).`
-          }
+          Modo auditoría de trazabilidad para destinatario final (${exp.destinatarioFinal}).
         </span>
       </div>
     ` : "";
@@ -4812,13 +4826,6 @@
                 <span>${v.estadoLabel}</span>
               </span>
               <span class="exp-v2-code">${exp.id}</span>
-              <div class="exp-v2-phase-row phase-tone-${v.currentStep}" title="Fase ${v.currentStep} de ${v.totalPhases}: ${v.shortPhase}">
-                <span class="exp-v2-phase-num">${v.currentStep}/${v.totalPhases}</span>
-                <span class="exp-v2-phase-name">${v.shortPhase}</span>
-                <div class="exp-v2-minichart" aria-label="Fase ${v.currentStep} de ${v.totalPhases}">
-                  ${miniBarsHTML}
-                </div>
-              </div>
             </div>
 
             <div class="dossier-exp-summary-actions">
@@ -4904,11 +4911,11 @@
             ${icon("file", 16)} Documentación
           </button>
           <button class="dossier-tab-btn ${activeDossierTab === "incidents" ? "is-active" : ""}" type="button" data-switch-dossier-tab="incidents">
-            ${icon("alert", 16)} Registro
+            ${icon("alert", 16)} Registro de incidencias y cambios
             ${totalRegistroBadge ? `<b class="badge">${totalRegistroBadge}</b>` : ""}
           </button>
           <button class="dossier-tab-btn ${activeDossierTab === "comms" ? "is-active" : ""}" type="button" data-switch-dossier-tab="comms">
-            ${icon("inbox", 16)} Avisos & Hitos
+            ${icon("inbox", 16)} Avisos
             ${expNotices.length ? `<b class="badge">${expNotices.length}</b>` : ""}
           </button>
         </div>
@@ -10370,6 +10377,43 @@
         }
       });
     });
+    // 3a. Reabrir una fase ya completada (Exclusivo SOFEIN Admin): la fase seleccionada vuelve a quedar en curso
+    document.querySelectorAll("[data-reopen-dossier-phase]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        if (activeRole !== "admin" || btn.disabled) return;
+        const exp = getActiveExpediente(btn.dataset.reopenDossierPhase);
+        const currentSum = getActiveExpSuministro(exp);
+        const expSuministros = SUMINISTROS.filter(s => s.expId === exp.id);
+        const isMultiSum = currentSum && expSuministros.length > 1;
+        if (exp.cerrado || (currentSum && currentSum.estado === "cerrado")) return;
+
+        const reopenIdx = activeDossierPhase;
+        if (isMultiSum) {
+          currentSum.faseActual = reopenIdx;
+          currentSum.faseNombre = `${reopenIdx + 1}. ${PHASES[reopenIdx].name}`;
+          if (currentSum.estado === "finalizado") currentSum.estado = "activo";
+          exp.faseActual = Math.max(...expSuministros.map(s => s.faseActual ?? 0));
+        } else {
+          exp.faseActual = reopenIdx;
+          exp.finalizado = false;
+          if (currentSum) {
+            currentSum.faseActual = reopenIdx;
+            currentSum.faseNombre = `${reopenIdx + 1}. ${PHASES[reopenIdx].name}`;
+            if (currentSum.estado === "finalizado") currentSum.estado = "activo";
+          }
+        }
+
+        addExpedienteCambioLog(exp, {
+          tipo: "Reapertura de fase",
+          suministro: isMultiSum ? currentSum.id : "Expediente",
+          titulo: `Fase ${reopenIdx + 1} (${PHASES[reopenIdx].name}) reabierta`,
+          detalle: "Fase reabierta por SOFEIN Admin."
+        });
+        showToast(`✓ Fase ${reopenIdx + 1} (${PHASES[reopenIdx].name}) reabierta.`);
+        renderApp();
+      });
+    });
+
     // 3b. Cierre del expediente (Fase 7): emite y sella el Pasaporte Digital
     document.querySelectorAll("[data-close-dossier]").forEach(btn => {
       btn.addEventListener("click", () => {
@@ -10556,6 +10600,8 @@
     const delivMap = getActiveDeliverablesMap(exp);
     const modalWrap = document.getElementById("modalContainer");
     if (!modalWrap) return;
+    const reqSum = getActiveExpSuministro(exp);
+    const reqProveedorName = reqSum && reqSum.proveedor && reqSum.proveedor !== "Por determinar" ? reqSum.proveedor : "";
 
     modalWrap.innerHTML = `
       <div class="procurement-modal-backdrop" id="addSlotModalBackdrop">
@@ -10581,11 +10627,10 @@
                   </select>
                 </label>
                 <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
-                  Origen / Responsable
+                  Requerido a
                   <select name="owner" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0">
-                    <option value="Proveedor">Proveedor</option>
-                    <option value="Cliente">Cliente</option>
-                    <option value="SOFEIN">SOFEIN</option>
+                    <option value="Proveedor">Proveedor${reqProveedorName ? ` · ${reqProveedorName}` : ""}</option>
+                    <option value="Cliente">Cliente · ${exp.cliente}</option>
                   </select>
                 </label>
               </div>
