@@ -2,6 +2,35 @@
 
 Registro de relevo entre agentes. **Entradas nuevas arriba.** Reglas del proyecto en `AGENTS.md`.
 
+## 2026-10-26 · Claude · rama `claude/expediente` · Historial de actividad del expediente (v50)
+
+**Hecho**
+- `addExpedienteCambioLog` guarda ahora en cada entrada:
+  - `fase` (índice 0-3; por defecto, la fase en curso del suministro afectado o del expediente);
+  - `suministro` normalizado («General» o `SUM-xx`);
+  - la hora real («26 oct 2026 · 14:03»).
+- Se registran también:
+  - alta o solicitud del expediente y validación de la solicitud;
+  - documentos requeridos, subidos, validados, con observaciones, editados y eliminados (`getDocPhaseIdx` da la fase del documento);
+  - firmas de registros;
+  - avisos emitidos a mano;
+  - cada paso del selector de proveedores (fase 2);
+  - firma y validación de la hoja de pedido;
+  - cierre con pasaporte.
+  - Las entradas que ya existían (fases, reaperturas, REG, cierres y reaperturas de suministro o expediente, confirmación del cliente, anotaciones) se mantienen.
+- Nueva pestaña «Historial» en la ficha, solo para SOFEIN (`activeDossierTab === "history"`; si entra otro perfil, se le lleva a Documentación).
+  - Filtros por fase y por suministro (incluido «General del expediente»), y una casilla «Incluir anotaciones internas».
+  - Contador de entradas y tabla `renderHistoryTableHTML`.
+- En la pestaña Registro, el bloque privado pasa a mostrar solo las anotaciones internas, con los botones «Ver historial completo» y «Añadir anotación interna».
+- Verificado en Chrome:
+  - Requerir, avanzar de fase, emitir aviso y añadir anotación generan sus entradas.
+  - Los filtros funcionan: SUM-03 → 2 entradas; Fase 2 → 1; sin anotaciones → 6 de 7.
+  - Cliente y Proveedor no ven la pestaña.
+  - 0 errores de consola y sin desbordamiento a 1366 px.
+
+**Pendiente**
+- Los datos siguen siendo de demo y se pierden al recargar. Cuando haya backend, el historial debería ser una tabla propia (expediente, suministro, fase, tipo, autor, fecha).
+
 ## 2026-10-26 · Claude · rama `claude/expediente` · Ajustes de diseño de Documentación (v49)
 
 **Hecho** (a partir de una captura de Guillermo)

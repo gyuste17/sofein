@@ -8484,3 +8484,77 @@ details.b2b-profile-card.is-collapsible[open] > summary.is-collapsible-summary .
     gap: 3px !important;
   }
 }
+
+/* Historial de actividad (solo SOFEIN) */
+.history-container {
+  display: grid;
+  gap: 12px;
+}
+.history-filter-bar {
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 12px 14px;
+  border: 1px solid var(--entity-line);
+  border-radius: 10px;
+  background: var(--entity-panel);
+}
+.history-filter-bar label {
+  display: grid;
+  gap: 4px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--entity-muted);
+}
+.history-filter-bar select {
+  height: 34px;
+  min-width: 190px;
+  padding: 0 10px;
+  border-radius: 6px;
+  border: 1px solid var(--entity-line);
+  background: var(--entity-bg);
+  color: var(--entity-text);
+  font: inherit;
+  font-size: 0.8rem;
+}
+.history-filter-bar .history-check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  font-weight: 500;
+  color: var(--entity-text);
+  cursor: pointer;
+}
+.history-count {
+  margin-left: auto;
+  align-self: center;
+  font-size: 0.74rem;
+  color: var(--entity-muted);
+}
+.history-table tr.is-private {
+  background: rgba(16, 69, 29, 0.04);
+}
+.history-table td {
+  vertical-align: middle !important;
+}
+.history-private-chip {
+  margin-left: 4px;
+  font-size: 0.65rem !important;
+  background: #FEF3C7 !important;
+  color: #92400E !important;
+  border-color: #FDE68A !important;
+}
+@media (max-width: 640px) {
+  .history-filter-bar select {
+    min-width: 0;
+    width: 100%;
+  }
+  .history-filter-bar label {
+    flex: 1 1 100%;
+  }
+  .history-count {
+    margin-left: 0;
+  }
+}

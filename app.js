@@ -1389,6 +1389,9 @@
   let activeDossierTab = "deliverables"; // deliverables | incidents | passport | comms
   let incidentStatusFilter = "all"; // "all" | "in_mediation" | "pending_signs" | "consolidated"
   let pendingOpenMediation = null;
+  let historyPhaseFilter = "all"; // "all" | "0".."3"
+  let historySumFilter = "all";   // "all" | "General" | "SUM-xx"
+  let historyIncludeNotes = true;
 
   // Nuevos Estados Interactivos
   let overviewFilter = null; // "validados" | "review" | "pending" | "futuras" | "expedientes" | "incidencias" | "proveedores"
@@ -3692,10 +3695,12 @@
     return 2;
   }
 
+  // Historial de actividad del expediente (solo SOFEIN). Cada entrada guarda fase y suministro para poder filtrar.
   function ensureExpedienteRegistroCambios(exp) {
     if (!exp) return [];
     if (Array.isArray(exp.registroCambios)) return exp.registroCambios;
 
+    const faseActual = Math.min(exp.faseActual ?? 0, PHASES.length - 1);
     exp.registroCambios = [
       {
         id: `ACT-${exp.id.slice(-4)}-03`,
@@ -3703,15 +3708,17 @@
         autor: "SOFEIN Admin",
         tipo: "Avance de fase",
         suministro: "General",
-        titulo: `Actualización de fase activa a ${PHASES[Math.min(exp.faseActual, PHASES.length - 1)]?.name || "Gestión del pedido"}`,
+        fase: faseActual,
+        titulo: `Actualización de fase activa a ${PHASES[faseActual]?.name || "Gestión del pedido"}`,
         detalle: "Verificación de hitos documentales y sincronización del cronograma de entregas."
       },
       {
         id: `ACT-${exp.id.slice(-4)}-02`,
         fecha: "12 jun 2026 · 10:05",
         autor: `Cliente (${exp.cliente})`,
-        tipo: "Cambio documental",
+        tipo: "Documentación",
         suministro: "SUM-01",
+        fase: 0,
         titulo: "Validación de especificaciones técnicas y pliego base",
         detalle: "Pliego técnico revisado y permisos de lectura asignados a los actores del expediente."
       },
@@ -3720,7 +3727,8 @@
         fecha: exp.fechaAlta || "10 jun 2026 · 09:00",
         autor: "SOFEIN Digital",
         tipo: "Alta de expediente",
-        suministro: "Todos",
+        suministro: "General",
+        fase: 0,
         titulo: `Apertura e inicialización del expediente ${exp.id}`,
         detalle: `Constitución de bandeja estanca para ${exp.destinatarioFinal}.`
       }
@@ -3728,17 +3736,25 @@
     return exp.registroCambios;
   }
 
-  function addExpedienteCambioLog(exp, { tipo = "Cambio operativo", suministro = "General", titulo, detalle = "", soloAdmin = false }) {
+  const isGeneralSuministroRef = ref => !ref || /^(General|Todos|Expediente)$/i.test(ref);
+
+  // fase: índice 0-3; si no se indica, la fase en curso del suministro afectado (o del expediente)
+  function addExpedienteCambioLog(exp, { tipo = "Cambio operativo", suministro = "General", titulo, detalle = "", soloAdmin = false, fase = null }) {
     if (!exp) return;
     const list = ensureExpedienteRegistroCambios(exp);
-    const nowStr = new Date().toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" }).replace(/\./g, "") + " · Ahora";
-    const actorLabel = activeRole === "admin" ? "SOFEIN Admin" : activeRole === "cliente" ? `Cliente (${exp.cliente})` : activeRole === "proveedor" ? `Proveedor (${exp.proveedor})` : "Auditor";
+    const now = new Date();
+    const nowStr = `${now.toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" }).replace(/\./g, "")} · ${now.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })}`;
+    const sumRef = isGeneralSuministroRef(suministro) ? "General" : suministro;
+    const sum = sumRef !== "General" ? SUMINISTROS.find(x => x.id === sumRef) : null;
+    const faseIdx = Number.isInteger(fase) ? fase : Math.min((sum ? sum.faseActual : exp.faseActual) ?? 0, PHASES.length - 1);
+    const actorLabel = activeRole === "admin" ? "SOFEIN Admin" : activeRole === "cliente" ? `Cliente (${exp.cliente})` : activeRole === "proveedor" ? `Proveedor (${sum?.proveedor || exp.proveedor})` : "Auditor";
     list.unshift({
-      id: `ACT-${exp.id.slice(-4)}-0${list.length + 1}`,
+      id: `ACT-${exp.id.slice(-4)}-${String(list.length + 1).padStart(2, "0")}`,
       fecha: nowStr,
       autor: actorLabel,
       tipo,
-      suministro,
+      suministro: sumRef,
+      fase: faseIdx,
       titulo,
       detalle,
       soloAdmin: !!soloAdmin
@@ -4069,6 +4085,47 @@
   /* ============================================================
      EL CONSTRUCTOR DE EXPEDIENTES (GESTIÓN DEL EXPEDIENTE ADAPTADA POR PERFIL)
      ============================================================ */
+  function renderHistoryTableHTML(entries) {
+    return `
+      <section class="doc-clean-table-card">
+        <div class="doc-clean-table-wrap">
+          <table class="doc-clean-table history-table">
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Fase</th>
+                <th>Suministro</th>
+                <th>Tipo</th>
+                <th>Descripción</th>
+                <th>Autor</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${entries.map(c => `
+                <tr class="${c.soloAdmin ? "is-private" : ""}">
+                  <td><span class="doc-tbl-date">${c.fecha}</span></td>
+                  <td><span class="doc-tbl-phase">${Number.isInteger(c.fase) ? `${c.fase + 1}. ${SHORT_PHASE_NAMES[c.fase] || ""}` : "—"}</span></td>
+                  <td><span class="doc-tbl-phase">${c.suministro && c.suministro !== "General" ? c.suministro : "General"}</span></td>
+                  <td>
+                    <span class="dossier-chip" style="font-size:0.68rem">${c.tipo}</span>
+                    ${c.soloAdmin ? `<span class="dossier-chip history-private-chip" title="Anotación interna visible solo para SOFEIN">${icon("lock", 11)} Interna</span>` : ""}
+                  </td>
+                  <td>
+                    <div class="doc-tbl-name-wrap">
+                      <strong class="doc-tbl-name">${escHTML(c.titulo)}</strong>
+                      ${c.detalle ? `<span style="font-size:0.72rem;color:var(--entity-muted)">${escHTML(c.detalle)}</span>` : ""}
+                    </div>
+                  </td>
+                  <td><span class="doc-tbl-origin">${c.autor}</span></td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    `;
+  }
+
   // Tarjeta de un registro (abierto o, dentro del historial, cerrado)
   function renderRegistroCardHTML(exp, r, { isRoleAdmin, isRoleCliente, isRoleProveedor, isDestinatario }) {
     const closed = isRegistroCerrado(r);
@@ -4480,6 +4537,7 @@
     ` : "";
 
     // 5. Contenido de la sección activa adaptado al perfil
+    if (activeDossierTab === "history" && !isRoleAdmin) activeDossierTab = "deliverables";
     let tabContent = "";
     if (activeDossierTab === "deliverables") {
       const allExpDocs = [];
@@ -4716,57 +4774,25 @@
         </details>
       `;
 
-      const privateLog = isRoleAdmin ? cambiosLog : [];
+      const privateNotes = isRoleAdmin ? cambiosLog.filter(c => c.soloAdmin) : [];
       const privateLogHTML = isRoleAdmin ? `
         <details class="dossier-collapsible-block reg-private" data-collapse-key="changesLog" ${dossierCollapseState.changesLog ? "open" : ""}>
           <summary class="dossier-collapsible-summary">
             <div class="dossier-collapsible-summary-left">
-              <span class="dossier-section-kicker">${icon("lock", 14)} Anotaciones internas y actividad · Solo SOFEIN (${privateLog.length})</span>
+              <span class="dossier-section-kicker">${icon("lock", 14)} Anotaciones internas · Solo SOFEIN (${privateNotes.length})</span>
             </div>
             <span class="dossier-collapsible-chevron">${icon("chevronDown", 15)}</span>
           </summary>
           <div class="dossier-collapsible-body">
-            <div style="display:flex;justify-content:flex-end;margin-bottom:8px">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px">
+              <button class="admin-quiet-button" type="button" data-switch-dossier-tab="history">
+                ${icon("activity", 14)} Ver historial completo
+              </button>
               <button class="admin-quiet-button" type="button" data-open-change-log-modal="${exp.id}">
                 ${icon("plus", 14)} Añadir anotación interna
               </button>
             </div>
-            <section class="doc-clean-table-card">
-              <div class="doc-clean-table-wrap">
-                <table class="doc-clean-table">
-                  <thead>
-                    <tr>
-                      <th>Código</th>
-                      <th>Fecha</th>
-                      <th>Tipo</th>
-                      <th>Suministro</th>
-                      <th>Descripción</th>
-                      <th>Autor</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    ${privateLog.map(c => `
-                      <tr ${c.soloAdmin ? 'style="background:rgba(16, 69, 29, 0.04)"' : ''}>
-                        <td><span class="dossier-sum-code">${c.id}</span></td>
-                        <td><span class="doc-tbl-date">${c.fecha}</span></td>
-                        <td>
-                          <span class="dossier-chip" style="font-size:0.68rem">${c.tipo}</span>
-                          ${c.soloAdmin ? `<span class="dossier-chip" style="font-size:0.65rem;background:#FEF3C7;color:#92400E;border-color:#FDE68A;margin-left:4px" title="Anotación interna confidencial visible exclusivamente para SOFEIN">${icon("lock", 11)} Anotación interna</span>` : ""}
-                        </td>
-                        <td><span class="doc-tbl-phase">${c.suministro || "General"}</span></td>
-                        <td>
-                          <div class="doc-tbl-name-wrap">
-                            <strong class="doc-tbl-name">${c.titulo}</strong>
-                            ${c.detalle ? `<span style="font-size:0.72rem;color:var(--entity-muted)">${c.detalle}</span>` : ""}
-                          </div>
-                        </td>
-                        <td><span class="doc-tbl-origin">${c.autor}</span></td>
-                      </tr>
-                    `).join("")}
-                  </tbody>
-                </table>
-              </div>
-            </section>
+            ${privateNotes.length ? renderHistoryTableHTML(privateNotes) : `<p class="reg-empty">Todavía no hay anotaciones internas.</p>`}
           </div>
         </details>
       ` : "";
@@ -4793,6 +4819,44 @@
 
           ${closedHistoryHTML}
           ${privateLogHTML}
+        </div>
+      `;
+    } else if (activeDossierTab === "history") {
+      // Historial de actividad completo (solo SOFEIN), filtrable por fase y suministro
+      const allSums = SUMINISTROS.filter(s => s.expId === exp.id);
+      const filtered = cambiosLog.filter(c => {
+        if (!historyIncludeNotes && c.soloAdmin) return false;
+        if (historyPhaseFilter !== "all" && String(c.fase ?? "") !== historyPhaseFilter) return false;
+        if (historySumFilter !== "all" && (c.suministro || "General") !== historySumFilter) return false;
+        return true;
+      });
+      tabContent = `
+        <div class="history-container">
+          <div class="history-filter-bar">
+            <label>
+              Fase
+              <select data-history-filter="phase">
+                <option value="all">Todas las fases</option>
+                ${PHASES.map((p, i) => `<option value="${i}" ${historyPhaseFilter === String(i) ? "selected" : ""}>${p.num}. ${p.name}</option>`).join("")}
+              </select>
+            </label>
+            <label>
+              Suministro
+              <select data-history-filter="sum">
+                <option value="all">Todos</option>
+                <option value="General" ${historySumFilter === "General" ? "selected" : ""}>General del expediente</option>
+                ${allSums.map(su => `<option value="${su.id}" ${historySumFilter === su.id ? "selected" : ""}>${su.id} · ${escHTML(su.tipo)}</option>`).join("")}
+              </select>
+            </label>
+            <label class="history-check">
+              <input type="checkbox" data-history-filter="notes" ${historyIncludeNotes ? "checked" : ""} />
+              Incluir anotaciones internas
+            </label>
+            <span class="history-count">${filtered.length} de ${cambiosLog.length} entradas</span>
+          </div>
+          ${filtered.length ? renderHistoryTableHTML(filtered) : `
+            <div class="reg-empty-card"><p>No hay actividad con estos filtros.</p></div>
+          `}
         </div>
       `;
     } else if (activeDossierTab === "comms") {
@@ -5133,6 +5197,11 @@
             ${icon("inbox", 16)} Avisos
             ${expNotices.length ? `<b class="badge">${expNotices.length}</b>` : ""}
           </button>
+          ${isRoleAdmin ? `
+            <button class="dossier-tab-btn ${activeDossierTab === "history" ? "is-active" : ""}" type="button" data-switch-dossier-tab="history">
+              ${icon("activity", 16)} Historial
+            </button>
+          ` : ""}
         </div>
 
         <!-- Contenido de la Sección -->
@@ -9231,6 +9300,11 @@
         });
         SUMINISTROS.unshift(...newSums);
 
+        addExpedienteCambioLog(newExpediente, {
+          tipo: "Alta de expediente", suministro: "General", fase: 0,
+          titulo: isRoleAdmin ? `SOFEIN crea el expediente para ${cliente}` : `${cliente} solicita el expediente`,
+          detalle: `${newSums.length} ${newSums.length === 1 ? "suministro" : "suministros"}: ${newSums.map(x => `${x.id} ${x.tipo}`).join(", ")}`
+        });
         if (isRoleAdmin) {
           // El cliente recibe el expediente y debe confirmar que está correcto
           newExpediente.confirmacionCliente = "pendiente";
@@ -9293,6 +9367,15 @@
         exp.confirmacionClienteFecha = todayDocDate();
         addExpedienteCambioLog(exp, { tipo: "Confirmación del cliente", suministro: "Expediente", titulo: `${exp.cliente} confirma el expediente` });
         showToast(`✓ Expediente ${exp.id} confirmado`);
+        renderApp();
+      });
+    });
+    document.querySelectorAll("[data-history-filter]").forEach(ctrl => {
+      ctrl.addEventListener("change", () => {
+        const kind = ctrl.dataset.historyFilter;
+        if (kind === "phase") historyPhaseFilter = ctrl.value;
+        else if (kind === "sum") historySumFilter = ctrl.value;
+        else if (kind === "notes") historyIncludeNotes = ctrl.checked;
         renderApp();
       });
     });
@@ -10078,6 +10161,7 @@
         descripcion: "Preselecciona a qué proveedores quieres pedir cotización.",
         accion: "Preseleccionar proveedores", ruta: `selector/${exp.id}`
       });
+      addExpedienteCambioLog(exp, { tipo: "Selección de proveedores", suministro: "General", fase: 1, titulo: `SOFEIN propone ${matching.proveedoresPreseleccionadosPorAdmin.length} proveedores al cliente` });
       showToast(`✓ Preselección aprobada. El constructor ha recibido aviso para seleccionar talleres.`);
       renderApp();
     });
@@ -10115,6 +10199,7 @@
         descripcion: "Valida la selección para pedir las cotizaciones.",
         accion: "Validar selección", ruta: `selector/${exp.id}`
       });
+      addExpedienteCambioLog(exp, { tipo: "Selección de proveedores", suministro: "General", fase: 1, titulo: `El cliente envía su selección de ${matching.proveedoresSeleccionadosPorCliente.length} proveedores` });
       showToast(`✓ Selección enviada a SOFEIN para su validación.`);
       renderApp();
     });
@@ -10143,6 +10228,7 @@
           accion: "Enviar cotización", ruta: `selector/${exp.id}`
         });
       }
+      addExpedienteCambioLog(exp, { tipo: "Selección de proveedores", suministro: "General", fase: 1, titulo: `SOFEIN valida la selección y pide cotización a ${matching.proveedoresSeleccionadosPorCliente.length} proveedores` });
       showToast(`✓ Selección validada. Cotización pedida a ${matching.proveedoresSeleccionadosPorCliente.length} proveedores.`);
       renderApp();
     });
@@ -10186,6 +10272,7 @@
         descripcion: "Valídalas para mostrárselas al cliente.",
         accion: "Validar cotizaciones", ruta: `selector/${exp.id}`
       });
+      addExpedienteCambioLog(exp, { tipo: "Selección de proveedores", suministro: "General", fase: 1, titulo: `Cotizaciones recibidas (simulación)` });
       showToast("✓ Todas las cotizaciones recibidas. Pendientes de validación por SOFEIN.");
       renderApp();
     });
@@ -10234,6 +10321,7 @@
         accion: "Validar cotización", ruta: `selector/${exp.id}`
       });
 
+      addExpedienteCambioLog(exp, { tipo: "Selección de proveedores", suministro: "General", fase: 1, titulo: `IberRail Components envía su cotización: ${totalPrice} · ${delivery}` });
       showToast("✓ Cotización vinculante remitida con éxito a SOFEIN.");
       renderApp();
     });
@@ -10251,6 +10339,7 @@
         descripcion: "SOFEIN te muestra las cotizaciones de los proveedores. Elige uno.",
         accion: "Elegir proveedor", ruta: `selector/${exp.id}`
       });
+      addExpedienteCambioLog(exp, { tipo: "Selección de proveedores", suministro: "General", fase: 1, titulo: `SOFEIN valida las cotizaciones y las muestra al cliente` });
       showToast("✓ Cotizaciones validadas y visibles para el cliente.");
       renderApp();
     });
@@ -10308,6 +10397,7 @@
         accion: "Formalizar pedido", ruta: `selector/${exp.id}`
       });
 
+      addExpedienteCambioLog(exp, { tipo: "Selección de proveedores", suministro: "General", fase: 1, titulo: `El cliente elige a ${matching.proveedorAdjudicado}` });
       showToast(`✓ Adjudicación confirmada para ${matching.proveedorAdjudicado}.`);
       renderApp();
     });
@@ -10350,6 +10440,7 @@
         accion: "Ver pedido", tab: "deliverables"
       });
 
+      addExpedienteCambioLog(exp, { tipo: "Selección de proveedores", suministro: "General", fase: 1, titulo: `SOFEIN formaliza el pedido con ${matching.proveedorAdjudicado}` });
       showToast(`✓ Adjudicación validada. Expediente avanzado a Fase 3 (Formalización).`);
       location.hash = `#admin/expedientes/${exp.id}`;
     });
@@ -10364,10 +10455,12 @@
         if (signRole === "cliente") {
           formalizacion.firmaCliente = true;
           formalizacion.fechaFirmaCliente = "Hoy, ahora";
+          addExpedienteCambioLog(exp, { tipo: "Formalización", suministro: "General", fase: 2, titulo: "El cliente firma la hoja de pedido" });
           showToast(`✓ Hoja de Pedido firmada digitalmente por ${exp.cliente}`);
         } else if (signRole === "proveedor") {
           formalizacion.firmaProveedor = true;
           formalizacion.fechaFirmaProveedor = "Hoy, ahora";
+          addExpedienteCambioLog(exp, { tipo: "Formalización", suministro: "General", fase: 2, titulo: "El proveedor firma la hoja de pedido" });
           showToast(`✓ Compromiso de suministro firmado por ${exp.proveedor}`);
         }
         renderApp();
@@ -10422,6 +10515,7 @@
           enlace: `#admin/expedientes/${exp.id}`
         });
 
+        addExpedienteCambioLog(exp, { tipo: "Formalización", suministro: "General", fase: 2, titulo: `SOFEIN valida la hoja de pedido ${formalizacion.codigoContrato}` });
         showToast(`✓ Acuerdo ${formalizacion.codigoContrato} validado. Fase 4 (Fabricación) activada.`);
         renderApp();
       });
@@ -10484,7 +10578,8 @@
             tipo: "Avance de fase",
             suministro: currentSum && expSuministros.length > 1 ? currentSum.id : "Expediente",
             titulo: `Fase ${currentIdx + 1} (${PHASES[currentIdx].name}) completada · Avance a ${PHASES[nextIdx].name}`,
-            detalle: "Hitos de la fase validados por SOFEIN Admin."
+            detalle: "Hitos de la fase validados por SOFEIN Admin.",
+            fase: currentIdx
           });
           pushAutoNotice({
             exp, sumId: currentSum ? currentSum.id : null, roles: ["cliente", "proveedor"],
@@ -10539,7 +10634,8 @@
           tipo: "Reapertura de fase",
           suministro: isMultiSum ? currentSum.id : "Expediente",
           titulo: `Fase ${reopenIdx + 1} (${PHASES[reopenIdx].name}) reabierta`,
-          detalle: "Fase reabierta por SOFEIN Admin."
+          detalle: "Fase reabierta por SOFEIN Admin.",
+          fase: reopenIdx
         });
         showToast(`✓ Fase ${reopenIdx + 1} (${PHASES[reopenIdx].name}) reabierta.`);
         renderApp();
@@ -10586,6 +10682,7 @@
           enlace: `#admin/expedientes/${exp.id}?tab=passport`
         });
 
+        addExpedienteCambioLog(exp, { tipo: "Cierre", suministro: "General", fase: PHASES.length - 1, titulo: "Expediente cerrado y pasaporte digital emitido" });
         showToast(`✓ Expediente ${exp.id} cerrado. Pasaporte Digital emitido.`);
         renderApp();
       });
@@ -10830,6 +10927,7 @@
         if (s.deliverables && (!s.deliverables[1] || !s.deliverables[1].length)) s.deliverables[1] = [{ ...preseleccion }];
       });
 
+      addExpedienteCambioLog(exp, { tipo: "Validación de solicitud", suministro: "General", fase: 0, titulo: "SOFEIN valida la solicitud del cliente", detalle: `${uniqueDocs.length} adjunto(s) con visibilidad asignada` });
       close();
       showToast(`✓ Expediente ${exp.id} validado por SOFEIN. Avanza a Fase 2: Proveedores`);
       renderApp();
@@ -10920,6 +11018,7 @@
         notes: notes || "Requerido por SOFEIN"
       });
 
+      addExpedienteCambioLog(exp, { tipo: "Documentación", suministro: reqSum?.id || "General", fase: targetPhase, titulo: `Documento requerido al ${owner === "Cliente" ? "cliente" : "proveedor"}: «${docName}»`, detalle: notes });
       const reqRole = ownerToRole(owner);
       if (reqRole) {
         pushAutoNotice({
@@ -10937,9 +11036,17 @@
     });
   }
 
+  // Fase en la que está guardado un documento (para el historial)
+  function getDocPhaseIdx(exp, del) {
+    const map = getActiveDeliverablesMap(exp);
+    const found = Object.keys(map).find(k => (map[k] || []).includes(del));
+    return found !== undefined ? Number(found) : activeDossierPhase;
+  }
+
   // Aviso al subir un documento: si sube SOFEIN, a las partes que lo ven; si sube cliente/proveedor, a SOFEIN para validar
   function notifyDocUploaded(exp, del) {
     const sumId = getActiveExpSuministro(exp)?.id || null;
+    addExpedienteCambioLog(exp, { tipo: "Documentación", suministro: sumId || "General", fase: getDocPhaseIdx(exp, del), titulo: `Documento subido: «${del.name}»`, detalle: del.file });
     if (activeRole === "admin") {
       pushAutoNotice({
         exp, sumId, roles: docAudience(del),
@@ -11015,6 +11122,7 @@
         if (!delivMap[newPhase]) delivMap[newPhase] = [];
         delivMap[newPhase].push(del);
       }
+      addExpedienteCambioLog(exp, { tipo: "Documentación", suministro: getActiveExpSuministro(exp)?.id || "General", fase: isNaN(newPhase) ? phaseIdx : newPhase, titulo: `Documento editado: «${del.name}»`, detalle: `Visible: ${formatVisibleToLabel(del.visibleTo)}` });
       close();
       showToast(`✓ Documento "${del.name}" actualizado`);
       renderApp();
@@ -11055,6 +11163,7 @@
     });
     document.getElementById("confirmDeleteDocBtn")?.addEventListener("click", () => {
       delivMap[phaseIdx].splice(slotIdx, 1);
+      addExpedienteCambioLog(exp, { tipo: "Documentación", suministro: getActiveExpSuministro(exp)?.id || "General", fase: phaseIdx, titulo: `Documento eliminado: «${del.name}»`, detalle: del.file || "" });
       close();
       showToast(`✓ Documento "${del.name}" eliminado`);
       renderApp();
@@ -11295,6 +11404,11 @@
         del.rejectReason = null;
         del.notes = notes || `Validado · Visible: ${formatVisibleToLabel(visibleTo)}`;
       }
+      addExpedienteCambioLog(exp, {
+        tipo: "Documentación", suministro: getActiveExpSuministro(exp)?.id || "General", fase: phaseIdx,
+        titulo: `Documento ${decision === "complete" ? "validado" : decision === "rejected" ? "con observaciones" : "en revisión"}: «${del.name}»`,
+        detalle: `Visible: ${formatVisibleToLabel(visibleTo)}`
+      });
       const uploaderRole = ownerToRole(del.uploadedBy || del.owner);
       if (decision === "complete" && del.file) {
         pushAutoNotice({
@@ -11694,6 +11808,7 @@
       e.preventDefault();
       const form = new FormData(e.currentTarget);
       const motivo = (form.get("motivo") || "").trim();
+      addExpedienteCambioLog(exp, { tipo: "Documentación", suministro: getActiveExpSuministro(exp)?.id || "General", fase: phaseIdx, titulo: `Documento con observaciones: «${del.name}»`, detalle: motivo });
       del.state = "rejected";
       del.rejectReason = motivo;
 
@@ -12074,6 +12189,7 @@
         inc.firmaProveedorFecha = nowStr;
         inc.firmaProveedorUsuario = user;
       }
+      addExpedienteCambioLog(exp, { tipo: "Firma de registro", suministro: inc.sumId || "General", titulo: `${roleLabel(signerRole)} firma ${inc.id}`, detalle: `${user} · ${inc.titulo}` });
       syncRegistroLegacyFields(inc);
       const closed = closeRegistroIfSigned(exp, inc);
       pushAutoNotice({
@@ -12350,6 +12466,7 @@
         enlace: `#${activeRole}/expedientes/${exp.id}?tab=comms`
       });
       close();
+      addExpedienteCambioLog(exp, { tipo: "Aviso emitido", suministro: sumId || "General", titulo: `Aviso a ${destino === "ambos" ? "cliente y proveedor" : destino}: ${(fd.get("titulo") || "").trim()}`, detalle: NOTICE_PRIORIDADES[prioridad].label });
       const destLabel = destino === "ambos" ? "cliente y proveedor" : destino;
       showToast(`✓ Aviso emitido al ${destLabel === "cliente y proveedor" ? "cliente y al proveedor" : destLabel}`);
       renderApp();
