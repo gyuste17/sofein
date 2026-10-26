@@ -8046,3 +8046,212 @@ details.b2b-profile-card.is-collapsible[open] > summary.is-collapsible-summary .
 .doc-clean-table.is-detailed .col-doc-file .doc-tbl-file {
   max-width: 105px;
 }
+
+/* Registro de incidencias y cambios (bloque D) */
+.reg-summary-text {
+  font-size: 0.78rem;
+  color: var(--entity-muted);
+}
+.reg-description {
+  margin: 0;
+  font-size: 0.83rem;
+  line-height: 1.55;
+  color: var(--entity-text);
+  white-space: pre-line;
+}
+.reg-section-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--entity-muted);
+}
+.reg-solution {
+  display: grid;
+  gap: 6px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: rgba(15, 118, 110, 0.05);
+  border: 1px solid rgba(15, 118, 110, 0.18);
+}
+.reg-solution p {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--entity-text);
+  white-space: pre-line;
+}
+.reg-attachments {
+  display: grid;
+  gap: 6px;
+}
+.reg-attachment {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 6px 10px;
+  border: 1px solid var(--entity-line);
+  border-radius: 6px;
+  font-size: 0.78rem;
+}
+.reg-attachment span {
+  color: var(--entity-muted);
+  font-size: 0.72rem;
+}
+.reg-attachment .doc-tbl-action-btn {
+  margin-left: auto;
+}
+.reg-delete-btn:hover {
+  border-color: #dc2626;
+  color: #dc2626;
+}
+.reg-empty-card {
+  padding: 28px;
+  border: 1px solid var(--entity-line);
+  border-radius: 12px;
+  background: var(--entity-panel);
+  text-align: center;
+  color: var(--entity-muted);
+}
+.reg-empty-card p {
+  margin: 0 0 4px;
+  font-size: 0.88rem;
+  font-weight: 550;
+  color: var(--entity-text);
+}
+.reg-empty-card span {
+  font-size: 0.78rem;
+}
+.reg-empty {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--entity-muted);
+}
+.reg-history .dossier-collapsible-body {
+  display: grid;
+  gap: 8px;
+}
+.reg-history-item {
+  border: 1px solid var(--entity-line);
+  border-radius: 8px;
+  background: var(--entity-panel);
+}
+.reg-history-item > summary {
+  display: grid;
+  grid-template-columns: auto auto auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  cursor: pointer;
+  list-style: none;
+  font-size: 0.78rem;
+}
+.reg-history-item > summary::-webkit-details-marker {
+  display: none;
+}
+.reg-history-item[open] > summary .dossier-collapsible-chevron {
+  transform: rotate(180deg);
+}
+.reg-history-date,
+.reg-history-sum {
+  color: var(--entity-muted);
+  white-space: nowrap;
+}
+.reg-history-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--entity-text);
+}
+.reg-history-item > .reg-card {
+  margin: 0 10px 10px;
+}
+@media (max-width: 640px) {
+  .reg-history-item > summary {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+  .reg-history-item > summary .reg-history-sum,
+  .reg-history-item > summary .reg-history-date {
+    display: none;
+  }
+}
+/* Modal de registro */
+.reg-edit-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(234, 179, 8, 0.1);
+  border: 1px solid rgba(234, 179, 8, 0.35);
+  font-size: 0.76rem;
+  color: var(--entity-text);
+}
+.reg-change-grid {
+  display: grid;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--entity-line);
+  border-radius: 8px;
+}
+.reg-change-row {
+  display: grid;
+  grid-template-columns: minmax(150px, 1fr) auto auto minmax(130px, 1fr);
+  align-items: center;
+  gap: 10px;
+  font-size: 0.78rem;
+}
+.reg-change-label {
+  font-weight: 600;
+  color: var(--entity-muted);
+  font-size: 0.75rem;
+}
+.reg-change-opt {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  cursor: pointer;
+  color: var(--entity-text);
+}
+.reg-change-opt em {
+  font-style: normal;
+  color: var(--entity-muted);
+}
+.reg-change-row input:disabled {
+  opacity: 0.45;
+}
+@media (max-width: 640px) {
+  .reg-change-row {
+    grid-template-columns: auto auto;
+  }
+  .reg-change-row .reg-change-label,
+  .reg-change-row input[name$="_valor"] {
+    grid-column: 1 / -1;
+  }
+}
+.reg-sign-summary {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border-radius: 8px;
+  background: rgba(15, 118, 110, 0.05);
+  border: 1px solid rgba(15, 118, 110, 0.2);
+}
+.reg-sign-summary p {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: var(--entity-text);
+}
+.reg-sign-impacts {
+  display: grid;
+  gap: 4px;
+  font-size: 0.76rem;
+  color: var(--entity-text);
+}

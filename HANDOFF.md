@@ -2,6 +2,53 @@
 
 Registro de relevo entre agentes. **Entradas nuevas arriba.** Reglas del proyecto en `AGENTS.md`.
 
+## 2026-10-26 · Claude · rama `claude/expediente` · Registro de incidencias y cambios, bloque D (v46)
+
+**Modelo**
+- `exp.incidencias` guarda ahora registros REG-001, REG-002…
+- Campos de cada registro:
+  - `sumId`, `titulo`, `descripcion`, `solucion` y `fechaRegistro`.
+  - `previo` (fecha, unidades y presupuesto del suministro en el momento del registro).
+  - `nuevaFechaEntregaIso`, `nuevasUnidades` y `nuevoPresupuesto` (null = igual).
+  - `adjuntos` [{ name, file, fileUrl, visibleTo }].
+  - Firmas de Cliente y Proveedor, y `adendaId`.
+- `syncRegistroLegacyFields` rellena los campos antiguos (`tipo`, `propuestaMediacion`, `nuevoPlazoAcordado`…) que siguen usando la adenda oficial y el pasaporte.
+- Datos de ejemplo de H6T4:
+  - REG-001 (antes INC-014-1): pendiente de la firma del cliente.
+  - REG-002 (nuevo): cerrado, con ADENDA-2026-01.
+- Las entradas de actividad automática pasan de `REG-H6T4-0x` a `ACT-H6T4-0x`, para no confundirlas con los registros.
+
+**Hecho**
+- Solo Admin ve el botón «Registrar incidencia/cambio».
+  - Modal `openRegistroModal`: código automático, suministro afectado, título, descripción, solución y hasta 3 adjuntos (nombre + quién lo ve).
+  - Nueva fecha, unidades y presupuesto, cada uno con la opción «Igual (valor actual)» o «Nuevo».
+- Tarjeta (`renderRegistroCardHTML`):
+  - Código, suministro, título y fecha de registro.
+  - Botones «Editar Mediación» y «Eliminar» (solo Admin y solo en registros abiertos).
+  - Descripción; impacto en plazo, unidades y coste (antes → después); solución; adjuntos.
+  - Firmas «SOFEIN» (registrado), «Proveedor» y «Cliente».
+- Editar un registro borra las dos firmas, con aviso en el modal.
+- Firma (`openSignIncidentModal`): solo la parte afectada ve su botón «Firmar».
+  - Con las dos firmas, `closeRegistroIfSigned` cierra el registro y aplica la nueva fecha, unidades y presupuesto al suministro.
+  - Además emite la adenda (`ADENDA-<año>-NN`) y añade el documento de adenda a la Documentación del suministro.
+  - La adenda aparece en el pasaporte y se puede ver con «Ver adenda».
+- «Historial de incidencias y cambios cerrados»: desplegable con una línea por registro (código, fecha, suministro, título). Al abrirla se ve la tarjeta completa.
+- Bloque privado de Admin «Anotaciones internas y actividad · Solo SOFEIN»: el antiguo historial de cambios más el botón «Añadir anotación interna» (`openAddCambioLogModal`, ahora siempre `soloAdmin`).
+  - Cliente y Proveedor ya no ven el historial de actividad automática.
+- Eliminado el silencio positivo en el registro, la adenda, el pasaporte y la configuración. Se borran `openIncidentModal`, `openMediationModal`, `consolidateAddendum` y `applySilencePositive`.
+- Textos «Taller» y «Constructor» sustituidos por «Proveedor» y «Cliente» en las firmas.
+- El badge de la pestaña cuenta los registros abiertos. El enlace del aviso AV-01 (`openMediation=REG-001`) resalta la tarjeta.
+- Nuevo icono `lock`: ya se usaba, pero no existía.
+- Verificado en Chrome:
+  - Registrar, editar (firmas reiniciadas), firma del proveedor y del cliente → cierre con ADENDA-2026-02 y SUM-01 a 20 oct.
+  - El historial se despliega, la adenda se ve y aparece en el pasaporte.
+  - Eliminar funciona y el Proveedor solo ve los registros de sus suministros.
+  - 0 errores de consola y sin desbordamiento a 390 px.
+
+**Pendiente / decisiones**
+- Los registros cerrados son de solo lectura: no se pueden editar ni eliminar, porque ya tienen adenda.
+- Los avisos automáticos al registrar o firmar quedan para el bloque F.
+
 ## 2026-10-26 · Claude · rama `claude/expediente` · Documentación del expediente, bloque C (v45)
 
 **Hecho** (en `renderDossierBuilder`, pestaña Documentación, y en sus modales)

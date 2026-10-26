@@ -46,6 +46,7 @@
     calendar: '<rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/>',
     archive: '<rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/>',
     refresh: '<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/>',
+    lock: '<rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
     box: '<path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>',
     edit: '<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>',
     mail: '<rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>',
@@ -155,38 +156,50 @@
       estado: "review",
       incidencias: [
         {
-          id: "INC-014-1",
-          fecha: "16 jun 2026, 10:20",
-          origen: "Proveedor (IberRail Components)",
-          origenRol: "proveedor",
-          tipo: "Demora de curado por ola de calor en factoría",
-          categoria: "Retraso de fabricación",
+          id: "REG-001",
+          sumId: "SUM-01",
+          titulo: "Demora de curado por ola de calor en factoría",
           descripcion: "Se ha detectado una desaceleración crítica en el proceso de fraguado y curado térmico de las 14.500 traviesas monobloque PR-22 en la factoría de Vitoria debido a temperaturas extremas sostenidas (+39ºC). Desmoldar prematuramente comprometería la resistencia característica a compresión y flexión exigida por la norma EN 13230-2.",
-          impactoPlazo: "+6 días (afectando a la 2ª mitad del lote)",
-          impactoCoste: "0 € (Sin sobrecoste de fabricación para el contratista)",
-          impacto: "+6 días en 2ª mitad · 0 €",
-          evidenciaDoc: "Informe-Laboratorio-Curado-IberRail.pdf",
-          estado: "En mediación SOFEIN",
-          propuestaMediacion: "SOFEIN propone articular un suministro fraccionado en dos entregas operativas: Sub-lote A (7.000 unidades) expedido en el plazo original pactado (42 días), y Sub-lote B (7.500 unidades) expedido 6 días después (48 días). Con ello, el constructor mantiene el ritmo de acopio sin paralizar el montaje de vía en la Factoría Volkswagen.",
-          nuevoPlazoAcordado: "48 días (Sub-lote A: 42d / Sub-lote B: 48d)",
-          nuevoCosteAcordado: "482.000 € (Sin alteración económica)",
-          resolucionTecnica: "Mantenimiento estricto de los ensayos destructivos de rotura según norma EN 13230-2. Emisión de albaranes y certificados de lote individualizados con marcaje CE para cada envío por el laboratorio homologado.",
-          fechaNotificacionPropuesta: "16 jun 2026, 10:35",
-          fechaLimiteRespuesta: "23 jun 2026 (5 días hábiles)",
-          diasHabilesRestantes: 3,
-          silencioPositivoAplicado: false,
-          firmaSofein: true,
-          firmaSofeinFecha: "16 jun 2026, 10:35",
-          firmaSofeinUsuario: "Ángel Plaza (SOFEIN Digital HQ)",
+          solucion: "SOFEIN propone articular un suministro fraccionado en dos entregas: Sub-lote A (7.000 unidades) en la fecha original pactada y Sub-lote B (7.500 unidades) 6 días después. Con ello, el constructor mantiene el ritmo de acopio sin paralizar el montaje de vía en la Factoría Volkswagen.",
+          fechaRegistro: "16 jun 2026",
+          previo: { fechaEntrega: "14 oct 2026", fechaEntregaIso: "2026-10-14", unidades: "14.500", presupuesto: "280.000 €" },
+          nuevaFechaEntregaIso: "2026-10-20",
+          nuevasUnidades: null,
+          nuevoPresupuesto: null,
+          adjuntos: [
+            { name: "Informe de laboratorio de curado", file: "Informe-Laboratorio-Curado-IberRail.pdf", visibleTo: ["admin", "cliente", "proveedor"] }
+          ],
           firmaProveedor: true,
           firmaProveedorFecha: "16 jun 2026, 11:45",
-          firmaProveedorUsuario: "Carlos Mendía (Director Industrial, IberRail)",
+          firmaProveedorUsuario: "Carlos Mendía (IberRail)",
           firmaCliente: false,
           firmaClienteFecha: null,
           firmaClienteUsuario: null,
           adendaId: null,
           adendaFecha: null,
           adendaHash: null
+        },
+        {
+          id: "REG-002",
+          sumId: "SUM-02",
+          titulo: "Ampliación de placas de asiento para el ramal de acceso",
+          descripcion: "El cliente comunica la ampliación del ramal de acceso a la factoría, que requiere 1.500 placas de asiento PR-22 adicionales sobre el pedido inicial.",
+          solucion: "SOFEIN acuerda con el proveedor ampliar el pedido en 1.500 unidades al mismo precio unitario, manteniendo la fecha de entrega pactada.",
+          fechaRegistro: "02 jun 2026",
+          previo: { fechaEntrega: "18 oct 2026", fechaEntregaIso: "2026-10-18", unidades: "27.500", presupuesto: "116.000 €" },
+          nuevaFechaEntregaIso: null,
+          nuevasUnidades: "29.000",
+          nuevoPresupuesto: "122.000 €",
+          adjuntos: [],
+          firmaProveedor: true,
+          firmaProveedorFecha: "03 jun 2026, 09:10",
+          firmaProveedorUsuario: "Carlos Mendía (IberRail)",
+          firmaCliente: true,
+          firmaClienteFecha: "03 jun 2026, 12:30",
+          firmaClienteUsuario: "Luis M. Aranzadi (Infraestructuras del Norte)",
+          adendaId: "ADENDA-2026-01",
+          adendaFecha: "03 jun 2026, 12:30",
+          adendaHash: "sha256-7c1e94a0b2f35d6e8a9c0b1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f"
         }
       ],
       deliverables: {
@@ -816,7 +829,7 @@
       fecha: "Hoy, 10:35",
       roles: ["admin", "cliente"],
       accion: "Ver Mediación",
-      enlace: "#cliente/expedientes/SFN-2026-H6T4?tab=incidents&openMediation=INC-014-1"
+      enlace: "#cliente/expedientes/SFN-2026-H6T4?tab=incidents&openMediation=REG-001"
     },
     {
       id: "AV-02",
@@ -2648,27 +2661,30 @@
     if (addBtn) addBtn.style.display = count >= CREATE_ATTACH_MAX ? "none" : "";
   }
 
-  function addCreateAttachRow(box, file) {
+  // file: File nuevo, o un adjunto ya guardado { name, file, fileUrl, visibleTo } al editar
+  function addCreateAttachRow(box, file, existing = null) {
     const list = box.querySelector(".create-attach-list");
     if (!list || list.children.length >= CREATE_ATTACH_MAX) return false;
     const withVis = box.dataset.attachVis === "1";
     const uid = `att${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
-    const baseName = file.name.replace(/\.[^.]+$/, "");
+    const fileName = existing ? existing.file : file.name;
+    const baseName = existing ? existing.name : file.name.replace(/\.[^.]+$/, "");
+    const visRoles = existing && Array.isArray(existing.visibleTo) ? existing.visibleTo : ["admin", "cliente", "proveedor"];
     const row = document.createElement("div");
     row.className = "create-attach-row";
     row.innerHTML = `
-      <span class="create-attach-file" title="${escHTML(file.name)}">${icon("file", 13)} <span>${escHTML(file.name)}</span></span>
+      <span class="create-attach-file" title="${escHTML(fileName)}">${icon("file", 13)} <span>${escHTML(fileName)}</span></span>
       <input class="create-exp-input create-attach-name" value="${escHTML(baseName)}" placeholder="Nombre del documento" aria-label="Nombre del documento" required />
       ${withVis ? `
         <div class="create-attach-vis" title="¿Quién puede ver este adjunto?">
           <span class="create-attach-vis-fixed">${icon("eye", 12)} SOFEIN</span>
-          <label><input type="checkbox" name="${uid}_cliente" value="cliente" checked /> Cliente</label>
-          <label><input type="checkbox" name="${uid}_proveedor" value="proveedor" checked /> Proveedor</label>
+          <label><input type="checkbox" name="${uid}_cliente" value="cliente" ${visRoles.includes("cliente") ? "checked" : ""} /> Cliente</label>
+          <label><input type="checkbox" name="${uid}_proveedor" value="proveedor" ${visRoles.includes("proveedor") ? "checked" : ""} /> Proveedor</label>
         </div>
       ` : ""}
       <button type="button" class="suministro-remove-btn create-attach-remove" title="Quitar adjunto">${icon("x", 12)}</button>
     `;
-    stagedAttachFiles.set(row, file);
+    stagedAttachFiles.set(row, { file: existing ? null : file, fileName, fileUrl: existing ? existing.fileUrl || null : null });
     row.querySelector(".create-attach-remove").addEventListener("click", () => {
       row.remove();
       updateCreateAttachAddState(box);
@@ -2694,18 +2710,21 @@
     });
   }
 
-  // Lee los adjuntos de un bloque: [{ file, nombre, visibleTo|null }]
+  // Lee los adjuntos de un bloque: [{ fileName, fileUrl, nombre, visibleTo|null }]
+  // (fileUrl: el ya guardado o un object URL del archivo nuevo)
   function readCreateAttachments(box) {
     if (!box) return [];
     const withVis = box.dataset.attachVis === "1";
     return Array.from(box.querySelectorAll(".create-attach-row")).map(row => {
-      const file = stagedAttachFiles.get(row);
-      const nombre = row.querySelector(".create-attach-name")?.value.trim() || (file ? file.name : "Adjunto");
+      const staged = stagedAttachFiles.get(row);
+      if (!staged) return null;
+      const nombre = row.querySelector(".create-attach-name")?.value.trim() || staged.fileName;
       const visibleTo = withVis
         ? ["admin", ...Array.from(row.querySelectorAll(".create-attach-vis input:checked")).map(i => i.value)]
         : null;
-      return { file, nombre, visibleTo };
-    }).filter(a => a.file);
+      const fileUrl = staged.fileUrl || (staged.file ? URL.createObjectURL(staged.file) : null);
+      return { fileName: staged.fileName, fileUrl, nombre, visibleTo };
+    }).filter(Boolean);
   }
 
   function renderCreateSuministroRowHTML(idx, isRoleAdmin, defaultDate, removable) {
@@ -3675,7 +3694,7 @@
 
     exp.registroCambios = [
       {
-        id: `REG-${exp.id.slice(-4)}-03`,
+        id: `ACT-${exp.id.slice(-4)}-03`,
         fecha: "16 jun 2026 · 14:20",
         autor: "SOFEIN Admin",
         tipo: "Avance de fase",
@@ -3684,7 +3703,7 @@
         detalle: "Verificación de hitos documentales y sincronización del cronograma de entregas."
       },
       {
-        id: `REG-${exp.id.slice(-4)}-02`,
+        id: `ACT-${exp.id.slice(-4)}-02`,
         fecha: "12 jun 2026 · 10:05",
         autor: `Cliente (${exp.cliente})`,
         tipo: "Cambio documental",
@@ -3693,7 +3712,7 @@
         detalle: "Pliego técnico revisado y permisos de lectura asignados a los actores del expediente."
       },
       {
-        id: `REG-${exp.id.slice(-4)}-01`,
+        id: `ACT-${exp.id.slice(-4)}-01`,
         fecha: exp.fechaAlta || "10 jun 2026 · 09:00",
         autor: "SOFEIN Digital",
         tipo: "Alta de expediente",
@@ -3711,7 +3730,7 @@
     const nowStr = new Date().toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" }).replace(/\./g, "") + " · Ahora";
     const actorLabel = activeRole === "admin" ? "SOFEIN Admin" : activeRole === "cliente" ? `Cliente (${exp.cliente})` : activeRole === "proveedor" ? `Proveedor (${exp.proveedor})` : "Auditor";
     list.unshift({
-      id: `REG-${exp.id.slice(-4)}-0${list.length + 1}`,
+      id: `ACT-${exp.id.slice(-4)}-0${list.length + 1}`,
       fecha: nowStr,
       autor: actorLabel,
       tipo,
@@ -3721,6 +3740,108 @@
       soloAdmin: !!soloAdmin
     });
   }
+
+  /* ---------- Registro de incidencias y cambios (REG-xxx) ----------
+     Solo SOFEIN registra. Cliente y Proveedor firman; con las dos firmas el registro
+     se cierra, se emite su adenda (enlazada al pasaporte) y se aplican los nuevos valores al suministro. */
+  const isRegistroCerrado = r => !!r.firmaCliente && !!r.firmaProveedor;
+
+  function nextRegistroId(exp) {
+    const max = (exp.incidencias || []).reduce((m, r) => {
+      const n = parseInt(String(r.id).replace(/^REG-/, ""), 10);
+      return /^REG-\d+$/.test(r.id) && n > m ? n : m;
+    }, 0);
+    return `REG-${String(max + 1).padStart(3, "0")}`;
+  }
+
+  const formatIsoDateEs = iso => iso ? new Date(iso).toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" }).replace(/\./g, "") : "";
+
+  // Textos de impacto: plazo, unidades y presupuesto (antes → después)
+  function describeRegistroImpact(r) {
+    const p = r.previo || {};
+    let plazo = "Sin cambios";
+    if (r.nuevaFechaEntregaIso && r.nuevaFechaEntregaIso !== p.fechaEntregaIso) {
+      const diff = p.fechaEntregaIso ? Math.round((new Date(r.nuevaFechaEntregaIso) - new Date(p.fechaEntregaIso)) / 86400000) : null;
+      plazo = `${p.fechaEntrega || "—"} → ${formatIsoDateEs(r.nuevaFechaEntregaIso)}${diff !== null ? ` (${diff > 0 ? "+" : ""}${diff} días)` : ""}`;
+    }
+    const unidades = r.nuevasUnidades && r.nuevasUnidades !== p.unidades ? `${p.unidades || "—"} → ${r.nuevasUnidades}` : "Sin cambios";
+    let coste = "Sin cambios";
+    if (r.nuevoPresupuesto && r.nuevoPresupuesto !== p.presupuesto) {
+      const delta = parseBudgetNumber(r.nuevoPresupuesto) - parseBudgetNumber(p.presupuesto);
+      coste = `${p.presupuesto || "—"} → ${r.nuevoPresupuesto}${p.presupuesto ? ` (${delta >= 0 ? "+" : "−"}${Math.abs(delta).toLocaleString("es-ES")} €)` : ""}`;
+    }
+    return { plazo, unidades, coste };
+  }
+
+  // Campos que siguen usando la adenda oficial y el pasaporte
+  function syncRegistroLegacyFields(r) {
+    const imp = describeRegistroImpact(r);
+    r.tipo = r.titulo;
+    r.categoria = "Incidencia / cambio";
+    r.fecha = r.fechaRegistro;
+    r.origen = "SOFEIN";
+    r.propuestaMediacion = r.solucion;
+    r.impactoPlazo = imp.plazo;
+    r.impactoCoste = imp.coste;
+    r.nuevoPlazoAcordado = r.nuevaFechaEntregaIso ? `Nueva fecha de entrega: ${formatIsoDateEs(r.nuevaFechaEntregaIso)}` : "Sin cambio de plazo";
+    r.nuevoCosteAcordado = r.nuevoPresupuesto || "Sin alteración económica";
+    r.firmaSofein = true;
+    r.firmaSofeinFecha = r.fechaRegistro;
+    r.firmaSofeinUsuario = "SOFEIN";
+    r.estado = isRegistroCerrado(r) ? "Cerrado" : "Pendiente de firmas";
+    return r;
+  }
+
+  function closeRegistroIfSigned(exp, r) {
+    if (!isRegistroCerrado(r) || r.adendaId) return false;
+    const sum = SUMINISTROS.find(s => s.id === r.sumId);
+    if (sum) {
+      if (r.nuevaFechaEntregaIso) {
+        sum.fechaEntregaIso = r.nuevaFechaEntregaIso;
+        sum.fechaEntrega = formatIsoDateEs(r.nuevaFechaEntregaIso);
+      }
+      if (r.nuevasUnidades) {
+        sum.unidades = r.nuevasUnidades;
+        sum.unidadesNum = parseInt(r.nuevasUnidades.replace(/\D/g, ""), 10) || sum.unidadesNum;
+      }
+      if (r.nuevoPresupuesto) sum.presupuesto = r.nuevoPresupuesto;
+    }
+
+    const year = new Date().getFullYear();
+    const adendaNum = (exp.incidencias || []).filter(i => i.adendaId).length + 1;
+    r.adendaId = `ADENDA-${year}-${String(adendaNum).padStart(2, "0")}`;
+    r.adendaFecha = `${todayDocDate()}, ${new Date().toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })}`;
+    r.adendaHash = "sha256-" + Array.from({ length: 4 }, () => Math.random().toString(36).slice(2, 10)).join("");
+    syncRegistroLegacyFields(r);
+
+    // Documento de adenda en la Documentación del suministro afectado (fase en curso)
+    const delivMap = sum && SUMINISTROS.filter(s => s.expId === exp.id).length > 1 ? ensureSuministroDeliverables(exp, sum) : exp.deliverables;
+    const phaseIdx = Math.min((sum ? sum.faseActual : exp.faseActual) ?? 0, PHASES.length - 1);
+    if (!delivMap[phaseIdx]) delivMap[phaseIdx] = [];
+    delivMap[phaseIdx].push({
+      name: `Adenda ${r.adendaId} · ${r.id} ${r.titulo}`,
+      reqDate: null,
+      owner: "SOFEIN",
+      uploadedBy: "SOFEIN",
+      state: "complete",
+      format: "PDF",
+      file: `${r.adendaId}-${r.id}.pdf`,
+      date: todayDocDate(),
+      visibleTo: ["admin", "cliente", "proveedor", "destinatario"],
+      notes: "Generada al firmar cliente y proveedor",
+      hash: r.adendaHash
+    });
+
+    addExpedienteCambioLog(exp, {
+      tipo: "Cierre de registro",
+      suministro: r.sumId || "General",
+      titulo: `${r.id} cerrado con las dos firmas · ${r.adendaId}`,
+      detalle: r.titulo
+    });
+    return true;
+  }
+
+  EXPEDIENTES.forEach(e => (e.incidencias || []).forEach(syncRegistroLegacyFields));
 
   function ensureSuministroDeliverables(exp, sum) {
     if (!sum) return exp.deliverables;
@@ -3900,6 +4021,132 @@
   /* ============================================================
      EL CONSTRUCTOR DE EXPEDIENTES (GESTIÓN DEL EXPEDIENTE ADAPTADA POR PERFIL)
      ============================================================ */
+  // Tarjeta de un registro (abierto o, dentro del historial, cerrado)
+  function renderRegistroCardHTML(exp, r, { isRoleAdmin, isRoleCliente, isRoleProveedor, isDestinatario }) {
+    const closed = isRegistroCerrado(r);
+    const sum = SUMINISTROS.find(s => s.id === r.sumId);
+    const imp = describeRegistroImpact(r);
+    const adjuntos = (r.adjuntos || []).map((a, idx) => ({ ...a, idx })).filter(a => isRoleAdmin || !Array.isArray(a.visibleTo) || a.visibleTo.includes(activeRole));
+    const regRef = `data-exp="${exp.id}" data-reg="${r.id}"`;
+
+    const signerBox = (party, label) => {
+      const signed = party === "cliente" ? r.firmaCliente : r.firmaProveedor;
+      const fecha = party === "cliente" ? r.firmaClienteFecha : r.firmaProveedorFecha;
+      const user = party === "cliente" ? r.firmaClienteUsuario : r.firmaProveedorUsuario;
+      const canSign = !closed && !signed && activeRole === party;
+      return `
+        <div class="incident-signer-card">
+          <div class="incident-signer-head">
+            <span class="incident-signer-role">${label}</span>
+            ${signed
+              ? `<span class="incident-signer-status signed">${icon("check", 13)} Firmado</span>`
+              : `<span class="incident-signer-status pending">${icon("alert", 13)} Pendiente</span>`}
+          </div>
+          ${signed ? `
+            <div class="incident-signer-user" title="${escHTML(user || "")}">${escHTML(user || label)}</div>
+            <div class="incident-signer-date">${fecha || ""}</div>
+          ` : canSign ? `
+            <button class="admin-primary-button" type="button" data-sign-incident-party="${party}" data-incident-id="${r.id}" data-exp-id="${exp.id}" style="padding:5px 10px;font-size:0.74rem;margin-top:2px">
+              ${icon("check", 12)} Firmar
+            </button>
+          ` : `
+            <div class="incident-signer-user" style="color:var(--entity-muted);font-style:italic">Pendiente de firma</div>
+          `}
+        </div>
+      `;
+    };
+
+    return `
+      <article class="incident-card reg-card ${closed ? "is-consolidated" : "is-pending-signs"}" id="reg-card-${r.id}">
+        <div class="incident-card-top">
+          <div>
+            <div class="incident-card-meta">
+              <span class="incident-chip-id">${r.id}</span>
+              <span class="dossier-chip" style="font-size:0.68rem">${icon("box", 11)} ${r.sumId || "General"}${sum ? ` · ${escHTML(sum.tipo)}` : ""}</span>
+              ${closed
+                ? `<span class="entity-status complete"><i></i>Cerrado</span>`
+                : `<span class="entity-status review"><i></i>Pendiente de firmas</span>`}
+            </div>
+            <div class="incident-card-title">
+              <h3>${escHTML(r.titulo)}</h3>
+              <p>Registrado por <b>SOFEIN</b> el ${r.fechaRegistro}</p>
+            </div>
+          </div>
+          ${isRoleAdmin && !closed ? `
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+              <button class="admin-quiet-button" type="button" data-reg-edit="${r.id}" data-exp-id="${exp.id}" style="font-size:0.75rem">
+                ${icon("edit", 13)} Editar Mediación
+              </button>
+              <button class="admin-quiet-button reg-delete-btn" type="button" data-reg-delete="${r.id}" data-exp-id="${exp.id}" style="font-size:0.75rem">
+                ${icon("x", 13)} Eliminar
+              </button>
+            </div>
+          ` : ""}
+        </div>
+
+        <p class="reg-description">${escHTML(r.descripcion || "")}</p>
+
+        <div class="incident-impact-grid">
+          <div class="incident-impact-item">
+            <span class="impact-label">Impacto en plazo</span>
+            <strong class="impact-val">${imp.plazo}</strong>
+          </div>
+          <div class="incident-impact-item">
+            <span class="impact-label">Cambio en unidades</span>
+            <strong class="impact-val">${imp.unidades}</strong>
+          </div>
+          <div class="incident-impact-item">
+            <span class="impact-label">Impacto económico</span>
+            <strong class="impact-val">${isDestinatario ? "[Reservado]" : imp.coste}</strong>
+          </div>
+        </div>
+
+        <div class="reg-solution">
+          <span class="reg-section-label">${icon("shield", 13)} Solución propuesta por SOFEIN</span>
+          <p>${escHTML(r.solucion || "")}</p>
+        </div>
+
+        ${adjuntos.length ? `
+          <div class="reg-attachments">
+            <span class="reg-section-label">${icon("file", 13)} Adjuntos</span>
+            ${adjuntos.map(a => `
+              <div class="reg-attachment">
+                <strong>${escHTML(a.name)}</strong>
+                <span>${escHTML(a.file)}</span>
+                <button class="doc-tbl-action-btn" type="button" data-reg-view-attach="${a.idx}" ${regRef}>${icon("eye", 12)} Ver</button>
+              </div>
+            `).join("")}
+          </div>
+        ` : ""}
+
+        <div class="incident-signers-grid">
+          <div class="incident-signer-card">
+            <div class="incident-signer-head">
+              <span class="incident-signer-role">SOFEIN</span>
+              <span class="incident-signer-status signed">${icon("check", 13)} Registrado</span>
+            </div>
+            <div class="incident-signer-user">SOFEIN</div>
+            <div class="incident-signer-date">${r.fechaRegistro}</div>
+          </div>
+          ${signerBox("proveedor", "Proveedor")}
+          ${signerBox("cliente", "Cliente")}
+        </div>
+
+        ${closed && r.adendaId ? `
+          <div class="incident-consolidation-bar" style="background:rgba(16, 185, 129, 0.05);border-color:rgba(16, 185, 129, 0.28)">
+            <div class="incident-consolidated-seal">
+              ${icon("check", 18)}
+              <span>Adenda <b>${r.adendaId}</b> · ${r.adendaFecha || ""}</span>
+            </div>
+            <button class="admin-quiet-button" type="button" data-view-addendum="${exp.id}" data-incident-id="${r.id}" style="color:#0F766E;font-weight:600">
+              ${icon("file", 14)} Ver adenda
+            </button>
+          </div>
+        ` : ""}
+      </article>
+    `;
+  }
+
   function renderDossierBuilder(expId) {
     const exp = getActiveExpediente(expId);
     const allExpSuministros = SUMINISTROS.filter(s => s.expId === exp.id);
@@ -4387,47 +4634,55 @@
 
       tabContent = `${docManagerBarHTML}${docTableHTML}${passportInClosureHTML}`;
     } else if (activeDossierTab === "incidents") {
-      // Sección "Registro de incidencias": Filtrado estanco para Proveedor (solo ve incidencias y cambios de sus suministros)
+      // Registro de incidencias y cambios: el Proveedor solo ve los de sus suministros
       const visibleSumIds = new Set(expSuministros.map(s => s.id));
-      const roleIncidents = isRoleProveedor
-        ? exp.incidencias.filter(inc => !inc.sumId || visibleSumIds.has(inc.sumId))
-        : exp.incidencias;
+      const roleRegistros = (exp.incidencias || []).filter(r => !isRoleProveedor || !r.sumId || visibleSumIds.has(r.sumId));
+      const openRegs = roleRegistros.filter(r => !isRegistroCerrado(r));
+      const closedRegs = roleRegistros.filter(isRegistroCerrado);
 
-      const roleCambiosLog = cambiosLog.filter(c => {
-        if (!isRoleAdmin && c.soloAdmin) return false;
-        if (isRoleProveedor && c.suministro && c.suministro !== "General" && c.suministro !== "Todos" && !visibleSumIds.has(c.suministro)) return false;
-        return true;
-      });
-
-      const totalInc = roleIncidents.length;
-      const totalCambios = roleCambiosLog.length;
-      const totalRegistros = totalInc + totalCambios;
-      const inMediationInc = roleIncidents.filter(i => (!i.adendaId && !i.estado.includes("Consolidada") && !i.estado.includes("formalizada")) && (i.estado.includes("mediación") || i.estado.includes("Registrada"))).length;
-      const consolidatedInc = roleIncidents.filter(i => !!i.adendaId || i.estado.includes("Consolidada") || i.estado.includes("formalizada")).length;
-
-      const showIncidentsBlock = incidentStatusFilter !== "changes_only";
-      const showChangesBlock = incidentStatusFilter === "all" || incidentStatusFilter === "changes_only";
-
-      let filteredIncidents = roleIncidents;
-      if (incidentStatusFilter === "in_mediation") {
-        filteredIncidents = roleIncidents.filter(i => (!i.adendaId && !i.estado.includes("Consolidada") && !i.estado.includes("formalizada")) && (i.estado.includes("mediación") || i.estado.includes("Registrada")));
-      } else if (incidentStatusFilter === "pending_signs") {
-        filteredIncidents = roleIncidents.filter(i => (!i.adendaId && !i.estado.includes("Consolidada") && !i.estado.includes("formalizada")) && i.propuestaMediacion && (!i.firmaCliente || !i.firmaProveedor));
-      } else if (incidentStatusFilter === "consolidated") {
-        filteredIncidents = roleIncidents.filter(i => !!i.adendaId || i.estado.includes("Consolidada") || i.estado.includes("formalizada"));
-      }
-
-      const changesTableHTML = showChangesBlock ? `
-        <details class="dossier-collapsible-block" data-collapse-key="changesLog" ${dossierCollapseState.changesLog !== false ? "open" : ""}>
+      const closedHistoryHTML = `
+        <details class="dossier-collapsible-block reg-history" data-collapse-key="regHistory" ${dossierCollapseState.regHistory ? "open" : ""}>
           <summary class="dossier-collapsible-summary">
             <div class="dossier-collapsible-summary-left">
-              <span class="dossier-section-kicker">${icon("activity", 14)} Historial de Cambios y Actividad (${roleCambiosLog.length})</span>
+              <span class="dossier-section-kicker">${icon("archive", 14)} Historial de incidencias y cambios cerrados (${closedRegs.length})</span>
             </div>
-            <span class="dossier-collapsible-chevron" title="Colapsar / Expandir historial de cambios">
-              ${icon("chevronDown", 15)}
-            </span>
+            <span class="dossier-collapsible-chevron">${icon("chevronDown", 15)}</span>
           </summary>
           <div class="dossier-collapsible-body">
+            ${closedRegs.length ? closedRegs.map(r => {
+              const sum = SUMINISTROS.find(s => s.id === r.sumId);
+              return `
+                <details class="reg-history-item">
+                  <summary>
+                    <span class="incident-chip-id">${r.id}</span>
+                    <span class="reg-history-date">${r.fechaRegistro}</span>
+                    <span class="reg-history-sum">${r.sumId || "General"}${sum ? ` · ${escHTML(sum.tipo)}` : ""}</span>
+                    <strong class="reg-history-title">${escHTML(r.titulo)}</strong>
+                    <span class="dossier-collapsible-chevron">${icon("chevronDown", 14)}</span>
+                  </summary>
+                  ${renderRegistroCardHTML(exp, r, { isRoleAdmin, isRoleCliente, isRoleProveedor, isDestinatario })}
+                </details>
+              `;
+            }).join("") : `<p class="reg-empty">Todavía no hay registros cerrados.</p>`}
+          </div>
+        </details>
+      `;
+
+      const privateLog = isRoleAdmin ? cambiosLog : [];
+      const privateLogHTML = isRoleAdmin ? `
+        <details class="dossier-collapsible-block reg-private" data-collapse-key="changesLog" ${dossierCollapseState.changesLog ? "open" : ""}>
+          <summary class="dossier-collapsible-summary">
+            <div class="dossier-collapsible-summary-left">
+              <span class="dossier-section-kicker">${icon("lock", 14)} Anotaciones internas y actividad · Solo SOFEIN (${privateLog.length})</span>
+            </div>
+            <span class="dossier-collapsible-chevron">${icon("chevronDown", 15)}</span>
+          </summary>
+          <div class="dossier-collapsible-body">
+            <div style="display:flex;justify-content:flex-end;margin-bottom:8px">
+              <button class="admin-quiet-button" type="button" data-open-change-log-modal="${exp.id}">
+                ${icon("plus", 14)} Añadir anotación interna
+              </button>
+            </div>
             <section class="doc-clean-table-card">
               <div class="doc-clean-table-wrap">
                 <table class="doc-clean-table">
@@ -4435,20 +4690,20 @@
                     <tr>
                       <th>Código</th>
                       <th>Fecha</th>
-                      <th>Tipo de Cambio</th>
+                      <th>Tipo</th>
                       <th>Suministro</th>
-                      <th>Descripción / Cambio registrado</th>
+                      <th>Descripción</th>
                       <th>Autor</th>
                     </tr>
                   </thead>
                   <tbody>
-                    ${roleCambiosLog.map(c => `
+                    ${privateLog.map(c => `
                       <tr ${c.soloAdmin ? 'style="background:rgba(16, 69, 29, 0.04)"' : ''}>
                         <td><span class="dossier-sum-code">${c.id}</span></td>
                         <td><span class="doc-tbl-date">${c.fecha}</span></td>
                         <td>
                           <span class="dossier-chip" style="font-size:0.68rem">${c.tipo}</span>
-                          ${c.soloAdmin ? `<span class="dossier-chip" style="font-size:0.65rem;background:#FEF3C7;color:#92400E;border-color:#FDE68A;margin-left:4px" title="Anotación interna confidencial visible exclusivamente para SOFEIN">${icon("lock", 11)} Solo SOFEIN</span>` : ''}
+                          ${c.soloAdmin ? `<span class="dossier-chip" style="font-size:0.65rem;background:#FEF3C7;color:#92400E;border-color:#FDE68A;margin-left:4px" title="Anotación interna confidencial visible exclusivamente para SOFEIN">${icon("lock", 11)} Anotación interna</span>` : ""}
                         </td>
                         <td><span class="doc-tbl-phase">${c.suministro || "General"}</span></td>
                         <td>
@@ -4468,280 +4723,28 @@
         </details>
       ` : "";
 
-      const incidentsCardsHTML = showIncidentsBlock ? (filteredIncidents.length ? filteredIncidents.map((inc) => {
-        const isConsolidated = !!inc.adendaId || inc.estado.includes("Consolidada") || inc.estado.includes("formalizada");
-        const isPendingSigns = !isConsolidated && inc.propuestaMediacion && (!inc.firmaCliente || !inc.firmaProveedor);
-        const cardClass = isConsolidated ? "is-consolidated" : (!isConsolidated && inc.propuestaMediacion && (!inc.firmaCliente || !inc.firmaProveedor)) ? "is-pending-signs" : inc.estado.includes("mediación") ? "is-mediated" : "is-open";
-
-        const statusBadgeHTML = isConsolidated ?
-          `<span class="entity-status complete"><i></i>Adenda Consolidada</span>` :
-          (!isConsolidated && inc.propuestaMediacion && (!inc.firmaCliente || !inc.firmaProveedor)) ?
-          `<span class="entity-status review" style="color:#0F766E"><i></i>Pendiente de firmas</span>` :
-          `<span class="entity-status warning"><i></i>${inc.estado}</span>`;
-
-        return `
-          <article class="incident-card ${cardClass}" id="card-${inc.id}">
-            <div class="incident-card-top">
-              <div>
-                <div class="incident-card-meta">
-                  <span class="incident-chip-id">${inc.id}</span>
-                  <span class="dossier-chip" style="font-size:0.68rem">${inc.categoria || "Incidencia de vía"}</span>
-                  ${statusBadgeHTML}
-                </div>
-                <div class="incident-card-title">
-                  <h3>${inc.tipo}</h3>
-                  <p>Comunicada el ${inc.fecha} por <b>${inc.origen}</b></p>
-                </div>
-              </div>
-              <div style="display:flex;align-items:center;gap:8px">
-                ${isRoleAdmin && !isConsolidated ? `
-                  <button class="admin-quiet-button" type="button" data-open-mediation-modal="${exp.id}" data-incident-id="${inc.id}" style="font-size:0.75rem">
-                    ${icon("shield", 13)} ${inc.propuestaMediacion ? "Editar Mediación" : "Redactar Mediación"}
-                  </button>
-                ` : ""}
-              </div>
-            </div>
-
-            <p style="margin:0;font-size:0.83rem;color:var(--entity-text);line-height:1.55">
-              ${inc.descripcion || "Registro formal de alteración operativa sobrevenido en la cadena de suministro de vía."}
-            </p>
-
-            <div class="incident-impact-grid">
-              <div class="incident-impact-item">
-                <span class="impact-label">Impacto en Plazo</span>
-                <strong class="impact-val" style="color:var(--entity-warning)">
-                  ${icon("activity", 14)} ${inc.impactoPlazo || inc.impacto || "A cuantificar"}
-                </strong>
-              </div>
-              <div class="incident-impact-item">
-                <span class="impact-label">Impacto Económico</span>
-                <strong class="impact-val">
-                  ${inc.impactoCoste || "0 € (Sin alteración)"}
-                </strong>
-              </div>
-              <div class="incident-impact-item">
-                <span class="impact-label">Evidencia Técnica Adjunta</span>
-                <strong class="impact-val" style="font-size:0.78rem;font-weight:500;color:var(--entity-accent)">
-                  ${icon("file", 14)} <span style="text-decoration:underline;text-underline-offset:2px;cursor:pointer" title="Previsualizar documento probatorio">${inc.evidenciaDoc || "Informe-Tecnico-Soporte.pdf"}</span>
-                </strong>
-              </div>
-            </div>
-
-            <details class="dossier-inner-collapsible" ${!isConsolidated ? "open" : ""}>
-              <summary class="dossier-inner-collapsible-summary">
-                <span>${icon("shield", 14)} Resolución de Mediación SOFEIN, Cláusula de Silencio Positivo y Firmas</span>
-                <span class="dossier-collapsible-chevron">${icon("chevronDown", 14)}</span>
-              </summary>
-              <div class="dossier-inner-collapsible-body">
-                ${inc.propuestaMediacion ? `
-                  <div class="incident-mediation-panel">
-                    <div class="incident-mediation-head">
-                      <h4>${icon("shield", 16)} Propuesta de Mediación & Adenda SOFEIN</h4>
-                      <span style="font-size:0.72rem;color:var(--entity-muted)">Notificada el ${inc.fechaNotificacionPropuesta || inc.fecha}</span>
-                    </div>
-                    <p class="incident-mediation-body">${inc.propuestaMediacion}</p>
-                    
-                    <div class="incident-terms-grid">
-                      <div class="incident-term-box">
-                        <span class="term-label">Nuevo Plazo Oficial Pactado</span>
-                        <strong class="term-val">${inc.nuevoPlazoAcordado || "Reajustado en propuesta"}</strong>
-                      </div>
-                      <div class="incident-term-box">
-                        <span class="term-label">Ajuste Económico Vinculante</span>
-                        <strong class="term-val">${inc.nuevoCosteAcordado || "Sin variación de importe"}</strong>
-                      </div>
-                      <div class="incident-term-box">
-                        <span class="term-label">Garantías Técnicas & Ensayos</span>
-                        <strong class="term-val" style="font-size:0.75rem">${inc.resolucionTecnica || "Ensayos EN 13230 verificados"}</strong>
-                      </div>
-                    </div>
-
-                    <div class="incident-silence-box">
-                      <div class="incident-silence-icon">${icon("activity", 18)}</div>
-                      <div class="incident-silence-text">
-                        <strong>Cláusula de Silencio Positivo (5 Días Hábiles):</strong>
-                        ${isConsolidated ?
-                          ` Adenda contractual formalizada y consolidada oficialmente el ${inc.adendaFecha || "recientemente"}.` :
-                          ` Fecha límite de alegaciones: <b>${inc.fechaLimiteRespuesta || "5 días hábiles"}</b> (${inc.diasHabilesRestantes > 0 ? `quedan <b>${inc.diasHabilesRestantes} días hábiles</b>` : "Plazo legal transcurrido"}). La ausencia de oposición formal expresa opera como <b>aprobación tácita por SILENCIO POSITIVO</b>.`
-                        }
-                      </div>
-                      ${isRoleAdmin && !isConsolidated ? `
-                        <button class="admin-quiet-button" type="button" data-open-mediation-modal="${exp.id}" data-incident-id="${inc.id}" style="font-size:0.72rem;white-space:nowrap;margin-left:auto">
-                          Editar términos
-                        </button>
-                      ` : ""}
-                    </div>
-                  </div>
-                ` : `
-                  <div style="padding:16px 20px;background:var(--entity-panel-2);border:1px dashed var(--entity-line);border-radius:10px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
-                    <div>
-                      <strong style="display:block;font-size:0.84rem;color:var(--entity-text);margin-bottom:2px">Propuesta de Mediación SOFEIN Pendiente</strong>
-                      <span style="font-size:0.76rem;color:var(--entity-muted)">Esta alteración requiere que el mediador de SOFEIN evalúe la solución técnica y plantee la adenda correspondiente.</span>
-                    </div>
-                    ${isRoleAdmin ? `
-                      <button class="admin-primary-button" type="button" data-open-mediation-modal="${exp.id}" data-incident-id="${inc.id}">
-                        ${icon("shield", 14)} Redactar Propuesta de Mediación & Adenda
-                      </button>
-                    ` : `
-                      <span style="font-size:0.75rem;color:var(--entity-accent);font-weight:600">En evaluación técnica por SOFEIN (< 24h)</span>
-                    `}
-                  </div>
-                `}
-
-                <div class="incident-signers-grid">
-                  <div class="incident-signer-card">
-                    <div class="incident-signer-head">
-                      <span class="incident-signer-role">Mediador SOFEIN</span>
-                      <span class="incident-signer-status signed">${icon("check", 13)} Emitida</span>
-                    </div>
-                    <div class="incident-signer-user" title="${inc.firmaSofeinUsuario || "Ángel Plaza (SOFEIN HQ)"}">
-                      ${inc.firmaSofeinUsuario || "Ángel Plaza (SOFEIN HQ)"}
-                    </div>
-                    <div class="incident-signer-date">${inc.firmaSofeinFecha || inc.fecha}</div>
-                  </div>
-
-                  <div class="incident-signer-card">
-                    <div class="incident-signer-head">
-                      <span class="incident-signer-role">Proveedor (Taller)</span>
-                      ${inc.firmaProveedor ?
-                        `<span class="incident-signer-status signed">${icon("check", 13)} Conforme</span>` :
-                        `<span class="incident-signer-status pending">${icon("alert", 13)} Pendiente</span>`
-                      }
-                    </div>
-                    ${inc.firmaProveedor ? `
-                      <div class="incident-signer-user" title="${inc.firmaProveedorUsuario || "Representante de Taller"}">
-                        ${inc.firmaProveedorUsuario || "Representante de Taller"}
-                      </div>
-                      <div class="incident-signer-date">${inc.firmaProveedorFecha || "Firmado electrónicamente"}</div>
-                    ` : activeRole === "proveedor" ? `
-                      <button class="admin-primary-button" type="button" data-sign-incident-party="proveedor" data-incident-id="${inc.id}" data-exp-id="${exp.id}" style="padding:4px 8px;font-size:0.72rem;margin-top:2px">
-                        ${icon("check", 12)} Firmar y Aceptar Propuesta
-                      </button>
-                    ` : `
-                      <div class="incident-signer-user" style="color:var(--entity-muted);font-style:italic">Firma de taller requerida</div>
-                      <div class="incident-signer-date">Plazo 5 días hábiles</div>
-                    `}
-                  </div>
-
-                  <div class="incident-signer-card">
-                    <div class="incident-signer-head">
-                      <span class="incident-signer-role">Cliente (Constructor)</span>
-                      ${inc.firmaCliente ?
-                        `<span class="incident-signer-status signed">${icon("check", 13)} Conforme</span>` :
-                        `<span class="incident-signer-status pending">${icon("alert", 13)} Pendiente</span>`
-                      }
-                    </div>
-                    ${inc.firmaCliente ? `
-                      <div class="incident-signer-user" title="${inc.firmaClienteUsuario || "Jefe de Obra (Constructor)"}">
-                        ${inc.firmaClienteUsuario || "Jefe de Obra (Constructor)"}
-                      </div>
-                      <div class="incident-signer-date">${inc.firmaClienteFecha || "Firmado electrónicamente"}</div>
-                    ` : activeRole === "cliente" ? `
-                      <button class="admin-primary-button" type="button" data-sign-incident-party="cliente" data-incident-id="${inc.id}" data-exp-id="${exp.id}" style="padding:4px 8px;font-size:0.72rem;margin-top:2px">
-                        ${icon("check", 12)} Firmar y Aceptar Propuesta
-                      </button>
-                    ` : `
-                      <div class="incident-signer-user" style="color:var(--entity-muted);font-style:italic">Firma de cliente requerida</div>
-                      <div class="incident-signer-date">Plazo 5 días hábiles</div>
-                    `}
-                  </div>
-                </div>
-              </div>
-            </details>
-
-            ${isConsolidated ? `
-              <div class="incident-consolidation-bar" style="background:rgba(16, 185, 129, 0.05);border-color:rgba(16, 185, 129, 0.28)">
-                <div class="incident-consolidated-seal">
-                  ${icon("check", 18)}
-                  <span>Adenda Oficial Consolidada <b>${inc.adendaId || "ADENDA-014-01"}</b></span>
-                  <span class="dossier-chip" style="font-size:0.68rem;padding:2px 7px;background:rgba(16, 185, 129, 0.15);color:#065F46">Sello Oficial Pasaporte</span>
-                </div>
-                <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-                  <span style="font-size:0.72rem;color:var(--entity-muted);font-family:monospace">${inc.adendaHash ? `Hash: ${inc.adendaHash.slice(0, 18)}...` : "SHA-256 Verificado"}</span>
-                  <button class="admin-quiet-button" type="button" data-view-addendum="${exp.id}" data-incident-id="${inc.id}" style="color:#0F766E;font-weight:600">
-                    ${icon("file", 14)} Ver Documento de Adenda Oficial Firmada
-                  </button>
-                </div>
-              </div>
-            ` : isRoleAdmin ? `
-              <div class="incident-consolidation-bar">
-                <div class="incident-consolidation-info">
-                  ${inc.firmaCliente && inc.firmaProveedor ?
-                    `<span style="color:#10B981;font-weight:600;display:flex;align-items:center;gap:6px">${icon("check", 14)} Ambas partes han firmado la propuesta de mediación.</span>` :
-                    `<span style="color:var(--entity-muted);display:flex;align-items:center;gap:6px">${icon("activity", 14)} Pendiente de ratificación bilateral. Vencimiento en 5 días hábiles.</span>`
-                  }
-                </div>
-                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-                  ${inc.firmaCliente && inc.firmaProveedor ? `
-                    <button class="admin-primary-button" type="button" data-consolidate-addendum="${exp.id}" data-incident-id="${inc.id}">
-                      ${icon("shield", 14)} Consolidar Adenda Oficial y Actualizar Expediente
-                    </button>
-                  ` : `
-                    <button class="admin-quiet-button" type="button" data-apply-silence-incident="${exp.id}" data-incident-id="${inc.id}" title="Aplica formalmente el Silencio Positivo de 5 días hábiles sin oposición y consolida la adenda" style="color:#C89D54;font-weight:600;border-color:rgba(200, 157, 84, 0.45)">
-                      ${icon("activity", 14)} ⚡ Aplicar Silencio Positivo (5 días) y Consolidar
-                    </button>
-                    ${!inc.firmaCliente ? `
-                      <button class="admin-quiet-button" type="button" data-sign-incident-party="cliente" data-incident-id="${inc.id}" data-exp-id="${exp.id}" title="Simular firma por el constructor">
-                        Simular Firma Cliente
-                      </button>
-                    ` : ""}
-                  `}
-                </div>
-              </div>
-            ` : `
-              <div class="incident-consolidation-bar">
-                <div class="incident-consolidation-info">
-                  <span style="font-size:0.75rem;color:var(--entity-muted)">
-                    ${inc.firmaCliente && inc.firmaProveedor ?
-                      "Firmas completadas. Pendiente de consolidación formal por SOFEIN Digital." :
-                      "En proceso de validación cruzada. La ausencia de alegaciones en 5 días hábiles consolida la adenda por silencio positivo."
-                    }
-                  </span>
-                </div>
-              </div>
-            `}
-          </article>
-        `;
-      }).join("") : `
-        <div style="padding:32px;background:var(--entity-panel);border:1px solid var(--entity-line);border-radius:12px;text-align:center;color:var(--entity-muted)">
-          <p style="margin:0 0 6px;font-size:0.88rem;font-weight:500;color:var(--entity-text)">No hay incidencias que coincidan con el filtro seleccionado.</p>
-          <span style="font-size:0.78rem">Toda la operativa del suministro transcurre conforme al pliego y cronograma.</span>
-        </div>
-      `) : "";
-
       tabContent = `
         <div class="incident-container">
           <div class="incident-filter-bar">
-            <div class="incident-filter-pills">
-              <button type="button" class="incident-filter-pill ${incidentStatusFilter === "all" ? "is-active" : ""}" data-incident-filter="all">
-                Todo el Registro <span class="pill-count">${totalRegistros}</span>
+            <span class="reg-summary-text">
+              <b>${openRegs.length}</b> ${openRegs.length === 1 ? "registro abierto" : "registros abiertos"} · <b>${closedRegs.length}</b> ${closedRegs.length === 1 ? "cerrado" : "cerrados"}
+            </span>
+            ${isRoleAdmin ? `
+              <button class="admin-primary-button" type="button" data-open-reg-modal="${exp.id}">
+                ${icon("plus", 14)} Registrar incidencia/cambio
               </button>
-              <button type="button" class="incident-filter-pill ${incidentStatusFilter === "in_mediation" ? "is-active" : ""}" data-incident-filter="in_mediation">
-                Incidencias en Mediación <span class="pill-count">${inMediationInc}</span>
-              </button>
-              <button type="button" class="incident-filter-pill ${incidentStatusFilter === "consolidated" ? "is-active" : ""}" data-incident-filter="consolidated">
-                Adendas Consolidadas <span class="pill-count">${consolidatedInc}</span>
-              </button>
-              <button type="button" class="incident-filter-pill ${incidentStatusFilter === "changes_only" ? "is-active" : ""}" data-incident-filter="changes_only">
-                Historial de Cambios <span class="pill-count">${totalCambios}</span>
-              </button>
-            </div>
-            ${activeRole !== "destinatario" ? `
-              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-                ${isRoleAdmin ? `
-                  <button class="admin-quiet-button" type="button" data-open-change-log-modal="${exp.id}">
-                    ${icon("plus", 14)} Añadir cambio
-                  </button>
-                ` : ""}
-                <button class="admin-primary-button" type="button" data-open-incident-modal="${exp.id}">
-                  ${icon("plus", 14)} Añadir incidencia
-                </button>
-              </div>
             ` : ""}
           </div>
 
-          ${incidentsCardsHTML}
-          ${changesTableHTML}
+          ${openRegs.length ? openRegs.map(r => renderRegistroCardHTML(exp, r, { isRoleAdmin, isRoleCliente, isRoleProveedor, isDestinatario })).join("") : `
+            <div class="reg-empty-card">
+              <p>No hay incidencias ni cambios abiertos.</p>
+              <span>${isRoleAdmin ? "Cuando el cliente o el proveedor comuniquen una incidencia o un cambio, regístralo aquí." : "SOFEIN registrará aquí las incidencias y cambios que requieran tu firma."}</span>
+            </div>
+          `}
+
+          ${closedHistoryHTML}
+          ${privateLogHTML}
         </div>
       `;
     } else if (activeDossierTab === "comms") {
@@ -4916,9 +4919,9 @@
       if (isRoleProveedor && n.sumId && !visibleSumIdsForBadge.has(n.sumId)) return false;
       return true;
     });
-    const totalRegistroBadge = isRoleProveedor
-      ? exp.incidencias.filter(inc => !inc.sumId || visibleSumIdsForBadge.has(inc.sumId)).length
-      : exp.incidencias.length;
+    // Badge: registros abiertos (pendientes de firma) visibles para el perfil
+    const totalRegistroBadge = exp.incidencias
+      .filter(r => !isRegistroCerrado(r) && (!isRoleProveedor || !r.sumId || visibleSumIdsForBadge.has(r.sumId))).length;
 
     // Indicador contextual de alcance (solo Destinatario; Cliente y Proveedor no lo necesitan)
     const roleScopeNoticeHTML = isDestinatario ? `
@@ -7176,17 +7179,6 @@
 
         <div class="admin-config-panel">
           <div>
-            <h2>Reglas de mediación y plazos tácitos</h2>
-            <p>Configuración de plazos de aprobación automática en silencio administrativo para adendas de mediación (Apuntes 06).</p>
-          </div>
-          <div style="display:flex;align-items:center;gap:10px">
-            <span class="dossier-chip">Plazo límite: <b>5 días hábiles</b></span>
-            <button class="admin-quiet-button" type="button" data-toast="Parámetro guardado en configuración">Editar regla</button>
-          </div>
-        </div>
-
-        <div class="admin-config-panel">
-          <div>
             <h2>Concurrencia mínima de proveedores</h2>
             <p>Mínimo de 3 proveedores a preseleccionar en Fase 1 conforme a normativa y pliegos públicos.</p>
           </div>
@@ -7710,7 +7702,7 @@
     const reglasCliente = cli.reglasContratacion || [
       "Concurrencia mínima garantizada: 3 proveedores homologados por lote en Fase 2",
       "Exigencia obligatoria en pliego: Trazabilidad lote a lote y ensayos en laboratorio ENAC",
-      "Protocolo de mediación SOFEIN con cláusula de silencio positivo a los 5 días hábiles",
+      "Registro de incidencias y cambios por SOFEIN con firma de cliente y proveedor",
       "Emisión de Pasaporte Digital criptográfico al cierre de recepción en obra"
     ];
 
@@ -8265,7 +8257,7 @@
                       ${inc.adendaId}: Modificación y Mediación por ${inc.titulo}
                     </strong>
                     <span style="font-size:0.74rem;color:var(--entity-muted);display:block;margin-top:2px">
-                      Consolidada el ${inc.adendaFecha} · Desvío: <b>${inc.nuevoCosteAcordado || inc.impactoCoste || "0 €"}</b> · ${inc.silencioPositivoAplicado ? "Aprobada por silencio positivo (5 días hábiles sin oposición)." : "Firmada por las partes."}
+                      Consolidada el ${inc.adendaFecha} · Desvío: <b>${inc.nuevoCosteAcordado || inc.impactoCoste || "0 €"}</b> · Firmada por cliente y proveedor.
                     </span>
                     <span class="passport-hash-pill" style="margin-top:4px;display:inline-block">Hash: ${inc.adendaHash || "SHA256: 9e8a71c0b...44"}</span>
                   </div>
@@ -8472,7 +8464,7 @@
               ${exp.incidencias && exp.incidencias.some(i => i.adendaId) ? `
                 <div style="padding:10px 12px;border:1px solid var(--entity-line);border-radius:6px;background:var(--entity-panel-2);display:grid;gap:3px">
                   <div style="display:flex;justify-content:space-between;align-items:center">
-                    <strong style="font-size:0.78rem">Bloque 5: Adenda Oficial Consolidada (ADENDA-014-01)</strong>
+                    <strong style="font-size:0.78rem">Bloque 5: ${exp.incidencias.filter(i => i.adendaId).length > 1 ? "Adendas" : "Adenda"} (${exp.incidencias.filter(i => i.adendaId).map(i => i.adendaId).join(", ")})</strong>
                     <span class="entity-status complete" style="font-size:0.65rem"><i></i>Certificado</span>
                   </div>
                   <span style="font-family:monospace;font-size:0.7rem;color:var(--entity-muted)">SHA-256: ad7f9c2041b3e851a02938471209384712093847120938471209384712093847</span>
@@ -8575,20 +8567,14 @@
     if (pendingOpenMediation) {
       const incId = pendingOpenMediation;
       pendingOpenMediation = null;
-      if (activeRole === "admin") {
-        setTimeout(() => {
-          openMediationModal(activeParam || "SFN-2026-H6T4", incId);
-        }, 70);
-      } else {
-        setTimeout(() => {
-          const targetCard = document.querySelector(`[data-incident-id="${incId}"]`) || document.querySelector(".incident-card");
-          if (targetCard) {
-            targetCard.scrollIntoView({ behavior: "smooth", block: "center" });
-            targetCard.style.outline = "2px solid var(--entity-accent)";
-            setTimeout(() => { targetCard.style.outline = ""; }, 2500);
-          }
-        }, 120);
-      }
+      setTimeout(() => {
+        const targetCard = document.getElementById(`reg-card-${incId}`) || document.querySelector(".reg-card");
+        if (targetCard) {
+          targetCard.scrollIntoView({ behavior: "smooth", block: "center" });
+          targetCard.style.outline = "2px solid var(--entity-accent)";
+          setTimeout(() => { targetCard.style.outline = ""; }, 2500);
+        }
+      }, 120);
     }
   }
 
@@ -9086,7 +9072,7 @@
         // Adjunto de creación → documento de Fase 1 (Alcance). SOFEIN fija la visibilidad al crear;
         // si lo solicita el cliente, queda visible solo para SOFEIN y el cliente hasta que SOFEIN valide.
         const toCreationDoc = (att, scope) => {
-          const ext = (att.file.name.split(".").pop() || "").toUpperCase();
+          const ext = (att.fileName.split(".").pop() || "").toUpperCase();
           return {
             docId: `DOC-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
             fromCreation: true,
@@ -9096,8 +9082,8 @@
             owner: isRoleAdmin ? "SOFEIN" : "Cliente",
             state: isRoleAdmin ? "complete" : "review",
             format: ext || "Archivo",
-            file: att.file.name,
-            fileUrl: URL.createObjectURL(att.file),
+            file: att.fileName,
+            fileUrl: att.fileUrl,
             date: todayStr,
             visibleTo: att.visibleTo || ["admin", "cliente"],
             notes: "Adjunto de la creación del expediente"
@@ -9228,48 +9214,25 @@
       });
     });
 
-    // Abrir modal de nueva incidencia / modificación
-    document.querySelectorAll("[data-open-incident-modal]").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const expId = btn.dataset.openIncidentModal;
-        openIncidentModal(expId);
-      });
+    // Registro de incidencias y cambios: registrar / editar / eliminar (SOFEIN Admin) y firmar (Cliente o Proveedor)
+    document.querySelectorAll("[data-open-reg-modal]").forEach(btn => {
+      btn.addEventListener("click", () => openRegistroModal(btn.dataset.openRegModal));
     });
-
-    // Abrir modal de mediación SOFEIN (redactar o editar propuesta)
-    document.querySelectorAll("[data-open-mediation-modal]").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const expId = btn.dataset.openMediationModal;
-        const incId = btn.dataset.incidentId;
-        openMediationModal(expId, incId);
-      });
+    document.querySelectorAll("[data-reg-edit]").forEach(btn => {
+      btn.addEventListener("click", () => openRegistroModal(btn.dataset.expId, btn.dataset.regEdit));
     });
-
-    // Ratificación y firma electrónica de propuesta (Cliente o Proveedor)
+    document.querySelectorAll("[data-reg-delete]").forEach(btn => {
+      btn.addEventListener("click", () => openDeleteRegistroModal(btn.dataset.expId, btn.dataset.regDelete));
+    });
     document.querySelectorAll("[data-sign-incident-party]").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const signerRole = btn.dataset.signIncidentParty;
-        const expId = btn.dataset.expId;
-        const incId = btn.dataset.incidentId;
-        openSignIncidentModal(expId, incId, signerRole);
-      });
+      btn.addEventListener("click", () => openSignIncidentModal(btn.dataset.expId, btn.dataset.incidentId, btn.dataset.signIncidentParty));
     });
-
-    // Aplicar Silencio Positivo (5 días transcurridos) y Consolidar
-    document.querySelectorAll("[data-apply-silence-incident]").forEach(btn => {
+    document.querySelectorAll("[data-reg-view-attach]").forEach(btn => {
       btn.addEventListener("click", () => {
-        const expId = btn.dataset.applySilenceIncident;
-        const incId = btn.dataset.incidentId;
-        applySilencePositive(expId, incId);
-      });
-    });
-
-    // Consolidar Adenda Contractual Oficial (SOFEIN Admin)
-    document.querySelectorAll("[data-consolidate-addendum]").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const expId = btn.dataset.consolidateAddendum;
-        const incId = btn.dataset.incidentId;
-        consolidateAddendum(expId, incId);
+        const exp = getActiveExpediente(btn.dataset.exp);
+        const reg = (exp?.incidencias || []).find(r => r.id === btn.dataset.reg);
+        const att = reg?.adjuntos?.[Number(btn.dataset.regViewAttach)];
+        if (att) viewDocFile({ name: att.name, file: att.file, fileUrl: att.fileUrl });
       });
     });
 
@@ -11491,63 +11454,46 @@
     });
   }
 
+  // Anotación interna (solo SOFEIN) en el registro privado del expediente
   function openAddCambioLogModal(expId) {
     const exp = getActiveExpediente(expId);
-    if (!exp) return;
+    if (!exp || activeRole !== "admin") return;
     const expSuministros = SUMINISTROS.filter(s => s.expId === exp.id);
     const modalWrap = document.getElementById("modalContainer");
     if (!modalWrap) return;
+    const inputStyle = "height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0";
 
     modalWrap.innerHTML = `
       <div class="procurement-modal-backdrop" id="addCambioLogBackdrop">
         <div class="procurement-modal" style="width:min(520px,100%)">
           <div class="procurement-modal-head">
             <div>
-              <h3>+ Añadir Cambio al Registro</h3>
-              <p style="margin:2px 0 0;font-size:0.75rem;color:var(--entity-muted)">Registra un cambio operativo, ajuste técnico o anotación en ${exp.id}</p>
+              <h3>${icon("lock", 15)} Añadir anotación interna</h3>
+              <p style="margin:2px 0 0;font-size:0.75rem;color:var(--entity-muted)">Solo la ve SOFEIN. No aparece al cliente ni al proveedor.</p>
             </div>
             <button type="button" id="closeAddCambioLogBtn">×</button>
           </div>
           <form id="modalAddCambioLogForm">
             <div class="procurement-modal-body" style="gap:12px">
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-                <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
-                  Tipo de cambio / registro
-                  <select name="tipo" id="addCambioTipoSelect" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0">
-                    <option value="Anotación interna (SOFEIN)">Anotación interna (Solo SOFEIN)</option>
-                    <option value="Cambio operativo">Cambio operativo</option>
-                    <option value="Ajuste de entrega">Ajuste de fecha / entrega</option>
-                    <option value="Modificación de alcance">Modificación de alcance</option>
-                    <option value="Validación técnica">Validación técnica</option>
-                  </select>
-                </label>
-                <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
-                  Suministro afectado
-                  <select name="suministro" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0">
-                    <option value="General">Todo el expediente</option>
-                    ${expSuministros.map(s => `<option value="${s.id}" ${activeDossierSuministroId === s.id ? "selected" : ""}>${s.id} · ${s.tipo}</option>`).join("")}
-                  </select>
-                </label>
-              </div>
               <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
-                Título del cambio
-                <input name="titulo" required placeholder="Ej: Actualización de ventana de descarga en tajo de vía" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0" />
+                Suministro
+                <select name="suministro" style="${inputStyle}">
+                  <option value="General">Todo el expediente</option>
+                  ${expSuministros.map(s => `<option value="${s.id}" ${activeDossierSuministroId === s.id ? "selected" : ""}>${s.id} · ${s.tipo}</option>`).join("")}
+                </select>
               </label>
               <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
-                Detalle / Observaciones
-                <textarea name="detalle" rows="3" placeholder="Describe el cambio acordado o anotación interna de seguimiento..." style="padding:9px 11px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;line-height:1.45"></textarea>
+                Título
+                <input name="titulo" required placeholder="Ej: Llamada con jefe de obra sobre ventana de descarga" style="${inputStyle}" />
               </label>
-              <div style="padding:10px 12px;background:rgba(16, 69, 29, 0.05);border:1px solid rgba(16, 69, 29, 0.15);border-radius:8px;display:flex;align-items:flex-start;gap:10px">
-                <input type="checkbox" name="soloAdmin" id="checkSoloAdmin" checked style="margin-top:2px;cursor:pointer;accent-color:#10451D" />
-                <label for="checkSoloAdmin" style="font-size:0.75rem;color:var(--entity-text);cursor:pointer;line-height:1.4">
-                  <strong style="display:block;color:#10451D">Anotación interna confidencial (Solo visible para SOFEIN)</strong>
-                  Esta anotación no será visible para el Cliente ni para el Proveedor dentro del expediente.
-                </label>
-              </div>
+              <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
+                Detalle
+                <textarea name="detalle" rows="3" placeholder="Notas internas de seguimiento…" style="padding:9px 11px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;line-height:1.45"></textarea>
+              </label>
             </div>
             <div class="procurement-modal-footer">
               <button class="admin-quiet-button" type="button" id="cancelAddCambioLogBtn">Cancelar</button>
-              <button class="admin-primary-button" type="submit">${icon("check", 14)} Guardar en Registro</button>
+              <button class="admin-primary-button" type="submit">${icon("check", 14)} Guardar anotación</button>
             </div>
           </form>
         </div>
@@ -11561,26 +11507,18 @@
       if (e.target.id === "addCambioLogBackdrop") close();
     });
 
-    // Sincronizar checkbox si cambia el tipo a/desde Anotación interna
-    const tipoSelect = document.getElementById("addCambioTipoSelect");
-    const soloAdminCheck = document.getElementById("checkSoloAdmin");
-    tipoSelect?.addEventListener("change", () => {
-      if (tipoSelect.value.includes("Anotación interna")) {
-        if (soloAdminCheck) soloAdminCheck.checked = true;
-      }
-    });
-
     document.getElementById("modalAddCambioLogForm")?.addEventListener("submit", e => {
       e.preventDefault();
       const form = new FormData(e.currentTarget);
-      const tipo = form.get("tipo") || "Cambio operativo";
-      const suministro = form.get("suministro") || "General";
-      const titulo = (form.get("titulo") || "").trim();
-      const detalle = (form.get("detalle") || "").trim();
-      const soloAdmin = form.get("soloAdmin") !== null;
-      addExpedienteCambioLog(exp, { tipo, suministro, titulo, detalle, soloAdmin });
+      addExpedienteCambioLog(exp, {
+        tipo: "Anotación interna (SOFEIN)",
+        suministro: form.get("suministro") || "General",
+        titulo: (form.get("titulo") || "").trim(),
+        detalle: (form.get("detalle") || "").trim(),
+        soloAdmin: true
+      });
       close();
-      showToast(soloAdmin ? `✓ Anotación interna SOFEIN añadida a ${exp.id}` : `✓ Registro añadido a ${exp.id}`);
+      showToast(`✓ Anotación interna añadida a ${exp.id}`);
       renderApp();
     });
   }
@@ -11745,306 +11683,186 @@
     }, 500);
   }
 
-  function openIncidentModal(expId) {
-    const modalWrap = document.getElementById("modalContainer");
-    if (!modalWrap) return;
+  // Registrar (regId vacío) o editar una incidencia/cambio. Solo SOFEIN Admin.
+  function openRegistroModal(expId, regId = null) {
     const exp = getActiveExpediente(expId);
-    if (!exp) return;
+    const modalWrap = document.getElementById("modalContainer");
+    if (!exp || !modalWrap || activeRole !== "admin") return;
+    const reg = regId ? (exp.incidencias || []).find(r => r.id === regId) : null;
+    const expSums = SUMINISTROS.filter(s => s.expId === exp.id);
+    const defaultSumId = reg ? reg.sumId : (getActiveExpSuministro(exp)?.id || expSums[0]?.id || "");
+    const code = reg ? reg.id : nextRegistroId(exp);
+    const inputStyle = "height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0";
+    const labelStyle = "display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)";
+    const areaStyle = "padding:9px 11px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;line-height:1.45;width:100%;box-sizing:border-box;resize:vertical";
 
-    const isRoleAdmin = activeRole === "admin";
-    const defaultOrigin = activeRole === "cliente" ? `Cliente (${exp.cliente})` : activeRole === "proveedor" ? `Proveedor (${exp.proveedor || "Taller Homologado"})` : "SOFEIN (De Oficio)";
+    // Valores "igual" de referencia: los del registro (al editar con el mismo suministro) o los actuales del suministro
+    const previoFor = sumId => {
+      if (reg && reg.sumId === sumId && reg.previo) return reg.previo;
+      const s = expSums.find(x => x.id === sumId) || {};
+      return { fechaEntrega: s.fechaEntrega || "", fechaEntregaIso: s.fechaEntregaIso || "", unidades: s.unidades || "", presupuesto: s.presupuesto || "" };
+    };
+    const changeRow = (key, label, type, currentVal, newVal, placeholder) => `
+      <div class="reg-change-row" data-reg-change="${key}">
+        <span class="reg-change-label">${label}</span>
+        <label class="reg-change-opt"><input type="radio" name="${key}_mode" value="igual" ${newVal ? "" : "checked"} /> Igual <em data-reg-current="${key}">(${escHTML(currentVal || "—")})</em></label>
+        <label class="reg-change-opt"><input type="radio" name="${key}_mode" value="nuevo" ${newVal ? "checked" : ""} /> Nuevo</label>
+        <input name="${key}_valor" type="${type}" value="${escHTML(newVal || "")}" placeholder="${placeholder}" style="${inputStyle};height:34px" ${newVal ? "" : "disabled"} />
+      </div>
+    `;
+    const prev0 = previoFor(defaultSumId);
 
     modalWrap.innerHTML = `
-      <div class="procurement-modal-backdrop" id="incidentModalBackdrop">
-        <div class="procurement-modal" style="width:min(660px,100%)">
+      <div class="procurement-modal-backdrop" id="regModalBackdrop">
+        <div class="procurement-modal" style="width:min(680px,100%);max-height:92vh;overflow-y:auto">
           <div class="procurement-modal-head">
             <div>
-              <h3>Notificar Incidencia / Modificación de Alcance</h3>
-              <p style="margin:2px 0 0;font-size:0.75rem;color:var(--entity-muted)">Expediente <b>${exp.id}</b> · ${exp.producto}</p>
+              <h3>${reg ? "Editar Mediación" : "Registrar incidencia/cambio"}</h3>
             </div>
-            <button type="button" id="closeIncidentModalBtn" aria-label="Cerrar">×</button>
+            <button type="button" id="closeRegModalBtn">×</button>
           </div>
-          <form id="modalIncidentForm">
-            <div class="procurement-modal-body" style="gap:14px;max-height:calc(85vh - 140px);overflow-y:auto;padding-right:12px">
-              
-              <!-- Notificante y Categoría -->
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-                <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
-                  Notificante / Origen
-                  <select name="origen" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0">
-                    <option value="Cliente (${exp.cliente})" ${activeRole === "cliente" ? "selected" : ""}>Cliente (${exp.cliente})</option>
-                    <option value="Proveedor (${exp.proveedor || "Taller Homologado"})" ${activeRole === "proveedor" ? "selected" : ""}>Proveedor (${exp.proveedor || "Taller Homologado"})</option>
-                    <option value="SOFEIN (De Oficio)" ${activeRole === "admin" ? "selected" : ""}>SOFEIN (De Oficio / Mediador)</option>
-                  </select>
+          <form id="modalRegForm">
+            <div class="procurement-modal-body" style="gap:14px">
+              ${reg && (reg.firmaCliente || reg.firmaProveedor) ? `
+                <p class="reg-edit-warning">${icon("alert", 14)} Al guardar los cambios se borrarán las firmas actuales y habrá que volver a pedirlas al cliente y al proveedor.</p>
+              ` : ""}
+              <div style="display:grid;grid-template-columns:140px 1fr;gap:12px">
+                <label style="${labelStyle}">
+                  Código
+                  <input value="${code}" readonly style="${inputStyle};opacity:0.8;cursor:not-allowed;font-family:ui-monospace,monospace" />
                 </label>
-                <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
-                  Tipología de la Alteración
-                  <select name="categoria" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0">
-                    <option value="Retraso de fabricación">Retraso en fabricación / curado en taller</option>
-                    <option value="No conformidad técnica / calidad">No conformidad técnica / ensayo de calidad</option>
-                    <option value="Modificación de alcance / adenda">Modificación de alcance / unidades de vía (Cliente)</option>
-                    <option value="Incidencia logística">Incidencia logística / transporte a tajo de vía</option>
+                <label style="${labelStyle}">
+                  Suministro afectado
+                  <select name="sumId" required style="${inputStyle}">
+                    ${expSums.map(s => `<option value="${s.id}" ${s.id === defaultSumId ? "selected" : ""}>${s.id} · ${escHTML(s.tipo)}${s.descripcion ? ` — ${escHTML(s.descripcion)}` : ""}</option>`).join("")}
                   </select>
                 </label>
               </div>
-
-              <!-- Título de la Incidencia -->
-              <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
-                Título Resumen de la Alteración
-                <input name="tipo" placeholder="Ej: Demora en secado de hormigón por ola de calor" required style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0" />
+              <label style="${labelStyle}">
+                Título de la incidencia/cambio
+                <input name="titulo" required value="${escHTML(reg?.titulo || "")}" placeholder="Ej: Retraso en la expedición del segundo lote" style="${inputStyle}" />
               </label>
-
-              <!-- Descripción técnica -->
-              <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
-                Detalle y Justificación Técnica de los Hechos
-                <textarea name="descripcion" rows="3" required style="padding:10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;line-height:1.5" placeholder="Describir los hechos sobrevenidos, motivos técnicos y afectación a la cadena de suministro de vía..."></textarea>
+              <label style="${labelStyle}">
+                Descripción detallada
+                <textarea name="descripcion" rows="4" required placeholder="Qué ha ocurrido, quién lo comunica y cómo afecta al suministro…" style="${areaStyle}">${escHTML(reg?.descripcion || "")}</textarea>
               </label>
-
-              <!-- Impactos reportados -->
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-                <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
-                  Impacto Estimado en Plazo
-                  <input name="impactoPlazo" placeholder="Ej: +6 días en la segunda mitad del lote" required style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0" />
-                </label>
-                <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
-                  Impacto Económico (€)
-                  <input name="impactoCoste" placeholder="Ej: 0 € (Sin coste) o +1.500 €" required value="0 € (Sin alteración económica)" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0" />
-                </label>
+              <label style="${labelStyle}">
+                Solución propuesta por SOFEIN
+                <textarea name="solucion" rows="3" required placeholder="Acuerdo que SOFEIN propone a cliente y proveedor…" style="${areaStyle}">${escHTML(reg?.solucion || "")}</textarea>
+              </label>
+              <div class="reg-change-grid">
+                ${changeRow("fecha", "Nueva fecha de entrega", "date", prev0.fechaEntrega, reg?.nuevaFechaEntregaIso, "")}
+                ${changeRow("unidades", "Nueva cantidad de unidades", "text", prev0.unidades, reg?.nuevasUnidades, "Ej: 15.000")}
+                ${changeRow("presupuesto", "Nuevo presupuesto", "text", prev0.presupuesto, reg?.nuevoPresupuesto, "Ej: 295.000 €")}
               </div>
-
-              <!-- Evidencia técnica adjunta -->
-              <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
-                Documento de Evidencia / Soporte Técnico
-                <input name="evidenciaDoc" placeholder="Ej: Informe-Laboratorio-Curado-Taller.pdf" value="Informe-Tecnico-Soporte.pdf" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0" />
-              </label>
-
-              ${isRoleAdmin ? `
-                <!-- Propuesta inicial opcional de SOFEIN -->
-                <div style="padding:12px 14px;background:rgba(15, 118, 110, 0.05);border:1px solid rgba(15, 118, 110, 0.2);border-radius:8px;display:grid;gap:8px">
-                  <div style="display:flex;align-items:center;gap:6px;color:#0F766E;font-size:0.78rem;font-weight:600">
-                    ${icon("shield", 14)} Redacción Inmediata de Propuesta de Mediación SOFEIN (Opcional)
-                  </div>
-                  <textarea name="propuestaMediacion" rows="2" style="padding:8px 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.8rem;line-height:1.4" placeholder="Si deseas formular ya la propuesta resolutiva imparcial, descríbela aquí. De lo contrario, podrás redactarla tras evaluar los hechos."></textarea>
-                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-                    <input name="nuevoPlazo" placeholder="Nuevo plazo pactado (ej: 48 días)" style="height:34px;padding:0 8px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.78rem" />
-                    <input name="nuevoCoste" placeholder="Ajuste económico (ej: Sin variación)" style="height:34px;padding:0 8px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.78rem" />
-                  </div>
-                </div>
-              ` : `
-                <div style="padding:10px 12px;background:var(--entity-panel-2);border-radius:6px;font-size:0.76rem;color:var(--entity-muted);line-height:1.4">
-                  ${icon("info", 14)} Tras registrar la alteración, el mediador de SOFEIN evaluará la viabilidad técnica y emitirá la Propuesta de Acuerdo sujeta a 5 días hábiles de respuesta con cláusula de silencio positivo.
-                </div>
-              `}
-
+              ${renderCreateAttachHTML("registro", true)}
             </div>
             <div class="procurement-modal-footer">
-              <button class="admin-quiet-button" type="button" id="cancelIncidentModalBtn">Cancelar</button>
-              <button class="admin-primary-button" type="submit">${icon("plus", 14)} Registrar Formalmente Incidencia</button>
+              <button class="admin-quiet-button" type="button" id="cancelRegModalBtn">Cancelar</button>
+              <button class="admin-primary-button" type="submit">${icon("check", 14)} ${reg ? "Guardar y pedir firmas" : "Registrar"}</button>
             </div>
           </form>
         </div>
       </div>
     `;
 
-    const close = () => { modalWrap.innerHTML = ""; };
-    document.getElementById("closeIncidentModalBtn")?.addEventListener("click", close);
-    document.getElementById("cancelIncidentModalBtn")?.addEventListener("click", close);
-    document.getElementById("incidentModalBackdrop")?.addEventListener("click", e => {
-      if (e.target.id === "incidentModalBackdrop") close();
+    const form = document.getElementById("modalRegForm");
+    const attachBox = form.querySelector(".create-attach");
+    attachBox.querySelector(".create-attach-title").innerHTML = `Adjuntos <em>(opcional · máx. ${CREATE_ATTACH_MAX})</em>`;
+    bindCreateAttachments(form);
+    (reg?.adjuntos || []).forEach(a => addCreateAttachRow(attachBox, null, a));
+
+    form.querySelectorAll(".reg-change-row").forEach(row => {
+      const valInput = row.querySelector('input[name$="_valor"]');
+      row.querySelectorAll('input[type="radio"]').forEach(radio => radio.addEventListener("change", () => {
+        valInput.disabled = radio.value === "igual" && radio.checked;
+        if (!valInput.disabled) valInput.focus();
+      }));
+    });
+    form.querySelector('[name="sumId"]').addEventListener("change", e => {
+      const p = previoFor(e.target.value);
+      form.querySelector('[data-reg-current="fecha"]').textContent = `(${p.fechaEntrega || "—"})`;
+      form.querySelector('[data-reg-current="unidades"]').textContent = `(${p.unidades || "—"})`;
+      form.querySelector('[data-reg-current="presupuesto"]').textContent = `(${p.presupuesto || "—"})`;
     });
 
-    document.getElementById("modalIncidentForm")?.addEventListener("submit", e => {
+    const close = () => { modalWrap.innerHTML = ""; };
+    document.getElementById("closeRegModalBtn")?.addEventListener("click", close);
+    document.getElementById("cancelRegModalBtn")?.addEventListener("click", close);
+    document.getElementById("regModalBackdrop")?.addEventListener("click", e => {
+      if (e.target.id === "regModalBackdrop") close();
+    });
+
+    form.addEventListener("submit", e => {
       e.preventDefault();
-      const form = new FormData(e.currentTarget);
-      const origenVal = form.get("origen") || defaultOrigin;
-      const categoriaVal = form.get("categoria");
-      const tipoVal = form.get("tipo");
-      const descripcionVal = form.get("descripcion");
-      const impactoPlazoVal = form.get("impactoPlazo");
-      const impactoCosteVal = form.get("impactoCoste");
-      const evidenciaDocVal = form.get("evidenciaDoc") || "Informe-Tecnico-Soporte.pdf";
-      const propuestaVal = form.get("propuestaMediacion");
-      const nuevoPlazoVal = form.get("nuevoPlazo");
-      const nuevoCosteVal = form.get("nuevoCoste");
-
-      const newId = `INC-${exp.id.replace(/[^0-9]/g, "")}-${exp.incidencias.length + 1}`;
-      const nowStr = "Hoy, " + new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-
-      const newIncident = {
-        id: newId,
-        fecha: nowStr,
-        origen: origenVal,
-        origenRol: activeRole,
-        tipo: tipoVal,
-        categoria: categoriaVal,
-        descripcion: descripcionVal,
-        impactoPlazo: impactoPlazoVal,
-        impactoCoste: impactoCosteVal,
-        impacto: `${impactoPlazoVal} · ${impactoCosteVal}`,
-        evidenciaDoc: evidenciaDocVal,
-        estado: propuestaVal ? "En mediación SOFEIN" : "Registrada (Pendiente de mediación)",
-        propuestaMediacion: propuestaVal || null,
-        nuevoPlazoAcordado: nuevoPlazoVal || null,
-        nuevoCosteAcordado: nuevoCosteVal || null,
-        resolucionTecnica: propuestaVal ? "Cumplimiento estricto de norma EN y certificación técnica de lote." : null,
-        fechaNotificacionPropuesta: propuestaVal ? nowStr : null,
-        fechaLimiteRespuesta: propuestaVal ? "5 días hábiles desde notificación" : null,
-        diasHabilesRestantes: propuestaVal ? 5 : null,
-        silencioPositivoAplicado: false,
-        firmaSofein: !!propuestaVal,
-        firmaSofeinFecha: propuestaVal ? nowStr : null,
-        firmaSofeinUsuario: propuestaVal ? "Ángel Plaza (SOFEIN Digital HQ)" : null,
-        firmaProveedor: activeRole === "proveedor",
-        firmaProveedorFecha: activeRole === "proveedor" ? nowStr : null,
-        firmaProveedorUsuario: activeRole === "proveedor" ? "Representante Autorizado de Taller" : null,
-        firmaCliente: activeRole === "cliente",
-        firmaClienteFecha: activeRole === "cliente" ? nowStr : null,
-        firmaClienteUsuario: activeRole === "cliente" ? "Jefe de Obra (Constructor)" : null,
-        adendaId: null,
-        adendaFecha: null,
-        adendaHash: null
-      };
-
-      exp.incidencias.unshift(newIncident);
-
-      // Notificación automática en Avisos
-      NOTICES.unshift({
-        id: `AV-${Date.now()}`,
-        expId: exp.id,
-        categoria: "Incidencia / Mediación",
-        tagClass: "warning",
-        titulo: `Nueva incidencia registrada: ${tipoVal}`,
-        descripcion: `${origenVal} ha notificado una alteración con impacto ${impactoPlazoVal}. SOFEIN actúa como mediador garante.`,
-        fecha: "Hoy, recién comunicada",
-        roles: ["admin", "cliente", "proveedor"],
-        accion: "Ver Incidencia",
-        enlace: `#${activeRole}/expedientes/${exp.id}?tab=incidents`
+      const fd = new FormData(form);
+      const valueOf = key => fd.get(`${key}_mode`) === "nuevo" ? (fd.get(`${key}_valor`) || "").trim() || null : null;
+      const sumId = fd.get("sumId");
+      const target = reg || { id: code, fechaRegistro: todayDocDate(), adendaId: null };
+      Object.assign(target, {
+        sumId,
+        titulo: (fd.get("titulo") || "").trim(),
+        descripcion: (fd.get("descripcion") || "").trim(),
+        solucion: (fd.get("solucion") || "").trim(),
+        previo: previoFor(sumId),
+        nuevaFechaEntregaIso: valueOf("fecha"),
+        nuevasUnidades: valueOf("unidades"),
+        nuevoPresupuesto: valueOf("presupuesto"),
+        adjuntos: readCreateAttachments(attachBox).map(a => ({ name: a.nombre, file: a.fileName, fileUrl: a.fileUrl, visibleTo: a.visibleTo }))
       });
+      // Registro nuevo o editado: las firmas se (re)piden
+      Object.assign(target, {
+        firmaCliente: false, firmaClienteFecha: null, firmaClienteUsuario: null,
+        firmaProveedor: false, firmaProveedorFecha: null, firmaProveedorUsuario: null
+      });
+      syncRegistroLegacyFields(target);
+      if (!reg) exp.incidencias.unshift(target);
 
+      addExpedienteCambioLog(exp, {
+        tipo: reg ? "Edición de registro" : "Nuevo registro",
+        suministro: sumId,
+        titulo: `${target.id} ${reg ? "editado (firmas reiniciadas)" : "registrado"} · ${target.titulo}`
+      });
       close();
-      showToast(`✓ Incidencia ${newId} registrada formalmente. SOFEIN abre expediente de mediación.`);
+      showToast(reg ? `✓ ${target.id} actualizado. Se han reiniciado las firmas.` : `✓ ${target.id} registrado. Pendiente de firma de cliente y proveedor.`);
       renderApp();
     });
   }
 
-  function openMediationModal(expId, incId) {
-    if (activeRole !== "admin") return;
-    const modalWrap = document.getElementById("modalContainer");
-    if (!modalWrap) return;
+  function openDeleteRegistroModal(expId, regId) {
     const exp = getActiveExpediente(expId);
-    const normalizedIncId = String(incId || "").replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
-    const inc = exp && exp.incidencias ? (
-      exp.incidencias.find(i => i.id === incId) ||
-      exp.incidencias.find(i => String(i.id).replace(/[^a-zA-Z0-9]/g, "").toLowerCase() === normalizedIncId)
-    ) : null;
-    if (!inc) return;
+    const reg = exp ? (exp.incidencias || []).find(r => r.id === regId) : null;
+    const modalWrap = document.getElementById("modalContainer");
+    if (!reg || !modalWrap || activeRole !== "admin") return;
 
     modalWrap.innerHTML = `
-      <div class="procurement-modal-backdrop" id="mediationModalBackdrop">
-        <div class="procurement-modal" style="width:min(660px,100%)">
+      <div class="procurement-modal-backdrop" id="delRegModalBackdrop">
+        <div class="procurement-modal" style="width:min(460px,100%)">
           <div class="procurement-modal-head">
-            <div>
-              <h3>Propuesta Oficial de Mediación & Adenda SOFEIN</h3>
-              <p style="margin:2px 0 0;font-size:0.75rem;color:var(--entity-muted)">Incidencia <b>${inc.id}</b> · Expediente <b>${exp.id}</b></p>
-            </div>
-            <button type="button" id="closeMediationModalBtn" aria-label="Cerrar">×</button>
+            <div><h3>Eliminar ${reg.id}</h3></div>
+            <button type="button" id="closeDelRegModalBtn">×</button>
           </div>
-          <form id="modalMediationForm">
-            <div class="procurement-modal-body" style="gap:14px;max-height:calc(85vh - 140px);overflow-y:auto;padding-right:12px">
-              
-              <!-- Hechos notificados -->
-              <div style="padding:10px 12px;background:var(--entity-panel-2);border-radius:6px;font-size:0.78rem;border:1px solid var(--entity-line)">
-                <div style="display:flex;justify-content:space-between;margin-bottom:4px">
-                  <span style="font-weight:600;color:var(--entity-text)">${inc.tipo} (${inc.categoria})</span>
-                  <span style="color:var(--entity-muted)">Notificado por: <b>${inc.origen}</b></span>
-                </div>
-                <div style="color:var(--entity-muted);font-size:0.76rem;line-height:1.4">${inc.descripcion}</div>
-                <div style="margin-top:6px;font-size:0.74rem;color:var(--entity-warning);font-weight:600">Impacto manifestado: ${inc.impactoPlazo} · ${inc.impactoCoste}</div>
-              </div>
-
-              <!-- Solución Técnica / Operativa Propuesta por SOFEIN -->
-              <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
-                Solución Técnica y Reestructuración del Suministro
-                <textarea name="propuesta" rows="3" required style="padding:10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;line-height:1.5" placeholder="Articular la propuesta imparcial (ej: desdoblar envíos, suministro parcial, sustitución de partidas o reajuste de plazos)...">${inc.propuestaMediacion || "SOFEIN propone articular un suministro fraccionado en dos entregas operativas para no paralizar el montaje de vía en la obra..."}</textarea>
-              </label>
-
-              <!-- Nuevo plazo y coste acordados -->
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-                <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
-                  Nuevo Plazo Oficial Comprometido
-                  <input name="nuevoPlazo" required value="${inc.nuevoPlazoAcordado || "48 días (Lote A: 42d / Lote B: 48d)"}" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0" />
-                </label>
-                <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
-                  Ajuste Económico Pactado
-                  <input name="nuevoCoste" required value="${inc.nuevoCosteAcordado || "482.000 € (Sin alteración económica)"}" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0" />
-                </label>
-              </div>
-
-              <!-- Garantías y Ensayos Técnicos -->
-              <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
-                Garantías Técnicas y Normativa de Aplicación
-                <textarea name="resolucionTecnica" rows="2" required style="padding:10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;line-height:1.4" placeholder="Ensayos destructivos de lote, certificados CE y controles de laboratorio requeridos...">${inc.resolucionTecnica || "Mantenimiento estricto de los ensayos destructivos de rotura según norma EN 13230-2. Certificados de lote individualizados con marcaje CE para cada envío."}</textarea>
-              </label>
-
-              <!-- Cláusula de Silencio Positivo (5 días hábiles) -->
-              <div class="incident-silence-box" style="margin:0">
-                <div class="incident-silence-icon">${icon("activity", 18)}</div>
-                <div class="incident-silence-text">
-                  <strong>Eficacia Contractual y Plazo de Respuesta (5 Días Hábiles):</strong>
-                  Se concede un plazo perentorio de <b>5 días hábiles</b> desde esta notificación para formular alegaciones. La ausencia de manifestación expresa en contrario dentro de este plazo implicará la <b>aceptación íntegra por silencio positivo</b> de la adenda contractual por ambas partes.
-                </div>
-              </div>
-
-            </div>
-            <div class="procurement-modal-footer">
-              <button class="admin-quiet-button" type="button" id="cancelMediationModalBtn">Cancelar</button>
-              <button class="admin-primary-button" type="submit">${icon("shield", 14)} Emitir Propuesta de Mediación y Notificar</button>
-            </div>
-          </form>
+          <div class="procurement-modal-body">
+            <p style="margin:0;font-size:0.82rem;color:var(--entity-text)">Se eliminará <b>${reg.id} · ${escHTML(reg.titulo)}</b> del registro de ${exp.id}, con sus firmas. Esta acción no se puede deshacer.</p>
+          </div>
+          <div class="procurement-modal-footer">
+            <button class="admin-quiet-button" type="button" id="cancelDelRegModalBtn">Cancelar</button>
+            <button class="admin-primary-button is-danger" type="button" id="confirmDelRegBtn">${icon("x", 14)} Eliminar</button>
+          </div>
         </div>
       </div>
     `;
-
     const close = () => { modalWrap.innerHTML = ""; };
-    document.getElementById("closeMediationModalBtn")?.addEventListener("click", close);
-    document.getElementById("cancelMediationModalBtn")?.addEventListener("click", close);
-    document.getElementById("mediationModalBackdrop")?.addEventListener("click", e => {
-      if (e.target.id === "mediationModalBackdrop") close();
+    document.getElementById("closeDelRegModalBtn")?.addEventListener("click", close);
+    document.getElementById("cancelDelRegModalBtn")?.addEventListener("click", close);
+    document.getElementById("delRegModalBackdrop")?.addEventListener("click", e => {
+      if (e.target.id === "delRegModalBackdrop") close();
     });
-
-    document.getElementById("modalMediationForm")?.addEventListener("submit", e => {
-      e.preventDefault();
-      const form = new FormData(e.currentTarget);
-      const nowStr = "Hoy, " + new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-
-      inc.propuestaMediacion = form.get("propuesta");
-      inc.nuevoPlazoAcordado = form.get("nuevoPlazo");
-      inc.nuevoCosteAcordado = form.get("nuevoCoste");
-      inc.resolucionTecnica = form.get("resolucionTecnica");
-      inc.fechaNotificacionPropuesta = nowStr;
-      inc.fechaLimiteRespuesta = "5 días hábiles desde notificación";
-      inc.diasHabilesRestantes = 5;
-      inc.estado = "En mediación SOFEIN";
-      inc.firmaSofein = true;
-      inc.firmaSofeinFecha = nowStr;
-      inc.firmaSofeinUsuario = "Ángel Plaza (SOFEIN Digital HQ)";
-
-      // Notificación automática en Avisos
-      NOTICES.unshift({
-        id: `AV-MED-${Date.now()}`,
-        expId: exp.id,
-        categoria: "Incidencia / Mediación",
-        tagClass: "warning",
-        titulo: `Propuesta de mediación emitida para ${inc.id}`,
-        descripcion: `SOFEIN ha fijado la propuesta técnica de acuerdo con nuevo plazo (${inc.nuevoPlazoAcordado}). Plazo de 5 días hábiles para firma bilateral.`,
-        fecha: "Hoy, recién emitida",
-        roles: ["cliente", "proveedor", "admin"],
-        accion: "Firmar Propuesta",
-        enlace: `#${activeRole}/expedientes/${exp.id}?tab=incidents`
-      });
-
+    document.getElementById("confirmDelRegBtn")?.addEventListener("click", () => {
+      exp.incidencias = exp.incidencias.filter(r => r.id !== reg.id);
+      addExpedienteCambioLog(exp, { tipo: "Eliminación de registro", suministro: reg.sumId || "General", titulo: `${reg.id} eliminado · ${reg.titulo}` });
       close();
-      showToast("✓ Propuesta de mediación oficial emitida y notificada con 5 días hábiles de plazo.");
+      showToast(`✓ ${reg.id} eliminado del registro`);
       renderApp();
     });
   }
@@ -12054,52 +11872,46 @@
     if (!modalWrap) return;
     const exp = getActiveExpediente(expId);
     const inc = exp ? exp.incidencias.find(i => i.id === incId) : null;
-    if (!inc) return;
+    if (!inc || activeRole !== signerRole) return;
 
     const isCliente = signerRole === "cliente";
-    const partyName = isCliente ? exp.cliente : (exp.proveedor || "Taller Homologado");
+    const sum = SUMINISTROS.find(s => s.id === inc.sumId);
+    const partyName = isCliente ? exp.cliente : (sum?.proveedor || exp.proveedor || "Proveedor");
+    const imp = describeRegistroImpact(inc);
 
     modalWrap.innerHTML = `
       <div class="procurement-modal-backdrop" id="signModalBackdrop">
         <div class="procurement-modal" style="width:min(580px,100%)">
           <div class="procurement-modal-head">
             <div>
-              <h3>Ratificación y Firma Digital de Mediación</h3>
-              <p style="margin:2px 0 0;font-size:0.75rem;color:var(--entity-muted)">Propuesta <b>${inc.id}</b> · Expediente <b>${exp.id}</b></p>
+              <h3>Firmar ${inc.id}</h3>
+              <p style="margin:2px 0 0;font-size:0.75rem;color:var(--entity-muted)">${escHTML(inc.titulo)} · ${exp.id}</p>
             </div>
             <button type="button" id="closeSignModalBtn" aria-label="Cerrar">×</button>
           </div>
           <form id="modalSignForm">
             <div class="procurement-modal-body" style="gap:14px">
-              
-              <!-- Resumen de condiciones acordadas -->
-              <div style="padding:14px;background:rgba(15, 118, 110, 0.05);border:1px solid rgba(15, 118, 110, 0.2);border-radius:8px;display:grid;gap:8px">
-                <span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;color:#0F766E">Términos Oficiales de la Propuesta SOFEIN</span>
-                <p style="margin:0;font-size:0.8rem;line-height:1.5;color:var(--entity-text)">${inc.propuestaMediacion}</p>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px">
-                  <div style="font-size:0.75rem"><b>Nuevo Plazo:</b> ${inc.nuevoPlazoAcordado}</div>
-                  <div style="font-size:0.75rem"><b>Ajuste Coste:</b> ${inc.nuevoCosteAcordado}</div>
+              <div class="reg-sign-summary">
+                <span class="reg-section-label">Solución propuesta por SOFEIN</span>
+                <p>${escHTML(inc.solucion || "")}</p>
+                <div class="reg-sign-impacts">
+                  <span><b>Plazo:</b> ${imp.plazo}</span>
+                  <span><b>Unidades:</b> ${imp.unidades}</span>
+                  <span><b>Presupuesto:</b> ${imp.coste}</span>
                 </div>
               </div>
-
-              <!-- Identidad del firmante -->
-              <div style="display:grid;gap:6px">
-                <label style="font-size:0.75rem;font-weight:600;color:var(--entity-muted)">Entidad y Apoderado Firmante</label>
-                <input name="signerUser" required value="${isCliente ? `Luis M. Aranzadi (Jefe de Obra, ${partyName})` : `Carlos Mendía (Director Industrial, ${partyName})`}" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0" />
-              </div>
-
-              <!-- Declaración legal de conformidad -->
+              <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
+                Persona que firma
+                <input name="signerUser" required value="${isCliente ? `Luis M. Aranzadi (${partyName})` : `Carlos Mendía (${partyName})`}" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0" />
+              </label>
               <label style="display:flex;align-items:flex-start;gap:10px;font-size:0.77rem;line-height:1.5;color:var(--entity-text);cursor:pointer;padding:10px 12px;background:var(--entity-panel-2);border-radius:6px;border:1px solid var(--entity-line)">
                 <input type="checkbox" required style="margin-top:2px;accent-color:var(--entity-accent)" />
-                <span>
-                  Declaro que ostento facultades suficientes en representación de <b>${partyName}</b> para aceptar los términos de la presente propuesta de mediación, ratificando la delimitación de responsabilidad de SOFEIN y reconociendo el carácter contractual vinculante de la futura adenda.
-                </span>
+                <span>Acepto, en representación de <b>${escHTML(partyName)}</b>, la solución y los nuevos términos de este registro.</span>
               </label>
-
             </div>
             <div class="procurement-modal-footer">
               <button class="admin-quiet-button" type="button" id="cancelSignModalBtn">Cancelar</button>
-              <button class="admin-primary-button" type="submit">${icon("check", 14)} Firmar y Aceptar Propuesta</button>
+              <button class="admin-primary-button" type="submit">${icon("check", 14)} Firmar</button>
             </div>
           </form>
         </div>
@@ -12117,7 +11929,7 @@
       e.preventDefault();
       const form = new FormData(e.currentTarget);
       const user = form.get("signerUser");
-      const nowStr = "Hoy, " + new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      const nowStr = `${todayDocDate()}, ${new Date().toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })}`;
 
       if (isCliente) {
         inc.firmaCliente = true;
@@ -12128,91 +11940,15 @@
         inc.firmaProveedorFecha = nowStr;
         inc.firmaProveedorUsuario = user;
       }
-
-      if (inc.firmaCliente && inc.firmaProveedor) {
-        inc.estado = "Pendiente de consolidación por SOFEIN";
-      }
+      syncRegistroLegacyFields(inc);
+      const closed = closeRegistroIfSigned(exp, inc);
 
       close();
-      showToast(`✓ Propuesta de mediación firmada digitalmente por ${isCliente ? "el constructor" : "el taller suministrador"}.`);
+      showToast(closed
+        ? `✓ ${inc.id} firmado por las dos partes. Cerrado con la ${inc.adendaId}.`
+        : `✓ ${inc.id} firmado. Pendiente de la firma del ${isCliente ? "proveedor" : "cliente"}.`);
       renderApp();
     });
-  }
-
-  function consolidateAddendum(expId, incId) {
-    const exp = getActiveExpediente(expId);
-    const inc = exp ? exp.incidencias.find(i => i.id === incId) : null;
-    if (!inc) return;
-
-    const addendaNum = "01";
-    inc.adendaId = `ADENDA-${exp.id.replace(/[^0-9]/g, "")}-${addendaNum}`;
-    inc.adendaFecha = "Hoy, " + new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-    inc.adendaHash = "sha256-" + Math.random().toString(36).substring(2, 10) + Math.random().toString(36).substring(2, 10) + Math.random().toString(36).substring(2, 10);
-    inc.estado = "Adenda Oficial Consolidada";
-
-    // Actualizar expediente
-    if (inc.nuevoPlazoAcordado) {
-      exp.plazoRealEstimado = inc.nuevoPlazoAcordado;
-      exp.desviacionDias = `Ajustado según Adenda Oficial ${inc.adendaId}`;
-    }
-    if (inc.nuevoCosteAcordado && !inc.nuevoCosteAcordado.includes("Sin")) {
-      exp.presupuestoTotal = inc.nuevoCosteAcordado;
-    }
-
-    // Insertar ranura documental oficial en deliverables de la fase activa
-    if (!exp.deliverables[exp.faseActual]) exp.deliverables[exp.faseActual] = [];
-    const alreadyExists = exp.deliverables[exp.faseActual].some(d => d.file && d.file.includes(inc.adendaId));
-    if (!alreadyExists) {
-      exp.deliverables[exp.faseActual].push({
-        name: `Adenda Oficial de Suministro ${inc.adendaId} (Resolución de Incidencia)`,
-        owner: "SOFEIN",
-        state: "complete",
-        format: "PDF",
-        file: `Adenda-Oficial-${inc.adendaId}-Consolidada.pdf`,
-        date: "Hoy, consolidada",
-        hash: inc.adendaHash
-      });
-    }
-
-    // Notificación en Avisos
-    NOTICES.unshift({
-      id: `AV-ADENDA-${Date.now()}`,
-      expId: exp.id,
-      categoria: "Incidencia / Mediación",
-      tagClass: "complete",
-      titulo: `Adenda contractual oficial consolidada ${inc.adendaId}`,
-      descripcion: `La mediación de la incidencia ${inc.id} ha culminado en adenda contractual vinculante con plenos efectos jurídicos.`,
-      fecha: "Hoy, recién consolidada",
-      roles: ["admin", "cliente", "proveedor"],
-      accion: "Ver Adenda",
-      enlace: `#${activeRole}/expedientes/${exp.id}?tab=incidents`
-    });
-
-    showToast(`✓ Adenda contractual ${inc.adendaId} consolidada oficialmente. Entregable y plazos de expediente actualizados.`);
-    renderApp();
-  }
-
-  function applySilencePositive(expId, incId) {
-    const exp = getActiveExpediente(expId);
-    const inc = exp ? exp.incidencias.find(i => i.id === incId) : null;
-    if (!inc) return;
-
-    inc.silencioPositivoAplicado = true;
-    inc.diasHabilesRestantes = 0;
-    const nowStr = "Hoy (5 días hábiles transcurridos)";
-
-    if (!inc.firmaCliente) {
-      inc.firmaCliente = true;
-      inc.firmaClienteUsuario = "Aprobado por Silencio Positivo (5 días hábiles sin oposición formal)";
-      inc.firmaClienteFecha = nowStr;
-    }
-    if (!inc.firmaProveedor) {
-      inc.firmaProveedor = true;
-      inc.firmaProveedorUsuario = "Aprobado por Silencio Positivo (5 días hábiles sin oposición formal)";
-      inc.firmaProveedorFecha = nowStr;
-    }
-
-    consolidateAddendum(expId, incId);
   }
 
   function openConsolidatedAddendumModal(expId, incId) {
@@ -12265,7 +12001,7 @@
 
               <!-- Exposición de Motivos -->
               <div class="addendum-doc-clause">
-                <h5>2. Antecedentes y Hechos Sobrevenidos (Incidencia ${inc.id})</h5>
+                <h5>2. Antecedentes y Hechos Sobrevenidos (Registro ${inc.id})</h5>
                 <p>
                   Con fecha <b>${inc.fecha}</b> se comunicó formalmente la alteración calificada como <i>"${inc.tipo}"</i> (${inc.categoria}), consistente en: "${inc.descripcion}". Analizado el impacto operativo por el gabinete técnico de SOFEIN, se formuló propuesta de mediación resolutiva.
                 </p>
@@ -12294,9 +12030,9 @@
               </div>
 
               <div class="addendum-doc-clause">
-                <h5>6. Cláusula Cuarta — Eficacia Jurídica y Silencio Positivo</h5>
+                <h5>6. Cláusula Cuarta — Eficacia Jurídica</h5>
                 <p>
-                  La presente adenda tiene plenos efectos vinculantes entre las partes, habiendo sido ratificada mediante firma electrónica y/o mediante la aplicación de la cláusula de <b>Silencio Positivo tras 5 días hábiles</b> estipulada en las condiciones generales de la plataforma SOFEIN.
+                  La presente adenda tiene plenos efectos vinculantes entre las partes, habiendo sido ratificada mediante firma electrónica del cliente y del proveedor en la plataforma SOFEIN.
                 </p>
               </div>
 
@@ -12309,15 +12045,15 @@
                   <small style="color:var(--entity-muted);font-size:0.68rem">${inc.firmaSofeinFecha || "Fecha de emisión"}</small>
                 </div>
                 <div class="addendum-sign-block">
-                  <span style="font-size:0.68rem;text-transform:uppercase;color:var(--entity-faint);font-weight:700">Firma Proveedor (Taller)</span>
-                  <strong>${inc.firmaProveedorUsuario || "Representante de Taller"}</strong>
-                  <span>${inc.firmaProveedor ? "✓ Firma electrónica acreditada" : "⏳ Ratificado por Silencio Positivo"}</span>
+                  <span style="font-size:0.68rem;text-transform:uppercase;color:var(--entity-faint);font-weight:700">Firma Proveedor</span>
+                  <strong>${inc.firmaProveedorUsuario || "Proveedor"}</strong>
+                  <span>${inc.firmaProveedor ? "✓ Firma electrónica acreditada" : "⏳ Pendiente de firma"}</span>
                   <small style="color:var(--entity-muted);font-size:0.68rem">${inc.firmaProveedorFecha || "Conforme"}</small>
                 </div>
                 <div class="addendum-sign-block">
-                  <span style="font-size:0.68rem;text-transform:uppercase;color:var(--entity-faint);font-weight:700">Firma Cliente (Constructor)</span>
-                  <strong>${inc.firmaClienteUsuario || "Jefe de Obra (Constructor)"}</strong>
-                  <span>${inc.firmaCliente ? "✓ Firma electrónica acreditada" : "⏳ Ratificado por Silencio Positivo"}</span>
+                  <span style="font-size:0.68rem;text-transform:uppercase;color:var(--entity-faint);font-weight:700">Firma Cliente</span>
+                  <strong>${inc.firmaClienteUsuario || "Cliente"}</strong>
+                  <span>${inc.firmaCliente ? "✓ Firma electrónica acreditada" : "⏳ Pendiente de firma"}</span>
                   <small style="color:var(--entity-muted);font-size:0.68rem">${inc.firmaClienteFecha || "Conforme"}</small>
                 </div>
               </div>
@@ -13171,41 +12907,6 @@
     if (createNoticeBtn) {
       e.preventDefault();
       openCreateNoticeModal(createNoticeBtn.dataset.openCreateNoticeModal || null);
-      return;
-    }
-
-    const openInc = e.target.closest("[data-open-incident-modal]");
-    if (openInc) {
-      e.preventDefault();
-      openIncidentModal(openInc.dataset.openIncidentModal);
-      return;
-    }
-
-    const medBtn = e.target.closest("[data-open-mediation-modal]");
-    if (medBtn) {
-      e.preventDefault();
-      openMediationModal(medBtn.dataset.openMediationModal, medBtn.dataset.incidentId);
-      return;
-    }
-
-    const signBtn = e.target.closest("[data-sign-incident-party]");
-    if (signBtn) {
-      e.preventDefault();
-      openSignIncidentModal(signBtn.dataset.expId, signBtn.dataset.incidentId, signBtn.dataset.signIncidentParty);
-      return;
-    }
-
-    const silenceBtn = e.target.closest("[data-apply-silence-incident]");
-    if (silenceBtn) {
-      e.preventDefault();
-      applySilencePositive(silenceBtn.dataset.applySilenceIncident, silenceBtn.dataset.incidentId);
-      return;
-    }
-
-    const consolBtn = e.target.closest("[data-consolidate-addendum]");
-    if (consolBtn) {
-      e.preventDefault();
-      consolidateAddendum(consolBtn.dataset.consolidateAddendum, consolBtn.dataset.incidentId);
       return;
     }
 
