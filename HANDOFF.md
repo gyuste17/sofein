@@ -1,4 +1,28 @@
-# HANDOFF — SOFEIN Procurement (Auditoría y Validación Final)
+# HANDOFF — SOFEIN
+
+Registro de relevo entre agentes. **Entradas nuevas arriba.** Reglas del proyecto en `AGENTS.md`.
+
+## 2026-10-26 · Claude · rama `procurement` · coordinación Claude + Antigravity
+
+**Hecho**
+- Nuevo `AGENTS.md` como fuente única de reglas: incluye el contenido de `GEMINI.md`, ramas y despliegue, cómo probar y las reglas de coordinación. `CLAUDE.md` contiene solo `@AGENTS.md`, y `GEMINI.md` queda reducido a un puntero a `AGENTS.md` con un recordatorio breve.
+- Worktree de Claude en `.claude/worktrees/claude` (ignorado por git), en la rama `claude/trabajo`, creada desde `procurement`. A partir de ahora Claude trabaja allí, con ramas `claude/<tarea>`. La carpeta principal queda para Antigravity.
+- Este commit solo incluye `AGENTS.md`, `CLAUDE.md`, `GEMINI.md` y `HANDOFF.md`.
+
+**Pendiente / avisos**
+- Hay cambios sin commitear en `app.js` en la carpeta principal: en `DIRECTORIO_PROVEEDORES`, `suministros` pasa a claves normalizadas (`traviesas`, `clips`, `otros`). Son de Antigravity y no se han tocado. Antigravity debe terminarlos y commitearlos.
+- `main` local apunta al mismo commit que `procurement` (`d64102f`) y va 2 commits por delante de `origin/main` sin subir. `.agents/rules/deployment.md` dice que `main` es la web corporativa. Hay que decidir si `main` debe llevar los commits del dossier y de Avisos.
+- Los commits de la landing de sofeindigital.es (`feat(web)`) están en `procurement`.
+
+## 2026-10-26 · sin registrar (reconstruido desde git por Claude) · rama `procurement`
+
+- `c31ac95`, `dee0231`, `3e52e22`, `cb651ae` (`feat(web)`): landing «en construcción» para sofeindigital.es. Añade `construccion.html` y su copia `sofeindigital-standalone/` (index, assets, README), con diseño minimalista, barra de progreso, foto ferroviaria `assets/digital-hero-v2.jpg`, logo en blanco y layout 100vh. Las instrucciones de dominio están en `docs/INSTRUCCIONES_IONOS_DOMINIO.md`.
+- `840c4c0` (`feat(dossier)`): la pestaña «Registro de incidencias» pasa a llamarse «Registro». `addExpedienteCambioLog` admite `soloAdmin`, y las anotaciones internas (tipo «Anotación interna (SOFEIN)» o la casilla «Solo SOFEIN») se ocultan a cliente y proveedor y aparecen marcadas con un chip de candado.
+- `d64102f` (`style(avisos)`): eliminado el subtítulo de la cabecera de Avisos.
+
+## 2026-10-22 · sin registrar (reconstruido desde git por Claude) · rama `procurement` · Suministros (v36)
+
+- `c328839`: filtros por columna en la cabecera (`th`) de la tabla de Suministros, KPI de días de entrega, tabla de finalizados colapsada y layout compacto sin scroll. Assets en `?v=procurement-v36` (`app.js`); `styles.css` sigue en v35.
 
 ## 2026-10-22 · Claude · rama `procurement` · Suministros (v33)
 
@@ -48,6 +72,12 @@
 **Pendiente / decisiones**
 - Persistencia solo local (localStorage). Si se migra a Supabase, crear las tablas `catalogo_productos` y `catalogo_conformidades` con los grants de PostgREST.
 - Para restablecer los catálogos por defecto hay que borrar esas dos claves de localStorage.
+
+---
+
+# Histórico — auditoría y validación final (18/10/2026, assets v13)
+
+> Estado de referencia a 18/10. Las entradas de arriba son más recientes y prevalecen.
 
 **Fecha:** 18 de Octubre de 2026  
 **Rama Git:** `procurement`  
