@@ -8,7 +8,7 @@ Las va implementando Claude por bloques, en ramas `claude/…`, y las integra en
 
 | Bloque | Alcance | Estado |
 |---|---|---|
-| A. Ficha y tarjetas (3 perfiles) | Fase fuera de la cabecera; en las tarjetas, rayitas de fase, días hasta la entrega, descripción y unidades; pestañas renombradas; quitar «Vista …»; Completar/Reabrir fase solo Admin; «Requerido a» | ✅ Hecho (v41, `claude/expediente`) |
+| A. Ficha y tarjetas (3 perfiles) | Fase fuera de la cabecera; en las tarjetas, rayitas de fase, días hasta la entrega, descripción y unidades; pestañas renombradas; quitar «Vista …»; Completar/Reabrir fase solo Admin; «Requerido a» | ✅ Hecho (v42, integrado en `procurement`) |
 | B. Creación de expediente (Admin y Cliente) | Especificaciones en textarea; tipo genérico del catálogo; hasta 3 adjuntos por suministro y 3 adicionales, con nombre y visibilidad; textos del cliente; notas visibles; validación de la solicitud con visibilidad de adjuntos | Pendiente |
 | C. Documentación | Columnas nuevas; editar visibilidad, nombre y fase, y eliminar (Admin); «Ver» abre el archivo; «Subsanar» sustituye el archivo | Pendiente |
 | D. Registro de incidencias y cambios | Registro único REG-xxx creado solo por Admin; firmas de Cliente y Proveedor; editar borra las firmas; eliminar; sin silencio positivo; historial de cerrados | Pendiente |
