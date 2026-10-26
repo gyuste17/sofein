@@ -3,16 +3,16 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>SOFEIN DIGITAL | Plataforma en construcción</title>
+    <title>SOFEIN Digital | Plataforma en construcción</title>
     <meta
       name="description"
-      content="Plataforma en construcción. SOFEIN DIGITAL: la nueva plataforma integral para la gestión y seguimiento de proyectos ferroviarios."
+      content="Plataforma en construcción. SOFEIN Digital: la nueva plataforma inteligente para el desarrollo optimizado de expedientes ferroviarios."
     />
     <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
     <style>
@@ -76,7 +76,7 @@
         inset: 0;
         z-index: -1;
         background: 
-          linear-gradient(90deg, rgba(3, 6, 4, 0.97) 0%, rgba(3, 6, 4, 0.90) 38%, rgba(3, 6, 4, 0.48) 72%, rgba(3, 6, 4, 0.22) 100%),
+          linear-gradient(90deg, rgba(3, 6, 4, 0.97) 0%, rgba(3, 6, 4, 0.91) 40%, rgba(3, 6, 4, 0.5) 72%, rgba(3, 6, 4, 0.22) 100%),
           linear-gradient(0deg, rgba(3, 6, 4, 0.94) 0%, transparent 40%);
       }
 
@@ -90,25 +90,33 @@
 
       .digital-header-inner {
         display: flex;
-        min-height: clamp(60px, 8vh, 76px);
+        min-height: clamp(56px, 7vh, 72px);
         align-items: center;
         justify-content: space-between;
         gap: 20px;
       }
 
-      /* Pure text logo in SOFEIN white styling */
+      /* Logo strictly matching the provided reference: SOFEIN in bold white + Digital in thin light green */
       .digital-brand {
         display: inline-flex;
-        align-items: center;
+        align-items: baseline;
+        gap: 8px;
         text-decoration: none;
       }
 
-      .digital-brand-text {
+      .brand-sofein {
         color: #ffffff;
-        font-size: clamp(1.05rem, 1.4vw, 1.25rem);
-        font-weight: 750;
-        letter-spacing: 0.18em;
-        text-transform: uppercase;
+        font-size: clamp(1.2rem, 1.6vw, 1.48rem);
+        font-weight: 800;
+        letter-spacing: -0.015em;
+        line-height: 1;
+      }
+
+      .brand-digital {
+        color: #8ff2aa;
+        font-size: clamp(1.2rem, 1.6vw, 1.48rem);
+        font-weight: 300;
+        letter-spacing: -0.01em;
         line-height: 1;
       }
 
@@ -146,25 +154,25 @@
       }
 
       .digital-hero-content {
-        max-width: 800px;
-        padding-block: clamp(16px, 3vh, 32px);
+        max-width: 740px;
+        padding-block: clamp(12px, 2.5vh, 28px);
       }
 
       /* Status Pill */
       .status-pill-wrap {
-        margin-bottom: clamp(14px, 2.2vh, 22px);
+        margin-bottom: clamp(12px, 1.8vh, 18px);
       }
 
       .status-pill {
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        padding: 5px 14px;
+        padding: 4px 13px;
         background: rgba(16, 69, 29, 0.5);
         border: 1px solid rgba(126, 219, 96, 0.4);
         border-radius: 999px;
         color: #baffd0;
-        font-size: clamp(0.68rem, 0.8vw, 0.74rem);
+        font-size: clamp(0.66rem, 0.78vw, 0.72rem);
         font-weight: 700;
         letter-spacing: 0.16em;
         text-transform: uppercase;
@@ -192,30 +200,31 @@
         }
       }
 
-      /* Headline: Strictly "Plataforma en construcción." */
+      /* Headline: "Plataforma en construcción." */
       .digital-hero-content h1 {
         margin: 0;
         color: #ffffff;
-        font-size: clamp(2.3rem, 5.2vw, 4.4rem);
+        font-size: clamp(2.2rem, 4.8vw, 4.1rem);
         font-weight: 550;
         letter-spacing: -0.05em;
         line-height: 1.04;
       }
 
+      /* Lead Text exact requested wording */
       .digital-lead {
-        max-width: 550px;
-        margin-top: clamp(14px, 2vh, 22px);
-        margin-bottom: clamp(18px, 2.5vh, 26px);
+        max-width: 620px;
+        margin-top: clamp(12px, 1.8vh, 18px);
+        margin-bottom: clamp(16px, 2.2vh, 24px);
         color: #d1dfd5;
-        font-size: clamp(0.92rem, 1.15vw, 1.06rem);
-        line-height: 1.6;
+        font-size: clamp(0.9rem, 1.05vw, 1rem);
+        line-height: 1.58;
         font-weight: 350;
       }
 
-      /* Standalone Progress Bar (Top sleek aesthetic) */
+      /* Progress Bar with smooth constant evolution towards the right */
       .progress-bar-container {
-        max-width: 460px;
-        margin-bottom: clamp(20px, 3.2vh, 32px);
+        max-width: 440px;
+        margin-bottom: clamp(18px, 2.8vh, 28px);
       }
 
       .progress-bar-track {
@@ -229,11 +238,32 @@
       }
 
       .progress-bar-fill {
-        width: 78%;
+        position: absolute;
+        inset: 0;
+        width: 100%;
         height: 100%;
-        background: linear-gradient(90deg, #10451d 0%, #52df7f 75%, #a7f3c2 100%);
+        background: linear-gradient(
+          90deg,
+          rgba(16, 69, 29, 0.3) 0%,
+          #10451d 20%,
+          #52df7f 50%,
+          #baffd0 70%,
+          #ffffff 80%,
+          rgba(16, 69, 29, 0.3) 100%
+        );
+        background-size: 200% 100%;
         border-radius: 999px;
-        box-shadow: 0 0 14px rgba(82, 223, 127, 0.5);
+        animation: progressEvolution 2.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+        box-shadow: 0 0 16px rgba(82, 223, 127, 0.5);
+      }
+
+      @keyframes progressEvolution {
+        0% {
+          background-position: 100% 0;
+        }
+        100% {
+          background-position: -100% 0;
+        }
       }
 
       /* Action Row */
@@ -249,12 +279,12 @@
         align-items: center;
         justify-content: center;
         gap: 10px;
-        min-height: clamp(42px, 5.5vh, 48px);
-        padding: 0 clamp(18px, 2vw, 24px);
+        min-height: clamp(40px, 5vh, 46px);
+        padding: 0 clamp(16px, 1.8vw, 22px);
         border-radius: 6px;
         background: var(--digital-green);
         color: #031107;
-        font-size: clamp(0.82rem, 1vw, 0.88rem);
+        font-size: clamp(0.82rem, 0.95vw, 0.88rem);
         font-weight: 650;
         text-decoration: none;
         transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
@@ -276,7 +306,7 @@
         align-items: center;
         gap: 6px;
         color: var(--digital-muted);
-        font-size: clamp(0.82rem, 1vw, 0.88rem);
+        font-size: clamp(0.82rem, 0.95vw, 0.88rem);
         text-decoration: none;
         transition: color 0.2s ease;
       }
@@ -294,7 +324,7 @@
       .digital-rail-line {
         position: absolute;
         right: max(32px, calc((100% - 1280px) / 2));
-        bottom: clamp(36px, 6vh, 52px);
+        bottom: clamp(32px, 5vh, 48px);
         display: flex;
         gap: 8px;
         pointer-events: none;
@@ -318,11 +348,11 @@
 
       .digital-footer-inner {
         display: flex;
-        min-height: clamp(48px, 6vh, 58px);
+        min-height: clamp(44px, 5.5vh, 54px);
         align-items: center;
         justify-content: space-between;
         gap: 16px;
-        font-size: clamp(0.74rem, 0.9vw, 0.8rem);
+        font-size: clamp(0.72rem, 0.85vw, 0.78rem);
         color: var(--digital-muted);
       }
 
@@ -354,8 +384,8 @@
         .digital-footer-inner {
           flex-direction: column;
           align-items: flex-start;
-          padding: 12px 0;
-          gap: 6px;
+          padding: 10px 0;
+          gap: 4px;
         }
       }
     </style>
@@ -369,8 +399,9 @@
       <!-- Header -->
       <header class="digital-header">
         <div class="digital-shell digital-header-inner">
-          <a class="digital-brand" href="https://sofein.es/" aria-label="SOFEIN DIGITAL">
-            <span class="digital-brand-text">SOFEIN DIGITAL</span>
+          <a class="digital-brand" href="https://sofein.es/" aria-label="SOFEIN Digital">
+            <span class="brand-sofein">SOFEIN</span>
+            <span class="brand-digital">Digital</span>
           </a>
           <a class="digital-corp-link" href="https://sofein.es/" target="_blank" rel="noopener noreferrer">
             <span>sofein.es</span>
@@ -394,13 +425,13 @@
             <!-- Title: Strictly "Plataforma en construcción." -->
             <h1>Plataforma en construcción.</h1>
 
-            <!-- Lead -->
+            <!-- Lead: Exact requested wording -->
             <p class="digital-lead">
-              Estamos desarrollando la nueva plataforma inteligente para el seguimiento en directo, trazabilidad de suministros y gestión documental de proyectos ferroviarios.
+              Estamos desarrollando la nueva plataforma inteligente para el desarrollo optimizado de expedientes ferroviarios, donde quedará centralizada de forma trazable y sostenible toda la gestión con acceso 24/7 y desde donde también podrás contratar servicios para mejorar tus procesos internos.
             </p>
 
-            <!-- Progress Bar (Solo la barra) -->
-            <div class="progress-bar-container" aria-label="Progreso de integración">
+            <!-- Progress Bar with constant evolution towards the right -->
+            <div class="progress-bar-container" aria-label="Progreso continuo de integración">
               <div class="progress-bar-track">
                 <div class="progress-bar-fill"></div>
               </div>
