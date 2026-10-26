@@ -2,6 +2,19 @@
 
 Registro de relevo entre agentes. **Entradas nuevas arriba.** Reglas del proyecto en `AGENTS.md`.
 
+## 2026-10-26 · Antigravity · rama procurement · Clientes y Proveedores (Directorio v40)
+
+**Hecho**
+- Título principal de la vista renombrado a «Clientes y Proveedores» (reemplazando «Listado»).
+- Encabezados de tabla y mosaico simplificados: «Proveedores» (en lugar de «Proveedores homologados») y «Clientes» (en lugar de «Clientes (Constructores de vía)»).
+- Eliminado el subtítulo redundante «Directorio de entidades» en la vista mosaico.
+- Botón y funcionalidad de «Exportar Excel» (exportDirectorioCSV) en la barra de herramientas del directorio: exporta un archivo CSV (proveedores-sofein.csv, clientes-sofein.csv o clientes-y-proveedores-sofein.csv) con BOM UTF-8 y delimitador ; para apertura directa y sin problemas de acentos en Microsoft Excel en español, respetando filtros activos y columnas visibles.
+- Columna «Suministros»: normalizada a los nombres genéricos (	raviesas, placas, 	irafondos, clips, alasto, otros) tanto en los 14 proveedores de DIRECTORIO_PROVEEDORES, como en el renderizador de etiquetas (
+enderSuministrosTags), como en el modal de alta/edición (openAddOrEditEntityModal).
+- Bump de cachebuster en pp.html a ?v=procurement-v40.
+- Verificado con 
+ode -c app.js (0 errores) y visualmente en Chrome DevTools (http://localhost:3456/app.html#admin/directorio) sin errores ni advertencias de consola.
+
 ## 2026-10-26 · Claude · rama `procurement` · coordinación Claude + Antigravity
 
 **Hecho**

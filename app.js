@@ -899,7 +899,7 @@
       cif: "B-48192837",
       sede: "Amurrio (Álava) / Bilbao",
       categorias: ["Traviesas — Superestructura", "Fijaciones — Superestructura"],
-      suministros: ["Traviesas", "Fijaciones"],
+      suministros: ["traviesas", "clips"],
       materiales: "Traviesas de Hormigón Monobloque PR-22 · Sujeciones SKL-14",
       homologado: true,
       homologaciones: ["Adif NAV-2026", "AENOR EN 13230", "Certificado CE"],
@@ -924,7 +924,7 @@
       cif: "A-33291845",
       sede: "Gijón (Asturias)",
       categorias: ["Carril — Superestructura", "Aparatos de Vía"],
-      suministros: ["Carril", "Aparatos de vía"],
+      suministros: ["otros"],
       materiales: "Carril Laminado 54E1 / 60E1 · Aparatos de Vía",
       homologado: true,
       homologaciones: ["Adif 03.360.501", "EN 13674-1", "ISO 9001 / 14001"],
@@ -949,7 +949,7 @@
       cif: "A-47102938",
       sede: "Valladolid",
       categorias: ["Traviesas de Madera — Especial"],
-      suministros: ["Traviesas de madera", "Creosota"],
+      suministros: ["traviesas"],
       materiales: "Traviesas de Madera Tratada Creosotada (3 subtipos)",
       homologado: true,
       homologaciones: ["Adif Normativa Vía", "Tratamiento UNE-EN 13145", "Cadena FSC/PEFC"],
@@ -974,7 +974,7 @@
       cif: "B-46091244",
       sede: "Sagunto (Valencia)",
       categorias: ["Carril — Superestructura"],
-      suministros: ["Carril 54E1", "Carril 60E1"],
+      suministros: ["otros"],
       materiales: "Carril Laminado 54E1 / 60E1 · Acero R260 / R350HT",
       homologado: true,
       homologaciones: ["Adif 03.360.501", "EN 13674-1", "Certificado Lloyd's"],
@@ -999,7 +999,7 @@
       cif: "A-28190342",
       sede: "Madrid / Bilbao",
       categorias: ["Carril — Superestructura"],
-      suministros: ["Carril", "Desvíos"],
+      suministros: ["otros"],
       materiales: "Carril Laminado 54E1 / 60E1 · Aparatos y desvíos",
       homologado: true,
       homologaciones: ["Adif 03.360.501", "EN 13674-1"],
@@ -1023,7 +1023,7 @@
       cif: "A-50129384",
       sede: "Zaragoza",
       categorias: ["Traviesas — Superestructura"],
-      suministros: ["Traviesas"],
+      suministros: ["traviesas"],
       materiales: "Traviesas de Hormigón Monobloque y Bibloque",
       homologado: true,
       homologaciones: ["Adif NAV-2026", "AENOR EN 13230", "Certificado CE"],
@@ -1048,7 +1048,7 @@
       cif: "B-24109823",
       sede: "León",
       categorias: ["Traviesas — Superestructura"],
-      suministros: ["Traviesas monobloque"],
+      suministros: ["traviesas"],
       materiales: "Traviesas de Hormigón Monobloque PR-22 y Ancho Mixto",
       homologado: true,
       homologaciones: ["Adif NAV-2026", "EN 13230-2"],
@@ -1072,7 +1072,7 @@
       cif: "B-31298451",
       sede: "Pamplona (Navarra)",
       categorias: ["Traviesas de Madera — Especial"],
-      suministros: ["Traviesas de madera", "Roble"],
+      suministros: ["traviesas"],
       materiales: "Traviesas de Roble y Haya Impregnada",
       homologado: true,
       homologaciones: ["Adif Homologada", "UNE-EN 13145"],
@@ -1096,7 +1096,7 @@
       cif: "A-40192837",
       sede: "Segovia",
       categorias: ["Traviesas de Madera — Especial"],
-      suministros: ["Traviesas especiales"],
+      suministros: ["traviesas"],
       materiales: "Traviesas de Madera para Puentes y Desvíos",
       homologado: true,
       homologaciones: ["Adif Homologada", "UNE-EN 13145"],
@@ -1120,7 +1120,7 @@
       cif: "A-01283746",
       sede: "Vitoria (Álava)",
       categorias: ["Fijaciones — Superestructura"],
-      suministros: ["Fijaciones", "Tirafondos"],
+      suministros: ["clips", "placas", "tirafondos"],
       materiales: "Clips Elásticos · Tirafondos · Placas Antivibratorias",
       homologado: true,
       homologaciones: ["Adif Homologada", "EN 13481"],
@@ -1144,7 +1144,7 @@
       cif: "B-50982341",
       sede: "Zaragoza",
       categorias: ["Fijaciones — Superestructura"],
-      suministros: ["Fijaciones SKL-14"],
+      suministros: ["clips", "placas"],
       materiales: "Sujeciones SKL-14 / W-14 · Placas elásticas",
       homologado: true,
       homologaciones: ["Adif Homologada", "EN 13481"],
@@ -1168,7 +1168,7 @@
       cif: "A-45192834",
       sede: "Toledo",
       categorias: ["Balasto Silíceo Certificado"],
-      suministros: ["Balasto"],
+      suministros: ["balasto"],
       materiales: "Balasto Silíceo Tipo 1 según Pliego Adif",
       homologado: true,
       homologaciones: ["Adif Tipo 1", "UNE-EN 13450", "Marcado CE 2+"],
@@ -1193,7 +1193,7 @@
       cif: "B-33190283",
       sede: "Oviedo (Asturias)",
       categorias: ["Balasto Silíceo Certificado"],
-      suministros: ["Balasto"],
+      suministros: ["balasto"],
       materiales: "Balasto Silíceo Cuarcítico Tipo 1",
       homologado: true,
       homologaciones: ["Adif Tipo 1", "UNE-EN 13450"],
@@ -1217,7 +1217,7 @@
       cif: "A-13098234",
       sede: "Ciudad Real",
       categorias: ["Balasto Silíceo Certificado"],
-      suministros: ["Balasto AV"],
+      suministros: ["balasto"],
       materiales: "Balasto Ofítico / Basáltico Alta Velocidad",
       homologado: true,
       homologaciones: ["Adif Tipo 1 AV", "UNE-EN 13450"],
@@ -1661,6 +1661,112 @@
     }
   }
 
+  let directorioExportSnapshot = null;
+
+  const GENERIC_SUMINISTROS = ["traviesas", "placas", "tirafondos", "clips", "balasto", "otros"];
+  const GENERIC_SUMINISTROS_SET = new Set(GENERIC_SUMINISTROS);
+
+  function toGenericSuministro(val) {
+    if (!val) return "otros";
+    const v = String(val).toLowerCase().trim();
+    if (GENERIC_SUMINISTROS_SET.has(v)) return v;
+    if (v.includes("traviesa")) return "traviesas";
+    if (v.includes("placa")) return "placas";
+    if (v.includes("tirafondo")) return "tirafondos";
+    if (v.includes("clip") || v.includes("fijaci") || v.includes("sujeci")) return "clips";
+    if (v.includes("balasto") || v.includes("arido") || v.includes("grava")) return "balasto";
+    return "otros";
+  }
+
+  function getGenericSuministrosList(suministrosList) {
+    if (!suministrosList || !suministrosList.length) return ["otros"];
+    const rawItems = Array.isArray(suministrosList) ? suministrosList : String(suministrosList).split(/[·,]/).map(s => s.trim()).filter(Boolean);
+    const set = new Set();
+    rawItems.forEach(item => {
+      set.add(toGenericSuministro(item));
+    });
+    return Array.from(set);
+  }
+
+  function exportDirectorioCSV() {
+    const snap = directorioExportSnapshot;
+    if (!snap) {
+      showToast("No hay datos disponibles para exportar");
+      return;
+    }
+    const isPrv = snap.typeFilter === "all" || snap.typeFilter === "proveedores";
+    const isCli = snap.typeFilter === "all" || snap.typeFilter === "clientes";
+    const esc = v => `"${String(v ?? "").replace(/"/g, '""')}"`;
+    const lines = [];
+
+    if (isPrv && snap.prvList && snap.prvList.length) {
+      if (snap.typeFilter === "all") lines.push(esc("PROVEEDORES"));
+      const cols = snap.prvCols;
+      const header = cols.map(c => esc((ALL_DIR_PRV_COL_DEFS[c] || { label: c }).label));
+      lines.push(header.join(";"));
+
+      snap.prvList.forEach(p => {
+        const row = cols.map(colId => {
+          switch (colId) {
+            case "nombre": return esc(p.nombre);
+            case "cif": return esc(p.cif);
+            case "sede": return esc(p.sede);
+            case "suministros": return esc(getGenericSuministrosList(p.suministros || [p.materiales]).join(", "));
+            case "activos": return esc(getProveedorActiveExpedientes(p.nombre).map(e => e.id).join(", "));
+            case "conformidades": return esc((p.conformidades || p.homologaciones || []).join(", "));
+            case "contacto": return esc([p.email || p.contacto, p.telefono].filter(Boolean).join(" | "));
+            default: return esc(p[colId] || "");
+          }
+        });
+        lines.push(row.join(";"));
+      });
+    }
+
+    if (isCli && snap.cliList && snap.cliList.length) {
+      if (lines.length) lines.push("");
+      if (snap.typeFilter === "all") lines.push(esc("CLIENTES"));
+      const cols = snap.cliCols;
+      const header = cols.map(c => esc((ALL_DIR_CLI_COL_DEFS[c] || { label: c }).label));
+      lines.push(header.join(";"));
+
+      snap.cliList.forEach(c => {
+        const row = cols.map(colId => {
+          switch (colId) {
+            case "nombre": return esc(c.nombre);
+            case "cif": return esc(c.cif);
+            case "sede": return esc(c.sede);
+            case "actividad": return esc(c.actividad || "");
+            case "activos": return esc(getClienteActiveExpedientes(c.nombre).map(e => e.id).join(", "));
+            case "contacto": return esc([c.email || c.contacto, c.telefono].filter(Boolean).join(" | "));
+            default: return esc(c[colId] || "");
+          }
+        });
+        lines.push(row.join(";"));
+      });
+    }
+
+    if (!lines.length) {
+      showToast("No hay registros visibles para exportar");
+      return;
+    }
+
+    const filename = snap.typeFilter === "proveedores" 
+      ? "proveedores-sofein.csv" 
+      : (snap.typeFilter === "clientes" ? "clientes-sofein.csv" : "clientes-y-proveedores-sofein.csv");
+
+    const blob = new Blob(["\uFEFF" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    const totalCount = (isPrv ? snap.prvList.length : 0) + (isCli ? snap.cliList.length : 0);
+    showToast(`✓ Exportados ${totalCount} registros a Excel (${filename})`);
+  }
+
   function getProveedorActiveExpedientes(prvName) {
     if (!prvName) return [];
     const query = prvName.toLowerCase().trim();
@@ -1785,8 +1891,8 @@
   }
 
   function renderSuministrosTags(suministrosList) {
-    if (!suministrosList || !suministrosList.length) return `<span style="color:var(--entity-faint);font-size:0.75rem">—</span>`;
-    const items = Array.isArray(suministrosList) ? suministrosList : suministrosList.split(/[·,]/).map(s => s.trim()).filter(Boolean);
+    const items = getGenericSuministrosList(suministrosList);
+    if (!items.length) return `<span style="color:var(--entity-faint);font-size:0.75rem">—</span>`;
     return `
       <div class="dir-tags-wrap">
         ${items.map(s => `<span class="dir-tag dir-tag-sum">${s}</span>`).join("")}
@@ -6492,6 +6598,14 @@
         }
       };
 
+      directorioExportSnapshot = {
+        prvList: prvActiveList,
+        cliList: cliActiveList,
+        typeFilter: directorioTypeFilter,
+        prvCols: visiblePrvCols,
+        cliCols: visibleCliCols
+      };
+
       let contentHTML = "";
 
       const currentTotalCount = (directorioTypeFilter === "proveedores") 
@@ -6585,6 +6699,12 @@
               </div>
             </div>
           </div>
+
+          <!-- Botón Exportar a Excel -->
+          <button type="button" class="admin-quiet-button" id="btnExportDirectorioExcel" title="Exportar listado visible a Excel (CSV)" style="height:32px;padding:0 10px;font-size:0.75rem;display:inline-flex;align-items:center;gap:6px">
+            ${icon("download", 13)}
+            <span>Exportar Excel</span>
+          </button>
         </div>
       `;
 
@@ -6593,7 +6713,7 @@
           <div style="margin-bottom:28px">
             <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:4px;gap:12px;flex-wrap:wrap">
               <h3 style="margin:0;font-size:0.92rem;color:var(--entity-text);display:flex;align-items:center;gap:8px">
-                Proveedores homologados
+                Proveedores
                 <span class="dossier-chip" style="font-size:0.7rem">${prvActiveList.length} ${prvActiveList.length === 1 ? 'proveedor' : 'proveedores'}</span>
               </h3>
               ${filterBarHTML}
@@ -6656,7 +6776,7 @@
           <div ${showProveedores ? 'style="margin-top:24px"' : ''}>
             <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:4px;gap:12px;flex-wrap:wrap">
               <h3 style="margin:0;font-size:0.92rem;color:var(--entity-text);display:flex;align-items:center;gap:8px">
-                Clientes (Constructores de vía)
+                Clientes
                 <span class="dossier-chip" style="font-size:0.7rem">${cliActiveList.length} ${cliActiveList.length === 1 ? 'cliente' : 'clientes'}</span>
               </h3>
               ${!showProveedores ? filterBarHTML : ''}
@@ -6791,18 +6911,20 @@
         `).join("");
 
         contentHTML = `
-          <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:10px;gap:12px;flex-wrap:wrap">
-            <h3 style="margin:0;font-size:0.92rem;color:var(--entity-text);display:flex;align-items:center;gap:8px">
-              ${directorioTypeFilter === 'clientes' ? 'Clientes (Constructores de vía)' : (directorioTypeFilter === 'proveedores' ? 'Proveedores homologados' : 'Directorio de entidades')}
-              <span class="dossier-chip" style="font-size:0.7rem">${currentTotalCount}</span>
-            </h3>
+          <div style="display:flex;align-items:flex-end;justify-content:${directorioTypeFilter === 'all' ? 'flex-end' : 'space-between'};margin-bottom:10px;gap:12px;flex-wrap:wrap">
+            ${directorioTypeFilter !== 'all' ? `
+              <h3 style="margin:0;font-size:0.92rem;color:var(--entity-text);display:flex;align-items:center;gap:8px">
+                ${directorioTypeFilter === 'clientes' ? 'Clientes' : 'Proveedores'}
+                <span class="dossier-chip" style="font-size:0.7rem">${currentTotalCount}</span>
+              </h3>
+            ` : ''}
             ${filterBarHTML}
           </div>
 
           ${showProveedores ? `
             <div style="margin-bottom:28px">
               ${directorioTypeFilter === 'all' ? `
-                <h4 style="margin:0 0 10px;font-size:0.86rem;color:var(--entity-muted);font-weight:600">Proveedores homologados (${prvActiveList.length})</h4>
+                <h4 style="margin:0 0 10px;font-size:0.86rem;color:var(--entity-muted);font-weight:600">Proveedores (${prvActiveList.length})</h4>
               ` : ''}
               <div class="admin-client-grid">${prvCards || '<p style="color:var(--entity-muted);font-size:0.8rem">No hay proveedores que coincidan.</p>'}</div>
             </div>
@@ -6820,11 +6942,11 @@
       }
 
       return `
-        <!-- Fila superior: Título 'Listado' y acciones principales -->
+        <!-- Fila superior: Título 'Clientes y Proveedores' y acciones principales -->
         <div class="admin-view-head" style="margin-bottom:22px">
           <div class="b2b-dir-header-title">
             <h1 style="margin:0;font-size:1.75rem;font-weight:600;display:flex;align-items:center;gap:10px;letter-spacing:-0.03em">
-              Listado
+              Clientes y Proveedores
               <span class="dir-count-pill" style="font-size:0.8rem;height:24px;padding:0 8px;border-radius:12px;background:var(--entity-panel-2);border:1px solid var(--entity-line);color:var(--entity-text);font-weight:600">
                 ${currentTotalCount}
               </span>
@@ -9502,6 +9624,12 @@
       });
     });
 
+    // Exportar listado de Directorio visible a Excel (CSV con BOM UTF-8)
+    document.getElementById("btnExportDirectorioExcel")?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      exportDirectorioCSV();
+    });
+
     // Filtros de Tipo en Directorio (Todos, Proveedores, Clientes)
     document.querySelectorAll("[data-dir-type]").forEach(btn => {
       btn.addEventListener("click", () => {
@@ -12119,8 +12247,8 @@
                   Suministros acreditados (etiquetas breves separadas por coma)
                   <input name="suministros" value="${(entityToEdit?.suministros ? entityToEdit.suministros.join(', ') : (entityToEdit?.materiales || '')).replace(/"/g, '&quot;')}" placeholder="Ej: Traviesas, Fijaciones, Carril" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0" />
                   <span class="catalog-chip-row">
-                    <span style="font-size:0.7rem;color:var(--entity-muted);font-weight:500">Catálogo SOFEIN:</span>
-                    ${getActiveProductos().filter(p => p.nombre !== "Otro suministro").map(p => `<button type="button" class="catalog-chip" data-append-suministro="${escHTML(p.etiqueta || p.nombre)}" title="${escHTML(p.nombre)}">+ ${escHTML(p.etiqueta || p.nombre)}</button>`).join("")}
+                    <span style="font-size:0.7rem;color:var(--entity-muted);font-weight:500">Suministros genéricos:</span>
+                    ${GENERIC_SUMINISTROS.map(s => `<button type="button" class="catalog-chip" data-append-suministro="${s}" title="${s}">+ ${s}</button>`).join("")}
                   </span>
                 </label>
                 <div style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
@@ -12224,8 +12352,8 @@
 
       if (tipo === "proveedor") {
         const rawSum = form.get("suministros") || "";
-        let suministros = parseTags(rawSum);
-        if (!suministros.length) suministros = ["Suministros homologados"];
+        let suministros = getGenericSuministrosList(parseTags(rawSum));
+        if (!suministros.length) suministros = ["otros"];
         let conformidades = [...new Set([...form.getAll("conformidades_cat"), ...parseTags(form.get("conformidades_otras"))])];
         if (!conformidades.length) conformidades = ["ISO 9001"];
 
