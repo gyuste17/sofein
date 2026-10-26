@@ -12,7 +12,7 @@ Las va implementando Claude por bloques, en ramas `claude/…`, y las integra en
 | B. Creación de expediente (Admin y Cliente) | Especificaciones en textarea; tipo genérico del catálogo; hasta 3 adjuntos por suministro y 3 adicionales, con nombre y visibilidad; textos del cliente; notas visibles; validación de la solicitud con visibilidad de adjuntos | ✅ Hecho (v44, integrado en `procurement`) |
 | C. Documentación | Columnas nuevas; editar visibilidad, nombre y fase, y eliminar (Admin); «Ver» abre el archivo; «Subsanar» sustituye el archivo | ✅ Hecho (v45, integrado en `procurement`) |
 | D. Registro de incidencias y cambios | Registro único REG-xxx creado solo por Admin; firmas de Cliente y Proveedor; editar borra las firmas; eliminar; sin silencio positivo; historial de cerrados | ✅ Hecho (v46, integrado en `procurement`) |
-| E. Avisos dentro del expediente | Quitar «Bandeja Central»; solo Admin emite; modal «Emitir Aviso» simplificado con reglas de destinatario | Pendiente |
+| E. Avisos dentro del expediente | Quitar «Bandeja Central»; solo Admin emite; modal «Emitir Aviso» simplificado con reglas de destinatario | ✅ Hecho (v47, integrado en `procurement`) |
 | F. Avisos automáticos por evento | Matriz de qué avisos le llegan a cada perfil | Pendiente |
 
 ## Dudas abiertas (Guillermo responde al llegar a cada bloque)

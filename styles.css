@@ -8255,3 +8255,53 @@ details.b2b-profile-card.is-collapsible[open] > summary.is-collapsible-summary .
   font-size: 0.76rem;
   color: var(--entity-text);
 }
+
+/* Emitir aviso desde el expediente (bloque E) */
+.exp-notice-recipients {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--entity-line);
+  border-radius: 8px;
+}
+.exp-notice-recipients legend {
+  padding: 0 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--entity-muted);
+}
+.exp-notice-recipients label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--entity-text);
+  cursor: pointer;
+}
+.exp-notice-recipients label em {
+  font-style: normal;
+  color: var(--entity-muted);
+  font-size: 0.74rem;
+}
+.exp-notice-recipients label.is-disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.exp-notice-hint {
+  margin: 2px 0 0;
+  font-size: 0.72rem;
+  color: var(--entity-muted);
+}
+.exp-notice-recipients label {
+  justify-content: flex-start;
+}
+.exp-notice-recipients input[type="radio"] {
+  width: auto !important;
+  height: auto !important;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  flex: none;
+  accent-color: var(--entity-accent);
+}

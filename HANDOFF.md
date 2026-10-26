@@ -2,6 +2,25 @@
 
 Registro de relevo entre agentes. **Entradas nuevas arriba.** Reglas del proyecto en `AGENTS.md`.
 
+## 2026-10-26 · Claude · rama `claude/expediente` · Avisos dentro del expediente, bloque E (v47)
+
+**Hecho**
+- Pestaña Avisos de la ficha: se quita el botón «Bandeja Central» para todos los perfiles. «Emitir Aviso» sigue siendo solo de Admin.
+- Nuevo `openEmitExpNoticeModal(expId)`, en `data-open-exp-notice-modal`:
+  - Título «Emitir Aviso», sin subtítulo.
+  - Expediente fijo (solo lectura). Suministro: «General del expediente» o uno de sus suministros.
+  - Destinatarios:
+    - General → solo Cliente (con una nota que lo explica).
+    - Suministro concreto → Cliente, Proveedor (se muestra su nombre) o Ambos.
+  - Campos: título, prioridad opcional (Normal/Alta/Urgente, en `NOTICE_PRIORIDADES`) y descripción.
+- El aviso se guarda con `sumId`, `prioridad`, la categoría «Aviso SOFEIN[ · Alta/Urgente]» y `roles` según los destinatarios.
+- La bandeja global de Avisos (`openCreateNoticeModal`) no cambia. No estaba en el alcance.
+- Verificado en Chrome:
+  - Un aviso a Proveedor de SUM-01 lo ve el Proveedor y no el Cliente.
+  - Un aviso general lo ve el Cliente.
+  - Ni Cliente ni Proveedor ven «Emitir Aviso» ni «Bandeja Central».
+  - 0 errores de consola.
+
 ## 2026-10-26 · Claude · rama `claude/expediente` · Registro de incidencias y cambios, bloque D (v46)
 
 **Modelo**

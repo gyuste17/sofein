@@ -4805,16 +4805,13 @@
             ` : ""}
           </div>
 
-          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-            <button class="admin-quiet-button" type="button" data-go="#${activeRole}/avisos" style="font-size:0.74rem">
-              ${icon("folder", 13)} Bandeja Central
-            </button>
-            ${isRoleAdmin ? `
-              <button class="admin-primary-button" type="button" data-open-create-notice-modal="${exp.id}" style="font-size:0.74rem">
+          ${isRoleAdmin ? `
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+              <button class="admin-primary-button" type="button" data-open-exp-notice-modal="${exp.id}" style="font-size:0.74rem">
                 ${icon("plus", 13)} Emitir Aviso
               </button>
-            ` : ""}
-          </div>
+            </div>
+          ` : ""}
         </div>
       `;
 
@@ -9227,6 +9224,9 @@
     document.querySelectorAll("[data-sign-incident-party]").forEach(btn => {
       btn.addEventListener("click", () => openSignIncidentModal(btn.dataset.expId, btn.dataset.incidentId, btn.dataset.signIncidentParty));
     });
+    document.querySelectorAll("[data-open-exp-notice-modal]").forEach(btn => {
+      btn.addEventListener("click", () => openEmitExpNoticeModal(btn.dataset.openExpNoticeModal));
+    });
     document.querySelectorAll("[data-reg-view-attach]").forEach(btn => {
       btn.addEventListener("click", () => {
         const exp = getActiveExpediente(btn.dataset.exp);
@@ -12089,6 +12089,129 @@
       window.addEventListener("afterprint", cleanup);
       window.print();
       setTimeout(cleanup, 2000);
+    });
+  }
+
+  // Emitir aviso desde un expediente (solo SOFEIN Admin). General → solo Cliente; suministro → Cliente, Proveedor o ambos.
+  const NOTICE_PRIORIDADES = {
+    normal: { label: "Normal", tagClass: "review" },
+    alta: { label: "Alta", tagClass: "warning" },
+    urgente: { label: "Urgente", tagClass: "warning" }
+  };
+
+  function openEmitExpNoticeModal(expId) {
+    const exp = getActiveExpediente(expId);
+    const modalWrap = document.getElementById("modalContainer");
+    if (!exp || !modalWrap || activeRole !== "admin") return;
+    const expSums = SUMINISTROS.filter(s => s.expId === exp.id);
+    const inputStyle = "height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0";
+    const labelStyle = "display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)";
+    const proveedorOf = sumId => {
+      const s = expSums.find(x => x.id === sumId);
+      return s && s.proveedor && s.proveedor !== "Por determinar" ? s.proveedor : "";
+    };
+
+    modalWrap.innerHTML = `
+      <div class="procurement-modal-backdrop" id="expNoticeModalBackdrop">
+        <div class="procurement-modal" style="width:min(560px,100%)">
+          <div class="procurement-modal-head">
+            <div><h3>Emitir Aviso</h3></div>
+            <button type="button" id="closeExpNoticeModalBtn" aria-label="Cerrar">×</button>
+          </div>
+          <form id="modalExpNoticeForm">
+            <div class="procurement-modal-body" style="gap:14px">
+              <div style="display:grid;grid-template-columns:minmax(0,0.8fr) minmax(0,1.2fr);gap:12px">
+                <label style="${labelStyle}">
+                  Expediente
+                  <input value="${exp.id}" readonly style="${inputStyle};opacity:0.8;cursor:not-allowed;font-family:ui-monospace,monospace" />
+                </label>
+                <label style="${labelStyle}">
+                  Suministro
+                  <select name="sumId" style="${inputStyle}">
+                    <option value="">General del expediente</option>
+                    ${expSums.map(s => `<option value="${s.id}">${s.id} · ${escHTML(s.tipo)}</option>`).join("")}
+                  </select>
+                </label>
+              </div>
+              <fieldset class="exp-notice-recipients">
+                <legend>Destinatarios</legend>
+                <label><input type="radio" name="destino" value="cliente" checked /> Cliente <em>${escHTML(exp.cliente)}</em></label>
+                <label data-needs-sum><input type="radio" name="destino" value="proveedor" disabled /> Proveedor <em data-proveedor-name></em></label>
+                <label data-needs-sum><input type="radio" name="destino" value="ambos" disabled /> Ambos</label>
+                <p class="exp-notice-hint" data-general-hint>Un aviso general del expediente solo puede ir al cliente, porque puede haber varios proveedores.</p>
+              </fieldset>
+              <label style="${labelStyle}">
+                Título del aviso
+                <input name="titulo" required placeholder="Ej: Confirmar ventana de descarga en obra" style="${inputStyle}" />
+              </label>
+              <label style="${labelStyle}">
+                Prioridad (opcional)
+                <select name="prioridad" style="${inputStyle}">
+                  ${Object.entries(NOTICE_PRIORIDADES).map(([k, p]) => `<option value="${k}">${p.label}</option>`).join("")}
+                </select>
+              </label>
+              <label style="${labelStyle}">
+                Descripción del aviso
+                <textarea name="descripcion" rows="4" required placeholder="Qué debe saber o hacer el destinatario…" style="padding:9px 11px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;line-height:1.45;resize:vertical"></textarea>
+              </label>
+            </div>
+            <div class="procurement-modal-footer">
+              <button class="admin-quiet-button" type="button" id="cancelExpNoticeModalBtn">Cancelar</button>
+              <button class="admin-primary-button" type="submit">${icon("inbox", 14)} Emitir Aviso</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    `;
+
+    const form = document.getElementById("modalExpNoticeForm");
+    const sumSelect = form.querySelector('[name="sumId"]');
+    const syncRecipients = () => {
+      const isGeneral = !sumSelect.value;
+      form.querySelectorAll("[data-needs-sum] input").forEach(inp => { inp.disabled = isGeneral; });
+      form.querySelectorAll("[data-needs-sum]").forEach(l => l.classList.toggle("is-disabled", isGeneral));
+      form.querySelector("[data-general-hint]").style.display = isGeneral ? "" : "none";
+      form.querySelector("[data-proveedor-name]").textContent = isGeneral ? "" : (proveedorOf(sumSelect.value) || "por asignar");
+      if (isGeneral) form.querySelector('input[name="destino"][value="cliente"]').checked = true;
+    };
+    sumSelect.addEventListener("change", syncRecipients);
+    syncRecipients();
+
+    const close = () => { modalWrap.innerHTML = ""; };
+    document.getElementById("closeExpNoticeModalBtn")?.addEventListener("click", close);
+    document.getElementById("cancelExpNoticeModalBtn")?.addEventListener("click", close);
+    document.getElementById("expNoticeModalBackdrop")?.addEventListener("click", e => {
+      if (e.target.id === "expNoticeModalBackdrop") close();
+    });
+
+    form.addEventListener("submit", e => {
+      e.preventDefault();
+      const fd = new FormData(form);
+      const sumId = fd.get("sumId") || null;
+      const destino = sumId ? fd.get("destino") : "cliente";
+      const prioridad = NOTICE_PRIORIDADES[fd.get("prioridad")] ? fd.get("prioridad") : "normal";
+      const sum = sumId ? expSums.find(s => s.id === sumId) : null;
+      const roles = ["admin", ...(destino === "ambos" ? ["cliente", "proveedor"] : [destino])];
+
+      NOTICES.unshift({
+        id: `AV-${Date.now()}`,
+        expId: exp.id,
+        sumId,
+        suministro: sum ? `${sum.num} · ${sum.tipo}` : "General del Expediente",
+        categoria: prioridad === "normal" ? "Aviso SOFEIN" : `Aviso SOFEIN · ${NOTICE_PRIORIDADES[prioridad].label}`,
+        prioridad,
+        tagClass: NOTICE_PRIORIDADES[prioridad].tagClass,
+        titulo: (fd.get("titulo") || "").trim(),
+        descripcion: (fd.get("descripcion") || "").trim(),
+        fecha: "Hoy, recién emitido",
+        roles,
+        accion: "Ver expediente",
+        enlace: `#${activeRole}/expedientes/${exp.id}?tab=comms`
+      });
+      close();
+      const destLabel = destino === "ambos" ? "cliente y proveedor" : destino;
+      showToast(`✓ Aviso emitido al ${destLabel === "cliente y proveedor" ? "cliente y al proveedor" : destLabel}`);
+      renderApp();
     });
   }
 
