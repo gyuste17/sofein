@@ -3,34 +3,28 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>SOFEIN Digital | Nueva plataforma en construcción</title>
+    <title>SOFEIN Digital | Próximamente</title>
     <meta
       name="description"
-      content="Estamos construyendo SOFEIN Digital: la nueva plataforma integral para la gestión, trazabilidad y soporte documental de proyectos ferroviarios."
+      content="Estamos construyendo SOFEIN Digital: la nueva plataforma integral para la gestión, trazabilidad y seguimiento de proyectos ferroviarios."
     />
     <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;450;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;1,400&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
       rel="stylesheet"
     />
     <style>
       :root {
-        --bg-main: #050906;
-        --bg-surface: rgba(13, 20, 15, 0.72);
-        --bg-surface-hover: rgba(19, 31, 23, 0.85);
-        --border-subtle: rgba(183, 255, 204, 0.12);
-        --border-glow: rgba(82, 223, 127, 0.35);
-        --text-primary: #f5f9f6;
-        --text-secondary: #a3b5a7;
-        --text-muted: #6f8072;
-        --accent-emerald: #52df7f;
-        --accent-emerald-bright: #7edb60;
-        --accent-ink: #041208;
-        --brand-green: #10451d;
+        --digital-bg: #030604;
+        --digital-text: #f1f7f3;
+        --digital-muted: #a6b5aa;
+        --digital-line: rgba(183, 255, 204, 0.14);
+        --digital-green: #7edb60;
+        --digital-green-bright: #8ff2aa;
+        --digital-green-deep: #10451d;
         --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        --font-serif: 'Playfair Display', Georgia, serif;
       }
 
       * {
@@ -42,93 +36,72 @@
       html, body {
         width: 100%;
         min-height: 100%;
-        background-color: var(--bg-main);
-        color: var(--text-primary);
+        background-color: var(--digital-bg);
+        color: var(--digital-text);
         font-family: var(--font-sans);
-        line-height: 1.6;
+        line-height: 1.5;
         -webkit-font-smoothing: antialiased;
         overflow-x: hidden;
       }
 
-      /* Background & Atmosphere */
-      .bg-canvas {
-        position: fixed;
-        inset: 0;
-        z-index: 0;
-        pointer-events: none;
-        overflow: hidden;
-      }
-
-      .bg-image {
-        position: absolute;
-        inset: 0;
-        background-image: url('assets/digital-hero.png');
-        background-size: cover;
-        background-position: center 30%;
-        filter: saturate(0.55) contrast(1.15) brightness(0.28);
-        transform: scale(1.04);
-        transition: transform 12s ease-out;
-      }
-
-      .bg-gradient-overlay {
-        position: absolute;
-        inset: 0;
-        background: 
-          radial-gradient(circle at 50% 15%, rgba(16, 69, 29, 0.35) 0%, transparent 60%),
-          linear-gradient(180deg, rgba(5, 9, 6, 0.8) 0%, rgba(5, 9, 6, 0.95) 70%, #050906 100%);
-      }
-
-      .rail-grid {
-        position: absolute;
-        inset: 0;
-        background-image: 
-          linear-gradient(to right, rgba(183, 255, 204, 0.03) 1px, transparent 1px),
-          linear-gradient(to bottom, rgba(183, 255, 204, 0.03) 1px, transparent 1px);
-        background-size: 80px 80px;
-        mask-image: radial-gradient(circle at 50% 40%, black 20%, transparent 80%);
-      }
-
-      /* Shell & Layout */
-      .page-wrap {
-        position: relative;
-        z-index: 1;
-        display: flex;
-        flex-direction: column;
-        min-height: 100vh;
-      }
-
-      .shell {
-        width: min(1180px, calc(100% - 48px));
+      .digital-shell {
+        width: min(1280px, calc(100% - 64px));
         margin-inline: auto;
       }
 
-      /* Header */
-      header.site-header {
-        padding-top: 36px;
-        padding-bottom: 24px;
-        border-bottom: 1px solid rgba(183, 255, 204, 0.08);
-        background: linear-gradient(180deg, rgba(5, 9, 6, 0.7) 0%, transparent 100%);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
+      /* Fullscreen Hero matching sofein.vercel.app home */
+      .digital-hero-screen {
+        position: relative;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        overflow: hidden;
+        isolation: isolate;
       }
 
-      .header-content {
+      .digital-hero-image {
+        position: absolute;
+        inset: 0;
+        z-index: -2;
+        background: url('assets/digital-hero.png') center right / cover no-repeat;
+        filter: saturate(0.68) contrast(1.08) brightness(0.65);
+      }
+
+      .digital-hero-overlay {
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        background: 
+          linear-gradient(90deg, rgba(3, 6, 4, 0.96) 0%, rgba(3, 6, 4, 0.88) 35%, rgba(3, 6, 4, 0.42) 70%, rgba(3, 6, 4, 0.18) 100%),
+          linear-gradient(0deg, rgba(3, 6, 4, 0.92) 0%, transparent 40%);
+      }
+
+      /* Header */
+      .digital-header {
+        position: relative;
+        z-index: 5;
+        border-bottom: 1px solid rgba(235, 250, 240, 0.1);
+      }
+
+      .digital-header-inner {
         display: flex;
+        min-height: 80px;
         align-items: center;
         justify-content: space-between;
-        gap: 20px;
+        gap: 24px;
       }
 
-      .brand-group {
+      .digital-brand {
         display: inline-flex;
         align-items: center;
-        gap: 14px;
+        gap: 12px;
         text-decoration: none;
-        color: inherit;
+        color: #ffffff;
       }
 
       .brand-logo-svg {
-        height: 28px;
+        height: 26px;
         width: auto;
         color: #ffffff;
       }
@@ -137,533 +110,302 @@
         fill: currentColor;
       }
 
-      .brand-tag {
-        display: inline-block;
-        padding: 3px 9px;
-        background: rgba(82, 223, 127, 0.12);
-        border: 1px solid rgba(82, 223, 127, 0.3);
-        border-radius: 4px;
-        font-size: 0.72rem;
+      .brand-sub {
+        color: var(--digital-green);
+        font-size: 0.82rem;
         font-weight: 600;
         letter-spacing: 0.12em;
         text-transform: uppercase;
-        color: var(--accent-emerald);
+        border-left: 1px solid rgba(183, 255, 204, 0.3);
+        padding-left: 12px;
       }
 
-      .header-corp-link {
+      .digital-corp-link {
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        font-size: 0.84rem;
-        color: var(--text-secondary);
+        color: #e9f2eb;
+        font-size: 0.88rem;
+        font-weight: 500;
         text-decoration: none;
         transition: color 0.2s ease;
       }
 
-      .header-corp-link:hover {
-        color: var(--accent-emerald);
+      .digital-corp-link:hover {
+        color: var(--digital-green);
       }
 
-      .header-corp-link svg {
+      .digital-corp-link span.arrow {
+        font-size: 1rem;
         transition: transform 0.2s ease;
       }
 
-      .header-corp-link:hover svg {
+      .digital-corp-link:hover span.arrow {
         transform: translate(2px, -2px);
       }
 
-      /* Hero Section */
-      main.main-content {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        padding: 64px 0 80px;
-      }
-
-      .hero-center {
-        max-width: 860px;
-        margin-inline: auto;
-        text-align: center;
+      /* Hero Content (Aligned Left) */
+      .digital-hero-content {
+        padding: 80px 0 60px;
+        max-width: 780px;
       }
 
       .status-pill {
         display: inline-flex;
         align-items: center;
-        gap: 9px;
-        padding: 6px 16px;
-        background: rgba(16, 69, 29, 0.35);
-        border: 1px solid var(--border-glow);
+        gap: 8px;
+        margin-bottom: 24px;
+        padding: 5px 14px;
+        background: rgba(16, 69, 29, 0.4);
+        border: 1px solid rgba(126, 219, 96, 0.35);
         border-radius: 999px;
-        font-size: 0.76rem;
+        color: var(--digital-green-bright);
+        font-size: 0.72rem;
         font-weight: 600;
-        letter-spacing: 0.14em;
+        letter-spacing: 0.16em;
         text-transform: uppercase;
-        color: #b7ffcc;
-        margin-bottom: 32px;
-        box-shadow: 0 0 24px rgba(82, 223, 127, 0.15);
       }
 
       .pulse-dot {
-        width: 8px;
-        height: 8px;
-        background: var(--accent-emerald);
+        width: 7px;
+        height: 7px;
+        background: var(--digital-green);
         border-radius: 50%;
-        box-shadow: 0 0 10px var(--accent-emerald);
-        animation: pulse 2.2s infinite ease-in-out;
+        box-shadow: 0 0 8px var(--digital-green);
+        animation: pulse 2s infinite ease-in-out;
       }
 
       @keyframes pulse {
         0%, 100% {
-          transform: scale(0.95);
-          opacity: 0.8;
+          transform: scale(0.9);
+          opacity: 0.75;
         }
         50% {
-          transform: scale(1.35);
+          transform: scale(1.3);
           opacity: 1;
-          box-shadow: 0 0 14px var(--accent-emerald);
+          box-shadow: 0 0 12px var(--digital-green);
         }
       }
 
-      h1.hero-title {
-        font-size: clamp(2.4rem, 5.2vw, 4.4rem);
-        font-weight: 450;
-        letter-spacing: -0.04em;
-        line-height: 1.1;
+      .digital-hero-content h1 {
+        margin: 0;
         color: #ffffff;
-        margin-bottom: 24px;
+        font-size: clamp(2.8rem, 5.8vw, 5.4rem);
+        font-weight: 500;
+        letter-spacing: -0.055em;
+        line-height: 1.02;
       }
 
-      h1.hero-title span.editorial-serif {
-        font-family: var(--font-serif);
-        font-style: italic;
-        font-weight: 400;
-        color: #a7f3c2;
-        letter-spacing: -0.01em;
+      .digital-hero-content h1 em {
+        color: var(--digital-green-bright);
+        font-style: normal;
       }
 
-      p.hero-lead {
-        font-size: clamp(1.05rem, 1.8vw, 1.25rem);
-        color: var(--text-secondary);
+      .digital-lead {
+        max-width: 540px;
+        margin: 28px 0 36px;
+        color: #d1dfd5;
+        font-size: 1.06rem;
         line-height: 1.65;
-        max-width: 680px;
-        margin-inline: auto;
-        margin-bottom: 44px;
         font-weight: 350;
       }
 
-      /* Notification & Contact Form */
-      .action-card {
-        background: var(--bg-surface);
-        border: 1px solid var(--border-subtle);
-        border-radius: 14px;
-        padding: 30px;
-        backdrop-filter: blur(14px);
-        -webkit-backdrop-filter: blur(14px);
-        max-width: 620px;
-        margin-inline: auto;
-        margin-bottom: 64px;
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.45);
-      }
-
-      .action-title {
-        font-size: 0.95rem;
-        font-weight: 600;
-        color: #ffffff;
-        margin-bottom: 6px;
-      }
-
-      .action-desc {
-        font-size: 0.85rem;
-        color: var(--text-muted);
-        margin-bottom: 20px;
-      }
-
-      .notify-form {
+      .digital-actions-row {
         display: flex;
-        gap: 10px;
+        align-items: center;
+        gap: 20px;
+        flex-wrap: wrap;
       }
 
-      .notify-input {
-        flex: 1;
-        min-height: 48px;
-        background: rgba(3, 8, 4, 0.7);
-        border: 1px solid rgba(183, 255, 204, 0.16);
-        border-radius: 8px;
-        padding: 0 16px;
-        color: #ffffff;
-        font-family: var(--font-sans);
-        font-size: 0.92rem;
-        outline: none;
-        transition: border-color 0.2s, box-shadow 0.2s;
-      }
-
-      .notify-input::placeholder {
-        color: #556858;
-      }
-
-      .notify-input:focus {
-        border-color: var(--accent-emerald);
-        box-shadow: 0 0 0 3px rgba(82, 223, 127, 0.18);
-      }
-
-      .notify-button {
+      .digital-button {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        gap: 8px;
+        gap: 12px;
         min-height: 48px;
         padding: 0 24px;
-        background: var(--accent-emerald-bright);
-        color: var(--accent-ink);
-        border: none;
-        border-radius: 8px;
-        font-size: 0.9rem;
-        font-weight: 600;
-        cursor: pointer;
+        border-radius: 6px;
+        background: var(--digital-green);
+        color: #031107;
+        font-size: 0.88rem;
+        font-weight: 650;
+        text-decoration: none;
         transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
-        white-space: nowrap;
       }
 
-      .notify-button:hover {
-        background: #99f7b4;
+      .digital-button:hover {
+        background: var(--digital-green-bright);
         transform: translateY(-1px);
-        box-shadow: 0 6px 18px rgba(82, 223, 127, 0.3);
+        box-shadow: 0 6px 18px rgba(126, 219, 96, 0.25);
       }
 
-      .form-feedback {
-        margin-top: 14px;
-        font-size: 0.85rem;
-        display: none;
+      .digital-button span {
+        font-size: 1.15rem;
+        font-weight: 400;
       }
 
-      .form-feedback.success {
-        display: block;
-        color: #7ef59b;
-      }
-
-      .form-feedback.error {
-        display: block;
-        color: #f77a83;
-      }
-
-      /* Preview Feature Grid */
-      .features-preview {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 20px;
-        margin-top: 16px;
-        text-align: left;
-      }
-
-      .feature-card {
-        background: var(--bg-surface);
-        border: 1px solid var(--border-subtle);
-        border-radius: 12px;
-        padding: 24px 22px;
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        transition: border-color 0.25s, transform 0.25s, background 0.25s;
-        position: relative;
-        overflow: hidden;
-      }
-
-      .feature-card:hover {
-        border-color: var(--border-glow);
-        background: var(--bg-surface-hover);
-        transform: translateY(-2px);
-      }
-
-      .feature-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 32px;
-        height: 2px;
-        background: var(--accent-emerald);
-      }
-
-      .feature-number {
-        font-size: 0.74rem;
-        font-weight: 700;
-        letter-spacing: 0.14em;
-        color: var(--accent-emerald);
-        margin-bottom: 12px;
-        display: block;
-      }
-
-      .feature-card h3 {
-        font-size: 1.05rem;
-        font-weight: 500;
-        color: #ffffff;
-        margin-bottom: 8px;
-        line-height: 1.3;
-      }
-
-      .feature-card p {
-        font-size: 0.86rem;
-        color: var(--text-secondary);
-        line-height: 1.55;
-      }
-
-      /* Contact & Trust strip */
-      .direct-contact-strip {
-        margin-top: 48px;
-        padding-top: 32px;
-        border-top: 1px solid rgba(183, 255, 204, 0.08);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 36px;
-        flex-wrap: wrap;
-        font-size: 0.86rem;
-        color: var(--text-secondary);
-      }
-
-      .contact-item {
+      .digital-contact-link {
         display: inline-flex;
         align-items: center;
         gap: 8px;
+        color: var(--digital-muted);
+        font-size: 0.88rem;
         text-decoration: none;
-        color: inherit;
-        transition: color 0.2s;
+        transition: color 0.2s ease;
       }
 
-      .contact-item:hover {
-        color: var(--accent-emerald);
+      .digital-contact-link:hover {
+        color: #ffffff;
       }
 
-      .contact-item svg {
-        color: var(--accent-emerald);
+      .digital-contact-link strong {
+        color: #ffffff;
+        font-weight: 500;
+      }
+
+      /* Railway tracks visual element at bottom right */
+      .digital-rail-line {
+        position: absolute;
+        right: max(32px, calc((100% - 1280px) / 2));
+        bottom: 54px;
+        display: flex;
+        gap: 8px;
+        pointer-events: none;
+      }
+
+      .digital-rail-line span {
+        display: block;
+        width: 52px;
+        height: 1px;
+        background: rgba(215, 247, 223, 0.6);
+        transform: skewX(-40deg);
       }
 
       /* Footer */
-      footer.site-footer {
-        padding: 32px 0 36px;
-        border-top: 1px solid rgba(183, 255, 204, 0.08);
-        background: rgba(4, 7, 5, 0.92);
-        font-size: 0.82rem;
-        color: var(--text-muted);
+      .digital-footer {
+        position: relative;
+        z-index: 5;
+        border-top: 1px solid rgba(235, 250, 240, 0.08);
       }
 
-      .footer-inner {
+      .digital-footer-inner {
         display: flex;
+        min-height: 64px;
         align-items: center;
         justify-content: space-between;
-        flex-wrap: wrap;
-        gap: 18px;
-      }
-
-      .footer-links {
-        display: flex;
         gap: 20px;
+        font-size: 0.82rem;
+        color: var(--digital-muted);
       }
 
-      .footer-links a {
-        color: var(--text-secondary);
+      .digital-footer-inner a {
+        color: var(--digital-muted);
         text-decoration: none;
         transition: color 0.2s;
       }
 
-      .footer-links a:hover {
+      .digital-footer-inner a:hover {
         color: #ffffff;
       }
 
-      /* Responsive adjustments */
-      @media (max-width: 860px) {
-        .features-preview {
-          grid-template-columns: 1fr;
+      @media (max-width: 640px) {
+        .digital-shell {
+          width: calc(100% - 36px);
+        }
+
+        .digital-hero-content {
+          padding: 60px 0 40px;
+        }
+
+        .digital-hero-content h1 {
+          font-size: clamp(2.4rem, 11vw, 3.4rem);
+        }
+
+        .digital-actions-row {
+          flex-direction: column;
+          align-items: flex-start;
           gap: 16px;
         }
 
-        .notify-form {
-          flex-direction: column;
-        }
-
-        .notify-button {
+        .digital-button {
           width: 100%;
         }
 
-        .header-corp-link span {
+        .digital-rail-line {
           display: none;
         }
-      }
 
-      @media (max-width: 520px) {
-        .shell {
-          width: calc(100% - 32px);
-        }
-
-        .action-card {
-          padding: 22px 18px;
-        }
-
-        .direct-contact-strip {
-          flex-direction: column;
-          gap: 16px;
-        }
-
-        .footer-inner {
+        .digital-footer-inner {
           flex-direction: column;
           align-items: flex-start;
+          padding: 20px 0;
+          gap: 10px;
         }
       }
     </style>
   </head>
   <body>
-    <!-- Background Canvas -->
-    <div class="bg-canvas" aria-hidden="true">
-      <div class="bg-image"></div>
-      <div class="bg-gradient-overlay"></div>
-      <div class="rail-grid"></div>
-    </div>
+    <div class="digital-hero-screen">
+      <!-- Background Image & Gradient overlay matching sofein.vercel.app -->
+      <div class="digital-hero-image" aria-hidden="true"></div>
+      <div class="digital-hero-overlay" aria-hidden="true"></div>
 
-    <!-- Main Page Wrapper -->
-    <div class="page-wrap">
-      <!-- Site Header -->
-      <header class="site-header">
-        <div class="shell header-content">
-          <a href="#" class="brand-group" aria-label="SOFEIN Digital">
-            <!-- SOFEIN SVG Logo (Official Vector) -->
+      <!-- Header -->
+      <header class="digital-header">
+        <div class="digital-shell digital-header-inner">
+          <a class="digital-brand" href="https://sofein.es/" aria-label="SOFEIN Digital">
             <svg class="brand-logo-svg" viewBox="0 0 401 84" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="SOFEIN">
               <path d="M32.7929 83.815C26.816 83.815 21.4601 82.8448 16.7251 80.9042C11.9902 78.9636 8.18667 76.0916 5.31465 72.2881C2.52026 68.4847 1.04544 63.905 0.890194 58.549H22.081C22.3915 61.5763 23.4394 63.905 25.2247 65.535C27.01 67.0875 29.3387 67.8637 32.2107 67.8637C35.1604 67.8637 37.489 67.2039 39.1967 65.8843C40.9044 64.4871 41.7582 62.5854 41.7582 60.1791C41.7582 58.1609 41.0596 56.492 39.6624 55.1725C38.3429 53.8529 36.674 52.7662 34.6558 51.9123C32.7153 51.0585 29.9209 50.0882 26.2726 49.0015C20.9943 47.3714 16.6863 45.7414 13.3485 44.1113C10.0108 42.4813 7.13877 40.075 4.73249 36.8925C2.3262 33.71 1.12306 29.5572 1.12306 24.4341C1.12306 16.8271 3.87865 10.8891 9.38982 6.61984C14.901 2.273 22.081 0.0995786 30.93 0.0995786C39.9341 0.0995786 47.1918 2.273 52.703 6.61984C58.2141 10.8891 61.1638 16.866 61.5519 24.5505H40.0117C39.8565 21.9114 38.8862 19.8544 37.1009 18.3796C35.3156 16.8271 33.0258 16.0509 30.2314 16.0509C27.8251 16.0509 25.8845 16.7107 24.4097 18.0303C22.9349 19.2722 22.1975 21.0964 22.1975 23.5026C22.1975 26.1418 23.4394 28.1988 25.9233 29.6736C28.4072 31.1484 32.2883 32.7397 37.5666 34.4474C42.8449 36.2327 47.1142 37.9404 50.3743 39.5704C53.712 41.2005 56.5841 43.568 58.9903 46.6728C61.3966 49.7777 62.5998 53.7753 62.5998 58.6655C62.5998 63.3228 61.3966 67.5532 58.9903 71.3567C56.6617 75.1602 53.2463 78.1874 48.7442 80.4385C44.2421 82.6895 38.925 83.815 32.7929 83.815ZM113.508 83.815C105.824 83.815 98.7602 82.0297 92.3175 78.4591C85.9525 74.8885 80.8683 69.9207 77.0648 63.5557C73.3389 57.113 71.476 49.8942 71.476 41.8991C71.476 33.904 73.3389 26.724 77.0648 20.3589C80.8683 13.9939 85.9525 9.02612 92.3175 5.45551C98.7602 1.88489 105.824 0.0995786 113.508 0.0995786C121.193 0.0995786 128.218 1.88489 134.583 5.45551C141.025 9.02612 146.071 13.9939 149.719 20.3589C153.445 26.724 155.308 33.904 155.308 41.8991C155.308 49.8942 153.445 57.113 149.719 63.5557C145.993 69.9207 140.948 74.8885 134.583 78.4591C128.218 82.0297 121.193 83.815 113.508 83.815ZM113.508 65.6515C120.029 65.6515 125.229 63.478 129.11 59.1312C133.069 54.7844 135.049 49.0403 135.049 41.8991C135.049 34.6802 133.069 28.9362 129.11 24.667C125.229 20.3201 120.029 18.1467 113.508 18.1467C106.91 18.1467 101.632 20.2813 97.6735 24.5505C93.7923 28.8198 91.8518 34.6026 91.8518 41.8991C91.8518 49.1179 93.7923 54.9008 97.6735 59.2476C101.632 63.5168 106.91 65.6515 113.508 65.6515ZM219.594 1.26391V17.2153H186.295V34.4474H211.211V49.933H186.295V83H166.384V1.26391H219.594ZM249.969 17.2153V33.7488H276.632V49.1179H249.969V67.0487H280.125V83H230.059V1.26391H280.125V17.2153H249.969ZM312.961 1.26391V83H293.051V1.26391H312.961ZM400.51 83H380.6L347.3 32.5844V83H327.39V1.26391H347.3L380.6 51.9123V1.26391H400.51V83Z" />
             </svg>
-            <span class="brand-tag">Digital</span>
+            <span class="brand-sub">Digital</span>
           </a>
-          <a href="https://sofein.es/" target="_blank" rel="noopener noreferrer" class="header-corp-link">
-            <span>Visitar sofein.es</span>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M7 17l10-10M7 7h10v10"/>
-            </svg>
+          <a class="digital-corp-link" href="https://sofein.es/" target="_blank" rel="noopener noreferrer">
+            <span>sofein.es</span>
+            <span class="arrow">↗</span>
           </a>
         </div>
       </header>
 
-      <!-- Main Center Content -->
-      <main class="main-content">
-        <div class="shell">
-          <div class="hero-center">
-            <!-- Status Badge -->
-            <div class="status-pill">
-              <span class="pulse-dot"></span>
-              <span>Nueva plataforma en construcción</span>
-            </div>
+      <!-- Main Center-Left Content -->
+      <main class="digital-shell">
+        <div class="digital-hero-content">
+          <div class="status-pill">
+            <span class="pulse-dot"></span>
+            <span>Plataforma en construcción</span>
+          </div>
 
-            <!-- Headline -->
-            <h1 class="hero-title">
-              La gestión ferroviaria, con una <span class="editorial-serif">nueva visión digital.</span>
-            </h1>
+          <h1>
+            La nueva dimensión<br />digital de <em>SOFEIN.</em>
+          </h1>
 
-            <!-- Subtitle -->
-            <p class="hero-lead">
-              Estamos desarrollando <strong>SOFEIN Digital</strong>: el espacio privado para la trazabilidad integral, expedientes técnicos y seguimiento en directo de proyectos de infraestructura ferroviaria.
-            </p>
+          <p class="digital-lead">
+            Estamos desarrollando el espacio digital de SOFEIN para el seguimiento, trazabilidad y gestión documental de proyectos ferroviarios. Estará disponible próximamente.
+          </p>
 
-            <!-- Lead Capture / Notification Card -->
-            <div class="action-card">
-              <div class="action-title">Lanzamiento previsto · Próximamente</div>
-              <p class="action-desc">Déjanos tu correo para recibir acceso prioritario a la plataforma o solicitar información anticipada.</p>
-              
-              <form class="notify-form" id="notifyForm" onsubmit="handleNotifySubmit(event)">
-                <input
-                  type="email"
-                  class="notify-input"
-                  id="notifyEmail"
-                  placeholder="tu.correo@empresa.com"
-                  required
-                  autocomplete="email"
-                />
-                <button type="submit" class="notify-button">
-                  <span>Avisarme del lanzamiento</span>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M5 12h14M12 5l7 7-7 7"/>
-                  </svg>
-                </button>
-              </form>
-              <div class="form-feedback success" id="formSuccess">
-                ✓ Gracias por tu interés. Te contactaremos en cuanto la plataforma esté disponible.
-              </div>
-            </div>
-
-            <!-- Pillars / Features Preview -->
-            <div class="features-preview">
-              <div class="feature-card">
-                <span class="feature-number">01 / TRAZABILIDAD</span>
-                <h3>Visibilidad de Suministros</h3>
-                <p>Control exacto del estado de fabricación, acopio y entrega de traviesas y componentes técnicos de vía.</p>
-              </div>
-
-              <div class="feature-card">
-                <span class="feature-number">02 / CALIDAD</span>
-                <h3>Expedientes Técnicos</h3>
-                <p>Centralización de certificados, ensayos de laboratorio, fichas de homologación y actas de recepción.</p>
-              </div>
-
-              <div class="feature-card">
-                <span class="feature-number">03 / COLABORACIÓN</span>
-                <h3>Canal Directo de Proyecto</h3>
-                <p>Interlocución fluida entre dirección técnica, jefatura de obra y equipo de ingeniería de SOFEIN.</p>
-              </div>
-            </div>
-
-            <!-- Direct Contact Strip -->
-            <div class="direct-contact-strip">
-              <span>¿Necesitas contactar con el equipo ahora?</span>
-              <a href="mailto:info@sofein.es" class="contact-item">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-                  <polyline points="22,6 12,13 2,6"/>
-                </svg>
-                <span>info@sofein.es</span>
-              </a>
-              <a href="tel:+34910000000" class="contact-item">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
-                </svg>
-                <span>Atención Telefónica</span>
-              </a>
-            </div>
+          <div class="digital-actions-row">
+            <a class="digital-button" href="https://sofein.es/" target="_blank" rel="noopener noreferrer">
+              Ir a la web corporativa <span aria-hidden="true">→</span>
+            </a>
+            <a class="digital-contact-link" href="mailto:info@sofein.es">
+              <span>Contacto:</span> <strong>info@sofein.es</strong>
+            </a>
           </div>
         </div>
       </main>
 
+      <!-- Skewed Railway Lines -->
+      <div class="digital-rail-line" aria-hidden="true">
+        <span></span>
+        <span></span>
+      </div>
+
       <!-- Footer -->
-      <footer class="site-footer">
-        <div class="shell footer-inner">
-          <div>
-            &copy; 2026 SOFEIN Digital · Todos los derechos reservados.
-          </div>
-          <div class="footer-links">
-            <a href="https://sofein.es/" target="_blank" rel="noopener noreferrer">SOFEIN Corporativo</a>
-            <a href="mailto:info@sofein.es">Contacto</a>
-            <a href="index.html">Portal Demo</a>
-          </div>
+      <footer class="digital-footer">
+        <div class="digital-shell digital-footer-inner">
+          <p>&copy; 2026 SOFEIN Digital. Todos los derechos reservados.</p>
+          <a href="mailto:info@sofein.es">info@sofein.es</a>
         </div>
       </footer>
     </div>
-
-    <!-- Interactive script -->
-    <script>
-      function handleNotifySubmit(e) {
-        e.preventDefault();
-        const email = document.getElementById('notifyEmail').value.trim();
-        if (!email) return;
-
-        // Store locally or dispatch
-        const stored = JSON.parse(localStorage.getItem('sofein_notif_leads') || '[]');
-        stored.push({ email: email, timestamp: new Date().toISOString() });
-        localStorage.setItem('sofein_notif_leads', JSON.stringify(stored));
-
-        // Show feedback
-        const successEl = document.getElementById('formSuccess');
-        successEl.style.display = 'block';
-        document.getElementById('notifyEmail').value = '';
-        
-        setTimeout(() => {
-          successEl.textContent = '✓ Correo registrado correctamente. Nos pondremos en contacto pronto.';
-        }, 300);
-      }
-    </script>
   </body>
 </html>
