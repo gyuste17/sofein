@@ -2,6 +2,13 @@
 
 Registro de relevo entre agentes. **Entradas nuevas arriba.** Reglas del proyecto en `AGENTS.md`.
 
+## 2026-10-26 · Claude · rama `procurement` · Push y despliegue (v50)
+
+- `gitleaks` sobre los commits nuevos: sin fugas.
+- `git push origin procurement` (hasta `9ecac8d`).
+- `npx.cmd vercel --prod --yes` → producción de **sofein-procurement** (https://sofein-procurement.vercel.app), con assets en `?v=procurement-v50`.
+- Verificado en la URL pública: ficha H6T4 con las 4 pestañas (incluido Historial) y 0 errores de consola.
+
 ## 2026-10-26 · Claude · rama `claude/expediente` · Historial de actividad del expediente (v50)
 
 **Hecho**
