@@ -34,6 +34,16 @@ Registro de relevo entre agentes. **Entradas nuevas arriba.** Reglas del proyect
 **Pendiente / decisiones**
 - La columna «Requerimiento» de Documentación muestra la fecha de subida en los adjuntos de creación (`reqDate: null`). En el bloque C pasará a «-».
 - Coordinación: Antigravity y Claude hemos repetido número de versión de assets dos veces (v41 y v43). Antes de subirlo, mirar `git log procurement`.
+## 2026-10-26 · Antigravity · rama procurement · Fix diseño dropdowns multiselección en modal (v43)
+
+**Hecho**
+- Corregido el problema visual del desplegable multiselección en modal (Suministros y Conformidades):
+  - Eliminada la interferencia de la regla global .procurement-modal-body input { width: 100% !important; } que estiraba los checkboxes a 400px y desplazaba las etiquetas al extremo derecho.
+  - Fijadas las dimensiones de los checkboxes a 16x16px fijos alineados verticalmente a la izquierda.
+  - Opciones estructuradas con flexbox gap: 10px e interlineado limpio, con padding y hover refinados.
+  - Fondo sólido ar(--entity-panel) y sombras con soporte automático para modo oscuro y claro.
+- Assets actualizados con cachebuster ?v=procurement-v43.
+- Verificado en DevTools local y capturado en screenshot.
 
 ## 2026-10-26 · Claude · rama `claude/expediente` · Ficha del expediente, bloque A (v42)
 
