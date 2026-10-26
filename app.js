@@ -6725,18 +6725,39 @@
                     ${visiblePrvCols.map(colId => {
                       const colDef = ALL_DIR_PRV_COL_DEFS[colId] || { label: colId };
                       const isSorted = directorioPrvSortCol === colId;
+                      const isConf = colId === "conformidades";
                       return `
                         <th class="is-sortable ${isSorted ? 'is-sorted' : ''}"
                             data-sort-dir-prv="${colId}"
                             data-dir-col-id="${colId}"
                             data-dir-entity="proveedor"
                             draggable="true"
-                            title="Clic para ordenar · Arrastra para reordenar columna"
+                            title="${isConf ? 'Verde: Normas y homologaciones · Ámbar: Tratamientos · Gris: Otras certificaciones · Clic para ordenar' : 'Clic para ordenar · Arrastra para reordenar columna'}"
                             style="min-width:${colDef.minWidth || '85px'}">
                           <div class="th-sort-wrap" style="display:flex;align-items:center;justify-content:space-between;gap:4px">
                             <div style="display:flex;align-items:center;gap:4px;min-width:0">
                               <span class="dir-th-drag-grip" title="Arrastrar para mover">⠿</span>
                               <span>${colDef.label}</span>
+                              ${isConf ? `
+                                <span class="dir-conf-legend-trigger" title="Ver leyenda de colores de conformidades">
+                                  ${icon("info", 12)}
+                                  <span class="dir-conf-legend-popover">
+                                    <strong style="display:block;margin-bottom:6px;font-size:0.75rem;color:var(--entity-text)">Leyenda de Conformidades</strong>
+                                    <span class="dir-conf-legend-row">
+                                      <span class="dir-tag dir-tag-iso" style="font-size:0.68rem;padding:2px 6px">Verde</span>
+                                      <span style="font-size:0.72rem;color:var(--entity-muted)">Normas y homologaciones oficiales (ISO, CE, AENOR, Adif, UNE-EN)</span>
+                                    </span>
+                                    <span class="dir-conf-legend-row" style="margin-top:6px">
+                                      <span class="dir-tag dir-tag-treatment" style="font-size:0.68rem;padding:2px 6px">Ámbar</span>
+                                      <span style="font-size:0.72rem;color:var(--entity-muted)">Tratamientos químicos y conservación (creosota, autoclave)</span>
+                                    </span>
+                                    <span class="dir-conf-legend-row" style="margin-top:6px">
+                                      <span class="dir-tag" style="font-size:0.68rem;padding:2px 6px">Gris</span>
+                                      <span style="font-size:0.72rem;color:var(--entity-muted)">Otras certificaciones y sostenibilidad (FSC, PEFC)</span>
+                                    </span>
+                                  </span>
+                                </span>
+                              ` : ''}
                               ${getDirectorioSortIcon(colId, directorioPrvSortCol, directorioPrvSortDir)}
                             </div>
                             <button type="button" class="dir-th-hide-btn" data-hide-dir-col="${colId}" data-dir-entity="proveedor" title="Ocultar columna «${colDef.label}»" aria-label="Ocultar columna «${colDef.label}»">
@@ -12182,123 +12203,163 @@
     const isEdit = !!entityToEdit;
     const targetType = isEdit ? (entityToEdit.id && entityToEdit.id.startsWith("CLI") ? "cliente" : "proveedor") : defaultType;
 
-    // Conformidades seleccionables: catálogo activo + las ya asignadas que no estén en él
-    const defaultConfIds = ["CNF-01", "CNF-02", "CNF-16"]; // ISO 9001, ISO 14001, Adif NAV-2026 (por id: sobrevive a renombrados)
-    const selectedConformidades = entityToEdit?.conformidades || entityToEdit?.homologaciones
-      || (isEdit ? [] : getActiveConformidades().filter(c => defaultConfIds.includes(c.id)).map(c => c.nombre));
-    const catalogConfOptions = getActiveConformidades().map(c => ({ nombre: c.nombre, title: [c.tipo, c.emisor].filter(Boolean).join(" · ") }));
-    selectedConformidades.forEach(nombre => {
-      if (!catalogConfOptions.some(c => c.nombre === nombre)) catalogConfOptions.push({ nombre, title: "Fuera del catálogo activo", extra: true });
+    // Título limpio sin subtítulo
+    const modalTitle = isEdit 
+      ? (targetType === "proveedor" ? "Editar proveedor" : "Editar cliente")
+      : "Añadir cliente o proveedor";
+
+    // Conformidades disponibles: catálogo de conformidades SOFEIN + ya asignadas
+    const catalogConfList = getActiveConformidades().map(c => c.nombre);
+    const initialConf = entityToEdit?.conformidades || entityToEdit?.homologaciones || (isEdit ? [] : ["ISO 9001", "ISO 14001"]);
+    const allConfOptions = Array.from(new Set([...catalogConfList, ...initialConf]));
+
+    // Suministros iniciales y condiciones por suministro
+    const rawInitialSums = entityToEdit?.suministros || (entityToEdit?.materiales ? [entityToEdit.materiales] : []);
+    const initialSums = getGenericSuministrosList(rawInitialSums);
+    const selectedSuministrosSet = new Set(initialSums);
+
+    // Mapa de condiciones por suministro
+    const suministrosCondMap = {};
+    const existingCondMap = entityToEdit?.suministrosCondiciones || {};
+    GENERIC_SUMINISTROS.forEach(s => {
+      suministrosCondMap[s] = {
+        leadTime: existingCondMap[s]?.leadTime || (entityToEdit?.leadTimeMedio && initialSums.includes(s) ? entityToEdit.leadTimeMedio : ""),
+        condicionesPago: existingCondMap[s]?.condicionesPago || (entityToEdit?.condicionesPago && initialSums.includes(s) ? entityToEdit.condicionesPago : "")
+      };
     });
+
+    const selectedConformidadesSet = new Set(initialConf);
 
     modalWrap.innerHTML = `
       <div class="procurement-modal-backdrop" id="addEntityModalBackdrop">
-        <div class="procurement-modal" style="width:min(580px,100%)">
-          <div class="procurement-modal-head">
-            <div>
-              <h3>${isEdit ? `Editar ${targetType === 'proveedor' ? 'Proveedor' : 'Cliente'}` : 'Añadir al Directorio'}</h3>
-              <p style="margin:2px 0 0;font-size:0.75rem;color:var(--entity-muted)">
-                ${isEdit ? `Actualización de datos técnicos y operativos de ${entityToEdit.nombre}` : 'Alta de nuevo proveedor homologado o cliente constructor de vía'}
-              </p>
-            </div>
+        <div class="procurement-modal" style="width:min(600px,100%)">
+          <div class="procurement-modal-head" style="padding:18px 24px">
+            <h3 style="margin:0;font-size:1.15rem;font-weight:600">${modalTitle}</h3>
             <button type="button" id="closeAddEntityModalBtn" aria-label="Cerrar">×</button>
           </div>
           <form id="modalAddEntityForm">
-            <div class="procurement-modal-body" style="gap:14px;max-height:calc(85vh - 140px);overflow-y:auto;overflow-x:hidden;padding:20px 24px;box-sizing:border-box">
+            <div class="procurement-modal-body" style="gap:16px;max-height:calc(85vh - 130px);overflow-y:auto;overflow-x:hidden;padding:20px 24px;box-sizing:border-box">
+              
+              <!-- Tipo -->
               <div style="display:grid;gap:6px">
-                <label style="font-size:0.75rem;font-weight:600;color:var(--entity-muted)">Tipo de entidad</label>
-                <select id="entityTypeSelect" name="tipo" ${isEdit ? "disabled" : ""} style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0">
-                  <option value="proveedor" ${targetType === "proveedor" ? "selected" : ""}>Proveedor Homologado (Fabricante / Distribuidor)</option>
-                  <option value="cliente" ${targetType === "cliente" ? "selected" : ""}>Cliente (Constructor de vía / Contratista)</option>
+                <label style="font-size:0.75rem;font-weight:600;color:var(--entity-muted)">Tipo <span style="color:#ef4444">*</span></label>
+                <select id="entityTypeSelect" name="tipo" ${isEdit ? "disabled" : ""} required style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box">
+                  <option value="proveedor" ${targetType === "proveedor" ? "selected" : ""}>Proveedor</option>
+                  <option value="cliente" ${targetType === "cliente" ? "selected" : ""}>Cliente</option>
                 </select>
                 ${isEdit ? `<input type="hidden" name="tipo" value="${targetType}">` : ''}
               </div>
 
-              <div style="display:grid;grid-template-columns:1fr 140px;gap:12px;min-width:0;box-sizing:border-box">
+              <!-- Razón Social / Nombre (Obligatorio) y CIF (Opcional) -->
+              <div style="display:grid;grid-template-columns:1fr 140px;gap:12px">
                 <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
-                  Razón Social / Nombre
-                  <input name="nombre" required value="${(entityToEdit?.nombre || '').replace(/"/g, '&quot;')}" placeholder="Ej: Aceros Ferroviarios del Cantábrico, S.L." style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0" />
+                  <span>Razón Social / Nombre <span style="color:#ef4444">*</span></span>
+                  <input name="nombre" required value="${(entityToEdit?.nombre || '').replace(/"/g, '&quot;')}" placeholder="Ej: Aceros Ferroviarios, S.L." style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box" />
                 </label>
                 <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
                   CIF
-                  <input name="cif" required value="${(entityToEdit?.cif || '').replace(/"/g, '&quot;')}" placeholder="Ej: B-48192837" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0" />
+                  <input name="cif" value="${(entityToEdit?.cif || '').replace(/"/g, '&quot;')}" placeholder="Ej: B-48192837" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box" />
                 </label>
               </div>
 
+              <!-- Sede (Opcional) -->
               <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
                 Sede / Fábrica principal
-                <input name="sede" required value="${(entityToEdit?.sede || '').replace(/"/g, '&quot;')}" placeholder="Ej: Amurrio (Álava) / Bilbao" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0" />
+                <input name="sede" value="${(entityToEdit?.sede || '').replace(/"/g, '&quot;')}" placeholder="Ej: Amurrio (Álava) / Bilbao" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box" />
               </label>
 
+              <!-- Email y Teléfono (Opcionales) -->
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
                 <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
                   Email de contacto
-                  <input name="email" type="email" required value="${(entityToEdit?.email || entityToEdit?.contacto || '').replace(/"/g, '&quot;')}" placeholder="contacto@empresa.es" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0" />
+                  <input name="email" type="email" value="${(entityToEdit?.email || entityToEdit?.contacto || '').replace(/"/g, '&quot;')}" placeholder="contacto@empresa.es" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box" />
                 </label>
                 <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
                   Teléfono de contacto
-                  <input name="telefono" type="tel" value="${(entityToEdit?.telefono || '').replace(/"/g, '&quot;')}" placeholder="Ej: +34 945 393 210" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0" />
+                  <input name="telefono" type="tel" value="${(entityToEdit?.telefono || '').replace(/"/g, '&quot;')}" placeholder="Ej: +34 945 393 210" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box" />
                 </label>
               </div>
 
-              <!-- Campos específicos para Proveedor -->
-              <div id="proveedorFields" style="display:${targetType === 'proveedor' ? 'grid' : 'none'};gap:14px">
-                <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
-                  Suministros acreditados (etiquetas breves separadas por coma)
-                  <input name="suministros" value="${(entityToEdit?.suministros ? entityToEdit.suministros.join(', ') : (entityToEdit?.materiales || '')).replace(/"/g, '&quot;')}" placeholder="Ej: Traviesas, Fijaciones, Carril" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0" />
-                  <span class="catalog-chip-row">
-                    <span style="font-size:0.7rem;color:var(--entity-muted);font-weight:500">Suministros genéricos:</span>
-                    ${GENERIC_SUMINISTROS.map(s => `<button type="button" class="catalog-chip" data-append-suministro="${s}" title="${s}">+ ${s}</button>`).join("")}
-                  </span>
-                </label>
-                <div style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
-                  <span>Conformidades y certificaciones <span style="font-weight:500">(catálogo SOFEIN)</span></span>
-                  <div class="catalog-check-grid">
-                    ${catalogConfOptions.map(c => `
-                      <label class="catalog-check ${c.extra ? "is-extra" : ""}" title="${escHTML(c.title)}">
-                        <input type="checkbox" name="conformidades_cat" value="${escHTML(c.nombre)}" ${selectedConformidades.includes(c.nombre) ? "checked" : ""} />
-                        <span>${escHTML(c.nombre)}</span>
-                      </label>
-                    `).join("")}
+              <!-- CAMPOS DE PROVEEDOR -->
+              <div id="proveedorFields" style="display:${targetType === 'proveedor' ? 'grid' : 'none'};gap:16px">
+                
+                <!-- Dropdown de Suministros -->
+                <div style="display:grid;gap:6px">
+                  <label style="font-size:0.75rem;font-weight:600;color:var(--entity-muted)">Suministros</label>
+                  <div class="dir-multiselect-wrap" id="wrapDropSuministros">
+                    <div class="dir-multiselect-box" id="btnDropSuministros" tabindex="0">
+                      <div class="dir-multiselect-tags" id="tagsSelectedSuministros"></div>
+                      <span style="color:var(--entity-muted);display:inline-flex">${icon("chevronDown", 13)}</span>
+                    </div>
+                    <div class="dir-multiselect-menu" id="menuDropSuministros" hidden>
+                      ${GENERIC_SUMINISTROS.map(s => `
+                        <label class="dir-multiselect-option">
+                          <input type="checkbox" data-opt-suministro="${s}" ${selectedSuministrosSet.has(s) ? 'checked' : ''} />
+                          <span class="dir-tag dir-tag-sum" style="font-size:0.74rem">${s}</span>
+                        </label>
+                      `).join("")}
+                    </div>
                   </div>
-                  <label style="display:grid;gap:6px;font-weight:500">
-                    Otras conformidades (separadas por coma)
-                    <input name="conformidades_otras" value="" placeholder="Ej: ISO 50001, Homologación Metro Bilbao" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0" />
-                  </label>
                 </div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-                  <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
-                    Plazo medio (Lead time)
-                    <input name="leadTimeMedio" value="${(entityToEdit?.leadTimeMedio || '42 días').replace(/"/g, '&quot;')}" placeholder="Ej: 42 días" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0" />
-                  </label>
-                  <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
-                    Condiciones de pago marco
-                    <input name="condicionesPagoPrv" value="${(entityToEdit?.condicionesPago || '60 días confirmada').replace(/"/g, '&quot;')}" placeholder="Ej: Confirming 60 días" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0" />
-                  </label>
+
+                <!-- Dropdown de Conformidades -->
+                <div style="display:grid;gap:6px">
+                  <label style="font-size:0.75rem;font-weight:600;color:var(--entity-muted)">Conformidades</label>
+                  <div class="dir-multiselect-wrap" id="wrapDropConformidades">
+                    <div class="dir-multiselect-box" id="btnDropConformidades" tabindex="0">
+                      <div class="dir-multiselect-tags" id="tagsSelectedConformidades"></div>
+                      <span style="color:var(--entity-muted);display:inline-flex">${icon("chevronDown", 13)}</span>
+                    </div>
+                    <div class="dir-multiselect-menu" id="menuDropConformidades" hidden>
+                      ${allConfOptions.map(c => {
+                        const cl = c.toLowerCase();
+                        let tagClass = "";
+                        if (cl.includes("tratamiento") || cl.includes("creosota") || cl.includes("autoclave")) tagClass = "dir-tag-treatment";
+                        else if (cl.includes("iso") || cl.includes("ce") || cl.includes("aenor") || cl.includes("en ") || cl.includes("nav-") || cl.includes("tipo 1")) tagClass = "dir-tag-iso";
+                        return `
+                          <label class="dir-multiselect-option">
+                            <input type="checkbox" data-opt-conformidad="${escHTML(c)}" ${selectedConformidadesSet.has(c) ? 'checked' : ''} />
+                            <span class="dir-tag ${tagClass}" style="font-size:0.72rem">${c}</span>
+                          </label>
+                        `;
+                      }).join("")}
+                    </div>
+                  </div>
                 </div>
+
+                <!-- Cajas específicas de Plazo Medio y Condiciones de Pago por cada suministro -->
+                <div style="display:grid;gap:10px;margin-top:2px">
+                  <div style="display:flex;align-items:center;justify-content:space-between">
+                    <span style="font-size:0.75rem;font-weight:600;color:var(--entity-muted)">Condiciones por suministro</span>
+                    <small style="font-size:0.7rem;color:var(--entity-muted)">(Plazo medio y condiciones habituales específicas)</small>
+                  </div>
+                  <div id="suministrosCondBoxesWrap" style="display:grid;gap:10px"></div>
+                </div>
+
               </div>
 
-              <!-- Campos específicos para Cliente -->
+              <!-- CAMPOS DE CLIENTE -->
               <div id="clienteFields" style="display:${targetType === 'cliente' ? 'grid' : 'none'};gap:14px">
                 <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
                   Actividad / Especialidad ferroviaria
-                  <input name="actividad" value="${(entityToEdit?.actividad || '').replace(/"/g, '&quot;')}" placeholder="Ej: Constructora Ferroviaria (Licitaciones Adif / Metro)" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0" />
+                  <input name="actividad" value="${(entityToEdit?.actividad || '').replace(/"/g, '&quot;')}" placeholder="Ej: Constructora Ferroviaria (Licitaciones Adif / Metro)" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box" />
                 </label>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
                   <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
                     Representante Legal / Dirección Compras
-                    <input name="representante" value="${(entityToEdit?.representante || 'María González López (Dir. Compras)').replace(/"/g, '&quot;')}" placeholder="Ej: María González López" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0" />
+                    <input name="representante" value="${(entityToEdit?.representante || '').replace(/"/g, '&quot;')}" placeholder="Ej: María González López" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box" />
                   </label>
                   <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
-                    Condiciones de pago corporativas
-                    <input name="condicionesPagoCli" value="${(entityToEdit?.condicionesPago || 'Confirming 60 días tras acta recepción').replace(/"/g, '&quot;')}" placeholder="Ej: Confirming 60 días" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0" />
+                    Condiciones de pago habituales
+                    <input name="condicionesPagoCli" value="${(entityToEdit?.condicionesPago || '').replace(/"/g, '&quot;')}" placeholder="Ej: Confirming 60 días" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box" />
                   </label>
                 </div>
               </div>
+
             </div>
-            <div class="procurement-modal-footer">
+            <div class="procurement-modal-footer" style="padding:16px 24px">
               <button class="admin-quiet-button" type="button" id="cancelAddEntityBtn">Cancelar</button>
-              <button class="admin-primary-button" type="submit">${isEdit ? 'Guardar cambios' : 'Dar de alta en directorio'}</button>
+              <button class="admin-primary-button" type="submit">${isEdit ? 'Guardar cambios' : 'Dar de alta'}</button>
             </div>
           </form>
         </div>
@@ -12316,18 +12377,6 @@
     const prvFields = document.getElementById("proveedorFields");
     const cliFields = document.getElementById("clienteFields");
 
-    modalWrap.querySelectorAll("[data-append-suministro]").forEach(chip => {
-      chip.addEventListener("click", e => {
-        e.preventDefault();
-        const input = modalWrap.querySelector('input[name="suministros"]');
-        if (!input) return;
-        const tags = input.value.split(",").map(t => t.trim()).filter(Boolean);
-        const tag = chip.dataset.appendSuministro;
-        if (!tags.some(t => t.toLowerCase() === tag.toLowerCase())) tags.push(tag);
-        input.value = tags.join(", ");
-      });
-    });
-
     typeSelect?.addEventListener("change", e => {
       if (e.target.value === "proveedor") {
         prvFields.style.display = "grid";
@@ -12338,24 +12387,208 @@
       }
     });
 
+    // Renderizar tags de Suministros seleccionados
+    const tagsSuministrosEl = document.getElementById("tagsSelectedSuministros");
+    const renderSuministrosTagsUI = () => {
+      if (!tagsSuministrosEl) return;
+      if (selectedSuministrosSet.size === 0) {
+        tagsSuministrosEl.innerHTML = `<span class="dir-multiselect-placeholder">Seleccionar suministros...</span>`;
+      } else {
+        tagsSuministrosEl.innerHTML = Array.from(selectedSuministrosSet).map(s => `
+          <span class="dir-tag dir-tag-sum dir-multiselect-tag">
+            ${s}
+            <button type="button" class="dir-multiselect-tag-remove" data-remove-sum="${s}">×</button>
+          </span>
+        `).join("");
+      }
+    };
+
+    // Renderizar cajas de Condiciones por cada suministro
+    const condBoxesWrap = document.getElementById("suministrosCondBoxesWrap");
+    const renderCondBoxesUI = () => {
+      if (!condBoxesWrap) return;
+      const sums = Array.from(selectedSuministrosSet);
+      if (sums.length === 0) {
+        condBoxesWrap.innerHTML = `
+          <div style="padding:12px;border:1px dashed var(--entity-line);border-radius:6px;text-align:center;font-size:0.75rem;color:var(--entity-muted)">
+            Selecciona uno o más suministros en el desplegable superior para indicar su plazo y condiciones.
+          </div>
+        `;
+        return;
+      }
+      condBoxesWrap.innerHTML = sums.map(s => {
+        const cond = suministrosCondMap[s] || { leadTime: "", condicionesPago: "" };
+        return `
+          <div style="padding:10px 12px;border-radius:6px;background:var(--entity-panel-2, rgba(255,255,255,0.03));border:1px solid var(--entity-line);display:grid;gap:8px">
+            <div style="display:flex;align-items:center;gap:6px">
+              <span class="dir-tag dir-tag-sum" style="font-weight:600;font-size:0.74rem">${s}</span>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              <label style="display:grid;gap:4px;font-size:0.72rem;font-weight:500;color:var(--entity-muted)">
+                Plazo medio (lead time)
+                <input type="text" data-sum-lead-time="${s}" value="${(cond.leadTime || '').replace(/"/g, '&quot;')}" placeholder="Ej: 42 días" style="height:34px;padding:0 8px;border-radius:5px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.78rem" />
+              </label>
+              <label style="display:grid;gap:4px;font-size:0.72rem;font-weight:500;color:var(--entity-muted)">
+                Condiciones de pago habituales
+                <input type="text" data-sum-cond-pago="${s}" value="${(cond.condicionesPago || '').replace(/"/g, '&quot;')}" placeholder="Ej: Confirming 60 días" style="height:34px;padding:0 8px;border-radius:5px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.78rem" />
+              </label>
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      // Listeners de input en cajas de condiciones
+      condBoxesWrap.querySelectorAll("[data-sum-lead-time]").forEach(inp => {
+        inp.addEventListener("input", e => {
+          const s = inp.dataset.sumLeadTime;
+          if (!suministrosCondMap[s]) suministrosCondMap[s] = {};
+          suministrosCondMap[s].leadTime = e.target.value.trim();
+        });
+      });
+      condBoxesWrap.querySelectorAll("[data-sum-cond-pago]").forEach(inp => {
+        inp.addEventListener("input", e => {
+          const s = inp.dataset.sumCondPago;
+          if (!suministrosCondMap[s]) suministrosCondMap[s] = {};
+          suministrosCondMap[s].condicionesPago = e.target.value.trim();
+        });
+      });
+    };
+
+    // Renderizar tags de Conformidades seleccionadas
+    const tagsConformidadesEl = document.getElementById("tagsSelectedConformidades");
+    const renderConformidadesTagsUI = () => {
+      if (!tagsConformidadesEl) return;
+      if (selectedConformidadesSet.size === 0) {
+        tagsConformidadesEl.innerHTML = `<span class="dir-multiselect-placeholder">Seleccionar conformidades...</span>`;
+      } else {
+        tagsConformidadesEl.innerHTML = Array.from(selectedConformidadesSet).map(c => {
+          const cl = c.toLowerCase();
+          let tagClass = "";
+          if (cl.includes("tratamiento") || cl.includes("creosota") || cl.includes("autoclave")) tagClass = "dir-tag-treatment";
+          else if (cl.includes("iso") || cl.includes("ce") || cl.includes("aenor") || cl.includes("en ") || cl.includes("nav-") || cl.includes("tipo 1")) tagClass = "dir-tag-iso";
+          return `
+            <span class="dir-tag ${tagClass} dir-multiselect-tag">
+              ${c}
+              <button type="button" class="dir-multiselect-tag-remove" data-remove-conf="${escHTML(c)}">×</button>
+            </span>
+          `;
+        }).join("");
+      }
+    };
+
+    renderSuministrosTagsUI();
+    renderCondBoxesUI();
+    renderConformidadesTagsUI();
+
+    // Toggle Dropdown Suministros
+    const btnDropSum = document.getElementById("btnDropSuministros");
+    const menuDropSum = document.getElementById("menuDropSuministros");
+    btnDropSum?.addEventListener("click", e => {
+      if (e.target.closest(".dir-multiselect-tag-remove")) return;
+      menuDropSum.hidden = !menuDropSum.hidden;
+      if (!menuDropSum.hidden && menuDropConf) menuDropConf.hidden = true;
+    });
+
+    // Checkboxes en Dropdown Suministros
+    menuDropSum?.querySelectorAll("[data-opt-suministro]").forEach(chk => {
+      chk.addEventListener("change", e => {
+        const sum = chk.dataset.optSuministro;
+        if (e.target.checked) {
+          selectedSuministrosSet.add(sum);
+        } else {
+          selectedSuministrosSet.delete(sum);
+        }
+        renderSuministrosTagsUI();
+        renderCondBoxesUI();
+      });
+    });
+
+    // Quitar tag individual de suministro
+    tagsSuministrosEl?.addEventListener("click", e => {
+      const rmBtn = e.target.closest("[data-remove-sum]");
+      if (!rmBtn) return;
+      e.stopPropagation();
+      const sum = rmBtn.dataset.removeSum;
+      selectedSuministrosSet.delete(sum);
+      const chk = menuDropSum?.querySelector(`[data-opt-suministro="${sum}"]`);
+      if (chk) chk.checked = false;
+      renderSuministrosTagsUI();
+      renderCondBoxesUI();
+    });
+
+    // Toggle Dropdown Conformidades
+    const btnDropConf = document.getElementById("btnDropConformidades");
+    const menuDropConf = document.getElementById("menuDropConformidades");
+    btnDropConf?.addEventListener("click", e => {
+      if (e.target.closest(".dir-multiselect-tag-remove")) return;
+      menuDropConf.hidden = !menuDropConf.hidden;
+      if (!menuDropConf.hidden && menuDropSum) menuDropSum.hidden = true;
+    });
+
+    // Checkboxes en Dropdown Conformidades
+    menuDropConf?.querySelectorAll("[data-opt-conformidad]").forEach(chk => {
+      chk.addEventListener("change", e => {
+        const conf = chk.dataset.optConformidad;
+        if (e.target.checked) {
+          selectedConformidadesSet.add(conf);
+        } else {
+          selectedConformidadesSet.delete(conf);
+        }
+        renderConformidadesTagsUI();
+      });
+    });
+
+    // Quitar tag individual de conformidad
+    tagsConformidadesEl?.addEventListener("click", e => {
+      const rmBtn = e.target.closest("[data-remove-conf]");
+      if (!rmBtn) return;
+      e.stopPropagation();
+      const conf = rmBtn.dataset.removeConf;
+      selectedConformidadesSet.delete(conf);
+      const chk = menuDropConf?.querySelector(`[data-opt-conformidad="${conf}"]`);
+      if (chk) chk.checked = false;
+      renderConformidadesTagsUI();
+    });
+
+    // Cerrar dropdowns al hacer clic fuera
+    document.addEventListener("click", e => {
+      if (!document.getElementById("wrapDropSuministros")?.contains(e.target)) {
+        if (menuDropSum) menuDropSum.hidden = true;
+      }
+      if (!document.getElementById("wrapDropConformidades")?.contains(e.target)) {
+        if (menuDropConf) menuDropConf.hidden = true;
+      }
+    });
+
+    // Envío del formulario
     document.getElementById("modalAddEntityForm")?.addEventListener("submit", e => {
       e.preventDefault();
       const form = new FormData(e.currentTarget);
       const tipo = form.get("tipo");
       const nombre = (form.get("nombre") || "").trim();
-      const cif = (form.get("cif") || "").trim();
-      const sede = (form.get("sede") || "").trim();
+      const cif = (form.get("cif") || "").trim() || "B-00000000";
+      const sede = (form.get("sede") || "").trim() || "España";
       const email = (form.get("email") || "").trim();
       const telefono = (form.get("telefono") || "").trim();
 
-      const parseTags = str => (str || "").split(",").map(t => t.trim()).filter(Boolean);
-
       if (tipo === "proveedor") {
-        const rawSum = form.get("suministros") || "";
-        let suministros = getGenericSuministrosList(parseTags(rawSum));
+        let suministros = Array.from(selectedSuministrosSet);
         if (!suministros.length) suministros = ["otros"];
-        let conformidades = [...new Set([...form.getAll("conformidades_cat"), ...parseTags(form.get("conformidades_otras"))])];
+        let conformidades = Array.from(selectedConformidadesSet);
         if (!conformidades.length) conformidades = ["ISO 9001"];
+
+        // Recoger condiciones por suministro
+        const finalCondMap = {};
+        let firstLeadTime = "";
+        let firstCondPago = "";
+        suministros.forEach(s => {
+          finalCondMap[s] = suministrosCondMap[s] || { leadTime: "", condicionesPago: "" };
+          if (!firstLeadTime && finalCondMap[s].leadTime) firstLeadTime = finalCondMap[s].leadTime;
+          if (!firstCondPago && finalCondMap[s].condicionesPago) firstCondPago = finalCondMap[s].condicionesPago;
+        });
+
+        const generalLeadTime = firstLeadTime || "42 días";
+        const generalCondPago = firstCondPago || "60 días confirmada";
 
         if (isEdit && entityToEdit) {
           const prv = DIRECTORIO_PROVEEDORES.find(p => p.id === entityToEdit.id);
@@ -12367,10 +12600,11 @@
             prv.contacto = email;
             prv.telefono = telefono;
             prv.suministros = suministros;
+            prv.suministrosCondiciones = finalCondMap;
             prv.conformidades = conformidades;
-            prv.leadTimeMedio = (form.get("leadTimeMedio") || "").trim() || prv.leadTimeMedio || "42 días";
-            prv.condicionesPago = (form.get("condicionesPagoPrv") || "").trim() || prv.condicionesPago || "60 días confirmada";
-            showToast(`✓ Perfil de "${prv.nombre}" actualizado correctamente`);
+            prv.leadTimeMedio = generalLeadTime;
+            prv.condicionesPago = generalCondPago;
+            showToast(`✓ Proveedor "${prv.nombre}" actualizado correctamente`);
           }
         } else {
           const newPrv = {
@@ -12379,18 +12613,23 @@
             cif,
             sede,
             suministros,
+            suministrosCondiciones: finalCondMap,
             conformidades,
             materiales: suministros.join(" · "),
             homologado: true,
+            leadTimeMedio: generalLeadTime,
+            condicionesPago: generalCondPago,
             email,
             telefono,
             contacto: email
           };
           DIRECTORIO_PROVEEDORES.unshift(newPrv);
-          showToast(`✓ Proveedor "${newPrv.nombre}" añadido al directorio homologado`);
+          showToast(`✓ Proveedor "${newPrv.nombre}" añadido correctamente`);
         }
       } else {
         const actividad = (form.get("actividad") || "").trim() || "Constructora Ferroviaria";
+        const representante = (form.get("representante") || "").trim();
+        const condicionesPago = (form.get("condicionesPagoCli") || "").trim() || "Confirming 60 días tras acta recepción";
 
         if (isEdit && entityToEdit) {
           const cli = DIRECTORIO_CLIENTES.find(c => c.id === entityToEdit.id);
@@ -12402,9 +12641,9 @@
             cli.email = email;
             cli.contacto = email;
             cli.telefono = telefono;
-            cli.representante = (form.get("representante") || "").trim() || cli.representante || "María González López (Dir. Compras)";
-            cli.condicionesPago = (form.get("condicionesPagoCli") || "").trim() || cli.condicionesPago || "Confirming 60 días tras acta recepción";
-            showToast(`✓ Perfil de "${cli.nombre}" actualizado correctamente`);
+            cli.representante = representante || cli.representante || "Dirección de Compras";
+            cli.condicionesPago = condicionesPago;
+            showToast(`✓ Cliente "${cli.nombre}" actualizado correctamente`);
           }
         } else {
           const newCli = {
@@ -12417,10 +12656,12 @@
             homologado: true,
             email,
             telefono,
-            contacto: email
+            contacto: email,
+            representante: representante || "Dirección de Compras",
+            condicionesPago: condicionesPago
           };
           DIRECTORIO_CLIENTES.unshift(newCli);
-          showToast(`✓ Cliente "${newCli.nombre}" añadido al directorio`);
+          showToast(`✓ Cliente "${newCli.nombre}" añadido correctamente`);
         }
       }
       close();
@@ -12428,8 +12669,7 @@
     });
   }
 
-
-  function openUploadProfileCertModal(roleType = "proveedor") {
+    function openUploadProfileCertModal(roleType = "proveedor") {
     const modalWrap = document.getElementById("modalContainer");
     if (!modalWrap) return;
 

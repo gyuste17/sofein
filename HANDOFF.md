@@ -2,6 +2,21 @@
 
 Registro de relevo entre agentes. **Entradas nuevas arriba.** Reglas del proyecto en `AGENTS.md`.
 
+## 2026-10-26 · Antigravity · rama procurement · Leyenda Conformidades y Modal Añadir/Editar v41
+
+**Hecho**
+- Columna Conformidades: añadida leyenda explicativa con tooltip interactivo (.dir-conf-legend-trigger) sobre el icono informativo en la cabecera th, detallando los colores: Verde (Normas y homologaciones oficiales ISO/CE/AENOR/Adif/UNE-EN), Ámbar (Tratamientos químicos y conservación creosota/autoclave) y Gris (Otras certificaciones y sostenibilidad FSC/PEFC).
+- Modal Añadir y Editar Cliente / Proveedor:
+  - Títulos limpios sin subtítulos: «Añadir cliente o proveedor», «Editar proveedor», «Editar cliente».
+  - Campo «Tipo» simplificado a opciones «Proveedor» y «Cliente».
+  - Campos obligatorios limitados a: Tipo y Razón Social / Nombre (el resto opcionales).
+  - «Suministros» y «Conformidades»: dropdowns multiselección interactivos con checkboxes, tags visuales y botón de desmarcar.
+  - «Condiciones por suministro»: sección dinámica que abre automáticamente una caja por cada suministro seleccionado arriba para configurar de forma específica su «Plazo medio (lead time)» y «Condiciones de pago habituales» (ambos opcionales).
+  - Cliente: condiciones de pago renombradas a «Condiciones de pago habituales» (opcional).
+- Bump de cachebuster en pp.html a ?v=procurement-v41.
+- Verificado con 
+ode -c app.js y mediante Chrome DevTools en http://localhost:3456/app.html#admin/directorio con 0 errores en consola.
+
 ## 2026-10-26 · Antigravity · rama procurement · Clientes y Proveedores (Directorio v40)
 
 **Hecho**
