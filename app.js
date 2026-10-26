@@ -3246,13 +3246,15 @@
               <strong style="display:block;font-size:0.85rem;color:var(--entity-text)">Confirmación de Petición de Ofertas</strong>
               <small style="color:var(--entity-muted);font-size:0.75rem">Se emitirá la solicitud formal con los pliegos técnicos adjuntos del expediente ${exp.id}.</small>
             </div>
-            ${isRoleCliente ? `
+            ${isRoleCliente ? (matching.seleccionClienteEnviada ? `
+              <span class="dossier-chip info">Selección enviada a SOFEIN para validar</span>
+            ` : `
               <button class="admin-primary-button" id="requestClientQuotesBtn" data-exp-id="${exp.id}" type="button">
-                ${icon("file", 14)} Solicitar Cotización Formal a Seleccionados (${matching.proveedoresSeleccionadosPorCliente.length})
+                ${icon("file", 14)} Enviar selección a SOFEIN (${matching.proveedoresSeleccionadosPorCliente.length})
               </button>
-            ` : isRoleAdmin ? `
+            `) : isRoleAdmin ? `
               <button class="admin-primary-button" id="emitRfqOrdersBtn" data-exp-id="${exp.id}" type="button">
-                ${icon("file", 14)} Emitir Petición de Ofertas Ciega a Talleres
+                ${icon("file", 14)} Validar selección y pedir cotizaciones (${matching.proveedoresSeleccionadosPorCliente.length || Math.min(3, matching.proveedoresPreseleccionadosPorAdmin.length)})
               </button>
             ` : `
               <span class="dossier-chip info">Fase de selección por el constructor</span>
@@ -3313,11 +3315,13 @@
           <div class="selector-action-bar" style="margin-top:20px">
             <div>
               <strong style="display:block;font-size:0.85rem;color:var(--entity-text)">Paso a la Comparativa</strong>
-              <small style="color:var(--entity-muted);font-size:0.75rem">Cuando se hayan recibido las cotizaciones, se habilitará la matriz comparativa de ofertas.</small>
+              <small style="color:var(--entity-muted);font-size:0.75rem">SOFEIN revisa las cotizaciones recibidas y las muestra al cliente en la matriz comparativa.</small>
             </div>
-            <button class="admin-primary-button" id="goToComparisonBtn" data-exp-id="${exp.id}" type="button">
-              ${icon("arrow", 14)} Abrir Matriz Comparativa de Cotizaciones
-            </button>
+            ${isRoleAdmin ? `
+              <button class="admin-primary-button" id="goToComparisonBtn" data-exp-id="${exp.id}" type="button">
+                ${icon("arrow", 14)} Validar cotizaciones y mostrarlas al cliente
+              </button>
+            ` : `<span class="dossier-chip info">SOFEIN está revisando las cotizaciones</span>`}
           </div>
         </div>
       `;
@@ -3740,6 +3744,50 @@
       soloAdmin: !!soloAdmin
     });
   }
+
+  /* ---------- Avisos automáticos ----------
+     Cada evento avisa solo a quien tiene que actuar o enterarse (ver docs/PETICIONES_EXPEDIENTE.md, bloque F).
+     roles: subconjunto de ["admin", "cliente", "proveedor"]. */
+  function pushAutoNotice({ exp, sumId = null, roles, categoria, titulo, descripcion, accion = "Ver expediente", tab = "comms", ruta = null, tagClass = "warning" }) {
+    if (!exp || !roles || !roles.length) return;
+    const sum = sumId ? SUMINISTROS.find(s => s.id === sumId) : null;
+    NOTICES.unshift({
+      id: `AV-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`,
+      expId: exp.id,
+      sumId,
+      suministro: sum ? `${sum.num} · ${sum.tipo}` : "General del Expediente",
+      categoria,
+      tagClass,
+      titulo,
+      descripcion,
+      fecha: "Hoy, ahora",
+      roles: [...new Set(roles)],
+      accion,
+      enlace: ruta ? `#${roles[0]}/${ruta}` : `#${roles[0]}/expedientes/${exp.id}?tab=${tab}`,
+      auto: true
+    });
+  }
+
+  // El Cliente solo ve avisos de sus expedientes; el Proveedor, solo los de sus suministros
+  function canRoleSeeNotice(n, role) {
+    if (!n.roles.includes(role)) return false;
+    if (role === "cliente") {
+      const e = EXPEDIENTES.find(x => x.id === n.expId);
+      if (e && !isExpOfActiveCliente(e)) return false;
+    }
+    if (role === "proveedor" && n.sumId) {
+      const s = SUMINISTROS.find(x => x.id === n.sumId);
+      if (s && !isSuministroOfActiveProveedor(s)) return false;
+    }
+    return true;
+  }
+
+  const roleLabel = role => role === "cliente" ? "El cliente" : role === "proveedor" ? "El proveedor" : "SOFEIN";
+
+  // Partes (cliente/proveedor) que pueden ver un documento, sin contar a quien lo subió
+  const docAudience = (del, exceptRole = null) =>
+    ["cliente", "proveedor"].filter(r => (!Array.isArray(del.visibleTo) || del.visibleTo.includes(r)) && r !== exceptRole);
+  const ownerToRole = owner => /cliente/i.test(owner || "") ? "cliente" : /proveedor/i.test(owner || "") ? "proveedor" : null;
 
   /* ---------- Registro de incidencias y cambios (REG-xxx) ----------
      Solo SOFEIN registra. Cliente y Proveedor firman; con las dos firmas el registro
@@ -4751,7 +4799,7 @@
       // Pantalla 6: Avisos & Hitos del Expediente filtrados por perfil y alcance (Fase y Suministro)
       const visibleSumIds = new Set(expSuministros.map(s => s.id));
       const allRoleNotices = NOTICES.filter(n => {
-        if (n.expId !== exp.id || !n.roles.includes(activeRole)) return false;
+        if (n.expId !== exp.id || !canRoleSeeNotice(n, activeRole)) return false;
         if (isRoleProveedor && n.sumId && !visibleSumIds.has(n.sumId)) return false;
         return true;
       });
@@ -4912,7 +4960,7 @@
 
     const visibleSumIdsForBadge = new Set(expSuministros.map(s => s.id));
     const expNotices = NOTICES.filter(n => {
-      if (n.expId !== exp.id || !n.roles.includes(activeRole) || completedNotices.has(n.id)) return false;
+      if (n.expId !== exp.id || !canRoleSeeNotice(n, activeRole) || completedNotices.has(n.id)) return false;
       if (isRoleProveedor && n.sumId && !visibleSumIdsForBadge.has(n.sumId)) return false;
       return true;
     });
@@ -4958,6 +5006,23 @@
             ` : `
               <span style="font-size:0.75rem;color:var(--entity-warning);font-weight:600">En revisión técnica por SOFEIN</span>
             `}
+          </div>
+        ` : ""}
+
+        ${exp.confirmacionCliente === "pendiente" && (isRoleAdmin || isRoleCliente) ? `
+          <div class="exp-confirm-banner">
+            <div style="display:flex;align-items:center;gap:12px">
+              <span class="exp-confirm-banner-icon">${icon("check", 18)}</span>
+              <div>
+                <strong>${isRoleCliente ? "SOFEIN ha creado este expediente para ti" : "Pendiente de confirmación del cliente"}</strong>
+                <p>${isRoleCliente ? "Revisa los datos, los suministros y los documentos, y confirma que todo está correcto." : `${escHTML(exp.cliente)} todavía no ha confirmado el expediente.`}</p>
+              </div>
+            </div>
+            ${isRoleCliente ? `
+              <button class="admin-primary-button" type="button" data-confirm-exp="${exp.id}" style="white-space:nowrap">
+                ${icon("check", 14)} Confirmar expediente
+              </button>
+            ` : `<span class="dossier-chip">Esperando al cliente</span>`}
           </div>
         ` : ""}
 
@@ -5080,7 +5145,7 @@
      SECCIÓN REUTILIZABLE: AVISOS (CENTRALIZADO, ALINEADO Y AGRUPABLE)
      ============================================================ */
   function renderAvisosSection(role) {
-    const roleNotices = NOTICES.filter(n => n.roles.includes(role));
+    const roleNotices = NOTICES.filter(n => canRoleSeeNotice(n, role));
     const activeNotices = roleNotices.filter(n => !completedNotices.has(n.id));
     const completedList = roleNotices.filter(n => completedNotices.has(n.id));
 
@@ -5427,7 +5492,7 @@
       return pendingActionCount > 0 ? pendingActionCount : roleExps.filter(e => !e.cerrado).length;
     }
     if (navId === "avisos") {
-      return NOTICES.filter(n => n.roles.includes(role) && !discardedNotices.has(n.id)).length;
+      return NOTICES.filter(n => canRoleSeeNotice(n, role) && !discardedNotices.has(n.id)).length;
     }
     if (navId === "cotizaciones") {
       return 1; // 1 RFQ pendiente de responder oferta
@@ -9167,34 +9232,28 @@
         SUMINISTROS.unshift(...newSums);
 
         if (isRoleAdmin) {
-          NOTICES.unshift({
-            id: `AV-0${NOTICES.length + 1}`,
-            expId: newId,
+          // El cliente recibe el expediente y debe confirmar que está correcto
+          newExpediente.confirmacionCliente = "pendiente";
+          pushAutoNotice({
+            exp: newExpediente,
+            roles: ["cliente"],
             categoria: "Nuevo Expediente",
-            tagClass: "complete",
-            titulo: `Expediente ${newId} creado y validado`,
-            descripcion: `SOFEIN ha emitido y validado el expediente para "${titulo}". Fase 1 activada para preselección de 3 talleres homologados.`,
-            fecha: "Hoy, ahora",
-            roles: ["admin", "cliente"],
-            accion: "Ver Expediente",
-            enlace: `#admin/expedientes/${newId}`
+            titulo: `SOFEIN ha creado el expediente ${newId} para ti`,
+            descripcion: `Revisa el expediente "${newExpediente.tituloGenerico}" y confirma que los datos son correctos.`,
+            accion: "Confirmar expediente"
           });
-          showToast(`✓ Expediente ${newId} creado y validado. Listo para matching.`);
+          showToast(`✓ Expediente ${newId} creado. El cliente ha recibido un aviso para confirmarlo.`);
           location.hash = `#admin/expedientes/${newId}`;
         } else {
-          NOTICES.unshift({
-            id: `AV-0${NOTICES.length + 1}`,
-            expId: newId,
+          pushAutoNotice({
+            exp: newExpediente,
+            roles: ["admin"],
             categoria: "Validación de Expediente",
-            tagClass: "warning",
             titulo: `Solicitud de nuevo expediente (${newId})`,
-            descripcion: `Infraestructuras del Norte ha configurado una solicitud de suministro para "${titulo}". Requiere verificación y validación técnica por SOFEIN.`,
-            fecha: "Hoy, ahora",
-            roles: ["admin", "cliente"],
-            accion: "Validar Expediente",
-            enlace: `#admin/expedientes/${newId}`
+            descripcion: `${cliente} ha solicitado el expediente "${newExpediente.tituloGenerico}". Revísalo y valídalo.`,
+            accion: "Validar expediente"
           });
-          showToast(`✓ Solicitud ${newId} enviada a SOFEIN para validación técnica.`);
+          showToast(`✓ Solicitud ${newId} enviada a SOFEIN para validación.`);
           location.hash = `#cliente/expedientes/${newId}`;
         }
       });
@@ -9223,6 +9282,19 @@
     });
     document.querySelectorAll("[data-sign-incident-party]").forEach(btn => {
       btn.addEventListener("click", () => openSignIncidentModal(btn.dataset.expId, btn.dataset.incidentId, btn.dataset.signIncidentParty));
+    });
+    // El cliente confirma el expediente que SOFEIN creó para él
+    document.querySelectorAll("[data-confirm-exp]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        if (activeRole !== "cliente") return;
+        const exp = getActiveExpediente(btn.dataset.confirmExp);
+        if (!exp) return;
+        exp.confirmacionCliente = "confirmado";
+        exp.confirmacionClienteFecha = todayDocDate();
+        addExpedienteCambioLog(exp, { tipo: "Confirmación del cliente", suministro: "Expediente", titulo: `${exp.cliente} confirma el expediente` });
+        showToast(`✓ Expediente ${exp.id} confirmado`);
+        renderApp();
+      });
     });
     document.querySelectorAll("[data-open-exp-notice-modal]").forEach(btn => {
       btn.addEventListener("click", () => openEmitExpNoticeModal(btn.dataset.openExpNoticeModal));
@@ -9999,17 +10071,12 @@
       if (!matching.proveedoresSeleccionadosPorCliente.length) {
         matching.proveedoresSeleccionadosPorCliente = [...matching.proveedoresPreseleccionadosPorAdmin.slice(0, 3)];
       }
-      NOTICES.unshift({
-        id: `AV-0${NOTICES.length + 1}`,
-        expId: exp.id,
-        categoria: "Matching / Cotizaciones",
-        tagClass: "complete",
-        titulo: `Preselección de proveedores completada (${exp.id})`,
-        descripcion: `SOFEIN ha aprobado la preselección de ${matching.proveedoresPreseleccionadosPorAdmin.length} talleres homologados. El constructor ya puede seleccionar a quién solicitar oferta.`,
-        fecha: "Hoy, ahora",
-        roles: ["admin", "cliente"],
-        accion: "Ver Preselección",
-        enlace: `#cliente/selector/${exp.id}`
+      pushAutoNotice({
+        exp, roles: ["cliente"],
+        categoria: "Selección de Proveedores",
+        titulo: `SOFEIN te propone ${matching.proveedoresPreseleccionadosPorAdmin.length} proveedores para ${exp.id}`,
+        descripcion: "Preselecciona a qué proveedores quieres pedir cotización.",
+        accion: "Preseleccionar proveedores", ruta: `selector/${exp.id}`
       });
       showToast(`✓ Preselección aprobada. El constructor ha recibido aviso para seleccionar talleres.`);
       renderApp();
@@ -10040,42 +10107,43 @@
         showToast("⚠️ Selecciona al menos un taller para solicitar cotización");
         return;
       }
-      matching.faseSelector = "peticion_cotizaciones";
-      // Inicializar estado de cotizaciones
-      matching.proveedoresSeleccionadosPorCliente.forEach(pId => {
-        if (!matching.cotizaciones[pId]) {
-          const prv = DIRECTORIO_PROVEEDORES.find(p => p.id === pId);
-          matching.cotizaciones[pId] = {
-            proveedorId: pId,
-            nombre: prv ? prv.nombre : pId,
-            cif: prv ? prv.cif : "",
-            sede: prv ? prv.sede : "",
-            estado: "pendiente"
-          };
-        }
+      matching.seleccionClienteEnviada = true;
+      pushAutoNotice({
+        exp, roles: ["admin"],
+        categoria: "Selección de Proveedores",
+        titulo: `El cliente ha preseleccionado ${matching.proveedoresSeleccionadosPorCliente.length} proveedores (${exp.id})`,
+        descripcion: "Valida la selección para pedir las cotizaciones.",
+        accion: "Validar selección", ruta: `selector/${exp.id}`
       });
-      NOTICES.unshift({
-        id: `AV-0${NOTICES.length + 1}`,
-        expId: exp.id,
-        categoria: "Cotización Vinculante",
-        tagClass: "warning",
-        titulo: `Nueva solicitud de cotización para ${exp.id}`,
-        descripcion: `SOFEIN ha remitido la solicitud de oferta económica y técnica para el suministro de ${exp.producto}.`,
-        fecha: "Hoy, ahora",
-        roles: ["admin", "proveedor"],
-        accion: "Enviar Cotización",
-        enlace: `#proveedor/selector/${exp.id}`
-      });
-      showToast(`✓ Petición formal de cotización enviada a ${matching.proveedoresSeleccionadosPorCliente.length} talleres.`);
+      showToast(`✓ Selección enviada a SOFEIN para su validación.`);
       renderApp();
     });
 
-    // 5B. Admin emite petición de ofertas ciega
+    // 5B. SOFEIN valida la selección del cliente y pide las cotizaciones
     document.getElementById("emitRfqOrdersBtn")?.addEventListener("click", e => {
       const exp = getActiveExpediente(e.currentTarget.dataset.expId);
       const matching = ensureExpedienteMatching(exp);
+      if (!matching.proveedoresSeleccionadosPorCliente.length) {
+        matching.proveedoresSeleccionadosPorCliente = matching.proveedoresPreseleccionadosPorAdmin.slice(0, 3);
+      }
+      matching.proveedoresSeleccionadosPorCliente.forEach(pId => {
+        if (!matching.cotizaciones[pId]) {
+          const prv = DIRECTORIO_PROVEEDORES.find(p => p.id === pId);
+          matching.cotizaciones[pId] = { proveedorId: pId, nombre: prv ? prv.nombre : pId, cif: prv ? prv.cif : "", sede: prv ? prv.sede : "", estado: "pendiente" };
+        }
+      });
       matching.faseSelector = "peticion_cotizaciones";
-      showToast("✓ Petición de cotizaciones ciega emitida a talleres.");
+      // El proveedor de la demo (IberRail, PRV-01) solo recibe el aviso si está entre los seleccionados
+      if (matching.proveedoresSeleccionadosPorCliente.includes("PRV-01")) {
+        pushAutoNotice({
+          exp, roles: ["proveedor"],
+          categoria: "Cotización",
+          titulo: `SOFEIN te pide cotización para ${exp.id}`,
+          descripcion: `Envía tu oferta para "${getExpVisualMeta(exp).tituloGenerico}".`,
+          accion: "Enviar cotización", ruta: `selector/${exp.id}`
+        });
+      }
+      showToast(`✓ Selección validada. Cotización pedida a ${matching.proveedoresSeleccionadosPorCliente.length} proveedores.`);
       renderApp();
     });
 
@@ -10111,8 +10179,14 @@
           fechaEnvio: "Hoy, hace unos minutos"
         };
       });
-      matching.faseSelector = "comparativa";
-      showToast("✓ Todas las cotizaciones recibidas. Matriz comparativa habilitada.");
+      pushAutoNotice({
+        exp, roles: ["admin"],
+        categoria: "Cotización",
+        titulo: `Cotizaciones recibidas para ${exp.id}`,
+        descripcion: "Valídalas para mostrárselas al cliente.",
+        accion: "Validar cotizaciones", ruta: `selector/${exp.id}`
+      });
+      showToast("✓ Todas las cotizaciones recibidas. Pendientes de validación por SOFEIN.");
       renderApp();
     });
 
@@ -10152,29 +10226,32 @@
         fechaEnvio: "Hoy, ahora"
       };
 
-      NOTICES.unshift({
-        id: `AV-0${NOTICES.length + 1}`,
-        expId: exp.id,
-        categoria: "Cotización Recibida",
-        tagClass: "complete",
-        titulo: `Cotización recibida de IberRail Components (${exp.id})`,
-        descripcion: `Oferta vinculante de ${totalPrice} con plazo de ${delivery}. Disponible para validación en la matriz comparativa.`,
-        fecha: "Hoy, ahora",
-        roles: ["admin", "cliente"],
-        accion: "Ver Comparativa",
-        enlace: `#admin/selector/${exp.id}`
+      pushAutoNotice({
+        exp, roles: ["admin"],
+        categoria: "Cotización",
+        titulo: `IberRail Components ha enviado su cotización (${exp.id})`,
+        descripcion: `Oferta de ${totalPrice} con plazo de ${delivery}. Valídala para mostrársela al cliente.`,
+        accion: "Validar cotización", ruta: `selector/${exp.id}`
       });
 
-      matching.faseSelector = "comparativa";
       showToast("✓ Cotización vinculante remitida con éxito a SOFEIN.");
       renderApp();
     });
 
     // 8. Botón rápido "Abrir Matriz Comparativa"
     document.getElementById("goToComparisonBtn")?.addEventListener("click", e => {
+      if (activeRole !== "admin") return;
       const exp = getActiveExpediente(e.currentTarget.dataset.expId);
       const matching = ensureExpedienteMatching(exp);
       matching.faseSelector = "comparativa";
+      pushAutoNotice({
+        exp, roles: ["cliente"],
+        categoria: "Cotización",
+        titulo: `Cotizaciones disponibles para ${exp.id}`,
+        descripcion: "SOFEIN te muestra las cotizaciones de los proveedores. Elige uno.",
+        accion: "Elegir proveedor", ruta: `selector/${exp.id}`
+      });
+      showToast("✓ Cotizaciones validadas y visibles para el cliente.");
       renderApp();
     });
 
@@ -10223,17 +10300,12 @@
         exp.plazoPactado = quote.plazoSemanas;
       }
 
-      NOTICES.unshift({
-        id: `AV-0${NOTICES.length + 1}`,
-        expId: exp.id,
-        categoria: "Adjudicación Formal",
-        tagClass: "complete",
-        titulo: `Proveedor adjudicado para ${exp.id}: ${matching.proveedorAdjudicado}`,
-        descripcion: `El constructor ha seleccionado a ${matching.proveedorAdjudicado}. Requisitos exigidos registrados. SOFEIN debe formalizar la hoja de pedido.`,
-        fecha: "Hoy, ahora",
-        roles: ["admin", "cliente", "proveedor"],
-        accion: "Formalizar Pedido",
-        enlace: `#admin/selector/${exp.id}`
+      pushAutoNotice({
+        exp, roles: ["admin"],
+        categoria: "Adjudicación",
+        titulo: `El cliente ha elegido a ${matching.proveedorAdjudicado} (${exp.id})`,
+        descripcion: "Formaliza el pedido con el proveedor seleccionado.",
+        accion: "Formalizar pedido", ruta: `selector/${exp.id}`
       });
 
       showToast(`✓ Adjudicación confirmada para ${matching.proveedorAdjudicado}.`);
@@ -10261,17 +10333,21 @@
         ];
       }
 
-      NOTICES.unshift({
-        id: `AV-0${NOTICES.length + 1}`,
-        expId: exp.id,
-        categoria: "Formalización",
-        tagClass: "complete",
-        titulo: `Expediente ${exp.id} avanzado a Formalización de Pedido`,
-        descripcion: `Adjudicación acreditada para ${matching.proveedorAdjudicado}. Hoja de pedido y acuerdo tripartito emitidos.`,
-        fecha: "Hoy, ahora",
-        roles: ["admin", "cliente"],
-        accion: "Ver Pedido",
-        enlace: `#admin/expedientes/${exp.id}`
+      if (/iberrail/i.test(matching.proveedorAdjudicado || "")) {
+        pushAutoNotice({
+          exp, roles: ["proveedor"],
+          categoria: "Formalización",
+          titulo: `SOFEIN te pide formalizar el pedido de ${exp.id}`,
+          descripcion: "El cliente ha aceptado tu cotización. Revisa y firma la hoja de pedido.",
+          accion: "Formalizar pedido", tab: "deliverables"
+        });
+      }
+      pushAutoNotice({
+        exp, roles: ["cliente"],
+        categoria: "Formalización", tagClass: "complete",
+        titulo: `SOFEIN ha formalizado el pedido con ${matching.proveedorAdjudicado}`,
+        descripcion: `El expediente ${exp.id} pasa a Gestión del pedido.`,
+        accion: "Ver pedido", tab: "deliverables"
       });
 
       showToast(`✓ Adjudicación validada. Expediente avanzado a Fase 3 (Formalización).`);
@@ -10409,6 +10485,13 @@
             suministro: currentSum && expSuministros.length > 1 ? currentSum.id : "Expediente",
             titulo: `Fase ${currentIdx + 1} (${PHASES[currentIdx].name}) completada · Avance a ${PHASES[nextIdx].name}`,
             detalle: "Hitos de la fase validados por SOFEIN Admin."
+          });
+          pushAutoNotice({
+            exp, sumId: currentSum ? currentSum.id : null, roles: ["cliente", "proveedor"],
+            categoria: "Avance de Fase", tagClass: "complete",
+            titulo: `${currentSum ? currentSum.id : exp.id} pasa a la fase ${PHASES[nextIdx].num}. ${PHASES[nextIdx].name}`,
+            descripcion: `SOFEIN ha completado la fase ${currentIdx + 1} (${PHASES[currentIdx].name}).`,
+            accion: "Ver expediente", tab: "deliverables"
           });
           showToast(`✓ Fase ${currentIdx + 1} completada. Avanzado a ${PHASES[nextIdx].num}. ${PHASES[nextIdx].name}`);
           renderApp();
@@ -10837,11 +10920,43 @@
         notes: notes || "Requerido por SOFEIN"
       });
 
+      const reqRole = ownerToRole(owner);
+      if (reqRole) {
+        pushAutoNotice({
+          exp, sumId: reqSum?.id || null, roles: [reqRole],
+          categoria: "Requerimiento Documental",
+          titulo: `SOFEIN te requiere «${docName}»`,
+          descripcion: `Sube el documento en la fase ${PHASES[targetPhase].num}. ${PHASES[targetPhase].name}.${notes ? ` Indicaciones: ${notes}` : ""}`,
+          accion: "Subir documento", tab: "deliverables"
+        });
+      }
       activeDossierPhase = targetPhase;
       close();
       showToast(`✓ Documento "${docName}" requerido en ${PHASES[targetPhase].name}`);
       renderApp();
     });
+  }
+
+  // Aviso al subir un documento: si sube SOFEIN, a las partes que lo ven; si sube cliente/proveedor, a SOFEIN para validar
+  function notifyDocUploaded(exp, del) {
+    const sumId = getActiveExpSuministro(exp)?.id || null;
+    if (activeRole === "admin") {
+      pushAutoNotice({
+        exp, sumId, roles: docAudience(del),
+        categoria: "Documentación", tagClass: "review",
+        titulo: `SOFEIN ha subido «${del.name}»`,
+        descripcion: `Nuevo documento disponible en ${exp.id}: ${del.file}.`,
+        accion: "Ver documentación", tab: "deliverables"
+      });
+    } else {
+      pushAutoNotice({
+        exp, sumId, roles: ["admin"],
+        categoria: "Validación Documental",
+        titulo: `${roleLabel(activeRole)} ha subido «${del.name}»`,
+        descripcion: `Documento pendiente de validar en ${exp.id}: ${del.file}.`,
+        accion: "Validar documento", tab: "deliverables"
+      });
+    }
   }
 
   // Editar documento (SOFEIN Admin): nombre, fase y quién lo ve
@@ -11024,6 +11139,7 @@
       };
       applyUploadedFileToDoc(newDoc, file);
       delivMap[targetPhase].push(newDoc);
+      notifyDocUploaded(exp, newDoc);
 
       activeDossierPhase = targetPhase;
       close();
@@ -11087,6 +11203,7 @@
       if (!file || !file.name) return;
       applyUploadedFileToDoc(del, file);
       del.rejectReason = null;
+      notifyDocUploaded(exp, del);
       const notes = (form.get("notes") || "").trim();
       if (activeRole === "admin") {
         del.state = "complete";
@@ -11177,6 +11294,16 @@
       } else {
         del.rejectReason = null;
         del.notes = notes || `Validado · Visible: ${formatVisibleToLabel(visibleTo)}`;
+      }
+      const uploaderRole = ownerToRole(del.uploadedBy || del.owner);
+      if (decision === "complete" && del.file) {
+        pushAutoNotice({
+          exp, sumId: getActiveExpSuministro(exp)?.id || null, roles: docAudience(del, uploaderRole),
+          categoria: "Documentación", tagClass: "review",
+          titulo: `SOFEIN ha validado «${del.name}»`,
+          descripcion: `Documento validado y disponible en ${exp.id}: ${del.file}.`,
+          accion: "Ver documentación", tab: "deliverables"
+        });
       }
       close();
       showToast(`✓ Documento actualizado (${decision === "complete" ? "Validado" : decision === "rejected" ? "Con observaciones" : "En revisión"}) · Visibilidad: ${formatVisibleToLabel(visibleTo)}`);
@@ -11818,6 +11945,13 @@
       syncRegistroLegacyFields(target);
       if (!reg) exp.incidencias.unshift(target);
 
+      pushAutoNotice({
+        exp, sumId, roles: ["cliente", "proveedor"],
+        categoria: "Incidencia / cambio",
+        titulo: reg ? `${target.id} modificado: vuelve a firmarlo` : `SOFEIN ha registrado ${target.id}: pendiente de tu firma`,
+        descripcion: target.titulo,
+        accion: "Firmar", tab: "incidents"
+      });
       addExpedienteCambioLog(exp, {
         tipo: reg ? "Edición de registro" : "Nuevo registro",
         suministro: sumId,
@@ -11942,6 +12076,13 @@
       }
       syncRegistroLegacyFields(inc);
       const closed = closeRegistroIfSigned(exp, inc);
+      pushAutoNotice({
+        exp, sumId: inc.sumId, roles: ["admin", isCliente ? "proveedor" : "cliente"],
+        categoria: "Incidencia / cambio", tagClass: closed ? "complete" : "review",
+        titulo: `${roleLabel(signerRole)} ha firmado ${inc.id}`,
+        descripcion: closed ? `${inc.titulo}. Con las dos firmas, el registro queda cerrado con la ${inc.adendaId}.` : inc.titulo,
+        accion: "Ver registro", tab: "incidents"
+      });
 
       close();
       showToast(closed

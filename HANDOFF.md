@@ -2,6 +2,48 @@
 
 Registro de relevo entre agentes. **Entradas nuevas arriba.** Reglas del proyecto en `AGENTS.md`.
 
+## 2026-10-26 · Claude · rama `claude/expediente` · Avisos automáticos, bloque F (v48)
+
+**Hecho**
+- Helpers nuevos:
+  - `pushAutoNotice({ exp, sumId, roles, categoria, titulo, descripcion, accion, tab | ruta })` crea el aviso solo para los roles indicados.
+  - `canRoleSeeNotice(n, role)`: el Cliente solo ve avisos de sus expedientes y el Proveedor solo los de sus suministros. Se usa en la bandeja, el contador de la sidebar y la pestaña Avisos de la ficha.
+- Paso nuevo de confirmación del cliente:
+  - Al crear SOFEIN un expediente, se guarda `exp.confirmacionCliente = "pendiente"` y el cliente recibe un aviso.
+  - En la ficha, el cliente ve el banner con «Confirmar expediente» (`data-confirm-exp`). SOFEIN ve «Pendiente de confirmación del cliente».
+- Avisos por evento:
+  - **SOFEIN:**
+    - el cliente solicita un expediente;
+    - el cliente o el proveedor sube un documento (`notifyDocUploaded`);
+    - el cliente o el proveedor firma un REG;
+    - el cliente envía su preselección de proveedores;
+    - el proveedor envía su cotización (o se simula su recepción);
+    - el cliente elige proveedor.
+  - **Cliente:**
+    - SOFEIN crea un expediente para él;
+    - SOFEIN le requiere un documento;
+    - SOFEIN sube un documento visible para él, o valida uno subido por el proveedor;
+    - SOFEIN registra o edita un REG;
+    - el proveedor firma un REG;
+    - SOFEIN le propone proveedores;
+    - SOFEIN valida las cotizaciones;
+    - SOFEIN formaliza el pedido;
+    - un suministro pasa de fase.
+  - **Proveedor:** los mismos casos que le afectan (requerimiento, documento de SOFEIN o del cliente validado, REG registrado o editado, firma del cliente, petición de cotización, petición de formalizar el pedido, cambio de fase), siempre filtrados por sus suministros.
+- Selector de proveedores, ajustado para que existan los pasos de validación de SOFEIN:
+  - Cliente: «Enviar selección a SOFEIN». Antes pedía las cotizaciones directamente.
+  - Admin: «Validar selección y pedir cotizaciones».
+  - La cotización del proveedor ya no abre la comparativa. Admin «Validar cotizaciones y mostrarlas al cliente» (`goToComparisonBtn`, solo Admin).
+- Verificado en Chrome:
+  - Cada evento genera el aviso al perfil correcto: documentos, REG, fases (el proveedor no ve SUM-03, que no es suyo) y el selector completo sobre un expediente nuevo de Infraestructuras del Norte.
+  - Confirmación del cliente funcionando.
+  - 0 errores de consola y sin desbordamiento a 390 px.
+
+**Pendiente / decisiones**
+- La demo tiene un solo proveedor (IberRail, PRV-01). Los avisos de cotización y formalización solo se generan si IberRail participa.
+- Avisos que se mantienen tal como estaban: rechazo de documento (al responsable), acuerdo formalizado y fabricación, y cierre del expediente.
+- Pueden añadirse más eventos con `pushAutoNotice`.
+
 ## 2026-10-26 · Claude · rama `claude/expediente` · Avisos dentro del expediente, bloque E (v47)
 
 **Hecho**

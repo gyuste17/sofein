@@ -8305,3 +8305,35 @@ details.b2b-profile-card.is-collapsible[open] > summary.is-collapsible-summary .
   flex: none;
   accent-color: var(--entity-accent);
 }
+
+/* Confirmación del expediente por el cliente (bloque F) */
+.exp-confirm-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+  padding: 16px 20px;
+  border-radius: 10px;
+  background: rgba(37, 99, 235, 0.06);
+  border: 1px solid rgba(37, 99, 235, 0.25);
+}
+.exp-confirm-banner strong {
+  color: var(--entity-text);
+  font-size: 0.88rem;
+}
+.exp-confirm-banner p {
+  margin: 2px 0 0;
+  font-size: 0.75rem;
+  color: var(--entity-muted);
+}
+.exp-confirm-banner-icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 6px;
+  background: rgba(37, 99, 235, 0.12);
+  color: #2563eb;
+}
