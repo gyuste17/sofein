@@ -8862,3 +8862,27 @@ details.b2b-profile-card.is-collapsible[open] > summary.is-collapsible-summary .
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* Catálogos: etiquetas de color por categoría (v53) */
+.catalog-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 9px;
+  border-radius: 99px;
+  border: 1px solid transparent;
+  font-size: 0.72rem;
+  font-weight: 650;
+  white-space: nowrap;
+}
+.catalog-tag.tone-0 { background: rgba(16, 185, 129, 0.12); color: #047857; border-color: rgba(16, 185, 129, 0.28); }
+.catalog-tag.tone-1 { background: rgba(59, 130, 246, 0.12); color: #1d4ed8; border-color: rgba(59, 130, 246, 0.28); }
+.catalog-tag.tone-2 { background: rgba(245, 158, 11, 0.14); color: #b45309; border-color: rgba(245, 158, 11, 0.3); }
+.catalog-tag.tone-3 { background: rgba(139, 92, 246, 0.12); color: #6d28d9; border-color: rgba(139, 92, 246, 0.28); }
+.catalog-tag.tone-4 { background: rgba(236, 72, 153, 0.11); color: #be185d; border-color: rgba(236, 72, 153, 0.26); }
+.catalog-tag.tone-5 { background: rgba(20, 184, 166, 0.12); color: #0f766e; border-color: rgba(20, 184, 166, 0.28); }
+.catalog-tag.tone-6 { background: rgba(239, 68, 68, 0.1); color: #b91c1c; border-color: rgba(239, 68, 68, 0.26); }
+.catalog-tag.tone-7 { background: rgba(100, 116, 139, 0.13); color: #334155; border-color: rgba(100, 116, 139, 0.3); }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .catalog-tag { filter: brightness(1.45); }
+}
+:root[data-theme="dark"] .catalog-tag { filter: brightness(1.45); }

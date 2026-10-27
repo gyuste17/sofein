@@ -2,6 +2,38 @@
 
 Registro de relevo entre agentes. **Entradas nuevas arriba.** Reglas del proyecto en `AGENTS.md`.
 
+## 2026-10-27 · Claude · rama `claude/admin-perfiles` · Catálogos en el menú, Emitir Aviso global y perfiles (v53), publicado
+
+**Hecho**
+- Menú de SOFEIN: «Productos» y «Conformidades» pasan a ser entradas propias de la sidebar.
+  - Salen del hub de Administración: ya no están en `ADMIN_HUB_SECTIONS` ni en las pestañas del hub.
+  - Las tarjetas del hub siguen enlazándolos.
+- Productos:
+  - Columnas: Tipo de producto (lista fija `PRODUCTO_TIPOS`), Subtipo («-» si no hay), Norma/s de referencia, Proveedores, Estado y acciones (Editar).
+  - Se quitan Familia, Unidad y Etiqueta.
+  - `nombre` se compone como «Tipo · Subtipo».
+  - El selector «Tipo de Suministro» del constructor ofrece cada tipo una sola vez.
+  - Clave de localStorage: `sofein_catalogo_productos_v3`.
+- Conformidades: las columnas Tipo, Entidad emisora y Ámbito se muestran como etiquetas de color (`renderCatalogTag`: mismo valor, mismo color; 8 tonos).
+- Avisos (bandeja de SOFEIN):
+  - El botón pasa a llamarse «Emitir Aviso» y abre `openEmitExpNoticeModal(null, { pickExp: true })`.
+  - Sin subtítulo; expediente con código y título; suministro, con las mismas reglas de destinatario que en la ficha; categoría (`NOTICE_CATEGORIAS`); prioridad opcional; título y descripción.
+  - Al cambiar de expediente se conserva lo ya escrito.
+  - Se borra el antiguo `openCreateNoticeModal`.
+- Perfil Cliente: se quitan el apartado «Parámetros de contratación y pliegos» y el botón superior «Subir acreditación». Se sigue pudiendo añadir desde «Acuerdo marco y acreditaciones registradas».
+- Perfil Proveedor:
+  - Se quitan el índice de conformidad, el plazo medio y la tarifa de referencia.
+  - El acuerdo marco con SOFEIN pasa a la ficha del proveedor (`prv.acuerdoMarco`).
+  - «Suministros ofrecidos»: solo las etiquetas de tipo.
+  - «Conformidades»: una fila por conformidad con su etiqueta, documento acreditativo, vigencia y «Ver» (o «Subir» si falta).
+  - `certificadosDetalle` va ahora indexado por nombre de conformidad.
+- Verificado en Chrome:
+  - Edición de un producto.
+  - Emitir aviso global a un proveedor de SUM-07, que lo recibe con categoría y prioridad.
+  - Los dos perfiles.
+  - 0 errores de consola y sin desbordamiento a 390 px.
+- Push a `procurement` y despliegue en sofein-procurement.
+
 ## 2026-10-27 · Claude · rama `claude/selector` · Selector de Proveedores por suministro (v52)
 
 **Modelo**

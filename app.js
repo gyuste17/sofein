@@ -72,6 +72,8 @@
         { id: "expedientes", label: "Expedientes", icon: "folder", count: 5 },
         { id: "suministros", label: "Suministros", icon: "box", count: 8 },
         { id: "directorio", label: "Clientes y Proveedores", icon: "users" },
+        { id: "productos", label: "Productos", icon: "box" },
+        { id: "conformidades", label: "Conformidades", icon: "shield" },
         { id: "avisos", label: "Avisos", icon: "inbox", count: 2 }
       ]
     },
@@ -746,18 +748,20 @@
      constructor de expedientes, el alta/edición de proveedores y el registro de
      certificados. Se persisten en localStorage para sobrevivir a recargas. */
   const CATALOG_STORAGE_KEYS = {
-    productos: "sofein_catalogo_productos_v2",
+    productos: "sofein_catalogo_productos_v3",
     conformidades: "sofein_catalogo_conformidades_v1"
   };
 
+  const PRODUCTO_TIPOS = ["Traviesas", "Placas", "Tirafondos", "Clips", "Balasto", "Otros"];
   const DEFAULT_CATALOGO_PRODUCTOS = [
-    { id: "PRD-01", nombre: "Traviesas", etiqueta: "Traviesas", familia: "Superestructura", norma: "EN 13230 / UNE-EN 13145", unidad: "uds", activo: true },
-    { id: "PRD-02", nombre: "Placas", etiqueta: "Placas", familia: "Superestructura", norma: "EN 13481-2", unidad: "uds", activo: true },
-    { id: "PRD-03", nombre: "Tirafondos", etiqueta: "Tirafondos", familia: "Superestructura", norma: "EN 13481", unidad: "uds", activo: true },
-    { id: "PRD-04", nombre: "Clips", etiqueta: "Clips", familia: "Superestructura", norma: "EN 13481", unidad: "uds", activo: true },
-    { id: "PRD-05", nombre: "Balasto", etiqueta: "Balasto", familia: "Plataforma", norma: "UNE-EN 13450", unidad: "t", activo: true },
-    { id: "PRD-06", nombre: "Otros", etiqueta: "Otros", familia: "Otros", norma: "", unidad: "", activo: true }
-  ];
+    { id: "PRD-01", tipo: "Traviesas", subtipo: "Hormigón", norma: "EN 13230", activo: true },
+    { id: "PRD-02", tipo: "Traviesas", subtipo: "Madera", norma: "UNE-EN 13145", activo: true },
+    { id: "PRD-03", tipo: "Placas", subtipo: "", norma: "EN 13481-2", activo: true },
+    { id: "PRD-04", tipo: "Tirafondos", subtipo: "", norma: "EN 13481", activo: true },
+    { id: "PRD-05", tipo: "Clips", subtipo: "", norma: "EN 13481", activo: true },
+    { id: "PRD-06", tipo: "Balasto", subtipo: "", norma: "UNE-EN 13450", activo: true },
+    { id: "PRD-07", tipo: "Otros", subtipo: "", norma: "", activo: true }
+  ].map(p => ({ ...p, nombre: p.subtipo ? `${p.tipo} · ${p.subtipo}` : p.tipo, etiqueta: p.tipo }));
 
   const DEFAULT_CATALOGO_CONFORMIDADES = [
     { id: "CNF-01", nombre: "ISO 9001", tipo: "Sistema de gestión", emisor: "ENAC / AENOR", ambito: "Gestión de la calidad", activo: true },
@@ -810,9 +814,9 @@
 
   // Opciones del selector "Tipo de Suministro" del constructor de expedientes
   function renderProductoOptions() {
-    const list = getActiveProductos();
-    if (!list.length) return `<option value="Otros">Otros</option>`;
-    return list.map(p => `<option value="${escHTML(p.nombre)}">${escHTML(p.nombre)}</option>`).join("");
+    const tipos = [...new Set(getActiveProductos().map(p => p.tipo || p.etiqueta || p.nombre))];
+    if (!tipos.length) return `<option value="Otros">Otros</option>`;
+    return tipos.map(t => `<option value="${escHTML(t)}">${escHTML(t)}</option>`).join("");
   }
 
   /* ---------- Avisos Categorizados (Apuntes 06 — Inbox Central) ---------- */
@@ -5324,7 +5328,7 @@
         </div>
         ${role === "admin" ? `
           <button class="admin-primary-button" type="button" data-open-create-notice-modal>
-            ${icon("plus", 14)} Emitir Aviso / Requerimiento
+            ${icon("plus", 14)} Emitir Aviso
           </button>
         ` : ""}
       </div>
@@ -6273,7 +6277,7 @@
   /* ============================================================
      ADMINISTRACIÓN SOFEIN (Hub + Catálogos maestros)
      ============================================================ */
-  const ADMIN_HUB_SECTIONS = ["administracion", "overview", "productos", "conformidades", "configuracion"];
+  const ADMIN_HUB_SECTIONS = ["administracion", "overview", "configuracion"];
   const ADMIN_HUB_LABELS = {
     administracion: "Administración",
     overview: "Visión global",
@@ -6294,17 +6298,15 @@
       idPrefix: "PRD",
       intro: "Catálogo base de suministros ferroviarios de SOFEIN. Alimenta el tipo de suministro al crear expedientes y las etiquetas de suministros acreditados de cada proveedor.",
       fields: [
-        { key: "nombre", label: "Producto", placeholder: "Ej: Traviesas bibloque", required: true, minWidth: "190px" },
-        { key: "etiqueta", label: "Etiqueta breve", placeholder: "Ej: Traviesas", minWidth: "130px" },
-        { key: "familia", label: "Familia", placeholder: "Ej: Superestructura", minWidth: "140px" },
-        { key: "norma", label: "Norma de referencia", placeholder: "Ej: EN 13230", minWidth: "140px" },
-        { key: "unidad", label: "Unidad", placeholder: "Ej: uds", minWidth: "80px" }
+        { key: "tipo", label: "Tipo de producto", type: "select", options: PRODUCTO_TIPOS, required: true, minWidth: "160px", tag: true },
+        { key: "subtipo", label: "Subtipo", placeholder: "Ej: Hormigón", minWidth: "150px" },
+        { key: "norma", label: "Norma/s de referencia", placeholder: "Ej: EN 13230", minWidth: "170px" }
       ],
       usageLabel: "Proveedores",
       usage: item => {
-        const key = (item.etiqueta || item.nombre || "").toLowerCase();
+        const key = (item.tipo || item.etiqueta || item.nombre || "").toLowerCase();
         if (!key) return 0;
-        return DIRECTORIO_PROVEEDORES.filter(p => (p.suministros || []).some(s => s.toLowerCase().includes(key))).length;
+        return DIRECTORIO_PROVEEDORES.filter(p => (p.suministros || []).some(s => s.toLowerCase() === key)).length;
       }
     },
     conformidades: {
@@ -6314,9 +6316,9 @@
       intro: "Certificaciones, normas y homologaciones reconocidas por SOFEIN. Alimentan la selección de conformidades en la ficha de cada proveedor y el registro de certificados.",
       fields: [
         { key: "nombre", label: "Conformidad", placeholder: "Ej: ISO 50001", required: true, minWidth: "190px" },
-        { key: "tipo", label: "Tipo", type: "select", options: CONFORMIDAD_TIPOS, minWidth: "160px" },
-        { key: "emisor", label: "Entidad emisora", placeholder: "Ej: AENOR", minWidth: "140px" },
-        { key: "ambito", label: "Ámbito / aplicación", placeholder: "Ej: Traviesas de hormigón", minWidth: "170px" }
+        { key: "tipo", label: "Tipo", type: "select", options: CONFORMIDAD_TIPOS, minWidth: "160px", tag: true },
+        { key: "emisor", label: "Entidad emisora", placeholder: "Ej: AENOR", minWidth: "140px", tag: true },
+        { key: "ambito", label: "Ámbito / aplicación", placeholder: "Ej: Traviesas de hormigón", minWidth: "170px", tag: true }
       ],
       usageLabel: "Proveedores",
       usage: item => DIRECTORIO_PROVEEDORES.filter(p => (p.conformidades || p.homologaciones || []).includes(item.nombre)).length
@@ -6326,9 +6328,7 @@
   function renderAdminHubTabs(active) {
     const tabs = [
       { id: "administracion", label: "Resumen", icon: "grid" },
-      { id: "overview", label: "Visión global", icon: "activity" },
-      { id: "productos", label: "Productos", icon: "box", count: CATALOGOS.productos.length },
-      { id: "conformidades", label: "Conformidades", icon: "shield", count: CATALOGOS.conformidades.length }
+      { id: "overview", label: "Visión global", icon: "activity" }
     ];
     return `
       <nav class="b2b-dir-type-tabs admin-hub-tabs" aria-label="Secciones de administración">
@@ -6401,6 +6401,14 @@
     `;
   }
 
+  // Etiqueta de color: el mismo valor siempre sale del mismo color
+  function renderCatalogTag(value) {
+    const str = String(value);
+    let h = 0;
+    for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0;
+    return `<span class="catalog-tag tone-${h % 8}">${escHTML(str)}</span>`;
+  }
+
   function renderCatalogEditRow(kind, item) {
     const def = CATALOG_DEFS[kind];
     const rowId = item ? item.id : "__new";
@@ -6443,7 +6451,9 @@
       const inactive = item.activo === false;
       return `
         <tr class="catalog-row ${inactive ? "is-inactive" : ""}" data-cat-row="${item.id}" data-cat-search="${escHTML(searchText(item))}" ${hidden ? "hidden" : ""}>
-          ${def.fields.map((f, idx) => `<td>${idx === 0 ? `<strong>${escHTML(item[f.key])}</strong>` : (item[f.key] ? escHTML(item[f.key]) : `<span class="catalog-empty">—</span>`)}</td>`).join("")}
+          ${def.fields.map((f, idx) => `<td>${!item[f.key] ? `<span class="catalog-empty">-</span>`
+            : f.tag ? renderCatalogTag(item[f.key])
+            : idx === 0 ? `<strong>${escHTML(item[f.key])}</strong>` : escHTML(item[f.key])}</td>`).join("")}
           <td class="catalog-num">${def.usage(item)}</td>
           <td><span class="catalog-status ${inactive ? "is-off" : "is-on"}">${inactive ? "Inactivo" : "Activo"}</span></td>
           <td class="catalog-actions">
@@ -6468,8 +6478,6 @@
           ${icon("plus", 13)} Añadir ${def.singular}
         </button>
       </div>
-      ${renderAdminHubTabs(kind)}
-
       <div class="catalog-toolbar">
         <h3>
           ${def.title}
@@ -6512,6 +6520,10 @@
     row.querySelectorAll("[data-cat-field]").forEach(el => {
       values[el.dataset.catField] = el.type === "checkbox" ? el.checked : el.value.trim();
     });
+    if (kind === "productos") {
+      values.nombre = values.subtipo ? `${values.tipo} · ${values.subtipo}` : values.tipo;
+      values.etiqueta = values.tipo;
+    }
     if (!values.nombre) {
       showToast(`Indica el nombre del ${def.singular}`);
       row.querySelector('[data-cat-field="nombre"]')?.focus();
@@ -7300,53 +7312,21 @@
       );
 
       const certs = prv.certificadosDetalle || [
-        {
-          nombre: "Homologación Técnica Adif NAV-2026",
-          norma: "ET Adif 03.360.571 · Traviesas y Fijaciones",
-          entidad: "Adif · Dirección Técnica",
-          vigencia: "31 dic 2028",
-          estado: "Vigente",
-          archivo: "Homologacion-Adif-NAV-2026-IberRail.pdf",
-          hash: "9f84b2c0e71a4d39"
-        },
-        {
-          nombre: "Certificación de Producto AENOR EN 13230",
-          norma: "UNE-EN 13230-1 / 13230-2 · Hormigón pretensado",
-          entidad: "AENOR / Laboratorio ENAC",
-          vigencia: "15 nov 2027",
-          estado: "Vigente",
-          archivo: "Certificado-AENOR-EN13230-PR22.pdf",
-          hash: "4a18d7e3b920f651"
-        },
-        {
-          nombre: "Acreditación de Laboratorio de Ensayos Propio",
-          norma: "UNE-EN ISO/IEC 17025 · Rotura dinámica y fatiga",
-          entidad: "ENAC (Acreditación Nº 412/LE984)",
-          vigencia: "30 jun 2028",
-          estado: "Vigente",
-          archivo: "Acreditacion-ENAC-IberRail-Lab.pdf",
-          hash: "7c31e9a4f082b512"
-        },
-        {
-          nombre: "Sistema de Gestión de Calidad y Ambiental",
-          norma: "ISO 9001:2015 · ISO 14001:2015 · Marcado CE",
-          entidad: "AENOR Internacional",
-          vigencia: "20 oct 2027",
-          estado: "Vigente",
-          archivo: "Certificados-ISO9001-14001-IberRail.pdf",
-          hash: "2d95c6b1a403e874"
-        },
-        {
-          nombre: "Acuerdo Marco de Proveedor Homologado SOFEIN",
-          norma: "Cláusula de trazabilidad por lote y mediación 5 días hábiles",
-          entidad: "SOFEIN Procurement B2B",
-          vigencia: "Renovación anual automática",
-          estado: "Firmado",
-          archivo: "Acuerdo-Marco-Proveedor-SOFEIN-2026.pdf",
-          hash: "6e02f4d8c197a360"
-        }
+        { nombre: "ISO 9001", norma: "ISO 9001:2015", entidad: "AENOR Internacional", vigencia: "20 oct 2027", estado: "Vigente", archivo: "Certificado-ISO9001-IberRail.pdf", hash: "2d95c6b1a403e874" },
+        { nombre: "ISO 14001", norma: "ISO 14001:2015", entidad: "AENOR Internacional", vigencia: "20 oct 2027", estado: "Vigente", archivo: "Certificado-ISO14001-IberRail.pdf", hash: "5b17c0e2d93a4f68" },
+        { nombre: "AENOR EN 13230", norma: "UNE-EN 13230-1 / 13230-2", entidad: "AENOR / Laboratorio ENAC", vigencia: "15 nov 2027", estado: "Vigente", archivo: "Certificado-AENOR-EN13230-PR22.pdf", hash: "4a18d7e3b920f651" },
+        { nombre: "Adif NAV-2026", norma: "ET Adif 03.360.571", entidad: "Adif · Dirección Técnica", vigencia: "31 dic 2028", estado: "Vigente", archivo: "Homologacion-Adif-NAV-2026-IberRail.pdf", hash: "9f84b2c0e71a4d39" }
       ];
       prv.certificadosDetalle = certs;
+      const acuerdoMarco = prv.acuerdoMarco || {
+        estado: "Firmado",
+        vigencia: "Renovación anual automática",
+        archivo: "Acuerdo-Marco-Proveedor-SOFEIN-2026.pdf",
+        hash: "6e02f4d8c197a360"
+      };
+      prv.acuerdoMarco = acuerdoMarco;
+      const confRows = [...new Set([...(prv.conformidades || prv.homologaciones || []), ...certs.map(c => c.nombre)])]
+        .map(conf => ({ conf, cert: certs.find(c => c.nombre === conf) || null }));
 
       const requisitos = prv.requisitosQueCumple && prv.requisitosQueCumple.length
         ? prv.requisitosQueCumple
@@ -7382,11 +7362,11 @@
           <span class="exp-strip-dot">·</span>
           <span><strong>${completedSums.length}</strong> completados</span>
           <span class="exp-strip-dot">·</span>
-          <span><strong>${certs.length}</strong> homologaciones vigentes</span>
+          <span><strong>${confRows.length}</strong> conformidades</span>
         </div>
 
-        <!-- Parte superior: 4 Tarjetas KPI en 4 columnas -->
-        <div class="exp-kpi-filter-grid" style="margin-bottom:18px">
+        <!-- Parte superior: tarjetas KPI -->
+        <div class="exp-kpi-filter-grid" style="margin-bottom:18px;grid-template-columns:repeat(2,minmax(0,1fr))">
           <div class="exp-kpi-filter-card" style="cursor:default">
             <div class="exp-kpi-filter-top">
               <span class="exp-kpi-label">Suministros activos</span>
@@ -7402,22 +7382,6 @@
             </div>
             <strong class="exp-kpi-value">${prvExps.length}</strong>
             <small class="exp-kpi-sub">En ejecución o fase de oferta</small>
-          </div>
-          <div class="exp-kpi-filter-card" style="cursor:default">
-            <div class="exp-kpi-filter-top">
-              <span class="exp-kpi-label">Plazo medio (Lead time)</span>
-              <span class="exp-kpi-dot" style="background:#a78bfa"></span>
-            </div>
-            <strong class="exp-kpi-value">${prv.leadTimeMedio || "42 días"}</strong>
-            <small class="exp-kpi-sub">Fabricación y expedición desde planta</small>
-          </div>
-          <div class="exp-kpi-filter-card" style="cursor:default">
-            <div class="exp-kpi-filter-top">
-              <span class="exp-kpi-label">Índice de conformidad</span>
-              <span class="exp-kpi-dot is-complete"></span>
-            </div>
-            <strong class="exp-kpi-value" style="color:var(--entity-accent)">${prv.score || "98% Conforme"}</strong>
-            <small class="exp-kpi-sub">Auditoría técnica y recepción SOFEIN</small>
           </div>
         </div>
 
@@ -7469,10 +7433,25 @@
                 <span class="b2b-profile-meta-label">Condiciones de Pago Marco</span>
                 <strong class="b2b-profile-meta-val">${prv.condicionesPago || "60 días confirmada"}</strong>
               </div>
-              <div class="b2b-profile-meta-item">
-                <span class="b2b-profile-meta-label">Referencia Tarifaria Base</span>
-                <strong class="b2b-profile-meta-val">${prv.precioEstimado || "Según licitación"}</strong>
+            </div>
+            <div class="b2b-profile-cert-row" style="margin-top:14px">
+              <div style="min-width:0;flex:1">
+                <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+                  <strong style="font-size:0.8rem;color:var(--entity-text)">${icon("file", 13)} Acuerdo marco con SOFEIN</strong>
+                  <span class="b2b-cert-badge is-valid">${acuerdoMarco.estado}</span>
+                </div>
+                <div style="font-size:0.72rem;color:var(--entity-muted);margin-top:2px">${acuerdoMarco.archivo} · ${acuerdoMarco.vigencia}</div>
               </div>
+              <button class="admin-quiet-button" type="button"
+                data-inspect-cert="${acuerdoMarco.hash}"
+                data-cert-name="Acuerdo marco de proveedor SOFEIN"
+                data-cert-file="${acuerdoMarco.archivo}"
+                data-cert-lab="SOFEIN Procurement"
+                data-cert-norm="Acuerdo marco proveedor - SOFEIN"
+                data-cert-res="${acuerdoMarco.estado} (${acuerdoMarco.vigencia})"
+                style="padding:4px 9px;font-size:0.72rem">
+                ${icon("file", 12)} Ver
+              </button>
             </div>
           </div>
         </details>
@@ -7483,47 +7462,21 @@
           <details class="b2b-profile-card is-collapsible" style="margin-bottom:0" data-profile-collapse="prvCatalog" ${profileCollapseState.prvCatalog ? "open" : ""}>
             <summary class="b2b-profile-section-head is-collapsible-summary">
               <div>
-                <h3>${icon("box", 15)} Catálogo homologado y capacidad técnica</h3>
-                <p>Líneas de producto autorizadas para concurrir en licitaciones y matching SOFEIN.</p>
+                <h3>${icon("box", 15)} Suministros ofrecidos</h3>
               </div>
               <div class="b2b-profile-summary-actions">
+                <button class="admin-quiet-button" type="button" data-edit-dir="proveedor" data-id="${prv.id}">
+                  ${icon("edit", 12)} Editar
+                </button>
                 <span class="b2b-profile-chevron" title="Mostrar / ocultar sección">${icon("chevronDown", 16)}</span>
               </div>
             </summary>
-
-            <div class="b2b-profile-card-body" style="display:flex;flex-direction:column;justify-content:space-between">
-              <div>
-                <div style="margin-bottom:16px">
-                  <span class="b2b-profile-meta-label" style="display:block;margin-bottom:6px">Familias de suministro acreditadas</span>
-                  ${renderSuministrosTags(prv.suministros || ["Traviesas", "Fijaciones"])}
+            <div class="b2b-profile-card-body">
+              ${(prv.suministros || []).length ? `
+                <div class="selector-homologations">
+                  ${prv.suministros.map(t => `<span class="selector-homologation-chip">${icon(getSuministroTypeIcon(t), 12)} ${escHTML(t.charAt(0).toUpperCase() + t.slice(1))}</span>`).join("")}
                 </div>
-
-                <div style="margin-bottom:16px">
-                  <span class="b2b-profile-meta-label" style="display:block;margin-bottom:6px">Alcance de fabricación registrado</span>
-                  <div style="padding:10px 12px;border-radius:8px;background:var(--entity-panel-2);border:1px solid var(--entity-line);font-size:0.79rem;color:var(--entity-text);font-weight:500">
-                    ${prv.materiales || "Traviesas de Hormigón Monobloque PR-22 · Sujeciones SKL-14"}
-                  </div>
-                </div>
-
-                <div>
-                  <span class="b2b-profile-meta-label" style="display:block;margin-bottom:8px">Capacidades industriales y logísticas verificadas</span>
-                  <ul class="b2b-profile-check-list">
-                    ${requisitos.map(req => `
-                      <li>
-                        <span class="b2b-profile-check-icon">${icon("check", 13)}</span>
-                        <span>${req}</span>
-                      </li>
-                    `).join("")}
-                  </ul>
-                </div>
-              </div>
-
-              <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--entity-line);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
-                <span style="font-size:0.73rem;color:var(--entity-muted)">¿Nuevas líneas de fabricación o ensayos?</span>
-                <button class="admin-quiet-button" type="button" data-edit-dir="proveedor" data-id="${prv.id}">
-                  ${icon("plus", 12)} Actualizar catálogo y capacidades
-                </button>
-              </div>
+              ` : `<p class="reg-empty">Sin suministros registrados.</p>`}
             </div>
           </details>
 
@@ -7531,8 +7484,7 @@
           <details class="b2b-profile-card is-collapsible" style="margin-bottom:0" data-profile-collapse="prvCerts" ${profileCollapseState.prvCerts ? "open" : ""}>
             <summary class="b2b-profile-section-head is-collapsible-summary">
               <div>
-                <h3>${icon("shield", 15)} Homologaciones y certificaciones vigentes</h3>
-                <p>Documentación corporativa validada por SOFEIN e inyectada automáticamente en tus ofertas.</p>
+                <h3>${icon("shield", 15)} Conformidades</h3>
               </div>
               <div class="b2b-profile-summary-actions">
                 <button class="admin-quiet-button" type="button" data-open-upload-profile-cert="proveedor">
@@ -7541,39 +7493,33 @@
                 <span class="b2b-profile-chevron" title="Mostrar / ocultar sección">${icon("chevronDown", 16)}</span>
               </div>
             </summary>
-
             <div class="b2b-profile-card-body">
-              <div style="margin-bottom:12px">
-                ${renderConformidadesTags(prv.conformidades || prv.homologaciones)}
-              </div>
-
               <div class="b2b-profile-cert-list">
-                ${certs.map(c => `
+                ${confRows.map(({ conf, cert }) => `
                   <div class="b2b-profile-cert-row">
-                    <div style="min-width:0;flex:1">
-                      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-                        <strong style="font-size:0.8rem;color:var(--entity-text)">${c.nombre}</strong>
-                        <span class="b2b-cert-badge is-valid">${c.estado}</span>
-                      </div>
-                      <div style="font-size:0.72rem;color:var(--entity-muted);margin-top:2px">
-                        ${c.norma} · <span style="color:var(--entity-faint)">Emisor: ${c.entidad}</span>
-                      </div>
+                    <div style="min-width:0;flex:1;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                      <span class="selector-homologation-chip">${icon("shield", 12)} ${escHTML(conf)}</span>
+                      ${cert ? `<span style="font-size:0.72rem;color:var(--entity-muted)">${icon("file", 11)} ${escHTML(cert.archivo)}</span>` : `<span style="font-size:0.72rem;color:var(--entity-warning)">Sin documento acreditativo</span>`}
                     </div>
                     <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
                       <div style="text-align:right">
                         <span style="display:block;font-size:0.66rem;color:var(--entity-faint);text-transform:uppercase">Vigencia</span>
-                        <strong style="font-size:0.73rem;color:var(--entity-text)">${c.vigencia}</strong>
+                        <strong style="font-size:0.73rem;color:var(--entity-text)">${cert ? cert.vigencia : "-"}</strong>
                       </div>
-                      <button class="admin-quiet-button" type="button"
-                        data-inspect-cert="${c.hash}"
-                        data-cert-name="${c.nombre}"
-                        data-cert-file="${c.archivo}"
-                        data-cert-lab="${c.entidad}"
-                        data-cert-norm="${c.norma}"
-                        data-cert-res="CONFORME Y VIGENTE (${c.vigencia})"
-                        style="padding:4px 9px;font-size:0.72rem">
-                        ${icon("file", 12)} Ver
-                      </button>
+                      ${cert ? `
+                        <button class="admin-quiet-button" type="button"
+                          data-inspect-cert="${cert.hash || ""}"
+                          data-cert-name="${escHTML(cert.nombre)}"
+                          data-cert-file="${escHTML(cert.archivo)}"
+                          data-cert-lab="${escHTML(cert.entidad || "")}"
+                          data-cert-norm="${escHTML(cert.norma || "")}"
+                          data-cert-res="CONFORME Y VIGENTE (${escHTML(cert.vigencia)})"
+                          style="padding:4px 9px;font-size:0.72rem">
+                          ${icon("file", 12)} Ver
+                        </button>
+                      ` : `
+                        <button class="admin-quiet-button" type="button" data-open-upload-profile-cert="proveedor" style="padding:4px 9px;font-size:0.72rem">${icon("upload", 12)} Subir</button>
+                      `}
                     </div>
                   </div>
                 `).join("")}
@@ -7719,9 +7665,6 @@
           <h1 style="margin:0;font-size:1.65rem;font-weight:600;letter-spacing:-0.03em">Perfil de cliente</h1>
         </div>
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-          <button class="admin-quiet-button" type="button" data-open-upload-profile-cert="cliente">
-            ${icon("upload", 13)} Subir acreditación
-          </button>
           <button class="admin-primary-button" type="button" data-edit-dir="cliente" data-id="${cli.id}">
             ${icon("edit", 13)} Editar datos corporativos
           </button>
@@ -7831,51 +7774,8 @@
         </div>
       </details>
 
-      <!-- Bloque Flotante 2: Dos columnas asimétricas independientes (1fr | 1.15fr), cada una colapsable -->
-      <div class="b2b-profile-two-col">
-        <!-- Columna Izquierda: Parámetros de Contratación y Pliegos -->
-        <details class="b2b-profile-card is-collapsible" style="margin-bottom:0" data-profile-collapse="cliParams" ${profileCollapseState.cliParams ? "open" : ""}>
-          <summary class="b2b-profile-section-head is-collapsible-summary">
-            <div>
-              <h3>${icon("sliders", 15)} Parámetros de contratación y pliegos</h3>
-              <p>Directrices corporativas aplicadas por SOFEIN en tus expedientes de compra.</p>
-            </div>
-            <div class="b2b-profile-summary-actions">
-              <span class="b2b-profile-chevron" title="Mostrar / ocultar sección">${icon("chevronDown", 16)}</span>
-            </div>
-          </summary>
-
-          <div class="b2b-profile-card-body" style="display:flex;flex-direction:column;justify-content:space-between">
-            <div>
-              <div style="margin-bottom:16px">
-                <span class="b2b-profile-meta-label" style="display:block;margin-bottom:6px">Especialidad y ámbito de actuación</span>
-                <div style="padding:10px 12px;border-radius:8px;background:var(--entity-panel-2);border:1px solid var(--entity-line);font-size:0.79rem;color:var(--entity-text);font-weight:500">
-                  ${cli.actividad || "Constructora Ferroviaria · Obra Civil, Superestructura y Mantenimiento de Vía"}
-                </div>
-              </div>
-
-              <div>
-                <span class="b2b-profile-meta-label" style="display:block;margin-bottom:8px">Reglas activas en tus expedientes SOFEIN</span>
-                <ul class="b2b-profile-check-list">
-                  ${reglasCliente.map(reg => `
-                    <li>
-                      <span class="b2b-profile-check-icon">${icon("check", 13)}</span>
-                      <span>${reg}</span>
-                    </li>
-                  `).join("")}
-                </ul>
-              </div>
-            </div>
-
-            <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--entity-line);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
-              <span style="font-size:0.73rem;color:var(--entity-muted)">¿Necesitas iniciar una nueva compra ferroviaria?</span>
-              <button class="admin-primary-button" type="button" data-go="#cliente/nuevo" style="padding:5px 12px;font-size:0.74rem">
-                ${icon("plus", 12)} Solicitar nuevo expediente
-              </button>
-            </div>
-          </div>
-        </details>
-
+      <!-- Bloque Flotante 2: Acuerdo marco y acreditaciones -->
+      <div>
         <!-- Columna Derecha: Acreditaciones Corporativas y Acuerdo Marco -->
         <details class="b2b-profile-card is-collapsible" style="margin-bottom:0" data-profile-collapse="cliCerts" ${profileCollapseState.cliCerts ? "open" : ""}>
           <summary class="b2b-profile-section-head is-collapsible-summary">
@@ -12189,8 +12089,11 @@
     urgente: { label: "Urgente", tagClass: "warning" }
   };
 
-  function openEmitExpNoticeModal(expId) {
-    const exp = getActiveExpediente(expId);
+  const NOTICE_CATEGORIAS = ["Aviso SOFEIN", "Requerimiento documental", "Plazo / calendario", "Instrucción técnica", "Coordinación", "Información de suministro"];
+
+  // pickExp: desde la bandeja de Avisos se elige el expediente (código y título) y la categoría
+  function openEmitExpNoticeModal(expId, { pickExp = false, keep = {} } = {}) {
+    const exp = getActiveExpediente(expId || EXPEDIENTES[0]?.id);
     const modalWrap = document.getElementById("modalContainer");
     if (!exp || !modalWrap || activeRole !== "admin") return;
     const expSums = SUMINISTROS.filter(s => s.expId === exp.id);
@@ -12210,10 +12113,14 @@
           </div>
           <form id="modalExpNoticeForm">
             <div class="procurement-modal-body" style="gap:14px">
-              <div style="display:grid;grid-template-columns:minmax(0,0.8fr) minmax(0,1.2fr);gap:12px">
+              <div style="display:grid;grid-template-columns:${pickExp ? "1fr" : "minmax(0,0.8fr) minmax(0,1.2fr)"};gap:12px">
                 <label style="${labelStyle}">
                   Expediente
-                  <input value="${exp.id}" readonly style="${inputStyle};opacity:0.8;cursor:not-allowed;font-family:ui-monospace,monospace" />
+                  ${pickExp ? `
+                    <select name="expId" style="${inputStyle}">
+                      ${EXPEDIENTES.map(e => `<option value="${e.id}" ${e.id === exp.id ? "selected" : ""}>${e.id} · ${escHTML(getExpVisualMeta(e).tituloGenerico)}</option>`).join("")}
+                    </select>
+                  ` : `<input value="${exp.id}" readonly style="${inputStyle};opacity:0.8;cursor:not-allowed;font-family:ui-monospace,monospace" />`}
                 </label>
                 <label style="${labelStyle}">
                   Suministro
@@ -12230,19 +12137,37 @@
                 <label data-needs-sum><input type="radio" name="destino" value="ambos" disabled /> Ambos</label>
                 <p class="exp-notice-hint" data-general-hint>Un aviso general del expediente solo puede ir al cliente, porque puede haber varios proveedores.</p>
               </fieldset>
+              ${pickExp ? `
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                  <label style="${labelStyle}">
+                    Categoría
+                    <select name="categoria" style="${inputStyle}">
+                      ${NOTICE_CATEGORIAS.map(c => `<option value="${escHTML(c)}" ${keep.categoria === c ? "selected" : ""}>${escHTML(c)}</option>`).join("")}
+                    </select>
+                  </label>
+                  <label style="${labelStyle}">
+                    Prioridad (opcional)
+                    <select name="prioridad" style="${inputStyle}">
+                      ${Object.entries(NOTICE_PRIORIDADES).map(([k, p]) => `<option value="${k}" ${keep.prioridad === k ? "selected" : ""}>${p.label}</option>`).join("")}
+                    </select>
+                  </label>
+                </div>
+              ` : ""}
               <label style="${labelStyle}">
                 Título del aviso
-                <input name="titulo" required placeholder="Ej: Confirmar ventana de descarga en obra" style="${inputStyle}" />
+                <input name="titulo" required placeholder="Ej: Confirmar ventana de descarga en obra" value="${escHTML(keep.titulo || "")}" style="${inputStyle}" />
               </label>
-              <label style="${labelStyle}">
-                Prioridad (opcional)
-                <select name="prioridad" style="${inputStyle}">
-                  ${Object.entries(NOTICE_PRIORIDADES).map(([k, p]) => `<option value="${k}">${p.label}</option>`).join("")}
-                </select>
-              </label>
+              ${pickExp ? "" : `
+                <label style="${labelStyle}">
+                  Prioridad (opcional)
+                  <select name="prioridad" style="${inputStyle}">
+                    ${Object.entries(NOTICE_PRIORIDADES).map(([k, p]) => `<option value="${k}">${p.label}</option>`).join("")}
+                  </select>
+                </label>
+              `}
               <label style="${labelStyle}">
                 Descripción del aviso
-                <textarea name="descripcion" rows="4" required placeholder="Qué debe saber o hacer el destinatario…" style="padding:9px 11px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;line-height:1.45;resize:vertical"></textarea>
+                <textarea name="descripcion" rows="4" required placeholder="Qué debe saber o hacer el destinatario…" style="padding:9px 11px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;line-height:1.45;resize:vertical">${escHTML(keep.descripcion || "")}</textarea>
               </label>
             </div>
             <div class="procurement-modal-footer">
@@ -12266,6 +12191,13 @@
     };
     sumSelect.addEventListener("change", syncRecipients);
     syncRecipients();
+    form.querySelector('[name="expId"]')?.addEventListener("change", e => {
+      const fd = new FormData(form);
+      openEmitExpNoticeModal(e.target.value, {
+        pickExp: true,
+        keep: { titulo: fd.get("titulo"), descripcion: fd.get("descripcion"), categoria: fd.get("categoria"), prioridad: fd.get("prioridad") }
+      });
+    });
 
     const close = () => { modalWrap.innerHTML = ""; };
     document.getElementById("closeExpNoticeModalBtn")?.addEventListener("click", close);
@@ -12288,7 +12220,10 @@
         expId: exp.id,
         sumId,
         suministro: sum ? `${sum.num} · ${sum.tipo}` : "General del Expediente",
-        categoria: prioridad === "normal" ? "Aviso SOFEIN" : `Aviso SOFEIN · ${NOTICE_PRIORIDADES[prioridad].label}`,
+        categoria: (() => {
+          const base = (pickExp && fd.get("categoria")) || "Aviso SOFEIN";
+          return prioridad === "normal" ? base : `${base} · ${NOTICE_PRIORIDADES[prioridad].label}`;
+        })(),
         prioridad,
         tagClass: NOTICE_PRIORIDADES[prioridad].tagClass,
         titulo: (fd.get("titulo") || "").trim(),
@@ -12302,167 +12237,6 @@
       addExpedienteCambioLog(exp, { tipo: "Aviso emitido", suministro: sumId || "General", titulo: `Aviso a ${destino === "ambos" ? "cliente y proveedor" : destino}: ${(fd.get("titulo") || "").trim()}`, detalle: NOTICE_PRIORIDADES[prioridad].label });
       const destLabel = destino === "ambos" ? "cliente y proveedor" : destino;
       showToast(`✓ Aviso emitido al ${destLabel === "cliente y proveedor" ? "cliente y al proveedor" : destLabel}`);
-      renderApp();
-    });
-  }
-
-  function openCreateNoticeModal(preselectedExpId = null) {
-    const modalWrap = document.getElementById("modalContainer");
-    if (!modalWrap) return;
-
-    modalWrap.innerHTML = `
-      <div class="procurement-modal-backdrop" id="createNoticeModalBackdrop">
-        <div class="procurement-modal" style="width:min(620px,100%)">
-          <div class="procurement-modal-head">
-            <div>
-              <h3>Emitir Aviso / Requerimiento Oficial</h3>
-              <p style="margin:2px 0 0;font-size:0.75rem;color:var(--entity-muted)">Notificación trazable para clientes y talleres proveedores</p>
-            </div>
-            <button type="button" id="closeCreateNoticeModalBtn" aria-label="Cerrar">×</button>
-          </div>
-          <form id="modalCreateNoticeForm">
-            <div class="procurement-modal-body" style="gap:14px;max-height:calc(85vh - 140px);overflow-y:auto;padding-right:12px">
-              
-              <!-- Expediente Vinculado y Suministro -->
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-                <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
-                  Expediente Vinculado
-                  <select name="expId" required style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0">
-                    ${EXPEDIENTES.map(e => `
-                      <option value="${e.id}" ${preselectedExpId === e.id ? "selected" : ""}>
-                        ${e.id} · ${e.producto.split(" ")[0]} (${e.cliente.split(" ")[0]})
-                      </option>
-                    `).join("")}
-                  </select>
-                </label>
-                <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
-                  Suministro Vinculado
-                  <select name="suministro" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0">
-                    <option value="General del Expediente">General del Expediente</option>
-                    ${SUMINISTROS.map(s => `
-                      <option value="${s.num} · ${s.tipo.split(' ')[0]} ${s.tipo.split(' ')[1] || ''}">
-                        ${s.num} · ${s.tipo} (${s.expId})
-                      </option>
-                    `).join("")}
-                  </select>
-                </label>
-              </div>
-
-              <!-- Destinatarios -->
-              <div>
-                <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
-                  Destinatarios
-                  <select name="targetRoles" required style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0">
-                    <option value="both">Ambos (Cliente & Proveedor)</option>
-                    <option value="cliente">Solo Constructor (Cliente)</option>
-                    <option value="proveedor">Solo Taller (Proveedor)</option>
-                  </select>
-                </label>
-              </div>
-
-              <!-- Categoría y Prioridad -->
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-                <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
-                  Categoría del Aviso
-                  <select name="categoria" required style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0">
-                    <option value="Requerimiento Documental">Requerimiento Documental (Certificados / Ensayos)</option>
-                    <option value="Aviso de Plazo / Calendario">Aviso de Plazo / Calendario de Fabricación</option>
-                    <option value="Instrucción Técnica de Obra">Instrucción Técnica de Obra / Replanteo</option>
-                    <option value="Convocatoria de Coordinación">Convocatoria de Coordinación y Seguimiento</option>
-                    <option value="Información de Suministro">Información General de Suministro</option>
-                  </select>
-                </label>
-                <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
-                  Nivel de Prioridad / Urgencia
-                  <select name="prioridad" required style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0">
-                    <option value="normal">Normal (Informativa)</option>
-                    <option value="urgente">Urgente (Respuesta en < 24h)</option>
-                    <option value="critica">Crítica (Riesgo de paralización de vía)</option>
-                  </select>
-                </label>
-              </div>
-
-              <!-- Asunto -->
-              <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
-                Asunto del Aviso
-                <input name="titulo" required placeholder="Ej: Aportar certificado de tracción EN 13230 antes del despacho" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0" />
-              </label>
-
-              <!-- Mensaje Detallado -->
-              <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
-                Mensaje / Detalle del Requerimiento
-                <textarea name="descripcion" rows="3" required placeholder="Explicar con precisión el requerimiento oficial, documentos pendientes o fechas límite de respuesta..." style="padding:10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;line-height:1.5"></textarea>
-              </label>
-
-              <!-- Botón de Acción Sugerida -->
-              <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
-                Etiqueta del Botón de Acción
-                <input name="accion" value="Subir Documento" required placeholder="Ej: Subir Certificado, Revisar Oferta, etc." style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box;min-width:0" />
-              </label>
-
-            </div>
-            <div class="procurement-modal-footer">
-              <button class="admin-quiet-button" type="button" id="cancelCreateNoticeModalBtn">Cancelar</button>
-              <button class="admin-primary-button" type="submit">${icon("inbox", 14)} Emitir y Notificar Aviso</button>
-            </div>
-          </form>
-        </div>
-      </div>
-    `;
-
-    const close = () => { modalWrap.innerHTML = ""; };
-    document.getElementById("closeCreateNoticeModalBtn")?.addEventListener("click", close);
-    document.getElementById("cancelCreateNoticeModalBtn")?.addEventListener("click", close);
-    document.getElementById("createNoticeModalBackdrop")?.addEventListener("click", e => {
-      if (e.target.id === "createNoticeModalBackdrop") close();
-    });
-
-    document.getElementById("modalCreateNoticeForm")?.addEventListener("submit", e => {
-      e.preventDefault();
-      const form = new FormData(e.currentTarget);
-      const targetExpId = form.get("expId");
-      const targetRolesVal = form.get("targetRoles");
-      const categoriaVal = form.get("categoria");
-      const prioridadVal = form.get("prioridad");
-      const tituloVal = form.get("titulo");
-      const descripcionVal = form.get("descripcion");
-      const accionVal = form.get("accion") || "Ver";
-
-      let rolesArr = ["admin"];
-      if (targetRolesVal === "both") {
-        rolesArr.push("cliente", "proveedor");
-      } else if (targetRolesVal === "cliente") {
-        rolesArr.push("cliente");
-      } else if (targetRolesVal === "proveedor") {
-        rolesArr.push("proveedor");
-      }
-
-      const tagClass = prioridadVal === "critica" ? "review" : prioridadVal === "urgente" ? "warning" : "complete";
-
-      let targetTab = "comms";
-      if (categoriaVal === "Requerimiento Documental") targetTab = "deliverables";
-      else if (categoriaVal === "Incidencia / Mediación") targetTab = "incidents";
-      else if (categoriaVal === "Aviso de Plazo / Calendario") targetTab = "deliverables";
-
-      const suministroVal = form.get("suministro") || "General del Expediente";
-
-      const newNotice = {
-        id: `AV-${Date.now()}`,
-        expId: targetExpId,
-        suministro: suministroVal,
-        categoria: categoriaVal,
-        tagClass: tagClass,
-        titulo: tituloVal,
-        descripcion: descripcionVal,
-        fecha: "Hoy, recién emitido",
-        roles: rolesArr,
-        accion: accionVal,
-        enlace: `#${activeRole}/expedientes/${targetExpId}?tab=${targetTab}`
-      };
-
-      NOTICES.unshift(newNotice);
-      close();
-      showToast(`✓ Aviso formal emitido para el expediente ${targetExpId}`);
       renderApp();
     });
   }
@@ -13120,7 +12894,7 @@
     const createNoticeBtn = e.target.closest("[data-open-create-notice-modal]");
     if (createNoticeBtn) {
       e.preventDefault();
-      openCreateNoticeModal(createNoticeBtn.dataset.openCreateNoticeModal || null);
+      if (activeRole === "admin") openEmitExpNoticeModal(createNoticeBtn.dataset.openCreateNoticeModal || null, { pickExp: true });
       return;
     }
 
