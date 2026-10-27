@@ -2,6 +2,18 @@
 
 Registro de relevo entre agentes. **Entradas nuevas arriba.** Reglas del proyecto en `AGENTS.md`.
 
+## 2026-10-27 · Claude · rama `procurement` · Publicado v54 + especificación para base de datos
+
+- v54 (catálogos maestros con etiquetas): push y despliegue en sofein-procurement, verificado en la URL pública.
+- Nuevo `docs/BACKEND_SPEC.md`: guía para pasar a Supabase. Recoge:
+  - principios; identidad y roles;
+  - modelo de datos completo (tablas, campos y enums, con su correspondencia con el front);
+  - estados y transiciones; matriz RLS por rol;
+  - acciones de servidor (RPC); tabla de qué evento genera cada aviso;
+  - Storage; plan de migración del front (qué funciones de `app.js` pasan al servidor);
+  - datos semilla, decisiones abiertas y checklist.
+- `AGENTS.md` enlaza la especificación y ya no fija una versión de assets concreta.
+
 ## 2026-10-27 · Claude · rama `claude/catalogos` · Catálogos maestros con etiquetas (v54)
 
 **Hecho**

@@ -12,6 +12,7 @@ pedidos, fabricación y calidad, incidencias/mediación, avisos, pasaporte digit
 `admin` (SOFEIN), `cliente`, `proveedor` y `destinatario`.
 
 Diseño funcional: `docs/DISENO_SOFEIN_PROCUREMENT.md`. Estado y relevo: `HANDOFF.md`.
+Paso a base de datos (Supabase): `docs/BACKEND_SPEC.md` — modelo, estados, permisos (RLS), acciones de servidor y avisos. Mantenerlo al día cuando cambie la lógica.
 
 ## Stack
 
@@ -40,7 +41,7 @@ Diseño funcional: `docs/DISENO_SOFEIN_PROCUREMENT.md`. Estado y relevo: `HANDOF
 1. `node --check app.js` (sin errores de sintaxis).
 2. Abrir `app.html` en el navegador (funciona con doble clic) y recorrer las rutas afectadas en los 4 perfiles:
    0 errores en consola, ningún `undefined`/`NaN`/`[object Object]` en pantalla, sin desbordamiento horizontal a 360–390 px.
-3. Al cambiar `app.js` o `styles.css`, subir el cachebuster `?v=procurement-vNN` en `app.html` (actual: v36 en `app.js`).
+3. Al cambiar `app.js` o `styles.css`, subir el cachebuster `?v=procurement-vNN` en `app.html` (mirar el valor actual en `app.html` y en `git log procurement` antes de subirlo).
 4. Skill `/health-check` (`.agents/skills/health-check/SKILL.md`) para enlaces, scripts y assets.
 
 ## Convenciones
