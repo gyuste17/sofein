@@ -1389,6 +1389,9 @@
   let activeDossierTab = "deliverables"; // deliverables | incidents | passport | comms
   let incidentStatusFilter = "all"; // "all" | "in_mediation" | "pending_signs" | "consolidated"
   let pendingOpenMediation = null;
+  let selectorSumParam = null;   // ?sum= del selector de proveedores
+  let selectorViewStep = null;   // paso consultado en el selector (null = el paso en curso)
+  let lastSelectorSumId = null;
   let historyPhaseFilter = "all"; // "all" | "0".."3"
   let historySumFilter = "all";   // "all" | "General" | "SUM-xx"
   let historyIncludeNotes = true;
@@ -2082,8 +2085,10 @@
     if (role === "cliente") {
       const incPendienteFirma = (exp.incidencias || []).some(i => !i.adendaId && !i.firmaCliente && i.firmaSofein);
       const docsPendientes = getReachedDeliverables(exp).some(d => d.owner === "Cliente" && d.state !== "complete");
-      const faseSelector = exp.matching?.faseSelector;
-      const matchingPendiente = exp.faseActual === 1 && (faseSelector === "seleccion_cliente" || faseSelector === "comparativa");
+      const matchingPendiente = SUMINISTROS.some(s => s.expId === exp.id && s.matching && (
+        (s.matching.faseSelector === "seleccion_cliente" && !s.matching.seleccionClienteEnviada) ||
+        (s.matching.faseSelector === "comparativa" && !s.matching.adjudicacionConfirmadaCliente)
+      ));
       return incPendienteFirma || docsPendientes || matchingPendiente;
     }
     if (role === "proveedor") {
@@ -2487,8 +2492,10 @@
       return;
     }
     const [pathPart, queryPart] = raw.split("?");
+    selectorSumParam = null;
     if (queryPart) {
       const qParams = new URLSearchParams(queryPart);
+      selectorSumParam = qParams.get("sum");
       if (qParams.get("tab")) {
         activeDossierTab = qParams.get("tab");
       }
@@ -2559,7 +2566,9 @@
   /* ---------- Componente: Topbar Interna con Switcher Sutil ---------- */
   function renderTopbar() {
     const player = PLAYERS[activeRole];
-    const sectionName = activeSection === "perfil" ? "Perfil corporativo" : ((activeRole === "admin" && ADMIN_HUB_LABELS[activeSection]) || ((player.nav.find(n => n.id === activeSection) || {}).label || activeSection));
+    const sectionName = activeSection === "perfil" ? "Perfil corporativo"
+      : activeSection === "selector" ? (activeRole === "proveedor" ? "Cotización" : "Selector de Proveedores")
+      : ((activeRole === "admin" && ADMIN_HUB_LABELS[activeSection]) || ((player.nav.find(n => n.id === activeSection) || {}).label || activeSection));
     const currentTheme = document.documentElement.dataset.theme || "dark";
 
     return `
@@ -2899,715 +2908,581 @@
      PANTALLA 2: SELECTOR Y MATCHING DE PROVEEDORES (FASE DE COTIZACIONES)
      Apuntes 06 - Tablas 2 y 3 (Preselección SOFEIN, Selección Cliente, Cotizaciones, Comparativa)
      ============================================================ */
+  /* ============================================================
+     SELECTOR DE PROVEEDORES POR SUMINISTRO (Fase 2 del expediente)
+     1. Búsqueda (SOFEIN) → 2. Preselección (Cliente; SOFEIN confirma y pide ofertas)
+     → 3. Cotización (proveedores; SOFEIN valida) → 4. Selección (Cliente elige; SOFEIN valida y se formaliza)
+     ============================================================ */
+  const SELECTOR_MY_PROVIDER_ID = "PRV-01"; // proveedor de la demo (IberRail Components)
+  const QUOTE_MIN_VALIDEZ_DIAS = 45;
+  const SELECTOR_STEPS = [
+    { id: "preseleccion", num: 1, title: "1. Búsqueda" },
+    { id: "seleccion_cliente", num: 2, title: "2. Preselección" },
+    { id: "peticion_cotizaciones", num: 3, title: "3. Cotización" },
+    { id: "comparativa", num: 4, title: "4. Selección" }
+  ];
+  const PAYMENT_OPTIONS = ["60 días fecha factura", "60 días confirming", "90 días confirming", "30 días transferencia"];
+
+  const formatEuro = n => (Number(n) || 0).toLocaleString("es-ES", { style: "currency", currency: "EUR", minimumFractionDigits: 0, maximumFractionDigits: 2 });
+  const formatEuroUnit = n => (Number(n) || 0).toLocaleString("es-ES", { style: "currency", currency: "EUR", minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const sumTipoKey = sum => String(sum?.tipo || "otros").toLowerCase();
+  const getSumUnidadesNum = sum => sum?.unidadesNum || parseInt(String(sum?.unidades || "").replace(/\D/g, ""), 10) || 1;
+  const getProveedorConformidades = prv => (prv?.conformidades && prv.conformidades.length ? prv.conformidades : (prv?.homologaciones || []));
+
+  function getProveedorCondiciones(prv, sum) {
+    const c = (prv?.suministrosCondiciones || {})[sumTipoKey(sum)] || {};
+    return {
+      leadTime: c.leadTime || prv?.leadTimeMedio || "—",
+      condicionesPago: c.condicionesPago || prv?.condicionesPago || "—"
+    };
+  }
+
+  // Proveedores del directorio que suministran ese tipo (mínimo 3 para cumplir la concurrencia)
+  function getSelectorCandidates(sum) {
+    const key = sumTipoKey(sum);
+    let list = DIRECTORIO_PROVEEDORES.filter(p => (p.suministros || []).map(x => String(x).toLowerCase()).includes(key));
+    if (list.length < 3) {
+      list = [...list, ...DIRECTORIO_PROVEEDORES.filter(p => !list.includes(p))].slice(0, 3);
+    }
+    return list;
+  }
+
+  function buildDemoQuote(prv, sum, idx = 0) {
+    const units = getSumUnidadesNum(sum);
+    const budget = parseBudgetNumber(sum.presupuesto) || units * 30;
+    const total = Math.round(budget * [1, 1.04, 0.97, 1.08][idx % 4]);
+    const fecha = sum.fechaEntregaIso ? new Date(sum.fechaEntregaIso) : new Date();
+    fecha.setDate(fecha.getDate() + [-4, 3, -7, 0][idx % 4]);
+    const conf = getProveedorConformidades(prv);
+    return {
+      proveedorId: prv.id,
+      nombre: prv.nombre,
+      cif: prv.cif,
+      sede: prv.sede,
+      precioUnitario: Math.round((total / units) * 100) / 100,
+      precioTotal: total,
+      fechaEntregaIso: fecha.toISOString().slice(0, 10),
+      condicionesPago: getProveedorCondiciones(prv, sum).condicionesPago,
+      validezDias: [45, 60, 45, 90][idx % 4],
+      conformidades: conf.slice(0, Math.max(1, conf.length - (idx % 2))),
+      estado: "enviada",
+      fechaEnvio: "16 jun, 10:15"
+    };
+  }
+
+  const emptyQuote = prv => ({ proveedorId: prv.id, nombre: prv.nombre, cif: prv.cif, sede: prv.sede, estado: "pendiente" });
+
+  // Estado del selector guardado en el propio suministro
+  function ensureSuministroMatching(exp, sum) {
+    if (!sum) return ensureExpedienteMatching(exp);
+    if (sum.matching) return sum.matching;
+    const cands = getSelectorCandidates(sum);
+    const ids = cands.map(c => c.id);
+    const done = (sum.faseActual ?? 0) > 1 || sum.estado === "finalizado" || sum.estado === "cerrado";
+    const m = {
+      faseSelector: done ? "adjudicado" : "preseleccion",
+      proveedoresRecomendados: ids,
+      proveedoresPreseleccionadosPorAdmin: ids.slice(0, Math.max(3, Math.min(ids.length, 4))),
+      proveedoresSeleccionadosPorCliente: [],
+      cotizaciones: {},
+      requisitosExigidosCliente: [],
+      proveedorAdjudicado: null,
+      seleccionClienteEnviada: false,
+      adjudicacionConfirmadaCliente: false
+    };
+    if (done) {
+      const winner = DIRECTORIO_PROVEEDORES.find(p => p.nombre === sum.proveedor) || cands[0];
+      const q = buildDemoQuote(winner, sum, 0);
+      q.precioTotal = parseBudgetNumber(sum.presupuesto) || q.precioTotal;
+      q.precioUnitario = Math.round((q.precioTotal / getSumUnidadesNum(sum)) * 100) / 100;
+      q.estado = "enviada";
+      m.proveedoresPreseleccionadosPorAdmin = [...new Set([winner.id, ...m.proveedoresPreseleccionadosPorAdmin])];
+      m.proveedoresSeleccionadosPorCliente = [winner.id];
+      m.cotizaciones[winner.id] = q;
+      m.proveedorAdjudicado = winner.nombre;
+      m.requisitosExigidosCliente = q.conformidades.slice(0, 2);
+      m.seleccionClienteEnviada = true;
+      m.adjudicacionConfirmadaCliente = true;
+    } else if (sum.id === "SUM-08") {
+      // Demo: SUM-08 (Placas) ya en cotización; IberRail tiene la petición pendiente de responder
+      const pedidos = [...new Set([...ids.slice(0, 2), SELECTOR_MY_PROVIDER_ID])];
+      m.proveedoresPreseleccionadosPorAdmin = [...new Set([...m.proveedoresPreseleccionadosPorAdmin, ...pedidos])];
+      m.proveedoresSeleccionadosPorCliente = pedidos;
+      m.seleccionClienteEnviada = true;
+      m.faseSelector = "peticion_cotizaciones";
+      pedidos.forEach((pid, i) => {
+        const prv = DIRECTORIO_PROVEEDORES.find(p => p.id === pid);
+        m.cotizaciones[pid] = pid === SELECTOR_MY_PROVIDER_ID ? emptyQuote(prv) : buildDemoQuote(prv, sum, i);
+      });
+    }
+    sum.matching = m;
+    return m;
+  }
+
+  // Estado de una oferta: pendiente · enviada · rechazada · adjudicada (null si no se pidió)
+  function getQuoteEstado(m, prvId) {
+    const q = m?.cotizaciones?.[prvId];
+    if (!q) return null;
+    if (m.faseSelector === "adjudicado" && m.proveedorAdjudicado) return m.proveedorAdjudicado === q.nombre ? "adjudicada" : "rechazada";
+    return q.estado === "pendiente" ? "pendiente" : "enviada";
+  }
+  const QUOTE_ESTADO_META = {
+    pendiente: { label: "Pendiente", cls: "pending" },
+    enviada: { label: "Enviada", cls: "review" },
+    rechazada: { label: "Rechazada", cls: "rejected" },
+    adjudicada: { label: "Adjudicada", cls: "complete" }
+  };
+  const renderQuoteEstadoBadge = estado => {
+    const meta = QUOTE_ESTADO_META[estado] || QUOTE_ESTADO_META.pendiente;
+    return `<span class="entity-status ${meta.cls}"><i></i>${meta.label}</span>`;
+  };
+
+  function getSumDelivMap(exp, sum) {
+    return sum && SUMINISTROS.filter(s => s.expId === exp.id).length > 1 ? ensureSuministroDeliverables(exp, sum) : exp.deliverables;
+  }
+
+  // Suministro que abre el selector (?sum=), o el primero visible del expediente en fase 2
+  function getSelectorSuministro(exp) {
+    const visibles = getRoleVisibleExpSuministros(exp, activeRole);
+    // El proveedor conserva el acceso a los suministros en los que se le pidió oferta, aunque no se le adjudiquen
+    const requested = SUMINISTROS.find(s => s.expId === exp.id && s.id === selectorSumParam);
+    if (requested && (activeRole !== "proveedor" || visibles.includes(requested) || getQuoteEstado(ensureSuministroMatching(exp, requested), SELECTOR_MY_PROVIDER_ID))) return requested;
+    return visibles.find(s => s.id === selectorSumParam)
+      || visibles.find(s => (s.faseActual ?? 0) === 1)
+      || visibles[0]
+      || null;
+  }
+
+  const renderConformidadTags = (list, { muted = false } = {}) => (list || []).length
+    ? `<div class="selector-homologations">${list.map(c => `<span class="selector-homologation-chip ${muted ? "is-muted" : ""}">${icon("shield", 12)} ${escHTML(c)}</span>`).join("")}</div>`
+    : `<span class="doc-tbl-dash">—</span>`;
+
+  function getQuoteDeliveryDiff(q, sum) {
+    if (!q?.fechaEntregaIso || !sum?.fechaEntregaIso) return null;
+    const diff = Math.round((new Date(q.fechaEntregaIso) - new Date(sum.fechaEntregaIso)) / 86400000);
+    return { diff, text: diff < 0 ? `${Math.abs(diff)} días antes` : diff === 0 ? "En la fecha objetivo" : `+${diff} días`, cls: diff <= 0 ? "complete" : "warning" };
+  }
+
+  function renderSelectorSumInfoHTML(exp, sum) {
+    if (!sum) return "";
+    const map = getSumDelivMap(exp, sum);
+    const adjuntos = (map[0] || [])
+      .map((d, idx) => ({ d, idx }))
+      .filter(({ d }) => d.file && canRoleSeeDeliverable(d, activeRole));
+    const item = (label, value, wide = false) => `
+      <div class="selector-info-item ${wide ? "is-wide" : ""}">
+        <span>${label}</span>
+        <strong>${value}</strong>
+      </div>
+    `;
+    return `
+      <section class="selector-info-card">
+        <div class="selector-info-grid">
+          ${item("Tipo", `${icon(getSuministroTypeIcon(sum.tipo, sum.descripcion), 13)} ${escHTML(sum.tipo)}`)}
+          ${item("Código de suministro", sum.id)}
+          ${item("Unidades", escHTML(sum.unidades || "—"))}
+          ${item("Fecha objetivo", sum.fechaEntrega || "—")}
+          ${item("Expediente", exp.id)}
+          ${item("Nombre del expediente", escHTML(getExpVisualMeta(exp).tituloGenerico))}
+          ${item("Cliente", escHTML(sum.cliente || exp.cliente))}
+          ${item("Destino", escHTML(sum.destino || exp.destinatarioFinal))}
+          ${item("Descripción", escHTML(sum.descripcion || sum.especificaciones || "—"), true)}
+          ${item("Especificaciones", escHTML(sum.especificaciones || "—"), true)}
+        </div>
+        <div class="selector-info-attachments">
+          <span class="reg-section-label">${icon("file", 13)} Adjuntos del suministro</span>
+          ${adjuntos.length ? adjuntos.map(({ d, idx }) => `
+            <div class="reg-attachment">
+              <strong>${escHTML(d.name)}</strong>
+              <span>${escHTML(d.file)}</span>
+              <button class="doc-tbl-action-btn" type="button" data-view-doc data-exp="${exp.id}" data-phase="0" data-slot="${idx}">${icon("eye", 12)} Ver</button>
+            </div>
+          `).join("") : `<p class="reg-empty">Sin adjuntos.</p>`}
+        </div>
+      </section>
+    `;
+  }
+
+  function renderSelectorProviderCard(prv, sum, checkboxHTML) {
+    const cond = getProveedorCondiciones(prv, sum);
+    return `
+      <article class="selector-provider-card ${/checked/.test(checkboxHTML) ? "is-selected" : ""}">
+        <div class="selector-card-head">
+          <div>
+            <strong style="font-size:0.95rem;color:var(--entity-text);display:block">${escHTML(prv.nombre)}</strong>
+            <small style="color:var(--entity-muted);font-size:0.72rem">${escHTML(prv.sede)} · CIF ${prv.cif}</small>
+          </div>
+        </div>
+        ${renderConformidadTags(getProveedorConformidades(prv))}
+        <div class="selector-metrics-row">
+          <div class="selector-metric-item">
+            <span>Plazo medio</span>
+            <strong>${escHTML(cond.leadTime)}</strong>
+          </div>
+          <div class="selector-metric-item">
+            <span>Condiciones de pago</span>
+            <strong>${escHTML(cond.condicionesPago)}</strong>
+          </div>
+        </div>
+        <div class="selector-card-foot">${checkboxHTML}</div>
+      </article>
+    `;
+  }
+
+  const selectorActionBar = (title, subtitle, actionHTML) => `
+    <div class="selector-action-bar">
+      <div>
+        <strong style="display:block;font-size:0.85rem;color:var(--entity-text)">${title}</strong>
+        ${subtitle ? `<small style="color:var(--entity-muted);font-size:0.75rem">${subtitle}</small>` : ""}
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">${actionHTML}</div>
+    </div>
+  `;
+
   function renderSelectorProveedoresView(expId = "SFN-2026-K9M2") {
     const exp = getActiveExpediente(expId);
-    const matching = ensureExpedienteMatching(exp);
+    const sum = getSelectorSuministro(exp);
+    if (sum) activeDossierSuministroId = sum.id;
+    if ((sum ? sum.id : null) !== lastSelectorSumId) {
+      lastSelectorSumId = sum ? sum.id : null;
+      selectorViewStep = null;
+    }
+    const matching = ensureSuministroMatching(exp, sum);
     const isRoleAdmin = activeRole === "admin";
     const isRoleCliente = activeRole === "cliente";
     const isRoleProveedor = activeRole === "proveedor";
+    const ref = `data-exp-id="${exp.id}" data-sum-id="${sum ? sum.id : ""}"`;
+    const sumTitle = sum ? `${sum.id} (${sum.tipo})` : exp.id;
 
-    // Sub-fase efectiva: en la vista de cliente no se muestra la fase 1 (preselección SOFEIN)
-    const effectiveFaseSelector = (isRoleCliente && matching.faseSelector === "preseleccion")
-      ? "seleccion_cliente"
-      : matching.faseSelector;
+    const breadcrumbHTML = `
+      <div class="dossier-breadcrumb" style="margin-bottom:14px">
+        <a href="#${activeRole}/expedientes">← Volver a expedientes</a> /
+        <a href="#${activeRole}/expedientes/${exp.id}">${exp.id}</a> /
+        <span>${isRoleProveedor ? "Cotización" : "Selector de Proveedores"} · ${sumTitle}</span>
+      </div>
+    `;
 
-    // 4 Sub-fases oficiales del Selector de Proveedores
-    const SUBSTEPS = [
-      { id: "preseleccion", num: 1, title: "1. Preselección" },
-      { id: "seleccion_cliente", num: 2, title: "2. Selección" },
-      { id: "peticion_cotizaciones", num: 3, title: "3. Cotizaciones" },
-      { id: "comparativa", num: 4, title: "4. Elección" }
-    ];
-
-    const currentStepIdx = SUBSTEPS.findIndex(s => s.id === effectiveFaseSelector);
-    const activeStepIndex = currentStepIdx >= 0 ? currentStepIdx : (effectiveFaseSelector === "adjudicado" ? 3 : 0);
-
-    const stepperHTML = SUBSTEPS.map((step, idx) => {
-      const isClientDisabled = isRoleCliente && step.id === "preseleccion";
-      const isActive = !isClientDisabled && idx === activeStepIndex;
-      const isDone = !isClientDisabled && (effectiveFaseSelector === "adjudicado" || idx < activeStepIndex);
-
-      if (isClientDisabled) {
-        return `
-          <div class="selector-substep is-disabled-client" style="opacity:0.38;cursor:not-allowed;pointer-events:none;filter:grayscale(1)" title="Fase previa interna gestionada por SOFEIN">
-            <span class="selector-substep-num">${step.num}</span>
-            <div class="selector-substep-text">
-              <strong>${step.title}</strong>
-            </div>
-          </div>
-        `;
-      }
+    // ------------------------------------------------------------
+    // PROVEEDOR: su cotización para este suministro
+    // ------------------------------------------------------------
+    if (isRoleProveedor) {
+      const myPrv = DIRECTORIO_PROVEEDORES.find(p => p.id === SELECTOR_MY_PROVIDER_ID);
+      const q = matching.cotizaciones[SELECTOR_MY_PROVIDER_ID];
+      const estado = getQuoteEstado(matching, SELECTOR_MY_PROVIDER_ID);
+      const hasOffer = estado && estado !== "pendiente";
+      const isClosed = estado === "rechazada" || estado === "adjudicada";
+      const units = getSumUnidadesNum(sum);
+      const myConf = getProveedorConformidades(myPrv);
+      const allConf = [...new Set([...myConf, ...getActiveConformidades().map(c => c.nombre)])];
+      const committed = new Set(q?.conformidades || myConf);
+      const diff = hasOffer ? getQuoteDeliveryDiff(q, sum) : null;
 
       return `
-        <div class="selector-substep ${isActive ? "is-active" : isDone ? "is-done" : ""}" data-switch-selector-step="${step.id}" data-exp-id="${exp.id}" style="cursor:pointer" title="Ver sub-fase ${step.title}">
+        <div class="selector-view-wrap" style="max-width:980px;margin:0 auto">
+          ${breadcrumbHTML}
+          <div class="admin-view-head" style="margin-bottom:14px"><div><h1>Cotización</h1></div></div>
+          ${renderSelectorSumInfoHTML(exp, sum)}
+
+          ${!estado ? `
+            <div class="reg-empty-card"><p>SOFEIN no te ha pedido cotización para este suministro.</p></div>
+          ` : `
+            <section class="selector-quote-status">
+              <div class="selector-quote-status-head">
+                <span class="reg-section-label">Estado de la oferta</span>
+                ${renderQuoteEstadoBadge(estado)}
+              </div>
+              ${hasOffer ? `
+                <div class="selector-info-grid">
+                  <div class="selector-info-item"><span>Precio unitario</span><strong>${formatEuroUnit(q.precioUnitario)}</strong></div>
+                  <div class="selector-info-item"><span>Precio total</span><strong>${formatEuro(q.precioTotal)}</strong></div>
+                  <div class="selector-info-item"><span>Plazo de entrega</span><strong>${formatIsoDateEs(q.fechaEntregaIso)}${diff ? ` <span class="dossier-chip ${diff.cls}" style="font-size:0.66rem">${diff.text}</span>` : ""}</strong></div>
+                  <div class="selector-info-item"><span>Condiciones de pago</span><strong>${escHTML(q.condicionesPago)}</strong></div>
+                  <div class="selector-info-item"><span>Validez de la oferta</span><strong>${q.validezDias} días naturales</strong></div>
+                  <div class="selector-info-item is-wide"><span>Conformidades comprometidas</span>${renderConformidadTags(q.conformidades)}</div>
+                </div>
+              ` : `<p class="reg-empty">Todavía no has enviado tu oferta.</p>`}
+            </section>
+
+            <form id="providerQuoteForm" ${ref} class="selector-quote-form">
+              <h2>Enviar/Actualizar Oferta</h2>
+              <div class="create-exp-grid-3" style="margin-bottom:14px">
+                <label class="create-exp-label">
+                  <span>Precio unitario (€)</span>
+                  <input type="number" class="create-exp-input" id="quoteUnitPrice" min="0.01" step="0.01" required value="${hasOffer ? q.precioUnitario : ""}" ${isClosed ? "disabled" : ""} placeholder="Ej: 33,50" />
+                </label>
+                <label class="create-exp-label">
+                  <span>Precio total (${escHTML(sum.unidades)} uds)</span>
+                  <input type="text" class="create-exp-input" id="quoteTotalPrice" readonly data-units="${units}" value="${hasOffer ? formatEuro(q.precioTotal) : ""}" placeholder="Se calcula solo" style="opacity:0.85;cursor:not-allowed" />
+                </label>
+                <label class="create-exp-label">
+                  <span>Plazo de entrega</span>
+                  <input type="date" class="create-exp-input" id="quoteDeliveryDate" required value="${hasOffer ? q.fechaEntregaIso : (sum.fechaEntregaIso || "")}" ${isClosed ? "disabled" : ""} />
+                </label>
+              </div>
+              <div class="create-exp-grid-2" style="margin-bottom:14px">
+                <label class="create-exp-label">
+                  <span>Condiciones de pago</span>
+                  <select class="create-exp-select" id="quotePaymentCond" ${isClosed ? "disabled" : ""}>
+                    ${[...new Set([...(hasOffer ? [q.condicionesPago] : []), getProveedorCondiciones(myPrv, sum).condicionesPago, ...PAYMENT_OPTIONS])].filter(x => x && x !== "—").map(o => `<option value="${escHTML(o)}" ${hasOffer && q.condicionesPago === o ? "selected" : ""}>${escHTML(o)}</option>`).join("")}
+                  </select>
+                </label>
+                <label class="create-exp-label">
+                  <span>Validez de la oferta (días naturales, mínimo ${QUOTE_MIN_VALIDEZ_DIAS})</span>
+                  <input type="number" class="create-exp-input" id="quoteValidity" min="${QUOTE_MIN_VALIDEZ_DIAS}" step="1" required value="${hasOffer ? q.validezDias : QUOTE_MIN_VALIDEZ_DIAS}" ${isClosed ? "disabled" : ""} />
+                </label>
+              </div>
+              <div style="margin-bottom:16px">
+                <span class="create-exp-label" style="margin-bottom:8px">Conformidades a las que te comprometes</span>
+                <div class="selector-conf-picker">
+                  ${allConf.map(c => `
+                    <label class="selector-conf-option">
+                      <input type="checkbox" name="quoteConf" value="${escHTML(c)}" ${committed.has(c) ? "checked" : ""} ${isClosed ? "disabled" : ""} />
+                      <span>${icon("shield", 12)} ${escHTML(c)}</span>
+                    </label>
+                  `).join("")}
+                </div>
+              </div>
+              <div class="selector-quote-form-foot">
+                <span>${hasOffer ? `Última cotización remitida: ${q.fechaEnvio}` : "Todavía no has remitido ninguna cotización"}</span>
+                ${isClosed ? `<span class="dossier-chip">${estado === "adjudicada" ? "Oferta adjudicada" : "Oferta no adjudicada"}</span>` : `
+                  <button class="admin-primary-button" type="submit">${icon("check", 14)} Enviar/Actualizar Cotización</button>
+                `}
+              </div>
+            </form>
+          `}
+        </div>
+      `;
+    }
+
+    // ------------------------------------------------------------
+    // SOFEIN y CLIENTE: selector en 4 pasos
+    // ------------------------------------------------------------
+    const stateIdx = matching.faseSelector === "adjudicado" ? SELECTOR_STEPS.length : SELECTOR_STEPS.findIndex(s => s.id === matching.faseSelector);
+    let viewIdx = selectorViewStep !== null ? SELECTOR_STEPS.findIndex(s => s.id === selectorViewStep) : -1;
+    if (viewIdx < 0 || viewIdx > stateIdx) viewIdx = Math.min(stateIdx, SELECTOR_STEPS.length - 1);
+    if (isRoleCliente && viewIdx === 0) viewIdx = 1; // la búsqueda es interna de SOFEIN
+    const viewStep = matching.faseSelector === "adjudicado" && selectorViewStep === null ? "adjudicado" : SELECTOR_STEPS[viewIdx].id;
+
+    const stepperHTML = SELECTOR_STEPS.map((step, idx) => {
+      const clientHidden = isRoleCliente && idx === 0;
+      const reachable = idx <= stateIdx && !clientHidden;
+      const isActive = viewStep === step.id;
+      const isDone = idx < stateIdx;
+      return `
+        <div class="selector-substep ${isActive ? "is-active" : isDone ? "is-done" : ""} ${clientHidden ? "is-disabled-client" : ""}" ${reachable ? `data-switch-selector-step="${step.id}" ${ref} style="cursor:pointer"` : `style="cursor:default;opacity:${clientHidden ? 0.38 : 0.6}"`} title="${clientHidden ? "Paso interno de SOFEIN" : step.title}">
           <span class="selector-substep-num">${isDone ? icon("check", 13) : step.num}</span>
-          <div class="selector-substep-text">
-            <strong>${step.title}</strong>
-          </div>
+          <div class="selector-substep-text"><strong>${step.title}</strong></div>
         </div>
       `;
     }).join("");
 
-    // Breadcrumb
-    const breadcrumbBase = `
-      <div class="dossier-breadcrumb" style="margin-bottom:14px">
-        <a href="#${activeRole}/expedientes">← Volver a expedientes</a> / 
-        <a href="#${activeRole}/expedientes/${exp.id}">${exp.id}</a> / 
-        <span>Cotizaciones</span>
-      </div>
-    `;
+    const candidates = getSelectorCandidates(sum);
+    const prvById = id => DIRECTORIO_PROVEEDORES.find(p => p.id === id);
+    let contentHTML = "";
 
-    // Datos resumidos de cabecera: sólo suministro, tipo, unidades, fecha
-    const sumItem = (typeof SUMINISTROS !== "undefined" ? SUMINISTROS : INITIAL_SUMINISTROS).find(s => s.expId === exp.id);
-    const sumNombre = exp.producto || exp.tituloGenerico || (sumItem ? sumItem.tipo : "Suministro Ferroviario");
-    const sumTipo = exp.tipoMaterial || (sumItem ? sumItem.tipo : "Superestructura");
-    const sumUnidades = exp.unidades || (sumItem ? sumItem.unidades : "Según pliego");
-    const sumFecha = exp.fechaEntrega || (sumItem ? sumItem.fechaEntrega : null) || exp.fechaCierre || "14 oct 2026";
-
-    // -------------------------------------------------------------
-    // VISTA DE PROVEEDOR (TALLER HOMOLOGADO): SÓLO COTIZAR
-    // Ocultamos pasos y resto de cotizaciones. Sólo enviar cotización para el expediente.
-    // -------------------------------------------------------------
-    if (isRoleProveedor) {
-      const myPrvId = "PRV-01";
-      const myQuote = matching.cotizaciones ? (matching.cotizaciones[myPrvId] || Object.values(matching.cotizaciones).find(q => q.proveedorId === myPrvId || (q.nombre && q.nombre.includes("IberRail")))) : null;
-      const hasQuote = Boolean(myQuote && myQuote.estado && myQuote.estado !== "pendiente");
-
-      return `
-        <div class="selector-view-wrap" style="max-width:960px;margin:0 auto">
-          ${breadcrumbBase}
-
-          <div class="admin-view-head" style="margin-bottom:18px">
-            <div>
-              <h1>Cotizaciones</h1>
-              <p>${sumNombre} · ${sumTipo} · ${sumUnidades} · ${sumFecha}</p>
-            </div>
-          </div>
-
-          ${hasQuote ? `
-            <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-radius:10px;background:rgba(82,223,127,0.08);border:1px solid rgba(82,223,127,0.28);margin-bottom:18px;flex-wrap:wrap;gap:12px">
-              <div style="display:flex;align-items:center;gap:12px">
-                <span style="color:var(--entity-accent);display:grid;place-items:center">${icon("check", 20)}</span>
-                <div>
-                  <strong style="color:var(--entity-text);font-size:0.9rem">Cotización vinculante registrada para ${exp.id}</strong>
-                  <p style="margin:2px 0 0;font-size:0.76rem;color:var(--entity-muted)">Importe: <b>${myQuote.precioTotal}</b> (${myQuote.precioUnitario}) · Plazo: <b>${myQuote.plazoSemanas}</b> · Validez: ${myQuote.validezOferta || "45 días"}</p>
-                </div>
-              </div>
-              <span class="dossier-chip complete" style="font-size:0.75rem">${myQuote.estado === "adjudicada" ? "✓ Oferta Adjudicada" : "✓ Oferta Enviada"}</span>
-            </div>
-          ` : ""}
-
-          <form id="providerQuoteForm" data-exp-id="${exp.id}" style="padding:24px;border-radius:12px;background:var(--entity-panel);border:1px solid var(--entity-line)">
-            <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
-              <span style="color:var(--entity-accent);display:grid;place-items:center;width:40px;height:40px;border-radius:8px;background:rgba(82,223,127,0.12)">
-                ${icon("file", 22)}
-              </span>
-              <div>
-                <h2 style="margin:0;font-size:1.15rem;color:var(--entity-text);font-weight:700">Enviar Cotización para ${exp.id}</h2>
-                <small style="color:var(--entity-muted);font-size:0.78rem">Suministro: ${sumNombre} · ${sumTipo} (${sumUnidades}) · Destino: ${exp.destinatarioFinal}</small>
-              </div>
-            </div>
-
-            <div class="create-exp-grid-3" style="margin-bottom:14px">
-              <label class="create-exp-label">
-                <span>Precio Unitario Ofertado</span>
-                <input type="text" class="create-exp-input" id="quoteUnitPrice" placeholder="Ej: 945 €/t o 33,50 €/ud" value="${myQuote?.precioUnitario || ""}" required>
-              </label>
-              <label class="create-exp-label">
-                <span>Importe Total Calculado</span>
-                <input type="text" class="create-exp-input" id="quoteTotalPrice" placeholder="Ej: 1.134.000 €" value="${myQuote?.precioTotal || ""}" required>
-              </label>
-              <label class="create-exp-label">
-                <span>Plazo Garantizado de Entrega</span>
-                <input type="text" class="create-exp-input" id="quoteDeliveryTime" placeholder="Ej: 8 semanas (56 días)" value="${myQuote?.plazoSemanas || ""}" required>
-              </label>
-            </div>
-
-            <div class="create-exp-grid-2" style="margin-bottom:16px">
-              <label class="create-exp-label">
-                <span>Condiciones de Pago Propuestas</span>
-                <select class="create-exp-select" id="quotePaymentCond">
-                  <option value="60 días fecha factura" ${myQuote?.condicionesPago?.includes("60") && !myQuote?.condicionesPago?.includes("confirming") ? "selected" : ""}>60 días fecha factura (Estándar SOFEIN)</option>
-                  <option value="60 días confirming" ${myQuote?.condicionesPago?.includes("confirming") ? "selected" : ""}>60 días confirming bancario</option>
-                  <option value="90 días confirming" ${myQuote?.condicionesPago?.includes("90") ? "selected" : ""}>90 días confirming</option>
-                </select>
-              </label>
-              <label class="create-exp-label">
-                <span>Validez de la Oferta</span>
-                <select class="create-exp-select" id="quoteValidity">
-                  <option value="45 días" ${myQuote?.validezOferta?.includes("45") ? "selected" : ""}>45 días naturales</option>
-                  <option value="60 días" ${myQuote?.validezOferta?.includes("60") ? "selected" : ""}>60 días naturales</option>
-                  <option value="30 días" ${myQuote?.validezOferta?.includes("30") ? "selected" : ""}>30 días naturales</option>
-                </select>
-              </label>
-            </div>
-
-            <div style="margin-bottom:18px">
-              <span class="create-exp-label" style="margin-bottom:8px">Confirmación de Requisitos Técnicos del Pliego:</span>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-                <label class="selector-req-check-item">
-                  <input type="checkbox" checked required>
-                  <span>Certificación de ensayos mecánicos en laboratorio ENAC</span>
-                </label>
-                <label class="selector-req-check-item">
-                  <input type="checkbox" checked required>
-                  <span>Trazabilidad de colada / lote con código individual QR</span>
-                </label>
-                <label class="selector-req-check-item">
-                  <input type="checkbox" checked required>
-                  <span>Cumplimiento estricto de especificación técnica y tolerancias</span>
-                </label>
-                <label class="selector-req-check-item">
-                  <input type="checkbox" checked>
-                  <span>Plan de transporte y acopio coordinado a pie de vía</span>
-                </label>
-              </div>
-            </div>
-
-            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;padding-top:14px;border-top:1px solid var(--entity-line)">
-              <span style="font-size:0.75rem;color:var(--entity-muted)">
-                ${hasQuote ? `Última cotización remitida: ${myQuote.fechaEnvio || "Registrada"}` : "Cotización confidencial y vinculante para SOFEIN"}
-              </span>
-              <button class="admin-primary-button" type="submit" style="padding:9px 22px">
-                ${icon("check", 14)} ${hasQuote ? "Actualizar Cotización Oficial" : "Enviar Cotización Oficial a SOFEIN"}
-              </button>
-            </div>
-          </form>
+    // 1. Búsqueda (SOFEIN)
+    if (viewStep === "preseleccion") {
+      const pre = new Set(matching.proveedoresPreseleccionadosPorAdmin);
+      const editable = isRoleAdmin && matching.faseSelector === "preseleccion";
+      contentHTML = `
+        <div class="selector-cards-grid">
+          ${candidates.map(prv => renderSelectorProviderCard(prv, sum, `
+            <label class="selector-include-check">
+              <input type="checkbox" data-preselect-prv="${prv.id}" ${ref} ${pre.has(prv.id) ? "checked" : ""} ${editable ? "" : "disabled"} />
+              <span>Incluir en la preselección</span>
+            </label>
+          `)).join("")}
         </div>
+        ${selectorActionBar(
+          "Validar la búsqueda de proveedores para la preselección",
+          "Al validar, el cliente recibirá aviso para preseleccionar a quién solicitar cotización",
+          editable ? `<button class="admin-primary-button" id="approvePreselectionBtn" ${ref} type="button">${icon("check", 14)} Validar</button>` : `<span class="dossier-chip complete">Búsqueda validada</span>`
+        )}
       `;
     }
 
-    // Candidate providers for preselection
-    const matQuery = (exp.tipoMaterial || exp.producto || "").toLowerCase();
-    let candidateProviders = DIRECTORIO_PROVEEDORES.filter(p => {
-      if (!p.categorias) return true;
-      return p.categorias.some(c => matQuery.includes(c.toLowerCase().split(" ")[0]));
-    });
-    if (candidateProviders.length < 3) {
-      candidateProviders = DIRECTORIO_PROVEEDORES.slice(0, 3);
-    }
-
-    let dynamicContentHTML = "";
-
-    // -------------------------------------------------------------
-    // SUB-FASE 1: PRESELECCIÓN SOFEIN (ADMIN)
-    // -------------------------------------------------------------
-    if (effectiveFaseSelector === "preseleccion") {
-      const preselectedIds = new Set(matching.proveedoresPreseleccionadosPorAdmin);
-      const cardsHTML = candidateProviders.map(prv => {
-        const isPreselected = preselectedIds.has(prv.id);
-        return `
-          <article class="selector-provider-card ${isPreselected ? "is-selected" : ""}">
-            <div class="selector-card-head">
-              <div>
-                <strong style="font-size:0.95rem;color:var(--entity-text);display:block">${prv.nombre}</strong>
-                <small style="color:var(--entity-muted);font-size:0.72rem">${prv.sede} · CIF ${prv.cif}</small>
-              </div>
-            </div>
-
-            <div class="selector-homologations">
-              ${(prv.homologaciones || ["Adif NAV Vigente", "CE", "ENAC"]).map(h => `<span class="selector-homologation-chip">${icon("shield", 12)} ${h}</span>`).join("")}
-            </div>
-
-            <div class="selector-metrics-row">
-              <div class="selector-metric-item">
-                <span>Plazo Medio</span>
-                <strong>${prv.leadTimeMedio}</strong>
-              </div>
-              <div class="selector-metric-item">
-                <span>Precio Orientativo</span>
-                <strong>${prv.precioEstimado || "A cotizar"}</strong>
-              </div>
-            </div>
-
-            <div style="font-size:0.68rem;text-transform:uppercase;color:var(--entity-faint);font-weight:600;margin-bottom:6px">Requisitos que puede cumplir:</div>
-            <ul class="selector-reqs-list">
-              ${(prv.requisitosQueCumple || ["Trazabilidad completa"]).map(r => `<li>${icon("check", 13)} <span>${r}</span></li>`).join("")}
-            </ul>
-
-            <div class="selector-card-foot">
-              <span style="font-size:0.72rem;color:var(--entity-muted)">${prv.condicionesPago || "60 días confirmada"}</span>
-              ${isRoleAdmin ? `
-                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.76rem;color:var(--entity-text);font-weight:600">
-                  <input type="checkbox" data-preselect-prv="${prv.id}" data-exp-id="${exp.id}" ${isPreselected ? "checked" : ""} style="accent-color:var(--entity-accent);width:15px;height:15px">
-                  <span>Preseleccionar</span>
-                </label>
-              ` : `
-                <span class="dossier-chip" style="font-size:0.68rem;color:var(--entity-accent)">Homologado</span>
-              `}
-            </div>
-          </article>
-        `;
-      }).join("");
-
-      dynamicContentHTML = `
-        <div style="margin-bottom:18px">
-          ${isRoleAdmin ? `
-            <div style="display:flex;justify-content:flex-end;align-items:center;margin-bottom:12px">
-              <span style="font-size:0.76rem;color:var(--entity-muted)"><b style="color:var(--entity-accent)">${matching.proveedoresPreseleccionadosPorAdmin.length}</b> seleccionados</span>
-            </div>
-          ` : ""}
-
+    // 2. Preselección (Cliente elige a quién pedir cotización; SOFEIN confirma y pide las ofertas)
+    else if (viewStep === "seleccion_cliente") {
+      if (matching.faseSelector === "preseleccion") {
+        contentHTML = `<div class="reg-empty-card"><p>SOFEIN está buscando proveedores para este suministro.</p><span>Recibirás un aviso cuando puedas preseleccionarlos.</span></div>`;
+      } else {
+        const sel = new Set(matching.proveedoresSeleccionadosPorCliente);
+        const open = matching.faseSelector === "seleccion_cliente";
+        const clienteEditable = isRoleCliente && open && !matching.seleccionClienteEnviada;
+        const adminEditable = isRoleAdmin && open;
+        const preselected = matching.proveedoresPreseleccionadosPorAdmin.map(prvById).filter(Boolean);
+        contentHTML = `
           <div class="selector-cards-grid">
-            ${cardsHTML}
+            ${preselected.map(prv => renderSelectorProviderCard(prv, sum, `
+              <label class="selector-include-check">
+                <input type="checkbox" data-client-select-prv="${prv.id}" ${ref} ${sel.has(prv.id) ? "checked" : ""} ${clienteEditable || adminEditable ? "" : "disabled"} />
+                <span>${isRoleCliente ? "Pedir cotización" : "Incluir en la preselección"}</span>
+              </label>
+            `)).join("")}
           </div>
-
-          <div class="selector-action-bar">
-            <div>
-              <strong style="display:block;font-size:0.85rem;color:var(--entity-text)">
-                ${isRoleAdmin ? "Validación de la Preselección" : "Esperando Validación de SOFEIN"}
-              </strong>
-              <small style="color:var(--entity-muted);font-size:0.75rem">
-                ${isRoleAdmin ? "Al validar, el cliente recibirá aviso en su bandeja para seleccionar a quién solicitar cotización." : "SOFEIN está revisando los pliegos técnicos para autorizar el paso a selección de cliente."}
-              </small>
-            </div>
-            ${isRoleAdmin ? `
-              <button class="admin-primary-button" id="approvePreselectionBtn" data-exp-id="${exp.id}" type="button">
-                ${icon("check", 14)} Aprobar Preselección Oficial y Habilitar para Cliente
-              </button>
-            ` : `
-              <span class="dossier-chip info">${icon("file", 14)} En validación técnica</span>
-            `}
-          </div>
-        </div>
-      `;
+          ${selectorActionBar(
+            "Confirmación de preselección y petición de ofertas",
+            isRoleCliente ? "Se avisará a SOFEIN para que valide la preselección y pida las cotizaciones" : "Se emitirá la solicitud formal a los proveedores para que coticen el suministro",
+            !open ? `<span class="dossier-chip complete">Ofertas solicitadas</span>`
+              : isRoleCliente ? (matching.seleccionClienteEnviada
+                ? `<span class="dossier-chip info">Preselección enviada a SOFEIN</span>`
+                : `<button class="admin-primary-button" id="requestClientQuotesBtn" ${ref} type="button">${icon("file", 14)} Confirmar preselección y solicitar ofertas</button>`)
+              : `${matching.seleccionClienteEnviada ? `<span class="dossier-chip info">El cliente ha enviado su preselección</span>` : `<span class="dossier-chip">El cliente aún no ha enviado su preselección</span>`}
+                 <button class="admin-primary-button" id="emitRfqOrdersBtn" ${ref} type="button">${icon("file", 14)} Confirmar preselección y solicitar ofertas</button>`
+          )}
+        `;
+      }
     }
 
-    // -------------------------------------------------------------
-    // SUB-FASE 2: SELECCIÓN DEL CLIENTE (CONSTRUCTOR)
-    // -------------------------------------------------------------
-    else if (effectiveFaseSelector === "seleccion_cliente") {
-      const preselectedPrvs = candidateProviders.filter(p => matching.proveedoresPreseleccionadosPorAdmin.includes(p.id));
-      const clientSelectedSet = new Set(matching.proveedoresSeleccionadosPorCliente);
-
-      const cardsHTML = preselectedPrvs.length ? preselectedPrvs.map(prv => {
-        const isSelectedByClient = clientSelectedSet.has(prv.id);
-        return `
-          <article class="selector-provider-card ${isSelectedByClient ? "is-selected" : ""}">
-            <div class="selector-card-head">
-              <div>
-                <strong style="font-size:0.95rem;color:var(--entity-text);display:block">${prv.nombre}</strong>
-                <small style="color:var(--entity-muted);font-size:0.72rem">${prv.sede}</small>
+    // 3. Cotización
+    else if (viewStep === "peticion_cotizaciones") {
+      const pedidos = matching.proveedoresSeleccionadosPorCliente.map(prvById).filter(Boolean);
+      const open = matching.faseSelector === "peticion_cotizaciones";
+      if (isRoleCliente) {
+        contentHTML = `
+          <div class="selector-quote-list">
+            ${pedidos.map(prv => `
+              <div class="selector-quote-row">
+                <div><strong>${escHTML(prv.nombre)}</strong><small>${escHTML(prv.sede)}</small></div>
+                <span class="dossier-chip ${open ? "pending" : "complete"}">${open ? "En espera" : "Oferta validada"}</span>
               </div>
-            </div>
-
-            <div class="selector-homologations">
-              ${(prv.homologaciones || ["Adif NAV", "CE"]).map(h => `<span class="selector-homologation-chip">${icon("shield", 12)} ${h}</span>`).join("")}
-            </div>
-
-            <div class="selector-metrics-row">
-              <div class="selector-metric-item">
-                <span>Plazo Comprometido</span>
-                <strong>${prv.leadTimeMedio}</strong>
-              </div>
-              <div class="selector-metric-item">
-                <span>Precio Estimativo</span>
-                <strong>${prv.precioEstimado || "Según pliego"}</strong>
-              </div>
-            </div>
-
-            <div style="font-size:0.68rem;text-transform:uppercase;color:var(--entity-faint);font-weight:600;margin-bottom:6px">Requisitos acreditados:</div>
-            <ul class="selector-reqs-list">
-              ${(prv.requisitosQueCumple || []).slice(0, 3).map(r => `<li>${icon("check", 13)} <span>${r}</span></li>`).join("")}
-            </ul>
-
-            <div class="selector-card-foot">
-              <span style="font-size:0.72rem;color:var(--entity-muted)">Pago: ${prv.condicionesPago || "60 días"}</span>
-              ${isRoleCliente ? `
-                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.76rem;color:var(--entity-accent);font-weight:600">
-                  <input type="checkbox" data-client-select-prv="${prv.id}" data-exp-id="${exp.id}" ${isSelectedByClient ? "checked" : ""} style="accent-color:var(--entity-accent);width:16px;height:16px">
-                  <span>Pedir Cotización</span>
-                </label>
-              ` : `
-                <span class="dossier-chip ${isSelectedByClient ? "complete" : ""}">
-                  ${isSelectedByClient ? "✓ Elegido por cliente" : "Opción disponible"}
-                </span>
-              `}
-            </div>
-          </article>
-        `;
-      }).join("") : `
-        <div style="grid-column:1/-1;padding:36px 20px;text-align:center;background:var(--entity-panel);border:1px solid var(--entity-line);border-radius:10px;color:var(--entity-muted);font-size:0.85rem">
-          ${icon("clock", 20)}
-          <p style="margin:8px 0 0">SOFEIN está finalizando la preselección técnica de talleres homologados. En breve aparecerán aquí para solicitar cotizaciones.</p>
-        </div>
-      `;
-
-      dynamicContentHTML = `
-        <div style="margin-bottom:18px">
-          <div style="display:flex;justify-content:flex-end;align-items:center;margin-bottom:12px">
-            <span class="dossier-chip" style="color:var(--entity-accent)">${matching.proveedoresSeleccionadosPorCliente.length} Seleccionados para cotizar</span>
+            `).join("")}
           </div>
-
-          <div class="selector-cards-grid">
-            ${cardsHTML}
-          </div>
-          </div>
-
-          <div class="selector-action-bar">
-            <div>
-              <strong style="display:block;font-size:0.85rem;color:var(--entity-text)">Confirmación de Petición de Ofertas</strong>
-              <small style="color:var(--entity-muted);font-size:0.75rem">Se emitirá la solicitud formal con los pliegos técnicos adjuntos del expediente ${exp.id}.</small>
-            </div>
-            ${isRoleCliente ? (matching.seleccionClienteEnviada ? `
-              <span class="dossier-chip info">Selección enviada a SOFEIN para validar</span>
-            ` : `
-              <button class="admin-primary-button" id="requestClientQuotesBtn" data-exp-id="${exp.id}" type="button">
-                ${icon("file", 14)} Enviar selección a SOFEIN (${matching.proveedoresSeleccionadosPorCliente.length})
-              </button>
-            `) : isRoleAdmin ? `
-              <button class="admin-primary-button" id="emitRfqOrdersBtn" data-exp-id="${exp.id}" type="button">
-                ${icon("file", 14)} Validar selección y pedir cotizaciones (${matching.proveedoresSeleccionadosPorCliente.length || Math.min(3, matching.proveedoresPreseleccionadosPorAdmin.length)})
-              </button>
-            ` : `
-              <span class="dossier-chip info">Fase de selección por el constructor</span>
-            `}
-          </div>
-        </div>
-      `;
-    }
-
-    // -------------------------------------------------------------
-    // SUB-FASE 3: RECEPCIÓN DE COTIZACIONES DE TALLERES
-    // -------------------------------------------------------------
-    else if (effectiveFaseSelector === "peticion_cotizaciones") {
-      const selectedPrvs = candidateProviders.filter(p => matching.proveedoresSeleccionadosPorCliente.includes(p.id));
-      const quotesObj = matching.cotizaciones || {};
-
-      const listHTML = selectedPrvs.map(prv => {
-        const quote = quotesObj[prv.id];
-        const hasQuote = Boolean(quote && quote.estado !== "pendiente");
-        return `
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-radius:8px;background:var(--entity-panel);border:1px solid var(--entity-line);margin-bottom:12px;gap:16px;flex-wrap:wrap">
-            <div style="display:flex;align-items:center;gap:12px">
-              <span style="display:grid;place-items:center;width:34px;height:34px;border-radius:6px;background:${hasQuote ? "rgba(82,223,127,0.12)" : "rgba(234,179,8,0.12)"};color:${hasQuote ? "var(--entity-accent)" : "var(--entity-warning)"}">
-                ${icon(hasQuote ? "check" : "file", 18)}
-              </span>
-              <div>
-                <strong style="color:var(--entity-text);font-size:0.9rem">${prv.nombre}</strong>
-                <p style="margin:2px 0 0;font-size:0.75rem;color:var(--entity-muted)">${prv.sede} · Plazo orientativo: ${prv.leadTimeMedio}</p>
-              </div>
-            </div>
-            <div style="display:flex;align-items:center;gap:12px">
-              ${hasQuote ? `
-                <div style="text-align:right">
-                  <strong style="color:var(--entity-text);font-size:0.85rem">${quote.precioTotal || quote.precioUnitario}</strong>
-                  <small style="display:block;color:var(--entity-muted);font-size:0.7rem">${quote.plazoSemanas}</small>
-                </div>
-                <span class="dossier-chip complete">✓ Cotización Recibida</span>
-              ` : `
-                <span class="dossier-chip pending">⏳ Pendiente de Respuesta</span>
-              `}
-            </div>
-          </div>
+          ${selectorActionBar("Ofertas en espera", "SOFEIN validará las ofertas recibidas y pasarás directamente a 4. Selección", `<span class="dossier-chip info">${open ? "Pendiente de SOFEIN" : "Validadas"}</span>`)}
         `;
-      }).join("");
-
-      dynamicContentHTML = `
-        <div style="margin-bottom:18px">
-          <div style="display:flex;justify-content:flex-end;align-items:center;margin-bottom:12px">
-            <button class="admin-quiet-button" type="button" id="simulateAllQuotesBtn" data-exp-id="${exp.id}">
-              ${icon("check", 13)} Simular recepción de todas las ofertas
-            </button>
-          </div>
-
-          <div>
-            ${listHTML}
-          </div>
-
-          <div class="selector-action-bar" style="margin-top:20px">
-            <div>
-              <strong style="display:block;font-size:0.85rem;color:var(--entity-text)">Paso a la Comparativa</strong>
-              <small style="color:var(--entity-muted);font-size:0.75rem">SOFEIN revisa las cotizaciones recibidas y las muestra al cliente en la matriz comparativa.</small>
-            </div>
-            ${isRoleAdmin ? `
-              <button class="admin-primary-button" id="goToComparisonBtn" data-exp-id="${exp.id}" type="button">
-                ${icon("arrow", 14)} Validar cotizaciones y mostrarlas al cliente
-              </button>
-            ` : `<span class="dossier-chip info">SOFEIN está revisando las cotizaciones</span>`}
-          </div>
-        </div>
-      `;
-    }
-
-    // -------------------------------------------------------------
-    // SUB-FASE 4: COMPARATIVA DE OFERTAS & ADJUDICACIÓN FINAL
-    // -------------------------------------------------------------
-    else if (effectiveFaseSelector === "comparativa") {
-      const quotes = Object.values(matching.cotizaciones || {});
-      const reqsExigidosSet = new Set(matching.requisitosExigidosCliente || []);
-
-      const isRoleProveedor = activeRole === "proveedor";
-      const myEntityName = PLAYERS.proveedor?.entity || "IberRail Components, S.L.";
-
-      const tableColsHTML = quotes.map(q => {
-        const isWinner = matching.proveedorAdjudicado === q.nombre;
-        const isOwn = !isRoleProveedor || q.nombre === myEntityName || q.proveedorId === "PRV-01";
-        const displayName = isOwn ? q.nombre : "Taller Homologado Competidor";
-        const displaySede = isOwn ? q.sede : "Centro de Fabricación Homologado";
-        return `
-          <th style="min-width:240px;text-align:left;background:${isWinner ? "rgba(82,223,127,0.06)" : "var(--entity-panel-2)"};border-left:1px solid var(--entity-line)">
-            <div style="display:flex;justify-content:space-between;align-items:center">
-              <strong style="color:var(--entity-text);font-size:0.88rem">${displayName}</strong>
-              ${isWinner ? `<span class="dossier-chip complete" style="font-size:0.68rem">✓ Adjudicado</span>` : (!isOwn ? `<span class="dossier-chip" style="font-size:0.65rem;color:var(--entity-muted)">Competidor</span>` : "")}
-            </div>
-            <small style="color:var(--entity-muted);font-size:0.7rem">${displaySede}</small>
-          </th>
-        `;
-      }).join("");
-
-      const priceRowHTML = quotes.map(q => {
-        const isOwn = !isRoleProveedor || q.nombre === myEntityName || q.proveedorId === "PRV-01";
-        if (!isOwn) {
-          return `
-            <td style="border-left:1px solid var(--entity-line)">
-              <div class="selector-quote-price" style="font-size:0.82rem;color:var(--entity-muted)">[Confidencial]</div>
-              <span class="selector-quote-unit" style="font-size:0.68rem;color:var(--entity-faint)">Oferta de taller competidor</span>
-            </td>
-          `;
-        }
-        return `
-          <td style="border-left:1px solid var(--entity-line)">
-            <div class="selector-quote-price">${q.precioTotal}</div>
-            <span class="selector-quote-unit">${q.precioUnitario}</span>
-          </td>
-        `;
-      }).join("");
-
-      const plazoRowHTML = quotes.map(q => {
-        const isOwn = !isRoleProveedor || q.nombre === myEntityName || q.proveedorId === "PRV-01";
-        const diff = q.desviacionPlazoDias || 0;
-        const diffClass = diff < 0 ? "complete" : diff === 0 ? "info" : "warning";
-        const diffText = diff < 0 ? `${Math.abs(diff)} días antes` : diff === 0 ? "Exacto a fecha" : `+${diff} días`;
-        return `
-          <td style="border-left:1px solid var(--entity-line)">
-            <strong style="color:var(--entity-text);font-size:0.82rem">${isOwn ? q.plazoSemanas : "Plazo en pliego"}</strong>
-            <span class="dossier-chip ${diffClass}" style="display:inline-block;margin-top:4px;font-size:0.68rem">${diffText}</span>
-          </td>
-        `;
-      }).join("");
-
-      const condRowHTML = quotes.map(q => {
-        const isOwn = !isRoleProveedor || q.nombre === myEntityName || q.proveedorId === "PRV-01";
-        if (!isOwn) {
-          return `
-            <td style="border-left:1px solid var(--entity-line)">
-              <div style="font-size:0.78rem;color:var(--entity-muted)">[Condiciones Reservadas]</div>
-              <small style="color:var(--entity-muted);font-size:0.7rem">Garantía homologada</small>
-            </td>
-          `;
-        }
-        return `
-          <td style="border-left:1px solid var(--entity-line)">
-            <div style="font-size:0.78rem;color:var(--entity-text)">${q.condicionesPago}</div>
-            <small style="color:var(--entity-muted);font-size:0.7rem">Garantía: ${q.garantia}</small>
-          </td>
-        `;
-      }).join("");
-
-      const reqsRowHTML = quotes.map(q => `
-        <td style="border-left:1px solid var(--entity-line)">
-          <ul class="selector-reqs-list" style="margin:0">
-            ${(q.requisitosConfirmados || []).map(r => `<li>${icon("check", 13)} <span>${r}</span></li>`).join("")}
-          </ul>
-        </td>
-      `).join("");
-
-      const fileRowHTML = quotes.map(q => {
-        const isOwn = !isRoleProveedor || q.nombre === myEntityName || q.proveedorId === "PRV-01";
-        if (!isOwn) {
-          return `
-            <td style="border-left:1px solid var(--entity-line)">
-              <span class="dossier-chip" style="font-size:0.7rem;color:var(--entity-muted)">${icon("lock", 12)} Oferta Privada</span>
-            </td>
-          `;
-        }
-        return `
-          <td style="border-left:1px solid var(--entity-line)">
-            <button class="slot-action-btn" type="button" data-download="${q.archivoOferta}">
-              ${icon("download", 13)} ${q.archivoOferta}
-            </button>
-          </td>
-        `;
-      }).join("");
-
-      const actionRowHTML = quotes.map(q => {
-        const isWinner = matching.proveedorAdjudicado === q.nombre;
-        const isOwn = !isRoleProveedor || q.nombre === myEntityName || q.proveedorId === "PRV-01";
-        return `
-          <td style="border-left:1px solid var(--entity-line);padding:14px">
-            ${isRoleCliente ? `
-              <button class="admin-primary-button" type="button" data-select-winning-prv="${q.nombre}" data-exp-id="${exp.id}" style="width:100%;padding:8px;font-size:0.78rem;background:${isWinner ? "var(--entity-accent)" : "transparent"};color:${isWinner ? "var(--entity-accent-ink)" : "var(--entity-accent)"};border:1px solid var(--entity-accent)">
-                ${isWinner ? `${icon("check", 14)} Proveedor Seleccionado` : "Elegir este Proveedor"}
-              </button>
-            ` : isRoleProveedor && !isOwn ? `
-              <span class="dossier-chip" style="width:100%;text-align:center;display:block;color:var(--entity-muted)">
-                ${isWinner ? "Adjudicado" : "Oferta competidora"}
-              </span>
-            ` : `
-              <span class="dossier-chip ${isWinner ? "complete" : ""}" style="width:100%;text-align:center;display:block">
-                ${isWinner ? "✓ Oferta Adjudicada" : "Oferta evaluada"}
-              </span>
-            `}
-          </td>
-        `;
-      }).join("");
-
-      // Lista de requisitos exigibles (Apuntes 06: marcación/desmarcación)
-      const allRequirements = [
-        "Barra larga soldada (tramos hasta 108 m con transporte especial)",
-        "Ensayos no destructivos ultrasonidos al 100% en taller",
-        "Certificado de colada siderúrgica trazable lote a lote con QR",
-        "Cumplimiento estricto perfil 54E1 Grado R260 según norma EN 13674-1",
-        "Entrega fraccionada a pie de vía según ritmo de montaje"
-      ];
-
-      const reqChecksHTML = allRequirements.map(req => {
-        const isChecked = reqsExigidosSet.has(req);
-        return `
-          <label class="selector-req-check-item">
-            <input type="checkbox" data-req-exigible-check="${req}" data-exp-id="${exp.id}" ${isChecked ? "checked" : ""}>
-            <span>${req}</span>
-          </label>
-        `;
-      }).join("");
-
-      dynamicContentHTML = `
-        <div style="margin-bottom:18px">
-          ${matching.proveedorAdjudicado ? `
-            <div style="display:flex;justify-content:flex-end;align-items:center;margin-bottom:12px">
-              <span class="dossier-chip complete" style="font-size:0.75rem">
-                ${icon("award", 14)} Adjudicado a: <b>${matching.proveedorAdjudicado}</b>
-              </span>
+      } else {
+        const received = pedidos.filter(prv => getQuoteEstado(matching, prv.id) !== "pendiente");
+        contentHTML = `
+          ${open && received.length < pedidos.length ? `
+            <div style="display:flex;justify-content:flex-end;margin-bottom:10px">
+              <button class="admin-quiet-button" type="button" id="simulateAllQuotesBtn" ${ref}>${icon("check", 13)} Simular recepción de las ofertas pendientes</button>
             </div>
           ` : ""}
-
-          <!-- Matriz Comparativa B2B -->
-          <div class="selector-matrix-wrap">
-            <table class="selector-matrix-table">
-              <thead>
-                <tr>
-                  <th style="width:180px">Concepto</th>
-                  ${tableColsHTML}
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><strong>Oferta Económica</strong></td>
-                  ${priceRowHTML}
-                </tr>
-                <tr>
-                  <td><strong>Plazo de Entrega</strong></td>
-                  ${plazoRowHTML}
-                </tr>
-                <tr>
-                  <td><strong>Condiciones & Pago</strong></td>
-                  ${condRowHTML}
-                </tr>
-                <tr>
-                  <td><strong>Requisitos Técnicos</strong></td>
-                  ${reqsRowHTML}
-                </tr>
-                <tr>
-                  <td><strong>Ficha de Oferta (PDF)</strong></td>
-                  ${fileRowHTML}
-                </tr>
-                <tr>
-                  <td><strong>Acción</strong></td>
-                  ${actionRowHTML}
-                </tr>
-              </tbody>
-            </table>
+          <div class="selector-quote-list">
+            ${pedidos.map(prv => {
+              const q = matching.cotizaciones[prv.id];
+              const estado = getQuoteEstado(matching, prv.id);
+              const diff = estado !== "pendiente" ? getQuoteDeliveryDiff(q, sum) : null;
+              return `
+                <article class="selector-quote-card">
+                  <div class="selector-quote-card-head">
+                    <div><strong>${escHTML(prv.nombre)}</strong><small>${escHTML(prv.sede)} · CIF ${prv.cif}</small></div>
+                    ${estado === "pendiente" ? `<span class="dossier-chip pending">Pendiente de respuesta</span>` : renderQuoteEstadoBadge(estado)}
+                  </div>
+                  ${estado !== "pendiente" ? `
+                    <div class="selector-info-grid">
+                      <div class="selector-info-item"><span>Precio unitario</span><strong>${formatEuroUnit(q.precioUnitario)}</strong></div>
+                      <div class="selector-info-item"><span>Precio total</span><strong>${formatEuro(q.precioTotal)}</strong></div>
+                      <div class="selector-info-item"><span>Plazo de entrega</span><strong>${formatIsoDateEs(q.fechaEntregaIso)}${diff ? ` <span class="dossier-chip ${diff.cls}" style="font-size:0.66rem">${diff.text}</span>` : ""}</strong></div>
+                      <div class="selector-info-item"><span>Condiciones de pago</span><strong>${escHTML(q.condicionesPago)}</strong></div>
+                      <div class="selector-info-item"><span>Validez de la oferta</span><strong class="${q.validezDias < QUOTE_MIN_VALIDEZ_DIAS ? "is-warning-text" : ""}">${q.validezDias} días naturales</strong></div>
+                      <div class="selector-info-item is-wide"><span>Conformidades a las que se compromete</span>${renderConformidadTags(q.conformidades)}</div>
+                    </div>
+                  ` : ""}
+                </article>
+              `;
+            }).join("")}
           </div>
+          ${selectorActionBar(
+            "Validar ofertas",
+            "Al haber recibido todas las ofertas, estas se podrán validar y el cliente podrá compararlas para decidir con qué proveedor formalizar el pedido",
+            !open ? `<span class="dossier-chip complete">Ofertas validadas</span>`
+              : received.length ? `<button class="admin-primary-button" id="goToComparisonBtn" ${ref} type="button">${icon("check", 14)} Validar cotizaciones</button>`
+              : `<span class="dossier-chip">Esperando ofertas</span>`
+          )}
+        `;
+      }
+    }
 
-          <!-- Bloque de Marcación de Requisitos Acordados (Apuntes 06 - Tabla 3) -->
-          <div style="padding:20px;border-radius:10px;background:var(--entity-panel);border:1px solid var(--entity-line);margin-bottom:20px">
-            <div style="margin-bottom:12px">
-              <strong style="color:var(--entity-text);font-size:0.9rem">Requisitos Contractuales Exigibles al Proveedor</strong>
-              <p style="margin:2px 0 0;font-size:0.75rem;color:var(--entity-muted)">
-                Marca los requisitos que quedarán formalmente estipulados en la hoja de pedido y delimitación de responsabilidad SOFEIN.
-              </p>
-            </div>
-            <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:10px">
-              ${reqChecksHTML}
-            </div>
-          </div>
+    // 4. Selección (comparativa)
+    else if (viewStep === "comparativa") {
+      const quotes = matching.proveedoresSeleccionadosPorCliente
+        .map(id => matching.cotizaciones[id])
+        .filter(q => q && q.estado !== "pendiente");
+      const winnerQ = quotes.find(q => q.nombre === matching.proveedorAdjudicado) || null;
+      const open = matching.faseSelector === "comparativa";
+      const clienteEditable = isRoleCliente && open && !matching.adjudicacionConfirmadaCliente;
+      const reqSet = new Set(matching.requisitosExigidosCliente || []);
+      const col = (q, html) => `<td class="${q.nombre === matching.proveedorAdjudicado ? "is-winner" : ""}">${html}</td>`;
+      const row = (label, fn) => `<tr><td class="selector-matrix-label">${label}</td>${quotes.map(q => col(q, fn(q))).join("")}</tr>`;
 
-          <!-- Barra de Acción de Adjudicación -->
-          <div class="selector-action-bar">
-            <div>
-              <strong style="display:block;font-size:0.85rem;color:var(--entity-text)">
-                ${matching.proveedorAdjudicado ? `Adjudicación Seleccionada: ${matching.proveedorAdjudicado}` : "Selecciona un proveedor en la matriz"}
-              </strong>
-              <small style="color:var(--entity-muted);font-size:0.75rem">
-                ${isRoleCliente ? "Al confirmar la adjudicación, SOFEIN validará el pedido para emitir la hoja de contrato (Fase 3)." : "Como Administrador SOFEIN, puedes validar la adjudicación final del cliente."}
-              </small>
-            </div>
-            <div style="display:flex;gap:10px">
-              ${isRoleCliente && matching.proveedorAdjudicado ? `
-                <button class="admin-primary-button" id="confirmAwardBtn" data-exp-id="${exp.id}" type="button">
-                  ${icon("award", 14)} Confirmar Selección de Proveedor y Requisitos
+      contentHTML = `
+        <div class="selector-matrix-wrap">
+          <table class="selector-matrix-table">
+            <thead>
+              <tr>
+                <th style="width:170px">Proveedor</th>
+                ${quotes.map(q => `
+                  <th class="${q.nombre === matching.proveedorAdjudicado ? "is-winner" : ""}">
+                    <strong>${escHTML(q.nombre)}</strong>
+                    ${q.nombre === matching.proveedorAdjudicado ? `<span class="dossier-chip complete" style="font-size:0.66rem">${matching.faseSelector === "adjudicado" ? "Adjudicado" : "Elegido"}</span>` : ""}
+                  </th>
+                `).join("")}
+              </tr>
+            </thead>
+            <tbody>
+              ${row("Sede", q => escHTML(q.sede))}
+              ${row("CIF", q => q.cif)}
+              ${row("Precio unitario", q => `<strong>${formatEuroUnit(q.precioUnitario)}</strong>`)}
+              ${row("Precio total", q => `<strong class="selector-quote-price">${formatEuro(q.precioTotal)}</strong>`)}
+              ${row("Plazo de entrega", q => { const d = getQuoteDeliveryDiff(q, sum); return `${formatIsoDateEs(q.fechaEntregaIso)}${d ? `<br><span class="dossier-chip ${d.cls}" style="font-size:0.66rem">${d.text}</span>` : ""}`; })}
+              ${row("Condiciones de pago", q => escHTML(q.condicionesPago))}
+              ${row("Validez de la oferta", q => `<span class="${q.validezDias < QUOTE_MIN_VALIDEZ_DIAS ? "is-warning-text" : ""}">${q.validezDias} días naturales</span>`)}
+              ${row("Conformidades", q => renderConformidadTags(q.conformidades))}
+              ${isRoleCliente ? row("", q => `
+                <button class="admin-primary-button selector-choose-btn ${q.nombre === matching.proveedorAdjudicado ? "is-chosen" : ""}" type="button" data-select-winning-prv="${escHTML(q.nombre)}" ${ref} ${clienteEditable ? "" : "disabled"}>
+                  ${q.nombre === matching.proveedorAdjudicado ? `${icon("check", 14)} Elegido` : "Elegir este proveedor"}
                 </button>
-              ` : isRoleAdmin ? `
-                <button class="admin-primary-button" id="formalizePedidoBtn" data-exp-id="${exp.id}" type="button">
-                  ${icon("check", 14)} Validar Adjudicación y Pasar a Fase 3: Formalización
-                </button>
-              ` : `
-                <span class="dossier-chip info">Esperando confirmación</span>
-              `}
-            </div>
-          </div>
+              `) : ""}
+            </tbody>
+          </table>
         </div>
+
+        <section class="selector-reqs-box">
+          <strong>Requisitos contractuales exigibles al proveedor</strong>
+          <small>${isRoleCliente ? "Elige cuáles de las conformidades que ofrece el proveedor elegido deben cumplirse en el pedido." : "Elegidos por el cliente entre las conformidades que ofrece el proveedor."}</small>
+          ${winnerQ ? `
+            <div class="selector-conf-picker">
+              ${(winnerQ.conformidades || []).map(c => clienteEditable ? `
+                <label class="selector-conf-option">
+                  <input type="checkbox" data-req-exigible-check="${escHTML(c)}" ${ref} ${reqSet.has(c) ? "checked" : ""} />
+                  <span>${icon("shield", 12)} ${escHTML(c)}</span>
+                </label>
+              ` : `<span class="selector-homologation-chip ${reqSet.has(c) ? "is-required" : "is-muted"}">${icon(reqSet.has(c) ? "check" : "shield", 12)} ${escHTML(c)}${reqSet.has(c) ? "" : " · no exigido"}</span>`).join("")}
+            </div>
+          ` : `<p class="reg-empty">${isRoleCliente ? "Elige primero un proveedor en la tabla." : "El cliente todavía no ha elegido proveedor."}</p>`}
+        </section>
+
+        ${isRoleCliente
+          ? selectorActionBar("Confirmar adjudicación", "Al confirmar, SOFEIN validará la selección y se formalizará el pedido entre cliente y proveedor",
+              !open ? `<span class="dossier-chip complete">Adjudicación validada</span>`
+                : matching.adjudicacionConfirmadaCliente ? `<span class="dossier-chip info">Enviada a SOFEIN</span>`
+                : `<button class="admin-primary-button" id="confirmAwardBtn" ${ref} type="button" ${winnerQ ? "" : "disabled"}>${icon("award", 14)} Confirmar adjudicación</button>`)
+          : selectorActionBar("Validar la adjudicación", "Al validar, se formalizará el pedido entre cliente y proveedor",
+              !open ? `<span class="dossier-chip complete">Pedido formalizado</span>`
+                : matching.adjudicacionConfirmadaCliente ? `<button class="admin-primary-button" id="formalizePedidoBtn" ${ref} type="button">${icon("check", 14)} Validar adjudicación</button>`
+                : `<span class="dossier-chip">Esperando la confirmación del cliente</span>`)}
       `;
     }
 
-    // -------------------------------------------------------------
-    // SUB-FASE 5: ADJUDICADO (PROVEEDOR CONFIRMADO)
-    // -------------------------------------------------------------
-    else if (effectiveFaseSelector === "adjudicado") {
-      dynamicContentHTML = `
-        <div style="padding:28px;border-radius:12px;background:var(--entity-panel);border:1px solid rgba(82,223,127,0.3);margin-bottom:20px;animation:filterFadeIn 0.25s ease-out">
-          <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px">
-            <span style="display:grid;place-items:center;width:48px;height:48px;border-radius:10px;background:rgba(82,223,127,0.12);color:var(--entity-accent)">
-              ${icon("award", 26)}
-            </span>
-            <div>
-              <div style="display:flex;align-items:center;gap:8px">
-                <span class="dossier-chip complete">✓ Proceso de Selección Completado</span>
-              </div>
-              <h2 style="margin:4px 0 0;font-size:1.4rem;color:var(--entity-text)">Proveedor Adjudicatario: ${matching.proveedorAdjudicado || exp.proveedor}</h2>
+    // Selección terminada
+    else if (viewStep === "adjudicado") {
+      const q = Object.values(matching.cotizaciones).find(x => x.nombre === matching.proveedorAdjudicado);
+      contentHTML = `
+        <div class="selector-awarded-card">
+          <span class="dossier-chip complete">✓ Selección completada</span>
+          <h2>Proveedor adjudicatario: ${escHTML(matching.proveedorAdjudicado || sum?.proveedor || "—")}</h2>
+          ${q ? `
+            <div class="selector-info-grid">
+              <div class="selector-info-item"><span>Precio total</span><strong>${formatEuro(q.precioTotal)}</strong></div>
+              <div class="selector-info-item"><span>Plazo de entrega</span><strong>${formatIsoDateEs(q.fechaEntregaIso)}</strong></div>
+              <div class="selector-info-item"><span>Condiciones de pago</span><strong>${escHTML(q.condicionesPago)}</strong></div>
+              <div class="selector-info-item is-wide"><span>Requisitos contractuales exigidos</span>${renderConformidadTags(matching.requisitosExigidosCliente)}</div>
             </div>
-          </div>
-
-          <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:16px;padding:16px 0;border-top:1px solid var(--entity-line);border-bottom:1px solid var(--entity-line);margin-bottom:20px">
-            <div>
-              <span style="font-size:0.68rem;color:var(--entity-faint);text-transform:uppercase;font-weight:600">Presupuesto Cerrado</span>
-              <strong style="display:block;margin-top:4px;color:var(--entity-text);font-size:1.05rem">${exp.presupuestoTotal}</strong>
-            </div>
-            <div>
-              <span style="font-size:0.68rem;color:var(--entity-faint);text-transform:uppercase;font-weight:600">Plazo Acordado</span>
-              <strong style="display:block;margin-top:4px;color:var(--entity-text);font-size:1.05rem">${exp.plazoPactado}</strong>
-            </div>
-            <div>
-              <span style="font-size:0.68rem;color:var(--entity-faint);text-transform:uppercase;font-weight:600">Responsabilidad Técnica</span>
-              <strong style="display:block;margin-top:4px;color:var(--entity-accent);font-size:0.85rem">Fabricante Homologado (Delimitada SOFEIN)</strong>
-            </div>
-          </div>
-
-          <div style="margin-bottom:24px">
-            <strong style="font-size:0.82rem;color:var(--entity-text);display:block;margin-bottom:8px">Requisitos Contractuales Firmados:</strong>
-            <div style="display:flex;flex-wrap:wrap;gap:8px">
-              ${(matching.requisitosExigidosCliente || []).map(r => `<span class="dossier-chip complete">${icon("check", 12)} ${r}</span>`).join("")}
-            </div>
-          </div>
-
-          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
-            <button class="admin-quiet-button" type="button" data-switch-selector-step="comparativa" data-exp-id="${exp.id}">
-              ${icon("table", 14)} Volver a consultar la Matriz Comparativa
-            </button>
-            <button class="admin-primary-button" type="button" data-go="#${activeRole}/expedientes/${exp.id}">
-              ${icon("arrow", 14)} Ir al Expediente (Fase 3: Formalización de Pedido)
-            </button>
+          ` : ""}
+          <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:16px">
+            <button class="admin-quiet-button" type="button" data-switch-selector-step="comparativa" ${ref}>${icon("table", 14)} Ver la comparativa</button>
+            <button class="admin-primary-button" type="button" data-go="#${activeRole}/expedientes/${exp.id}?sumId=${sum ? sum.id : ""}">${icon("arrow", 14)} Ir al expediente</button>
           </div>
         </div>
       `;
@@ -3615,23 +3490,63 @@
 
     return `
       <div class="selector-view-wrap" style="max-width:1200px;margin:0 auto">
-        ${breadcrumbBase}
-
-        <div class="admin-view-head" style="margin-bottom:18px">
-          <div>
-            <h1>Cotizaciones</h1>
-            <p>${sumNombre} · ${sumTipo} · ${sumUnidades} · ${sumFecha}</p>
-          </div>
-        </div>
-
-        <!-- Stepper de 4 Sub-pasos -->
-        <div class="selector-stepper-wrap">
-          ${stepperHTML}
-        </div>
-
-        <!-- Contenido Dinámico de la Sub-fase -->
-        ${dynamicContentHTML}
+        ${breadcrumbHTML}
+        <div class="admin-view-head" style="margin-bottom:14px"><div><h1>Selector de Proveedores</h1></div></div>
+        ${renderSelectorSumInfoHTML(exp, sum)}
+        <div class="selector-stepper-wrap">${stepperHTML}</div>
+        ${contentHTML}
       </div>
+    `;
+  }
+
+  // Cotizaciones del proveedor (todas las peticiones recibidas)
+  function renderProveedorCotizacionesView() {
+    const rows = [];
+    SUMINISTROS.forEach(sum => {
+      const exp = EXPEDIENTES.find(e => e.id === sum.expId);
+      if (!exp) return;
+      const m = ensureSuministroMatching(exp, sum);
+      const estado = getQuoteEstado(m, SELECTOR_MY_PROVIDER_ID);
+      if (estado) rows.push({ exp, sum, estado });
+    });
+    const order = { pendiente: 0, enviada: 1, adjudicada: 2, rechazada: 3 };
+    rows.sort((a, b) => order[a.estado] - order[b.estado]);
+    return `
+      <div class="admin-view-head"><div><h1>Cotizaciones</h1></div></div>
+      ${rows.length ? `
+        <section class="doc-clean-table-card">
+          <div class="doc-clean-table-wrap">
+            <table class="doc-clean-table quotes-table">
+              <thead>
+                <tr>
+                  <th>Expediente</th>
+                  <th>Suministro</th>
+                  <th>Unidades</th>
+                  <th>Cliente</th>
+                  <th>Destino</th>
+                  <th>Fecha objetivo</th>
+                  <th>Estado</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                ${rows.map(({ exp, sum, estado }) => `
+                  <tr>
+                    <td><span class="dossier-sum-code">${exp.id}</span></td>
+                    <td><strong>${escHTML(sum.tipo)}</strong><br><small style="color:var(--entity-muted)">${sum.id}</small></td>
+                    <td>${escHTML(sum.unidades || "—")}</td>
+                    <td>${escHTML(sum.cliente || exp.cliente)}</td>
+                    <td>${escHTML(sum.destino || exp.destinatarioFinal)}</td>
+                    <td><span class="doc-tbl-date">${sum.fechaEntrega || "—"}</span></td>
+                    <td>${renderQuoteEstadoBadge(estado)}</td>
+                    <td><button class="admin-primary-button" type="button" data-go="#proveedor/selector/${exp.id}?sum=${sum.id}" style="white-space:nowrap">${icon("file", 13)} Abrir Cotización</button></td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      ` : `<div class="reg-empty-card"><p>No tienes peticiones de cotización.</p></div>`}
     `;
   }
 
@@ -4501,37 +4416,14 @@
     ` : "";
 
     // 4. Selector y Matching en Fase 2 (Proveedores, idx === 1) adaptado al perfil
-    const selectorTitleByRole = isRoleAdmin
-      ? `Selector y Matching de Proveedores${currentSum ? ` · ${currentSum.id} (${currentSum.tipo})` : ""}`
-      : isRoleCliente
-        ? `Selección de Proveedor Adjudicatario${currentSum ? ` · ${currentSum.id} (${currentSum.tipo})` : ""}`
-        : `Cotización y Oferta Vinculante${currentSum ? ` · ${currentSum.id} (${currentSum.tipo})` : ""}`;
-
-    const selectorDescByRole = isRoleAdmin
-      ? "Preselección de 3 homologados, solicitud de cotizaciones vinculantes y matriz comparativa de adjudicación."
-      : isRoleCliente
-        ? "Consulta la matriz comparativa de los proveedores homologados preseleccionados por SOFEIN y confirma la adjudicación."
-        : "Revisa las especificaciones técnicas del suministro y gestiona tu oferta económica y de plazo vinculante.";
-
-    const selectorBtnLabelByRole = isRoleAdmin
-      ? "Abrir Selector y Matching"
-      : isRoleCliente
-        ? "Revisar Ofertas y Elegir Proveedor"
-        : "Ver / Presentar mi Oferta";
-
-    const selectorAboveMenuHTML = (activeDossierPhase === 1 && !isDestinatario) ? `
+    const selectorAboveMenuHTML = (activeDossierPhase === 1 && !isDestinatario && currentSum) ? `
       <div class="selector-above-menu-bar">
         <div style="display:flex;align-items:center;gap:12px">
-          <span class="selector-above-menu-icon">
-            ${icon("users", 18)}
-          </span>
-          <div>
-            <strong style="color:var(--entity-text);font-size:0.86rem">${selectorTitleByRole}</strong>
-            <p style="margin:2px 0 0;font-size:0.74rem;color:var(--entity-muted)">${selectorDescByRole}</p>
-          </div>
+          <span class="selector-above-menu-icon">${icon(isRoleProveedor ? "file" : "users", 18)}</span>
+          <strong style="color:var(--entity-text);font-size:0.88rem">${isRoleProveedor ? "Cotización" : "Selector de Proveedores"} - ${currentSum.id} (${currentSum.tipo})</strong>
         </div>
-        <button class="admin-primary-button" type="button" data-go="#${activeRole}/selector/${exp.id}" style="white-space:nowrap">
-          ${icon("users", 14)} ${selectorBtnLabelByRole}
+        <button class="admin-primary-button" type="button" data-go="#${activeRole}/selector/${exp.id}?sum=${currentSum.id}" style="white-space:nowrap">
+          ${icon(isRoleProveedor ? "file" : "users", 14)} ${isRoleProveedor ? "Ver/Presentar Oferta" : "Abrir Selector de Proveedores"}
         </button>
       </div>
     ` : "";
@@ -5564,7 +5456,10 @@
       return NOTICES.filter(n => canRoleSeeNotice(n, role) && !discardedNotices.has(n.id)).length;
     }
     if (navId === "cotizaciones") {
-      return 1; // 1 RFQ pendiente de responder oferta
+      return SUMINISTROS.filter(sum => {
+        const exp = EXPEDIENTES.find(e => e.id === sum.expId);
+        return exp && getQuoteEstado(ensureSuministroMatching(exp, sum), SELECTOR_MY_PROVIDER_ID) === "pendiente";
+      }).length;
     }
     const player = PLAYERS[role];
     const item = player ? player.nav.find(n => n.id === navId) : null;
@@ -7371,28 +7266,7 @@
     }
 
     if (section === "cotizaciones") {
-      return `
-        <div class="admin-view-head">
-          <div>
-            <h1>Cotizaciones (RFQs)</h1>
-            <p>Oportunidades de suministro remitidas por SOFEIN conforme a tus productos homologados.</p>
-          </div>
-        </div>
-        <article class="deliverable-slot" style="padding:24px">
-          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px">
-            <div>
-              <span class="dossier-chip" style="margin-bottom:8px">Fase 2: Cotización Vinculante</span>
-              <h3 style="margin:4px 0;font-size:1.15rem;color:var(--entity-text)">Carril laminado 54E1 Grado R260 · SFN-2026-K9M2</h3>
-              <p style="margin:0;color:var(--entity-muted);font-size:0.8rem">Volumen solicitado: 1.200 toneladas · Plazo objetivo cliente: 60 días</p>
-            </div>
-            <div style="display:flex;gap:10px">
-              <button class="admin-primary-button" type="button" data-go="#proveedor/selector/SFN-2026-K9M2">
-                ${icon("file", 14)} Abrir Cotización & Responder Oferta
-              </button>
-            </div>
-          </div>
-        </article>
-      `;
+      return renderProveedorCotizacionesView();
     }
     if (section === "suministros") {
       return renderSuministrosSection("proveedor");
@@ -10110,339 +9984,303 @@
       });
     });
 
-    /* ---------- Eventos del Selector y Matching de Proveedores (Pantalla 2) ---------- */
-    // 1. Navegación directa entre sub-fases del selector (stepper)
+    /* ---------- Eventos del Selector de Proveedores (por suministro) ---------- */
+    const selCtx = el => {
+      const exp = getActiveExpediente(el.dataset.expId);
+      const sum = SUMINISTROS.find(s => s.id === el.dataset.sumId) || null;
+      return { exp, sum, matching: ensureSuministroMatching(exp, sum), ruta: `selector/${exp.id}${sum ? `?sum=${sum.id}` : ""}`, sumRef: sum ? sum.id : "General", sumLabel: sum ? `${sum.id} (${sum.tipo})` : exp.id };
+    };
+    const selLog = (c, titulo, detalle = "") => addExpedienteCambioLog(c.exp, { tipo: "Selección de proveedores", suministro: c.sumRef, fase: 1, titulo, detalle });
+
+    // Navegación entre pasos (solo consulta; el estado avanza con los botones de cada paso)
     document.querySelectorAll("[data-switch-selector-step]").forEach(btn => {
       btn.addEventListener("click", () => {
-        const targetStep = btn.dataset.switchSelectorStep;
-        const expId = btn.dataset.expId;
-        const exp = getActiveExpediente(expId);
-        const matching = ensureExpedienteMatching(exp);
-        if (activeRole === "cliente" && targetStep === "preseleccion") return;
-        matching.faseSelector = targetStep;
+        if (activeRole === "cliente" && btn.dataset.switchSelectorStep === "preseleccion") return;
+        selectorViewStep = btn.dataset.switchSelectorStep;
         renderApp();
       });
     });
 
-    // 2. Toggle de preselección por SOFEIN Admin (Paso 1)
+    // 1. Búsqueda: SOFEIN marca los proveedores a incluir
     document.querySelectorAll("[data-preselect-prv]").forEach(chk => {
       chk.addEventListener("change", e => {
-        const prvId = chk.dataset.preselectPrv;
-        const exp = getActiveExpediente(chk.dataset.expId);
-        const matching = ensureExpedienteMatching(exp);
-        const set = new Set(matching.proveedoresPreseleccionadosPorAdmin);
-        if (e.target.checked) {
-          set.add(prvId);
-        } else {
-          set.delete(prvId);
-        }
-        matching.proveedoresPreseleccionadosPorAdmin = Array.from(set);
+        const c = selCtx(chk);
+        const set = new Set(c.matching.proveedoresPreseleccionadosPorAdmin);
+        e.target.checked ? set.add(chk.dataset.preselectPrv) : set.delete(chk.dataset.preselectPrv);
+        c.matching.proveedoresPreseleccionadosPorAdmin = Array.from(set);
         renderApp();
       });
     });
 
-    // 3. SOFEIN Admin aprueba preselección (Paso 1 -> Paso 2)
     document.getElementById("approvePreselectionBtn")?.addEventListener("click", e => {
-      const exp = getActiveExpediente(e.currentTarget.dataset.expId);
-      const matching = ensureExpedienteMatching(exp);
-      if (matching.proveedoresPreseleccionadosPorAdmin.length < 3) {
-        showToast("⚠️ Debes preseleccionar al menos 3 proveedores para cumplir la normativa ferroviaria");
+      const c = selCtx(e.currentTarget);
+      const m = c.matching;
+      if (m.proveedoresPreseleccionadosPorAdmin.length < 3) {
+        showToast("⚠️ Incluye al menos 3 proveedores para cumplir la concurrencia mínima");
         return;
       }
-      matching.faseSelector = "seleccion_cliente";
-      // Inicializar selección cliente si estaba vacía
-      if (!matching.proveedoresSeleccionadosPorCliente.length) {
-        matching.proveedoresSeleccionadosPorCliente = [...matching.proveedoresPreseleccionadosPorAdmin.slice(0, 3)];
-      }
+      m.faseSelector = "seleccion_cliente";
+      selectorViewStep = null;
       pushAutoNotice({
-        exp, roles: ["cliente"],
+        exp: c.exp, sumId: c.sum?.id || null, roles: ["cliente"],
         categoria: "Selección de Proveedores",
-        titulo: `SOFEIN te propone ${matching.proveedoresPreseleccionadosPorAdmin.length} proveedores para ${exp.id}`,
+        titulo: `SOFEIN te propone ${m.proveedoresPreseleccionadosPorAdmin.length} proveedores para ${c.sumLabel}`,
         descripcion: "Preselecciona a qué proveedores quieres pedir cotización.",
-        accion: "Preseleccionar proveedores", ruta: `selector/${exp.id}`
+        accion: "Preseleccionar proveedores", ruta: c.ruta
       });
-      addExpedienteCambioLog(exp, { tipo: "Selección de proveedores", suministro: "General", fase: 1, titulo: `SOFEIN propone ${matching.proveedoresPreseleccionadosPorAdmin.length} proveedores al cliente` });
-      showToast(`✓ Preselección aprobada. El constructor ha recibido aviso para seleccionar talleres.`);
+      selLog(c, `SOFEIN valida la búsqueda: ${m.proveedoresPreseleccionadosPorAdmin.length} proveedores para ${c.sumLabel}`);
+      showToast("✓ Búsqueda validada. El cliente ha recibido aviso para preseleccionar.");
       renderApp();
     });
 
-    // 4. Toggle de selección por el Cliente (Paso 2)
+    // 2. Preselección: el cliente (o SOFEIN en su nombre) marca a quién pedir cotización
     document.querySelectorAll("[data-client-select-prv]").forEach(chk => {
       chk.addEventListener("change", e => {
-        const prvId = chk.dataset.clientSelectPrv;
-        const exp = getActiveExpediente(chk.dataset.expId);
-        const matching = ensureExpedienteMatching(exp);
-        const set = new Set(matching.proveedoresSeleccionadosPorCliente);
-        if (e.target.checked) {
-          set.add(prvId);
-        } else {
-          set.delete(prvId);
-        }
-        matching.proveedoresSeleccionadosPorCliente = Array.from(set);
+        const c = selCtx(chk);
+        const set = new Set(c.matching.proveedoresSeleccionadosPorCliente);
+        e.target.checked ? set.add(chk.dataset.clientSelectPrv) : set.delete(chk.dataset.clientSelectPrv);
+        c.matching.proveedoresSeleccionadosPorCliente = Array.from(set);
         renderApp();
       });
     });
 
-    // 5. Cliente solicita cotizaciones formales (Paso 2 -> Paso 3)
     document.getElementById("requestClientQuotesBtn")?.addEventListener("click", e => {
-      const exp = getActiveExpediente(e.currentTarget.dataset.expId);
-      const matching = ensureExpedienteMatching(exp);
-      if (matching.proveedoresSeleccionadosPorCliente.length === 0) {
-        showToast("⚠️ Selecciona al menos un taller para solicitar cotización");
+      const c = selCtx(e.currentTarget);
+      const m = c.matching;
+      if (!m.proveedoresSeleccionadosPorCliente.length) {
+        showToast("⚠️ Marca al menos un proveedor al que pedir cotización");
         return;
       }
-      matching.seleccionClienteEnviada = true;
+      m.seleccionClienteEnviada = true;
       pushAutoNotice({
-        exp, roles: ["admin"],
+        exp: c.exp, sumId: c.sum?.id || null, roles: ["admin"],
         categoria: "Selección de Proveedores",
-        titulo: `El cliente ha preseleccionado ${matching.proveedoresSeleccionadosPorCliente.length} proveedores (${exp.id})`,
-        descripcion: "Valida la selección para pedir las cotizaciones.",
-        accion: "Validar selección", ruta: `selector/${exp.id}`
+        titulo: `El cliente ha preseleccionado ${m.proveedoresSeleccionadosPorCliente.length} proveedores (${c.sumLabel})`,
+        descripcion: "Confirma la preselección y solicita las ofertas.",
+        accion: "Confirmar preselección", ruta: c.ruta
       });
-      addExpedienteCambioLog(exp, { tipo: "Selección de proveedores", suministro: "General", fase: 1, titulo: `El cliente envía su selección de ${matching.proveedoresSeleccionadosPorCliente.length} proveedores` });
-      showToast(`✓ Selección enviada a SOFEIN para su validación.`);
+      selLog(c, `El cliente preselecciona ${m.proveedoresSeleccionadosPorCliente.length} proveedores para ${c.sumLabel}`);
+      showToast("✓ Preselección enviada a SOFEIN.");
       renderApp();
     });
 
-    // 5B. SOFEIN valida la selección del cliente y pide las cotizaciones
+    // SOFEIN confirma la preselección y pide las ofertas
     document.getElementById("emitRfqOrdersBtn")?.addEventListener("click", e => {
-      const exp = getActiveExpediente(e.currentTarget.dataset.expId);
-      const matching = ensureExpedienteMatching(exp);
-      if (!matching.proveedoresSeleccionadosPorCliente.length) {
-        matching.proveedoresSeleccionadosPorCliente = matching.proveedoresPreseleccionadosPorAdmin.slice(0, 3);
+      const c = selCtx(e.currentTarget);
+      const m = c.matching;
+      if (!m.proveedoresSeleccionadosPorCliente.length) {
+        showToast("⚠️ No hay proveedores preseleccionados");
+        return;
       }
-      matching.proveedoresSeleccionadosPorCliente.forEach(pId => {
-        if (!matching.cotizaciones[pId]) {
+      m.proveedoresSeleccionadosPorCliente.forEach(pId => {
+        if (!m.cotizaciones[pId]) {
           const prv = DIRECTORIO_PROVEEDORES.find(p => p.id === pId);
-          matching.cotizaciones[pId] = { proveedorId: pId, nombre: prv ? prv.nombre : pId, cif: prv ? prv.cif : "", sede: prv ? prv.sede : "", estado: "pendiente" };
+          if (prv) m.cotizaciones[pId] = emptyQuote(prv);
         }
       });
-      matching.faseSelector = "peticion_cotizaciones";
-      // El proveedor de la demo (IberRail, PRV-01) solo recibe el aviso si está entre los seleccionados
-      if (matching.proveedoresSeleccionadosPorCliente.includes("PRV-01")) {
+      m.seleccionClienteEnviada = true;
+      m.faseSelector = "peticion_cotizaciones";
+      selectorViewStep = null;
+      if (m.proveedoresSeleccionadosPorCliente.includes(SELECTOR_MY_PROVIDER_ID)) {
         pushAutoNotice({
-          exp, roles: ["proveedor"],
+          exp: c.exp, sumId: c.sum?.id || null, roles: ["proveedor"],
           categoria: "Cotización",
-          titulo: `SOFEIN te pide cotización para ${exp.id}`,
-          descripcion: `Envía tu oferta para "${getExpVisualMeta(exp).tituloGenerico}".`,
-          accion: "Enviar cotización", ruta: `selector/${exp.id}`
+          titulo: `SOFEIN te pide cotización para ${c.sumLabel}`,
+          descripcion: `Expediente ${c.exp.id} · ${c.sum ? `${c.sum.unidades} uds · entrega objetivo ${c.sum.fechaEntrega}` : ""}`,
+          accion: "Presentar oferta", ruta: c.ruta
         });
       }
-      addExpedienteCambioLog(exp, { tipo: "Selección de proveedores", suministro: "General", fase: 1, titulo: `SOFEIN valida la selección y pide cotización a ${matching.proveedoresSeleccionadosPorCliente.length} proveedores` });
-      showToast(`✓ Selección validada. Cotización pedida a ${matching.proveedoresSeleccionadosPorCliente.length} proveedores.`);
+      selLog(c, `SOFEIN confirma la preselección y pide oferta a ${m.proveedoresSeleccionadosPorCliente.length} proveedores (${c.sumLabel})`);
+      showToast(`✓ Ofertas solicitadas a ${m.proveedoresSeleccionadosPorCliente.length} proveedores.`);
       renderApp();
     });
 
-    // 6. Simular recepción de cotizaciones (Helper Demo para reuniones)
+    // Demo: simular que responden los proveedores pendientes
     document.getElementById("simulateAllQuotesBtn")?.addEventListener("click", e => {
-      const exp = getActiveExpediente(e.currentTarget.dataset.expId);
-      const matching = ensureExpedienteMatching(exp);
-      const selectedIds = matching.proveedoresSeleccionadosPorCliente.length
-        ? matching.proveedoresSeleccionadosPorCliente
-        : matching.proveedoresPreseleccionadosPorAdmin.slice(0, 3);
-
-      selectedIds.forEach((pId, idx) => {
-        const prv = DIRECTORIO_PROVEEDORES.find(p => p.id === pId) || DIRECTORIO_PROVEEDORES[0];
-        const prices = ["945 €/t", "960 €/t", "930 €/t", "33,50 €/ud", "34,20 €/ud", "32,80 €/ud"];
-        const totals = ["1.134.000 €", "1.152.000 €", "1.116.000 €", "485.750 €", "495.900 €", "475.600 €"];
-        const delivery = ["8 semanas (56 días)", "7 semanas (49 días)", "9 semanas (63 días)"];
-        matching.cotizaciones[pId] = {
-          proveedorId: pId,
-          nombre: prv.nombre,
-          cif: prv.cif,
-          sede: prv.sede,
-          precioUnitario: prices[idx % prices.length],
-          precioTotal: totals[idx % totals.length],
-          plazoSemanas: delivery[idx % delivery.length],
-          desviacionPlazoDias: idx === 1 ? -7 : idx === 2 ? +3 : -4,
-          validezOferta: "45 días",
-          condicionesPago: prv.condicionesPago || "60 días confirmada",
-          garantia: "10 años trazabilidad total",
-          puntuacionTecnica: `${95 + idx}/100`,
-          requisitosConfirmados: prv.requisitosQueCumple || ["Trazabilidad completa"],
-          archivoOferta: `Oferta-${prv.nombre.split(" ")[0]}-${exp.id}.pdf`,
-          estado: "recibida",
-          fechaEnvio: "Hoy, hace unos minutos"
-        };
+      const c = selCtx(e.currentTarget);
+      const m = c.matching;
+      m.proveedoresSeleccionadosPorCliente.forEach((pId, idx) => {
+        if (getQuoteEstado(m, pId) === "pendiente") {
+          const prv = DIRECTORIO_PROVEEDORES.find(p => p.id === pId);
+          if (prv) m.cotizaciones[pId] = { ...buildDemoQuote(prv, c.sum, idx), fechaEnvio: "Hoy, ahora" };
+        }
       });
       pushAutoNotice({
-        exp, roles: ["admin"],
+        exp: c.exp, sumId: c.sum?.id || null, roles: ["admin"],
         categoria: "Cotización",
-        titulo: `Cotizaciones recibidas para ${exp.id}`,
-        descripcion: "Valídalas para mostrárselas al cliente.",
-        accion: "Validar cotizaciones", ruta: `selector/${exp.id}`
+        titulo: `Ofertas recibidas para ${c.sumLabel}`,
+        descripcion: "Valida las cotizaciones para que el cliente pueda compararlas.",
+        accion: "Validar cotizaciones", ruta: c.ruta
       });
-      addExpedienteCambioLog(exp, { tipo: "Selección de proveedores", suministro: "General", fase: 1, titulo: `Cotizaciones recibidas (simulación)` });
-      showToast("✓ Todas las cotizaciones recibidas. Pendientes de validación por SOFEIN.");
+      selLog(c, `Ofertas recibidas para ${c.sumLabel} (simulación)`);
+      showToast("✓ Ofertas recibidas. Pendientes de validación por SOFEIN.");
       renderApp();
     });
 
-    // 7. Formulario de cotización de Proveedor (Paso 3)
+    // Precio total en vivo (precio unitario × unidades)
+    const unitInput = document.getElementById("quoteUnitPrice");
+    const totalInput = document.getElementById("quoteTotalPrice");
+    if (unitInput && totalInput) {
+      const syncTotal = () => {
+        const unit = parseFloat(unitInput.value);
+        totalInput.value = unit > 0 ? formatEuro(unit * Number(totalInput.dataset.units || 1)) : "";
+      };
+      unitInput.addEventListener("input", syncTotal);
+    }
+
+    // 3. El proveedor envía o actualiza su oferta
     document.getElementById("providerQuoteForm")?.addEventListener("submit", e => {
       e.preventDefault();
-      const expId = e.currentTarget.dataset.expId;
-      const exp = getActiveExpediente(expId);
-      const matching = ensureExpedienteMatching(exp);
-      const unitPrice = document.getElementById("quoteUnitPrice")?.value || "945 €/t";
-      const totalPrice = document.getElementById("quoteTotalPrice")?.value || "1.134.000 €";
-      const delivery = document.getElementById("quoteDeliveryTime")?.value || "8 semanas";
-      const payment = document.getElementById("quotePaymentCond")?.value || "60 días confirmada";
-      const validity = document.getElementById("quoteValidity")?.value || "45 días";
-
-      const prvId = "PRV-01"; // Proveedor por defecto IberRail
-      matching.cotizaciones[prvId] = {
-        proveedorId: prvId,
-        nombre: "IberRail Components, S.L.",
-        cif: "B-48192837",
-        sede: "Amurrio (Álava) / Bilbao",
-        precioUnitario: unitPrice,
-        precioTotal: totalPrice,
-        plazoSemanas: delivery,
-        desviacionPlazoDias: 0,
-        validezOferta: validity,
-        condicionesPago: payment,
-        garantia: "10 años trazabilidad total",
-        puntuacionTecnica: "98/100",
-        requisitosConfirmados: [
-          "Certificación de ensayos mecánicos en laboratorio ENAC",
-          "Trazabilidad de colada / lote con código individual QR",
-          "Cumplimiento estricto de especificación técnica y tolerancias"
-        ],
-        archivoOferta: `Oferta-IberRail-${exp.id}.pdf`,
-        estado: "recibida",
-        fechaEnvio: "Hoy, ahora"
+      const form = e.currentTarget;
+      const c = selCtx(form);
+      const m = c.matching;
+      const prv = DIRECTORIO_PROVEEDORES.find(p => p.id === SELECTOR_MY_PROVIDER_ID);
+      const unit = parseFloat(document.getElementById("quoteUnitPrice")?.value);
+      const validez = parseInt(document.getElementById("quoteValidity")?.value, 10);
+      if (!(unit > 0)) return;
+      if (!(validez >= QUOTE_MIN_VALIDEZ_DIAS)) {
+        showToast(`⚠️ La validez mínima de la oferta es de ${QUOTE_MIN_VALIDEZ_DIAS} días naturales`);
+        return;
+      }
+      const units = getSumUnidadesNum(c.sum);
+      const isUpdate = getQuoteEstado(m, SELECTOR_MY_PROVIDER_ID) === "enviada";
+      const now = new Date();
+      m.cotizaciones[SELECTOR_MY_PROVIDER_ID] = {
+        proveedorId: prv.id,
+        nombre: prv.nombre,
+        cif: prv.cif,
+        sede: prv.sede,
+        precioUnitario: Math.round(unit * 100) / 100,
+        precioTotal: Math.round(unit * units * 100) / 100,
+        fechaEntregaIso: document.getElementById("quoteDeliveryDate")?.value || c.sum?.fechaEntregaIso || "",
+        condicionesPago: document.getElementById("quotePaymentCond")?.value || prv.condicionesPago,
+        validezDias: validez,
+        conformidades: Array.from(form.querySelectorAll('input[name="quoteConf"]:checked')).map(i => i.value),
+        estado: "enviada",
+        fechaEnvio: `${now.toLocaleDateString("es-ES", { day: "2-digit", month: "short" }).replace(/\./g, "")}, ${now.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })}`
       };
-
+      const q = m.cotizaciones[SELECTOR_MY_PROVIDER_ID];
       pushAutoNotice({
-        exp, roles: ["admin"],
+        exp: c.exp, sumId: c.sum?.id || null, roles: ["admin"],
         categoria: "Cotización",
-        titulo: `IberRail Components ha enviado su cotización (${exp.id})`,
-        descripcion: `Oferta de ${totalPrice} con plazo de ${delivery}. Valídala para mostrársela al cliente.`,
-        accion: "Validar cotización", ruta: `selector/${exp.id}`
+        titulo: `${prv.nombre} ha ${isUpdate ? "actualizado" : "enviado"} su cotización (${c.sumLabel})`,
+        descripcion: `${formatEuro(q.precioTotal)} · entrega ${formatIsoDateEs(q.fechaEntregaIso)}. Valídala para que el cliente pueda compararla.`,
+        accion: "Validar cotización", ruta: c.ruta
       });
-
-      addExpedienteCambioLog(exp, { tipo: "Selección de proveedores", suministro: "General", fase: 1, titulo: `IberRail Components envía su cotización: ${totalPrice} · ${delivery}` });
-      showToast("✓ Cotización vinculante remitida con éxito a SOFEIN.");
+      selLog(c, `${prv.nombre} ${isUpdate ? "actualiza" : "envía"} su cotización: ${formatEuro(q.precioTotal)}`, `Entrega ${formatIsoDateEs(q.fechaEntregaIso)} · ${q.condicionesPago} · validez ${q.validezDias} días`);
+      showToast(`✓ Cotización ${isUpdate ? "actualizada" : "enviada"} a SOFEIN.`);
       renderApp();
     });
 
-    // 8. Botón rápido "Abrir Matriz Comparativa"
+    // SOFEIN valida las ofertas → el cliente pasa a 4. Selección
     document.getElementById("goToComparisonBtn")?.addEventListener("click", e => {
       if (activeRole !== "admin") return;
-      const exp = getActiveExpediente(e.currentTarget.dataset.expId);
-      const matching = ensureExpedienteMatching(exp);
-      matching.faseSelector = "comparativa";
+      const c = selCtx(e.currentTarget);
+      c.matching.faseSelector = "comparativa";
+      selectorViewStep = null;
       pushAutoNotice({
-        exp, roles: ["cliente"],
+        exp: c.exp, sumId: c.sum?.id || null, roles: ["cliente"],
         categoria: "Cotización",
-        titulo: `Cotizaciones disponibles para ${exp.id}`,
-        descripcion: "SOFEIN te muestra las cotizaciones de los proveedores. Elige uno.",
-        accion: "Elegir proveedor", ruta: `selector/${exp.id}`
+        titulo: `Ofertas disponibles para ${c.sumLabel}`,
+        descripcion: "SOFEIN ha validado las ofertas. Compáralas y elige proveedor.",
+        accion: "Elegir proveedor", ruta: c.ruta
       });
-      addExpedienteCambioLog(exp, { tipo: "Selección de proveedores", suministro: "General", fase: 1, titulo: `SOFEIN valida las cotizaciones y las muestra al cliente` });
-      showToast("✓ Cotizaciones validadas y visibles para el cliente.");
+      selLog(c, `SOFEIN valida las ofertas de ${c.sumLabel} y las muestra al cliente`);
+      showToast("✓ Ofertas validadas. El cliente ya puede compararlas.");
       renderApp();
     });
 
-    // 9. Cliente selecciona proveedor ganador en la matriz (Paso 4)
+    // 4. El cliente elige proveedor y los requisitos exigibles
     document.querySelectorAll("[data-select-winning-prv]").forEach(btn => {
       btn.addEventListener("click", () => {
-        const prvName = btn.dataset.selectWinningPrv;
-        const exp = getActiveExpediente(btn.dataset.expId);
-        const matching = ensureExpedienteMatching(exp);
-        matching.proveedorAdjudicado = prvName;
-        showToast(`Proveedor seleccionado: ${prvName}`);
+        if (activeRole !== "cliente") return;
+        const c = selCtx(btn);
+        const m = c.matching;
+        m.proveedorAdjudicado = btn.dataset.selectWinningPrv;
+        const q = Object.values(m.cotizaciones).find(x => x.nombre === m.proveedorAdjudicado);
+        m.requisitosExigidosCliente = [...(q?.conformidades || [])];
         renderApp();
       });
     });
 
-    // 10. Checkboxes de requisitos exigibles en adjudicación (Apuntes 06)
     document.querySelectorAll("[data-req-exigible-check]").forEach(chk => {
       chk.addEventListener("change", e => {
-        const reqText = chk.dataset.reqExigibleCheck;
-        const exp = getActiveExpediente(chk.dataset.expId);
-        const matching = ensureExpedienteMatching(exp);
-        const set = new Set(matching.requisitosExigidosCliente);
-        if (e.target.checked) {
-          set.add(reqText);
-        } else {
-          set.delete(reqText);
-        }
-        matching.requisitosExigidosCliente = Array.from(set);
+        const c = selCtx(chk);
+        const set = new Set(c.matching.requisitosExigidosCliente);
+        e.target.checked ? set.add(chk.dataset.reqExigibleCheck) : set.delete(chk.dataset.reqExigibleCheck);
+        c.matching.requisitosExigidosCliente = Array.from(set);
       });
     });
 
-    // 11. Confirmar adjudicación (Cliente)
     document.getElementById("confirmAwardBtn")?.addEventListener("click", e => {
-      const exp = getActiveExpediente(e.currentTarget.dataset.expId);
-      const matching = ensureExpedienteMatching(exp);
-      if (!matching.proveedorAdjudicado) {
-        showToast("⚠️ Selecciona primero un proveedor de la matriz");
+      const c = selCtx(e.currentTarget);
+      const m = c.matching;
+      if (!m.proveedorAdjudicado) {
+        showToast("⚠️ Elige primero un proveedor");
         return;
       }
-      matching.faseSelector = "adjudicado";
-      exp.proveedor = matching.proveedorAdjudicado;
-      // Actualizar presupuesto del expediente al precio de la oferta adjudicada
-      const quote = Object.values(matching.cotizaciones).find(q => q.nombre === matching.proveedorAdjudicado);
-      if (quote && quote.precioTotal) {
-        exp.presupuestoTotal = quote.precioTotal;
-        exp.plazoPactado = quote.plazoSemanas;
-      }
-
+      m.adjudicacionConfirmadaCliente = true;
       pushAutoNotice({
-        exp, roles: ["admin"],
+        exp: c.exp, sumId: c.sum?.id || null, roles: ["admin"],
         categoria: "Adjudicación",
-        titulo: `El cliente ha elegido a ${matching.proveedorAdjudicado} (${exp.id})`,
-        descripcion: "Formaliza el pedido con el proveedor seleccionado.",
-        accion: "Formalizar pedido", ruta: `selector/${exp.id}`
+        titulo: `El cliente ha elegido a ${m.proveedorAdjudicado} (${c.sumLabel})`,
+        descripcion: `Requisitos exigidos: ${(m.requisitosExigidosCliente || []).join(", ") || "ninguno"}. Valida la adjudicación.`,
+        accion: "Validar adjudicación", ruta: c.ruta
       });
-
-      addExpedienteCambioLog(exp, { tipo: "Selección de proveedores", suministro: "General", fase: 1, titulo: `El cliente elige a ${matching.proveedorAdjudicado}` });
-      showToast(`✓ Adjudicación confirmada para ${matching.proveedorAdjudicado}.`);
+      selLog(c, `El cliente elige a ${m.proveedorAdjudicado} para ${c.sumLabel}`, `Requisitos: ${(m.requisitosExigidosCliente || []).join(", ") || "ninguno"}`);
+      showToast(`✓ Adjudicación a ${m.proveedorAdjudicado} enviada a SOFEIN.`);
       renderApp();
     });
 
-    // 12. Admin valida adjudicación y avanza a Formalización de Pedido (Fase 3)
+    // SOFEIN valida la adjudicación: el suministro pasa a Gestión del pedido con el proveedor elegido
     document.getElementById("formalizePedidoBtn")?.addEventListener("click", e => {
-      const exp = getActiveExpediente(e.currentTarget.dataset.expId);
-      const matching = ensureExpedienteMatching(exp);
-      if (!matching.proveedorAdjudicado) {
-        const firstQuote = Object.values(matching.cotizaciones)[0];
-        matching.proveedorAdjudicado = firstQuote ? firstQuote.nombre : exp.proveedor;
+      if (activeRole !== "admin") return;
+      const c = selCtx(e.currentTarget);
+      const m = c.matching;
+      if (!m.proveedorAdjudicado || !m.adjudicacionConfirmadaCliente) return;
+      const q = Object.values(m.cotizaciones).find(x => x.nombre === m.proveedorAdjudicado);
+      m.faseSelector = "adjudicado";
+      selectorViewStep = null;
+      if (c.sum) {
+        c.sum.proveedor = m.proveedorAdjudicado;
+        c.sum.faseActual = Math.max(c.sum.faseActual ?? 0, 2);
+        c.sum.faseNombre = `3. ${PHASES[2].name}`;
+        if (q) {
+          c.sum.presupuesto = formatEuro(q.precioTotal);
+          if (q.fechaEntregaIso) {
+            c.sum.fechaEntregaIso = q.fechaEntregaIso;
+            c.sum.fechaEntrega = formatIsoDateEs(q.fechaEntregaIso);
+          }
+        }
+        const map = getSumDelivMap(c.exp, c.sum);
+        if (!map[2]) map[2] = [];
+        map[2].push({ name: `Hoja de Pedido · ${c.sum.id} · ${m.proveedorAdjudicado}`, reqDate: null, owner: "SOFEIN", uploadedBy: "SOFEIN", state: "review", format: "PDF", file: `Hoja-Pedido-${c.exp.id}-${c.sum.id}.pdf`, date: todayDocDate(), visibleTo: ["admin", "cliente", "proveedor"], notes: `Requisitos: ${(m.requisitosExigidosCliente || []).join(", ") || "—"}` });
+        activeDossierSuministroId = c.sum.id;
       }
-      matching.faseSelector = "adjudicado";
-      exp.proveedor = matching.proveedorAdjudicado;
-      exp.faseActual = 2; // Avanza a Fase 3 (num 3: Formalización de Pedido)
+      const expSums = SUMINISTROS.filter(s => s.expId === c.exp.id);
+      c.exp.faseActual = Math.max(c.exp.faseActual ?? 0, ...expSums.map(s => s.faseActual ?? 0));
+      if (expSums.length <= 1) c.exp.proveedor = m.proveedorAdjudicado;
       activeDossierPhase = 2;
 
-      // Registrar entregable de formalización
-      if (!exp.deliverables[2] || exp.deliverables[2].length === 0) {
-        exp.deliverables[2] = [
-          { name: "Hoja de Pedido Formalizada (Delimitación Responsabilidad)", owner: "SOFEIN", state: "review", format: "PDF", file: `Hoja-Pedido-${exp.id}.pdf`, date: "Hoy" },
-          { name: "Acuerdo Marco Plataforma y Condiciones de Suministro", owner: "Cliente", state: "complete", format: "Digital", file: `Acuerdo-Marco-${exp.cliente.split(" ")[0]}.pdf`, date: "Hoy" }
-        ];
-      }
-
-      if (/iberrail/i.test(matching.proveedorAdjudicado || "")) {
+      if (/iberrail/i.test(m.proveedorAdjudicado || "")) {
         pushAutoNotice({
-          exp, roles: ["proveedor"],
+          exp: c.exp, sumId: c.sum?.id || null, roles: ["proveedor"],
           categoria: "Formalización",
-          titulo: `SOFEIN te pide formalizar el pedido de ${exp.id}`,
-          descripcion: "El cliente ha aceptado tu cotización. Revisa y firma la hoja de pedido.",
+          titulo: `Tu oferta para ${c.sumLabel} ha sido adjudicada`,
+          descripcion: "SOFEIN te pide formalizar el pedido: revisa y firma la hoja de pedido.",
           accion: "Formalizar pedido", tab: "deliverables"
         });
       }
       pushAutoNotice({
-        exp, roles: ["cliente"],
+        exp: c.exp, sumId: c.sum?.id || null, roles: ["cliente"],
         categoria: "Formalización", tagClass: "complete",
-        titulo: `SOFEIN ha formalizado el pedido con ${matching.proveedorAdjudicado}`,
-        descripcion: `El expediente ${exp.id} pasa a Gestión del pedido.`,
+        titulo: `SOFEIN ha formalizado el pedido de ${c.sumLabel} con ${m.proveedorAdjudicado}`,
+        descripcion: "El suministro pasa a Gestión del pedido.",
         accion: "Ver pedido", tab: "deliverables"
       });
-
-      addExpedienteCambioLog(exp, { tipo: "Selección de proveedores", suministro: "General", fase: 1, titulo: `SOFEIN formaliza el pedido con ${matching.proveedorAdjudicado}` });
-      showToast(`✓ Adjudicación validada. Expediente avanzado a Fase 3 (Formalización).`);
-      location.hash = `#admin/expedientes/${exp.id}`;
+      selLog(c, `SOFEIN valida la adjudicación de ${c.sumLabel} a ${m.proveedorAdjudicado}`, q ? `${formatEuro(q.precioTotal)} · entrega ${formatIsoDateEs(q.fechaEntregaIso)}` : "");
+      showToast(`✓ Adjudicación validada. ${c.sumLabel} pasa a Gestión del pedido.`);
+      location.hash = `#admin/expedientes/${c.exp.id}?sumId=${c.sum ? c.sum.id : ""}`;
     });
 
     /* ---------- Eventos de Pantalla 3: Formalización del Acuerdo y Gestión Operativa ---------- */

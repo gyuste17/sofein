@@ -2,6 +2,59 @@
 
 Registro de relevo entre agentes. **Entradas nuevas arriba.** Reglas del proyecto en `AGENTS.md`.
 
+## 2026-10-27 · Claude · rama `claude/selector` · Selector de Proveedores por suministro (v52)
+
+**Modelo**
+- El selector funciona ahora **por suministro**: `ensureSuministroMatching(exp, sum)` guarda el estado en `sum.matching`.
+  - La ruta es `#<rol>/selector/<EXP>?sum=SUM-xx` (`selectorSumParam`).
+  - `ensureExpedienteMatching` se mantiene solo para la formalización antigua.
+- Candidatos: proveedores cuyo `suministros` incluye el tipo del suministro (mínimo 3).
+  - Las condiciones (plazo medio y pago) salen de `suministrosCondiciones[tipo]` o, si no hay, de las generales.
+  - Las etiquetas de conformidades salen de `prv.conformidades`.
+- Cotización: `{ precioUnitario, precioTotal, fechaEntregaIso, condicionesPago, validezDias (≥45), conformidades[], estado, fechaEnvio }`.
+  - Estado para el proveedor (`getQuoteEstado`): pendiente, enviada, rechazada o adjudicada.
+- Datos de demo:
+  - Los suministros ya adjudicados reciben la cotización del ganador.
+  - SUM-08 (Placas, W4P7) arranca en «3. Cotización», con la petición a IberRail pendiente, para probar la vista de proveedor.
+
+**Hecho**
+- Tira de la ficha (fase 2):
+  - SOFEIN y Cliente: «Selector de Proveedores - SUM-xx (Tipo)» con el botón «Abrir Selector de Proveedores».
+  - Proveedor: «Cotización - SUM-xx (Tipo)» con el botón «Ver/Presentar Oferta».
+  - Sin subtítulo, y enlazada a `?sum=`.
+- Selector (`renderSelectorProveedoresView`):
+  - Título «Selector de Proveedores» sin subtítulo.
+  - Recuadro del suministro (`renderSelectorSumInfoHTML`): tipo, código, unidades, fecha objetivo, expediente, nombre del expediente, cliente, destino, descripción, especificaciones y adjuntos con «Ver».
+  - Pasos renombrados a 1. Búsqueda · 2. Preselección · 3. Cotización · 4. Selección.
+  - Al pulsar un paso solo se consulta (`selectorViewStep`). El estado avanza solo con los botones de cada paso.
+  - 1. Búsqueda (solo SOFEIN; el cliente no la ve): tarjetas con nombre, sede, CIF, conformidades, plazo medio, pago y «Incluir en la preselección». Recuadro «Validar la búsqueda…» con el botón «Validar».
+  - 2. Preselección:
+    - el cliente marca «Pedir cotización» y pulsa «Confirmar preselección y solicitar ofertas», que avisa a SOFEIN;
+    - SOFEIN puede ajustarla y confirma con el mismo botón, que pide las ofertas.
+  - 3. Cotización:
+    - SOFEIN ve, de cada oferta, precio unitario y total, plazo de entrega (con la diferencia frente al objetivo), pago, validez y conformidades;
+    - SOFEIN valida con «Validar ofertas / Validar cotizaciones»;
+    - el cliente solo ve la lista de proveedores «En espera».
+  - 4. Selección:
+    - tabla comparativa con sede, CIF, precios, plazo, pago, validez y conformidades en etiquetas;
+    - el cliente elige proveedor y, entre las conformidades que ese proveedor ofrece, los requisitos exigibles;
+    - recuadros «Confirmar adjudicación» (cliente) y «Validar la adjudicación» (SOFEIN, solo cuando el cliente ya ha confirmado).
+  - Al validar, el suministro pasa a Gestión del pedido con el proveedor, el precio y la fecha de la oferta, y se añade la hoja de pedido a su Documentación.
+- Proveedor (`#proveedor/selector/...`):
+  - Título «Cotización», recuadro del suministro y recuadro de estado de la oferta (con los datos si ya la envió).
+  - Formulario «Enviar/Actualizar Oferta»: precio unitario, total calculado (unitario × unidades), fecha de entrega, pago, validez (mínimo 45), conformidades en etiquetas, «Última cotización remitida…» y el botón «Enviar/Actualizar Cotización».
+  - Si la oferta no se adjudica, sigue viendo su cotización como «Rechazada».
+- Página «Cotizaciones» del proveedor (`renderProveedorCotizacionesView`): tabla con expediente, suministro, unidades, cliente, destino, fecha objetivo, estado y «Abrir Cotización». El contador de la sidebar cuenta las pendientes.
+- Avisos e historial adaptados al suministro, con rutas `?sum=`.
+- Verificado en Chrome:
+  - Flujo completo en SUM-03 (Admin → Cliente → Admin → Cliente → Admin); el suministro queda en fase 3 con 83.200 € y entrega el 31 oct.
+  - Proveedor en SUM-08: envía la oferta y, cuando se adjudica a otro proveedor, la ve como Rechazada.
+  - 0 errores de consola y sin desbordamiento a 390 px.
+
+**Pendiente / decisiones**
+- La demo sigue teniendo un solo proveedor con sesión (IberRail, PRV-01). Las respuestas del resto se simulan con «Simular recepción de las ofertas pendientes» (solo SOFEIN).
+- La hoja de pedido y la formalización tripartita de la fase 3 siguen en el modelo por expediente (`ensureExpedienteFormalizacion`).
+
 ## 2026-10-26 · Claude · rama `procurement` · Casillas de visibilidad ordenadas (v51), publicado
 
 - `renderVisibilityCheckboxesHTML`, que se usa en Requerir, Subir, Subir requerido, Validar y Editar documento:

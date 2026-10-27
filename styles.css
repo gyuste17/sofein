@@ -8591,3 +8591,274 @@ details.b2b-profile-card.is-collapsible[open] > summary.is-collapsible-summary .
   color: var(--entity-muted);
   cursor: default;
 }
+
+/* ============================================================
+   Selector de Proveedores por suministro (v52)
+   ============================================================ */
+.selector-info-card {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 16px 18px;
+  border: 1px solid var(--entity-line);
+  border-radius: 12px;
+  background: var(--entity-panel);
+}
+.selector-info-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px 18px;
+}
+.selector-info-item {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+.selector-info-item.is-wide {
+  grid-column: 1 / -1;
+}
+.selector-info-item > span {
+  font-size: 0.66rem;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--entity-faint);
+}
+.selector-info-item > strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--entity-text);
+  white-space: pre-line;
+}
+.selector-info-attachments {
+  display: grid;
+  gap: 6px;
+  padding-top: 10px;
+  border-top: 1px solid var(--entity-line);
+}
+.selector-include-check {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--entity-line);
+  background: var(--entity-panel-2);
+  font-size: 0.78rem;
+  font-weight: 650;
+  color: var(--entity-text);
+  cursor: pointer;
+}
+.selector-include-check input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--entity-accent);
+}
+.selector-include-check:has(input:checked) {
+  border-color: rgba(47, 158, 102, 0.45);
+  background: var(--entity-accent-soft);
+  color: var(--entity-accent);
+}
+.selector-include-check:has(input:disabled) {
+  cursor: default;
+  opacity: 0.75;
+}
+.selector-homologation-chip.is-muted {
+  opacity: 0.55;
+}
+.selector-homologation-chip.is-required {
+  background: var(--entity-accent-soft);
+  border-color: rgba(47, 158, 102, 0.4);
+  color: var(--entity-accent);
+}
+.selector-quote-list {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.selector-quote-row,
+.selector-quote-card {
+  padding: 14px 16px;
+  border: 1px solid var(--entity-line);
+  border-radius: 10px;
+  background: var(--entity-panel);
+}
+.selector-quote-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.selector-quote-row small,
+.selector-quote-card-head small {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.72rem;
+  color: var(--entity-muted);
+}
+.selector-quote-card {
+  display: grid;
+  gap: 12px;
+}
+.selector-quote-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.is-warning-text {
+  color: #dc2626 !important;
+}
+.selector-matrix-table th.is-winner,
+.selector-matrix-table td.is-winner {
+  background: rgba(82, 223, 127, 0.07);
+}
+.selector-matrix-table th {
+  vertical-align: top;
+}
+.selector-matrix-table th strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 0.85rem;
+  color: var(--entity-text);
+}
+.selector-matrix-label {
+  font-weight: 650;
+  color: var(--entity-text);
+  white-space: nowrap;
+}
+.selector-choose-btn {
+  width: 100%;
+  justify-content: center;
+}
+.selector-choose-btn:not(.is-chosen) {
+  background: transparent !important;
+  color: var(--entity-accent) !important;
+  border: 1px solid var(--entity-accent) !important;
+}
+.selector-reqs-box {
+  display: grid;
+  gap: 8px;
+  margin: 16px 0;
+  padding: 16px 18px;
+  border: 1px solid var(--entity-line);
+  border-radius: 10px;
+  background: var(--entity-panel);
+}
+.selector-reqs-box > strong {
+  font-size: 0.88rem;
+  color: var(--entity-text);
+}
+.selector-reqs-box > small {
+  font-size: 0.75rem;
+  color: var(--entity-muted);
+}
+.selector-conf-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.selector-conf-option {
+  display: inline-flex;
+  cursor: pointer;
+}
+.selector-conf-option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.selector-conf-option span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 9px;
+  border-radius: 99px;
+  border: 1px solid var(--entity-line);
+  background: var(--entity-panel-2);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--entity-muted);
+  transition: all 0.12s ease;
+}
+.selector-conf-option input:checked + span {
+  border-color: rgba(47, 158, 102, 0.45);
+  background: var(--entity-accent-soft);
+  color: var(--entity-accent);
+}
+.selector-conf-option input:focus-visible + span {
+  outline: 2px solid var(--entity-accent);
+  outline-offset: 1px;
+}
+.selector-conf-option input:disabled + span {
+  cursor: default;
+  opacity: 0.7;
+}
+.selector-quote-status {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 16px 18px;
+  border: 1px solid var(--entity-line);
+  border-radius: 12px;
+  background: var(--entity-panel);
+}
+.selector-quote-status-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.selector-quote-form {
+  padding: 20px 22px;
+  border: 1px solid var(--entity-line);
+  border-radius: 12px;
+  background: var(--entity-panel);
+}
+.selector-quote-form h2 {
+  margin: 0 0 16px;
+  font-size: 1.05rem;
+  color: var(--entity-text);
+}
+.selector-quote-form-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding-top: 14px;
+  border-top: 1px solid var(--entity-line);
+  font-size: 0.75rem;
+  color: var(--entity-muted);
+}
+.selector-awarded-card {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 22px 24px;
+  border: 1px solid rgba(82, 223, 127, 0.3);
+  border-radius: 12px;
+  background: var(--entity-panel);
+}
+.selector-awarded-card .dossier-chip {
+  justify-self: start;
+}
+.selector-awarded-card h2 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: var(--entity-text);
+}
+.quotes-table td {
+  vertical-align: middle !important;
+}
+@media (max-width: 900px) {
+  .selector-info-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
