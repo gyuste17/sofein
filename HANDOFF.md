@@ -2,6 +2,27 @@
 
 Registro de relevo entre agentes. **Entradas nuevas arriba.** Reglas del proyecto en `AGENTS.md`.
 
+## 2026-10-27 · Claude · rama `claude/catalogos` · Catálogos maestros con etiquetas (v54)
+
+**Hecho**
+- Productos y Conformidades funcionan como tablas maestras: sus valores alimentan el resto de la lógica (tipo de suministro, candidatos del selector, conformidades de proveedores y cotizaciones).
+- Campo de etiquetas reutilizable (`renderTagInputHTML` + manejadores delegados `tagInputAdd` / `tagInputSuggest`):
+  - autocompleta con los valores ya existentes (`uniqueCatalogValues`);
+  - si el valor no existe, ofrece «(Crear)» en los campos de un solo valor y «(Añadir)» en los de varios;
+  - Enter añade, Backspace quita la última etiqueta y Enter con el campo vacío guarda la fila.
+- Productos:
+  - «Tipo de producto»: etiqueta única con «(Crear)». Un tipo nuevo aparece al instante en el selector del constructor.
+  - «Norma/s de referencia»: varias etiquetas con «(Añadir)».
+- Conformidades:
+  - «Tipo» es de un solo valor, con «(Crear)».
+  - «Entidad emisora» y «Ámbito / aplicación» admiten varias etiquetas. Ámbito sugiere también los tipos de producto.
+  - Los valores antiguos con «A / B» se separan en etiquetas (`toCatalogList`).
+- Colores: 6 tonos de la paleta corporativa (verdes SOFEIN, salvia, oliva, dorado y neutro), con variante para el modo oscuro.
+- Verificado en Chrome: creación de un tipo nuevo con normas, edición de una conformidad (emisor y ámbito) y perfil de proveedor sin `undefined`. 0 errores de consola.
+
+**Pendiente**
+- Especificación para pasar a base de datos (Supabase), propuesta a Guillermo: `docs/BACKEND_SPEC.md` con modelo de datos, estados, permisos por perfil (RLS), eventos de avisos e historial, y Storage.
+
 ## 2026-10-27 · Claude · rama `claude/admin-perfiles` · Catálogos en el menú, Emitir Aviso global y perfiles (v53), publicado
 
 **Hecho**

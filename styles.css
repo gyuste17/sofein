@@ -8886,3 +8886,127 @@ details.b2b-profile-card.is-collapsible[open] > summary.is-collapsible-summary .
   :root:not([data-theme="light"]) .catalog-tag { filter: brightness(1.45); }
 }
 :root[data-theme="dark"] .catalog-tag { filter: brightness(1.45); }
+
+/* Catálogos maestros (v54): paleta corporativa SOFEIN (verdes y neutros) y campo de etiquetas */
+.catalog-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.catalog-tag.tone-0 { background: #10451D; color: #ffffff; border-color: #10451D; }
+.catalog-tag.tone-1 { background: rgba(16, 69, 29, 0.1); color: #10451D; border-color: rgba(16, 69, 29, 0.3); }
+.catalog-tag.tone-2 { background: rgba(47, 158, 102, 0.14); color: #1f7a4d; border-color: rgba(47, 158, 102, 0.35); }
+.catalog-tag.tone-3 { background: rgba(122, 148, 92, 0.16); color: #4d6436; border-color: rgba(122, 148, 92, 0.38); }
+.catalog-tag.tone-4 { background: rgba(200, 157, 84, 0.16); color: #7a5a22; border-color: rgba(200, 157, 84, 0.38); }
+.catalog-tag.tone-5 { background: rgba(71, 85, 80, 0.1); color: #3d4a45; border-color: rgba(71, 85, 80, 0.28); }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .catalog-tag { filter: none; }
+  :root:not([data-theme="light"]) .catalog-tag.tone-0 { background: #2f9e66; border-color: #2f9e66; color: #06140a; }
+  :root:not([data-theme="light"]) .catalog-tag.tone-1 { color: #8fd6a8; border-color: rgba(143, 214, 168, 0.35); background: rgba(143, 214, 168, 0.1); }
+  :root:not([data-theme="light"]) .catalog-tag.tone-2 { color: #6fd39a; }
+  :root:not([data-theme="light"]) .catalog-tag.tone-3 { color: #b6cc96; }
+  :root:not([data-theme="light"]) .catalog-tag.tone-4 { color: #e2c48f; }
+  :root:not([data-theme="light"]) .catalog-tag.tone-5 { color: #c3cdc9; }
+}
+:root[data-theme="dark"] .catalog-tag { filter: none; }
+:root[data-theme="dark"] .catalog-tag.tone-0 { background: #2f9e66; border-color: #2f9e66; color: #06140a; }
+:root[data-theme="dark"] .catalog-tag.tone-1 { color: #8fd6a8; border-color: rgba(143, 214, 168, 0.35); background: rgba(143, 214, 168, 0.1); }
+:root[data-theme="dark"] .catalog-tag.tone-2 { color: #6fd39a; }
+:root[data-theme="dark"] .catalog-tag.tone-3 { color: #b6cc96; }
+:root[data-theme="dark"] .catalog-tag.tone-4 { color: #e2c48f; }
+:root[data-theme="dark"] .catalog-tag.tone-5 { color: #c3cdc9; }
+
+.tag-input {
+  position: relative;
+  min-width: 170px;
+}
+.tag-input-box {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  min-height: 32px;
+  padding: 3px 6px;
+  border: 1px solid var(--entity-line);
+  border-radius: 6px;
+  background: var(--entity-bg);
+}
+.tag-input-box:focus-within {
+  border-color: var(--entity-accent);
+  box-shadow: 0 0 0 2px var(--entity-accent-soft);
+}
+.tag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 4px 1px 8px;
+  border-radius: 99px;
+  background: var(--entity-accent-soft);
+  color: var(--entity-accent);
+  font-size: 0.72rem;
+  font-weight: 650;
+  white-space: nowrap;
+}
+.tag-chip button {
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  font-size: 0.85rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.tag-chip button:hover {
+  background: rgba(16, 69, 29, 0.15);
+}
+.tag-input-text {
+  flex: 1;
+  min-width: 90px;
+  height: 24px;
+  padding: 0 2px;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--entity-text);
+  font: inherit;
+  font-size: 0.78rem;
+}
+.tag-input-suggest {
+  display: grid;
+  margin-top: 4px;
+  padding: 4px;
+  border: 1px solid var(--entity-line);
+  border-radius: 6px;
+  background: var(--entity-panel);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+  max-height: 190px;
+  overflow-y: auto;
+}
+.tag-suggest-item {
+  padding: 5px 8px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--entity-text);
+  font: inherit;
+  font-size: 0.78rem;
+  text-align: left;
+  cursor: pointer;
+}
+.tag-suggest-item:hover {
+  background: var(--entity-accent-soft);
+  color: var(--entity-accent);
+}
+.tag-suggest-item.is-create em {
+  font-style: normal;
+  font-weight: 650;
+  color: var(--entity-accent);
+}
+.tag-input-suggest[hidden] {
+  display: none;
+}

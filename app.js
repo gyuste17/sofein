@@ -6298,9 +6298,11 @@
       idPrefix: "PRD",
       intro: "Catálogo base de suministros ferroviarios de SOFEIN. Alimenta el tipo de suministro al crear expedientes y las etiquetas de suministros acreditados de cada proveedor.",
       fields: [
-        { key: "tipo", label: "Tipo de producto", type: "select", options: PRODUCTO_TIPOS, required: true, minWidth: "160px", tag: true },
+        { key: "tipo", label: "Tipo de producto", type: "tags", single: true, createLabel: "Crear", placeholder: "Elige o crea un tipo", required: true, minWidth: "180px", tag: true,
+          suggest: () => uniqueCatalogValues("productos", "tipo", PRODUCTO_TIPOS) },
         { key: "subtipo", label: "Subtipo", placeholder: "Ej: Hormigón", minWidth: "150px" },
-        { key: "norma", label: "Norma/s de referencia", placeholder: "Ej: EN 13230", minWidth: "170px" }
+        { key: "norma", label: "Norma/s de referencia", type: "tags", createLabel: "Añadir", placeholder: "Añadir norma", minWidth: "220px", tag: true,
+          suggest: () => uniqueCatalogValues("productos", "norma") }
       ],
       usageLabel: "Proveedores",
       usage: item => {
@@ -6316,9 +6318,12 @@
       intro: "Certificaciones, normas y homologaciones reconocidas por SOFEIN. Alimentan la selección de conformidades en la ficha de cada proveedor y el registro de certificados.",
       fields: [
         { key: "nombre", label: "Conformidad", placeholder: "Ej: ISO 50001", required: true, minWidth: "190px" },
-        { key: "tipo", label: "Tipo", type: "select", options: CONFORMIDAD_TIPOS, minWidth: "160px", tag: true },
-        { key: "emisor", label: "Entidad emisora", placeholder: "Ej: AENOR", minWidth: "140px", tag: true },
-        { key: "ambito", label: "Ámbito / aplicación", placeholder: "Ej: Traviesas de hormigón", minWidth: "170px", tag: true }
+        { key: "tipo", label: "Tipo", type: "tags", single: true, createLabel: "Crear", placeholder: "Elige o crea un tipo", minWidth: "170px", tag: true,
+          suggest: () => uniqueCatalogValues("conformidades", "tipo", CONFORMIDAD_TIPOS) },
+        { key: "emisor", label: "Entidad emisora", type: "tags", createLabel: "Añadir", placeholder: "Añadir entidad", minWidth: "180px", tag: true,
+          suggest: () => uniqueCatalogValues("conformidades", "emisor") },
+        { key: "ambito", label: "Ámbito / aplicación", type: "tags", createLabel: "Añadir", placeholder: "Añadir ámbito", minWidth: "200px", tag: true,
+          suggest: () => uniqueCatalogValues("conformidades", "ambito", uniqueCatalogValues("productos", "tipo")) }
       ],
       usageLabel: "Proveedores",
       usage: item => DIRECTORIO_PROVEEDORES.filter(p => (p.conformidades || p.homologaciones || []).includes(item.nombre)).length
@@ -6401,20 +6406,57 @@
     `;
   }
 
-  // Etiqueta de color: el mismo valor siempre sale del mismo color
+  // Valores de un campo de catálogo como lista (los antiguos podían ser texto «A / B»)
+  const toCatalogList = v => (Array.isArray(v) ? v : String(v || "").split(/\s*\/\s*|\s*;\s*/)).map(x => String(x).trim()).filter(Boolean);
+
+  // Valores ya usados en un campo del catálogo (+ base), sin repetir: alimentan el autocompletado
+  function uniqueCatalogValues(kind, key, base = []) {
+    const out = [];
+    [...base, ...CATALOGOS[kind].flatMap(i => toCatalogList(i[key]))].forEach(v => {
+      if (v && !out.some(o => o.toLowerCase() === v.toLowerCase())) out.push(v);
+    });
+    return out;
+  }
+
+  // Etiqueta con la paleta corporativa: el mismo valor siempre sale del mismo tono
   function renderCatalogTag(value) {
     const str = String(value);
     let h = 0;
     for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0;
-    return `<span class="catalog-tag tone-${h % 8}">${escHTML(str)}</span>`;
+    return `<span class="catalog-tag tone-${h % 6}">${escHTML(str)}</span>`;
   }
+  const renderCatalogTags = v => toCatalogList(v).map(renderCatalogTag).join(" ");
+
+  // Campo de etiquetas con autocompletado; si el valor no existe ofrece «(Crear)» / «(Añadir)»
+  function renderTagInputHTML(field, values) {
+    const list = toCatalogList(values);
+    return `
+      <div class="tag-input" data-tag-field="${field.key}" data-tag-single="${field.single ? "1" : "0"}" data-tag-create="${escHTML(field.createLabel || "Añadir")}" data-tag-suggest="${escHTML(JSON.stringify(field.suggest ? field.suggest() : []))}">
+        <div class="tag-input-box">
+          ${list.map(v => `<span class="tag-chip" data-tag-value="${escHTML(v)}">${escHTML(v)}<button type="button" data-tag-remove aria-label="Quitar ${escHTML(v)}">×</button></span>`).join("")}
+          <input class="tag-input-text" type="text" placeholder="${escHTML(field.placeholder || "")}" aria-label="${escHTML(field.label)}" autocomplete="off" ${field.single && list.length ? 'style="display:none"' : ""} />
+        </div>
+        <div class="tag-input-suggest" hidden></div>
+      </div>
+    `;
+  }
+
+  const readTagInputValues = box => {
+    const vals = Array.from(box.querySelectorAll(".tag-chip")).map(c => c.dataset.tagValue);
+    const pending = box.querySelector(".tag-input-text")?.value.trim();
+    if (pending && !vals.some(v => v.toLowerCase() === pending.toLowerCase())) vals.push(pending);
+    return box.dataset.tagSingle === "1" ? vals.slice(-1) : vals;
+  };
 
   function renderCatalogEditRow(kind, item) {
     const def = CATALOG_DEFS[kind];
     const rowId = item ? item.id : "__new";
     const cells = def.fields.map(f => {
       const val = item ? (item[f.key] ?? "") : (f.type === "select" ? f.options[0] : "");
-      const control = f.type === "select"
+      if (f.type === "tags") return `<td>${renderTagInputHTML(f, item ? item[f.key] : [])}</td>`;
+      const control = f.type === "tags"
+        ? renderTagInputHTML(f, item ? item[f.key] : [])
+        : f.type === "select"
         ? `<select class="catalog-input" data-cat-field="${f.key}" aria-label="${f.label}">
              ${f.options.map(o => `<option value="${escHTML(o)}" ${o === val ? "selected" : ""}>${escHTML(o)}</option>`).join("")}
            </select>`
@@ -6443,7 +6485,7 @@
     const list = CATALOGOS[kind];
     const q = (catalogSearch[kind] || "").toLowerCase().trim();
     const isEditing = id => catalogEditing && catalogEditing.kind === kind && catalogEditing.id === id;
-    const searchText = item => def.fields.map(f => item[f.key] || "").join(" ").toLowerCase();
+    const searchText = item => def.fields.map(f => toCatalogList(item[f.key]).join(" ")).join(" ").toLowerCase();
 
     const rows = list.map(item => {
       if (isEditing(item.id)) return renderCatalogEditRow(kind, item);
@@ -6451,8 +6493,8 @@
       const inactive = item.activo === false;
       return `
         <tr class="catalog-row ${inactive ? "is-inactive" : ""}" data-cat-row="${item.id}" data-cat-search="${escHTML(searchText(item))}" ${hidden ? "hidden" : ""}>
-          ${def.fields.map((f, idx) => `<td>${!item[f.key] ? `<span class="catalog-empty">-</span>`
-            : f.tag ? renderCatalogTag(item[f.key])
+          ${def.fields.map((f, idx) => `<td>${!toCatalogList(item[f.key]).length ? `<span class="catalog-empty">-</span>`
+            : f.tag ? `<div class="catalog-tags">${renderCatalogTags(item[f.key])}</div>`
             : idx === 0 ? `<strong>${escHTML(item[f.key])}</strong>` : escHTML(item[f.key])}</td>`).join("")}
           <td class="catalog-num">${def.usage(item)}</td>
           <td><span class="catalog-status ${inactive ? "is-off" : "is-on"}">${inactive ? "Inactivo" : "Activo"}</span></td>
@@ -6520,6 +6562,15 @@
     row.querySelectorAll("[data-cat-field]").forEach(el => {
       values[el.dataset.catField] = el.type === "checkbox" ? el.checked : el.value.trim();
     });
+    row.querySelectorAll(".tag-input[data-tag-field]").forEach(box => {
+      const vals = readTagInputValues(box);
+      values[box.dataset.tagField] = box.dataset.tagSingle === "1" ? (vals[0] || "") : vals;
+    });
+    const missing = def.fields.find(f => f.required && !toCatalogList(values[f.key]).length && f.key !== "nombre");
+    if (missing) {
+      showToast(`Indica ${missing.label.toLowerCase()}`);
+      return;
+    }
     if (kind === "productos") {
       values.nombre = values.subtipo ? `${values.tipo} · ${values.subtipo}` : values.tipo;
       values.etiqueta = values.tipo;
@@ -12740,7 +12791,7 @@
               <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
                 Nombre del certificado / acreditación
                 <input name="nombre" required ${isPrv ? 'list="catalogConformidadesList"' : ""} autocomplete="off" placeholder="${isPrv ? 'Ej: Homologación Adif Eje Ancho / ISO 45001' : 'Ej: Certificado ROLECE actualizado / ISO 45001'}" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box" />
-                ${isPrv ? `<datalist id="catalogConformidadesList">${getActiveConformidades().map(c => `<option value="${escHTML(c.nombre)}">${escHTML([c.tipo, c.emisor].filter(Boolean).join(" · "))}</option>`).join("")}</datalist>` : ""}
+                ${isPrv ? `<datalist id="catalogConformidadesList">${getActiveConformidades().map(c => `<option value="${escHTML(c.nombre)}">${escHTML([c.tipo, toCatalogList(c.emisor).join(" / ")].filter(Boolean).join(" · "))}</option>`).join("")}</datalist>` : ""}
               </label>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
                 <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
@@ -12969,7 +13020,7 @@
 
   // Catálogos: Enter guarda y Escape cancela la fila en edición
   document.addEventListener("keydown", e => {
-    const field = e.target.closest?.("[data-cat-field]");
+    const field = e.target.closest?.("[data-cat-field], .tag-input-text");
     if (!field || !catalogEditing) return;
     if (e.key === "Enter") {
       e.preventDefault();
@@ -12979,6 +13030,93 @@
       renderApp();
     }
   });
+
+  // Campo de etiquetas: sugerencias, crear/añadir, quitar
+  function tagInputAdd(box, value) {
+    const v = String(value || "").trim();
+    if (!v) return;
+    const single = box.dataset.tagSingle === "1";
+    const inner = box.querySelector(".tag-input-box");
+    const input = box.querySelector(".tag-input-text");
+    if (single) inner.querySelectorAll(".tag-chip").forEach(c => c.remove());
+    else if (Array.from(inner.querySelectorAll(".tag-chip")).some(c => c.dataset.tagValue.toLowerCase() === v.toLowerCase())) { input.value = ""; return; }
+    const chip = document.createElement("span");
+    chip.className = "tag-chip";
+    chip.dataset.tagValue = v;
+    chip.innerHTML = `${escHTML(v)}<button type="button" data-tag-remove aria-label="Quitar ${escHTML(v)}">×</button>`;
+    inner.insertBefore(chip, input);
+    input.value = "";
+    if (single) input.style.display = "none";
+    const sug = box.querySelector(".tag-input-suggest");
+    sug.hidden = true;
+    sug.innerHTML = "";
+    if (!single) input.focus();
+  }
+
+  function tagInputSuggest(box) {
+    const input = box.querySelector(".tag-input-text");
+    const sug = box.querySelector(".tag-input-suggest");
+    const q = input.value.trim().toLowerCase();
+    let all = [];
+    try { all = JSON.parse(box.dataset.tagSuggest || "[]"); } catch (err) { all = []; }
+    const chosen = Array.from(box.querySelectorAll(".tag-chip")).map(c => c.dataset.tagValue.toLowerCase());
+    const matches = all.filter(v => !chosen.includes(v.toLowerCase()) && (!q || v.toLowerCase().includes(q))).slice(0, 8);
+    const exact = all.some(v => v.toLowerCase() === q);
+    const items = matches.map(v => `<button type="button" class="tag-suggest-item" data-tag-pick="${escHTML(v)}">${escHTML(v)}</button>`);
+    if (q && !exact) items.push(`<button type="button" class="tag-suggest-item is-create" data-tag-pick="${escHTML(input.value.trim())}">«${escHTML(input.value.trim())}» <em>(${escHTML(box.dataset.tagCreate || "Añadir")})</em></button>`);
+    sug.innerHTML = items.join("");
+    sug.hidden = !items.length;
+  }
+
+  document.addEventListener("input", e => {
+    const input = e.target.closest?.(".tag-input-text");
+    if (input) tagInputSuggest(input.closest(".tag-input"));
+  });
+  document.addEventListener("focusin", e => {
+    const input = e.target.closest?.(".tag-input-text");
+    if (input) tagInputSuggest(input.closest(".tag-input"));
+  });
+  document.addEventListener("mousedown", e => {
+    const pick = e.target.closest?.("[data-tag-pick]");
+    if (pick) {
+      e.preventDefault();
+      tagInputAdd(pick.closest(".tag-input"), pick.dataset.tagPick);
+      return;
+    }
+    const remove = e.target.closest?.("[data-tag-remove]");
+    if (remove) {
+      e.preventDefault();
+      const box = remove.closest(".tag-input");
+      remove.closest(".tag-chip").remove();
+      const input = box.querySelector(".tag-input-text");
+      input.style.display = "";
+      input.focus();
+      return;
+    }
+    document.querySelectorAll(".tag-input-suggest").forEach(sug => {
+      if (!sug.closest(".tag-input").contains(e.target)) sug.hidden = true;
+    });
+  });
+  document.addEventListener("keydown", e => {
+    const input = e.target.closest?.(".tag-input-text");
+    if (!input) return;
+    const box = input.closest(".tag-input");
+    if (e.key === "Enter" || e.key === ",") {
+      if (!input.value.trim()) return; // Enter vacío: deja que la fila se guarde
+      e.preventDefault();
+      e.stopPropagation();
+      const first = box.querySelector(".tag-suggest-item:not(.is-create)");
+      const q = input.value.trim().toLowerCase();
+      const exactMatch = first && first.dataset.tagPick.toLowerCase() === q;
+      tagInputAdd(box, exactMatch ? first.dataset.tagPick : input.value);
+    } else if (e.key === "Backspace" && !input.value) {
+      const chips = box.querySelectorAll(".tag-chip");
+      if (chips.length) chips[chips.length - 1].remove();
+    } else if (e.key === "Escape") {
+      box.querySelector(".tag-input-suggest").hidden = true;
+      e.stopPropagation();
+    }
+  }, true);
 
   // Catálogos: filtrado en vivo sin re-renderizar (conserva el foco del buscador)
   document.addEventListener("input", e => {
