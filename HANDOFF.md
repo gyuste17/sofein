@@ -2,6 +2,21 @@
 
 Registro de relevo entre agentes. **Entradas nuevas arriba.** Reglas del proyecto en `AGENTS.md`.
 
+## 2026-10-29 · Antigravity · rama procurement · Revisión integral previa a reunión y corrección de navegación (v55)
+
+**Revisión y verificación**
+- Comprobación exhaustiva de la rama procurement contra las especificaciones de las últimas reuniones (docs/PETICIONES_EXPEDIENTE.md, docs/Apuntes 05, docs/BACKEND_SPEC.md).
+- Verificadas y ejecutadas las 34 rutas clave en los 4 perfiles (Admin, Cliente, Proveedor, Destinatario) en navegador real con Chrome DevTools: 0 errores de consola, 0 undefined/NaN/[object Object], sin desbordamiento horizontal a 375 px.
+- Flujos interactivos probados: selector de proveedores por suministro (4 pasos), envío de cotizaciones por proveedor, filtros de historial, apertura de modales (Requerir, Subir, Editar documento, Validar solicitud, Emitir aviso, Registrar/editar incidencia, Perfil proveedor).
+
+**Correcciones realizadas (v55)**
+- **Navegación de pestañas en expediente:** parseHash sobreescribía ctiveDossierTab en cada llamada a 
+enderApp() si la URL traía ?tab=..., impidiendo cambiar a otras pestañas (Registro, Avisos, Historial) al entrar desde avisos o lista de suministros. Se añade lastAppliedTabHash y mapeo de alias (overview, documentacion, 
+egistro, visos, historial), y actualización de URL en data-switch-dossier-tab. Mismo blindaje añadido para ?phase=... con lastAppliedPhaseHash.
+- **Chips de suministro en Avisos:** los botones que enlazaban a ?tab=overview (que dejaba la zona de pestañas en blanco al no existir esa pestaña) ahora enlazan a ?tab=deliverables&sumId=.
+- **Confidencialidad Destinatario:** en el Pasaporte Digital (#destinatario/pasaporte), se oculta la cifra del desvío económico en las adendas consolidadas para cumplir estrictamente la regla de negocio de que el destinatario/auditor nunca ve importes económicos.
+- pp.html actualizado con assets ?v=procurement-v55.
+
 ## 2026-10-27 · Claude · rama `procurement` · Publicado v54 + especificación para base de datos
 
 - v54 (catálogos maestros con etiquetas): push y despliegue en sofein-procurement, verificado en la URL pública.

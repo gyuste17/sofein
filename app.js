@@ -1987,6 +1987,8 @@
   let activeDossierSuministroId = null;
   let pendingDossierSumFocus = false;
   let lastAppliedSumIdHash = null;
+  let lastAppliedTabHash = null;
+  let lastAppliedPhaseHash = null;
 
   const SHORT_PHASE_NAMES = [
     "Alcance",
@@ -2500,12 +2502,34 @@
     if (queryPart) {
       const qParams = new URLSearchParams(queryPart);
       selectorSumParam = qParams.get("sum");
-      if (qParams.get("tab")) {
-        activeDossierTab = qParams.get("tab");
+      const tabParam = qParams.get("tab");
+      if (tabParam && location.hash !== lastAppliedTabHash) {
+        lastAppliedTabHash = location.hash;
+        const tabAliases = {
+          overview: "deliverables",
+          documentacion: "deliverables",
+          deliverables: "deliverables",
+          incidents: "incidents",
+          registro: "incidents",
+          comms: "comms",
+          avisos: "comms",
+          history: "history",
+          historial: "history",
+          passport: "deliverables"
+        };
+        activeDossierTab = tabAliases[tabParam] || "deliverables";
+      } else if (!tabParam) {
+        lastAppliedTabHash = null;
       }
-      if (qParams.get("phase")) {
-        activeDossierPhase = parseInt(qParams.get("phase"), 10) || 0;
+
+      const phaseParam = qParams.get("phase");
+      if (phaseParam && location.hash !== lastAppliedPhaseHash) {
+        lastAppliedPhaseHash = location.hash;
+        activeDossierPhase = parseInt(phaseParam, 10) || 0;
+      } else if (!phaseParam) {
+        lastAppliedPhaseHash = null;
       }
+
       if (qParams.get("openMediation")) {
         pendingOpenMediation = qParams.get("openMediation");
       }
@@ -2519,6 +2543,8 @@
         lastAppliedSumIdHash = null;
       }
     } else {
+      lastAppliedTabHash = null;
+      lastAppliedPhaseHash = null;
       lastAppliedSumIdHash = null;
     }
     const [role, rawSection, param] = pathPart.split("/");
@@ -4864,7 +4890,7 @@
               </button>
             </div>
             <div>
-              <button class="avisos-sum-chip" type="button" data-go="#${activeRole}/expedientes/${n.expId}?tab=overview" title="Suministro: ${sumLabel}">
+              <button class="avisos-sum-chip" type="button" data-go="#${activeRole}/expedientes/${n.expId}?tab=deliverables${n.sumId ? `&sumId=${n.sumId}` : ""}" title="Suministro: ${sumLabel}">
                 ${icon("box", 12)} <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${sumLabel}</span>
               </button>
             </div>
@@ -5166,7 +5192,7 @@
           ` : ""}
           ${groupMode !== 'suministro' ? `
             <div>
-              <button class="avisos-sum-chip" type="button" data-go="#${role}/expedientes/${n.expId}?tab=overview" title="Suministro: ${sumLabel}">
+              <button class="avisos-sum-chip" type="button" data-go="#${role}/expedientes/${n.expId}?tab=deliverables${n.sumId ? `&sumId=${n.sumId}` : ""}" title="Suministro: ${sumLabel}">
                 ${icon("box", 12)} <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${sumLabel}</span>
               </button>
             </div>
@@ -8213,7 +8239,7 @@
                       ${inc.adendaId}: Modificación y Mediación por ${inc.titulo}
                     </strong>
                     <span style="font-size:0.74rem;color:var(--entity-muted);display:block;margin-top:2px">
-                      Consolidada el ${inc.adendaFecha} · Desvío: <b>${inc.nuevoCosteAcordado || inc.impactoCoste || "0 €"}</b> · Firmada por cliente y proveedor.
+                      Consolidada el ${inc.adendaFecha}${isDestinatario ? "" : ` · Desvío: <b>${inc.nuevoCosteAcordado || inc.impactoCoste || "0 €"}</b>`} · Firmada por cliente y proveedor.
                     </span>
                     <span class="passport-hash-pill" style="margin-top:4px;display:inline-block">Hash: ${inc.adendaHash || "SHA256: 9e8a71c0b...44"}</span>
                   </div>
@@ -8694,16 +8720,36 @@
     // Cambio de fase en el Constructor de Expedientes
     document.querySelectorAll("[data-select-dossier-phase]").forEach(btn => {
       btn.addEventListener("click", () => {
-        activeDossierPhase = Number(btn.dataset.selectDossierPhase);
-        renderApp();
+        const newPhase = Number(btn.dataset.selectDossierPhase);
+        activeDossierPhase = newPhase;
+        const [path, query] = (location.hash || "").split("?");
+        if (query && query.includes("phase=")) {
+          const q = new URLSearchParams(query);
+          q.set("phase", newPhase);
+          const newHash = `#${path.replace(/^#\/?/, "")}?${q.toString()}`;
+          lastAppliedPhaseHash = newHash;
+          location.hash = newHash;
+        } else {
+          renderApp();
+        }
       });
     });
 
     // Cambio de pestaña dentro del expediente
     document.querySelectorAll("[data-switch-dossier-tab]").forEach(btn => {
       btn.addEventListener("click", () => {
-        activeDossierTab = btn.dataset.switchDossierTab;
-        renderApp();
+        const newTab = btn.dataset.switchDossierTab;
+        activeDossierTab = newTab;
+        const [path, query] = (location.hash || "").split("?");
+        if (query) {
+          const q = new URLSearchParams(query);
+          q.set("tab", newTab);
+          const newHash = `#${path.replace(/^#\/?/, "")}?${q.toString()}`;
+          lastAppliedTabHash = newHash;
+          location.hash = newHash;
+        } else {
+          renderApp();
+        }
       });
     });
 
