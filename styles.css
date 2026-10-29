@@ -2987,13 +2987,14 @@ select:focus,
   gap: 6px;
   padding: 5px 10px;
   border-radius: 999px;
-  background: var(--entity-accent);
-  color: var(--entity-accent-ink);
+  border: 1px solid color-mix(in srgb, var(--entity-accent) 30%, transparent);
+  background: color-mix(in srgb, var(--entity-accent) 13%, var(--entity-panel));
+  color: var(--screen-title-color);
   font-size: 0.72rem;
   font-weight: 650;
   letter-spacing: 0.01em;
   white-space: nowrap;
-  box-shadow: 0 6px 18px rgba(8, 32, 16, 0.22);
+  box-shadow: 0 6px 16px rgba(8, 32, 16, 0.12);
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.08s ease;
