@@ -210,7 +210,7 @@
           { name: "Plano de Replanteo de Vía (Factoría VW)", reqDate: "10 jun 2026", owner: "Cliente", state: "complete", format: "DWG / PDF", file: "Plano-Acceso-VW-rev03.pdf", date: "12 jun 2026", visibleTo: ["admin", "cliente", "proveedor", "destinatario"], notes: "Revisión 03 aprobada para ejecución" }
         ],
         1: [ // 2. Proveedores
-          { name: "Comparativa de 3 Proveedores Homologados", reqDate: "13 jun 2026", owner: "SOFEIN", state: "complete", format: "PDF", file: "Comparativa-Fase1-Homologados.pdf", date: "14 jun 2026", visibleTo: ["admin", "cliente"], notes: "Preselección conforme a normativa" },
+          { name: "Comparativa de Proveedores Homologados", reqDate: "13 jun 2026", owner: "SOFEIN", state: "complete", format: "PDF", file: "Comparativa-Fase1-Homologados.pdf", date: "14 jun 2026", visibleTo: ["admin", "cliente"], notes: "Preselección conforme a normativa" },
           { name: "Oferta Económica Vinculante IberRail", reqDate: "14 jun 2026", owner: "Proveedor", state: "complete", format: "PDF", file: "Oferta-IberRail-RevFinal.pdf", date: "16 jun 2026", visibleTo: ["admin", "cliente", "proveedor"], notes: "Adjudicada · Incluye transporte y grúa" },
           { name: "Conformidad y Elección de Proveedor", reqDate: "16 jun 2026", owner: "Cliente", state: "complete", format: "Digital", file: "Adjudicacion-Formal-Cliente.pdf", date: "17 jun 2026", visibleTo: ["admin", "cliente", "proveedor"], notes: "Ratificada por dirección de obra" }
         ],
@@ -932,6 +932,7 @@
       score: "98% Conforme",
       email: "carlos.m@iberrail.es",
       telefono: "+34 945 393 210",
+      telefonos: ["+34 945 393 210", "+34 629 418 307"],
       contacto: "carlos.m@iberrail.es"
     },
     {
@@ -1739,7 +1740,7 @@
             case "suministros": return esc(getGenericSuministrosList(p.suministros || [p.materiales]).join(", "));
             case "activos": return esc(getProveedorActiveExpedientes(p.nombre).map(e => e.id).join(", "));
             case "conformidades": return esc((p.conformidades || p.homologaciones || []).join(", "));
-            case "contacto": return esc([p.email || p.contacto, p.telefono].filter(Boolean).join(" | "));
+            case "contacto": return esc([p.email || p.contacto, ...getTelefonos(p)].filter(Boolean).join(" | "));
             default: return esc(p[colId] || "");
           }
         });
@@ -1762,7 +1763,7 @@
             case "sede": return esc(c.sede);
             case "actividad": return esc(c.actividad || "");
             case "activos": return esc(getClienteActiveExpedientes(c.nombre).map(e => e.id).join(", "));
-            case "contacto": return esc([c.email || c.contacto, c.telefono].filter(Boolean).join(" | "));
+            case "contacto": return esc([c.email || c.contacto, ...getTelefonos(c)].filter(Boolean).join(" | "));
             default: return esc(c[colId] || "");
           }
         });
@@ -1944,6 +1945,18 @@
   function renderEmailCell(email) {
     if (!email) return `<span style="color:var(--entity-faint);font-size:0.72rem">—</span>`;
     return `<a href="mailto:${email}" class="dir-contact-link" title="${email}" style="font-size:0.72rem;display:inline-flex;align-items:center;gap:4px;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${icon("mail", 12)} <span>${email}</span></a>`;
+  }
+
+  // Teléfonos de un cliente/proveedor: `telefonos` (lista) o el antiguo `telefono` único
+  function getTelefonos(e) {
+    const list = Array.isArray(e?.telefonos) ? e.telefonos : [e?.telefono];
+    return list.map(t => String(t || "").trim()).filter(Boolean);
+  }
+
+  function renderTelefonosCell(list) {
+    if (!list.length) return renderTelefonoCell("");
+    if (list.length === 1) return renderTelefonoCell(list[0]);
+    return `<span class="dir-phone-list">${list.map(renderTelefonoCell).join("")}</span>`;
   }
 
   function renderTelefonoCell(tel) {
@@ -2597,7 +2610,7 @@
         </a>
         <nav>${navItems}</nav>
         <div class="admin-sidebar-foot">
-          <div class="admin-admin-user has-profile-link${((activeRole === "admin" && ADMIN_HUB_SECTIONS.includes(activeSection)) || ((activeRole === "cliente" || activeRole === "proveedor") && activeSection === "perfil")) ? " is-active" : ""}" data-go="#${activeRole === "admin" ? "admin/administracion" : activeRole + "/perfil"}" style="cursor:pointer" title="${activeRole === "admin" ? "Administración de la plataforma" : "Ver perfil corporativo"}">
+          <div class="admin-admin-user has-profile-link${((activeRole === "admin" && ADMIN_HUB_SECTIONS.includes(activeSection)) || ((activeRole === "cliente" || activeRole === "proveedor") && activeSection === "perfil")) ? " is-active" : ""}" data-go="#${activeRole === "admin" ? "admin/administracion" : activeRole + "/perfil"}" style="cursor:pointer" title="${activeRole === "admin" ? (SHOW_ADMIN_HUB ? "Administración de la plataforma" : "Mi cuenta") : "Ver perfil corporativo"}">
             <span>${player.avatar}</span>
             <div style="min-width:0;flex:1">
               <strong style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${player.entity}</strong>
@@ -2711,6 +2724,7 @@
     const unreadCount = roleNotices.filter(n => !completedNotices.has(n.id)).length;
     const sectionName = activeSection === "perfil" ? "Perfil corporativo"
       : activeSection === "selector" ? (activeRole === "proveedor" ? "Cotización" : "Selector de Proveedores")
+      : (activeRole === "admin" && !SHOW_ADMIN_HUB && ADMIN_HUB_SECTIONS.includes(activeSection)) ? "Mi cuenta"
       : ((activeRole === "admin" && ADMIN_HUB_LABELS[activeSection]) || ((player.nav.find(n => n.id === activeSection) || {}).label || activeSection));
     const currentTheme = document.documentElement.dataset.theme || "dark";
 
@@ -2720,7 +2734,7 @@
         <div class="admin-crumbs">
           <span>${player.label}</span>
           <i>/</i>
-          ${activeRole === "admin" && ADMIN_HUB_SECTIONS.includes(activeSection) && activeSection !== "administracion" ? `<a href="#admin/administracion" data-go="#admin/administracion" style="color:inherit;text-decoration:none">Administración</a><i>/</i>` : ""}
+          ${activeRole === "admin" && SHOW_ADMIN_HUB && ADMIN_HUB_SECTIONS.includes(activeSection) && activeSection !== "administracion" ? `<a href="#admin/administracion" data-go="#admin/administracion" style="color:inherit;text-decoration:none">Administración</a><i>/</i>` : ""}
           <b>${sectionName}</b>
           ${activeParam ? `<i>/</i><b style="color:var(--entity-accent)">${activeParam}</b>` : ""}
         </div>
@@ -2968,7 +2982,7 @@
   function renderCreateExpedienteView(creatorRole) {
     const isRoleAdmin = creatorRole === "admin";
     const breadcrumbBase = isRoleAdmin
-      ? `<a href="#admin/overview">Visión global</a> / <a href="#admin/expedientes">Expedientes</a> / <span>Crear expediente</span>`
+      ? `${SHOW_ADMIN_HUB ? `<a href="#admin/overview">Visión global</a> / ` : ""}<a href="#admin/expedientes">Expedientes</a> / <span>Crear expediente</span>`
       : `<a href="#cliente/expedientes">Mis expedientes</a> / <span>Nuevo expediente</span>`;
 
     return `
@@ -6515,6 +6529,9 @@
      ADMINISTRACIÓN SOFEIN (Hub + Catálogos maestros)
      ============================================================ */
   const ADMIN_HUB_SECTIONS = ["administracion", "overview", "configuracion"];
+  // Cuadro de mandos (Resumen, Visión global, Configuración) oculto: el perfil de SOFEIN abre «Mi cuenta» (decisión 29/10).
+  // El código se conserva para recuperarlo más adelante poniendo el flag a true.
+  const SHOW_ADMIN_HUB = false;
   const ADMIN_HUB_LABELS = {
     administracion: "Administración",
     overview: "Visión global",
@@ -6857,7 +6874,46 @@
     }
   }
 
+  // Perfil de SOFEIN mientras el cuadro de mandos está oculto: solo datos de la cuenta y acceso
+  function renderAdminCuentaView() {
+    const player = PLAYERS.admin;
+    return `
+      <div class="admin-view-head">
+        <div>
+          <h1>Mi cuenta</h1>
+          <p>Datos de acceso y seguridad de tu usuario SOFEIN.</p>
+        </div>
+      </div>
+      <section class="admin-account">
+        <div class="admin-account-card">
+          <h2>${icon("users", 15)} Usuario</h2>
+          <dl class="admin-account-list">
+            <div><dt>Organización</dt><dd>${player.entity}</dd></div>
+            <div><dt>Perfil</dt><dd>${player.label}</dd></div>
+            <div><dt>Correo de acceso</dt><dd>admin@sofein.es</dd></div>
+          </dl>
+        </div>
+        <div class="admin-account-card">
+          <h2>${icon("shield", 15)} Contraseña y acceso</h2>
+          <dl class="admin-account-list">
+            <div><dt>Contraseña</dt><dd>••••••••••</dd></div>
+            <div><dt>Verificación en dos pasos</dt><dd>No activada</dd></div>
+          </dl>
+          <div class="admin-account-actions">
+            <button class="admin-quiet-button" type="button" disabled>Cambiar contraseña</button>
+            <button class="admin-quiet-button" type="button" disabled>Activar verificación en dos pasos</button>
+          </div>
+          <p class="admin-account-note">Disponible cuando la plataforma se conecte al sistema de acceso.</p>
+        </div>
+      </section>
+    `;
+  }
+
   function renderAdminView(section, param) {
+    if (!SHOW_ADMIN_HUB && ADMIN_HUB_SECTIONS.includes(section)) {
+      return renderAdminCuentaView();
+    }
+
     if (section === "administracion") {
       return renderAdministracionHub();
     }
@@ -6969,7 +7025,7 @@
           (p.conformidades && p.conformidades.some(c => c.toLowerCase().includes(q))) ||
           (p.email && p.email.toLowerCase().includes(q)) ||
           (p.contacto && p.contacto.toLowerCase().includes(q)) ||
-          (p.telefono && p.telefono.toLowerCase().includes(q))
+          getTelefonos(p).some(t => t.toLowerCase().includes(q))
         );
       }).sort((a, b) => {
         let diff = 0;
@@ -6980,7 +7036,7 @@
         else if (directorioPrvSortCol === "activos") diff = getProveedorActiveExpedientes(a.nombre).length - getProveedorActiveExpedientes(b.nombre).length;
         else if (directorioPrvSortCol === "conformidades") diff = (a.conformidades || []).join(", ").localeCompare((b.conformidades || []).join(", "), "es");
         else if (directorioPrvSortCol === "contacto" || directorioPrvSortCol === "email") diff = (a.email || a.contacto || "").localeCompare(b.email || b.contacto || "", "es");
-        else if (directorioPrvSortCol === "telefono") diff = (a.telefono || "").localeCompare(b.telefono || "", "es");
+        else if (directorioPrvSortCol === "telefono") diff = (getTelefonos(a)[0] || "").localeCompare(getTelefonos(b)[0] || "", "es");
         return directorioPrvSortDir === "asc" ? diff : -diff;
       });
 
@@ -6993,7 +7049,7 @@
           (c.actividad && c.actividad.toLowerCase().includes(q)) ||
           (c.email && c.email.toLowerCase().includes(q)) ||
           (c.contacto && c.contacto.toLowerCase().includes(q)) ||
-          (c.telefono && c.telefono.toLowerCase().includes(q))
+          getTelefonos(c).some(t => t.toLowerCase().includes(q))
         );
       }).sort((a, b) => {
         let diff = 0;
@@ -7003,7 +7059,7 @@
         else if (directorioCliSortCol === "actividad") diff = (a.actividad || "").localeCompare(b.actividad || "", "es");
         else if (directorioCliSortCol === "activos") diff = getClienteActiveExpedientes(a.nombre).length - getClienteActiveExpedientes(b.nombre).length;
         else if (directorioCliSortCol === "contacto" || directorioCliSortCol === "email") diff = (a.email || a.contacto || "").localeCompare(b.email || b.contacto || "", "es");
-        else if (directorioCliSortCol === "telefono") diff = (a.telefono || "").localeCompare(b.telefono || "", "es");
+        else if (directorioCliSortCol === "telefono") diff = (getTelefonos(a)[0] || "").localeCompare(getTelefonos(b)[0] || "", "es");
         return directorioCliSortDir === "asc" ? diff : -diff;
       });
 
@@ -7042,7 +7098,7 @@
               <td class="dir-cell-contact">
                 <div style="display:flex;flex-direction:column;gap:3px;min-width:0">
                   ${renderEmailCell(p.email || p.contacto)}
-                  ${p.telefono ? renderTelefonoCell(p.telefono) : ''}
+                  ${getTelefonos(p).length ? renderTelefonosCell(getTelefonos(p)) : ''}
                 </div>
               </td>
             `;
@@ -7075,7 +7131,7 @@
               <td class="dir-cell-contact">
                 <div style="display:flex;flex-direction:column;gap:3px;min-width:0">
                   ${renderEmailCell(c.email || c.contacto)}
-                  ${c.telefono ? renderTelefonoCell(c.telefono) : ''}
+                  ${getTelefonos(c).length ? renderTelefonosCell(getTelefonos(c)) : ''}
                 </div>
               </td>
             `;
@@ -7374,7 +7430,7 @@
             <footer style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:12px;border-top:1px solid var(--entity-line)">
               <div style="display:flex;flex-direction:column;gap:3px;font-size:0.75rem">
                 ${renderEmailCell(p.email || p.contacto)}
-                ${p.telefono ? renderTelefonoCell(p.telefono) : ''}
+                ${getTelefonos(p).length ? renderTelefonosCell(getTelefonos(p)) : ''}
               </div>
               <button class="admin-quiet-button" type="button" data-edit-dir="proveedor" data-id="${p.id}">
                 ${icon("edit", 13)} Editar
@@ -7408,7 +7464,7 @@
             <footer style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:12px;border-top:1px solid var(--entity-line)">
               <div style="display:flex;flex-direction:column;gap:3px;font-size:0.75rem">
                 ${renderEmailCell(c.email || c.contacto)}
-                ${c.telefono ? renderTelefonoCell(c.telefono) : ''}
+                ${getTelefonos(c).length ? renderTelefonosCell(getTelefonos(c)) : ''}
               </div>
               <button class="admin-quiet-button" type="button" data-edit-dir="cliente" data-id="${c.id}">
                 ${icon("edit", 13)} Editar
@@ -7706,7 +7762,7 @@
               </div>
               <div class="b2b-profile-meta-item">
                 <span class="b2b-profile-meta-label">Teléfono Directo</span>
-                <strong class="b2b-profile-meta-val">${prv.telefono ? renderTelefonoCell(prv.telefono) : "—"}</strong>
+                <strong class="b2b-profile-meta-val">${getTelefonos(prv).length ? renderTelefonosCell(getTelefonos(prv)) : "—"}</strong>
               </div>
               <div class="b2b-profile-meta-item">
                 <span class="b2b-profile-meta-label">Condiciones de Pago Marco</span>
@@ -8042,7 +8098,7 @@
             </div>
             <div class="b2b-profile-meta-item">
               <span class="b2b-profile-meta-label">Teléfono Corporativo</span>
-              <strong class="b2b-profile-meta-val">${cli.telefono ? renderTelefonoCell(cli.telefono) : "—"}</strong>
+              <strong class="b2b-profile-meta-val">${getTelefonos(cli).length ? renderTelefonosCell(getTelefonos(cli)) : "—"}</strong>
             </div>
             <div class="b2b-profile-meta-item">
               <span class="b2b-profile-meta-label">Condiciones de Pago Estándar</span>
@@ -8976,12 +9032,12 @@
         if (targetRole === "cliente" || targetRole === "proveedor") {
           return `#${targetRole}/perfil${querySuffix}`;
         }
-        return `#admin/overview${querySuffix}`;
+        return `#admin/${SHOW_ADMIN_HUB ? "overview" : "administracion"}${querySuffix}`;
       }
 
       // 8. Visión global (exclusiva de admin)
       if (activeSection === "overview") {
-        if (targetRole === "admin") return `#admin/overview${querySuffix}`;
+        if (targetRole === "admin") return `#admin/${SHOW_ADMIN_HUB ? "overview" : "administracion"}${querySuffix}`;
         if (targetRole === "cliente" || targetRole === "proveedor") return `#${targetRole}/perfil${querySuffix}`;
         return `#${targetRole}/expedientes${querySuffix}`;
       }
@@ -9434,7 +9490,7 @@
         };
         const generalDocs = adjuntosGenerales.map(a => toCreationDoc(a, "General"));
         const fase2Docs = isRoleAdmin ? [
-          { name: "Preselección de 3 Proveedores Homologados", owner: "SOFEIN", state: "review", format: "PDF", file: null, date: "Listo para lanzar" }
+          { name: "Preselección de Proveedores Homologados", owner: "SOFEIN", state: "review", format: "PDF", file: null, date: "Listo para lanzar" }
         ] : [];
 
         const newExpediente = {
@@ -11090,7 +11146,7 @@
       exp.desviacionDias = "0 días (En plazo)";
       exp.plazoRealEstimado = "45 días";
       exp.plazoPactado = "45 días";
-      const preseleccion = { name: "Preselección de 3 Proveedores Homologados", owner: "SOFEIN", state: "review", format: "PDF", file: null, date: "Listo para lanzar" };
+      const preseleccion = { name: "Preselección de Proveedores Homologados", owner: "SOFEIN", state: "review", format: "PDF", file: null, date: "Listo para lanzar" };
       if (!exp.deliverables[1] || !exp.deliverables[1].length) exp.deliverables[1] = [{ ...preseleccion }];
       SUMINISTROS.filter(s => s.expId === exp.id).forEach(s => {
         if ((s.faseActual ?? 0) < 1) {
@@ -12680,6 +12736,16 @@
     });
   }
 
+  // Fila de teléfono del formulario de cliente/proveedor (la primera no se puede quitar)
+  function renderPhoneInputRow(value = "", first = false) {
+    return `
+      <div class="dir-phone-row">
+        <input name="telefono" type="tel" value="${String(value).replace(/"/g, '&quot;')}" placeholder="Ej: +34 945 393 210" aria-label="Teléfono" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box" />
+        ${first ? "" : `<button type="button" class="dir-phone-remove" data-remove-phone aria-label="Quitar teléfono">${icon("x", 12)}</button>`}
+      </div>
+    `;
+  }
+
   function openAddOrEditEntityModal(entityToEdit = null, defaultType = "proveedor") {
     const modalWrap = document.getElementById("modalContainer");
     if (!modalWrap) return;
@@ -12758,10 +12824,13 @@
                   Email de contacto
                   <input name="email" type="email" value="${(entityToEdit?.email || entityToEdit?.contacto || '').replace(/"/g, '&quot;')}" placeholder="contacto@empresa.es" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box" />
                 </label>
-                <label style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted)">
+                <div style="display:grid;gap:6px;font-size:0.75rem;font-weight:600;color:var(--entity-muted);align-content:start">
                   Teléfono de contacto
-                  <input name="telefono" type="tel" value="${(entityToEdit?.telefono || '').replace(/"/g, '&quot;')}" placeholder="Ej: +34 945 393 210" style="height:38px;padding:0 10px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;width:100%;box-sizing:border-box" />
-                </label>
+                  <div class="dir-phone-inputs" id="dirPhoneInputs">
+                    ${(getTelefonos(entityToEdit).length ? getTelefonos(entityToEdit) : [""]).map((t, i) => renderPhoneInputRow(t, i === 0)).join("")}
+                  </div>
+                  <button type="button" class="dir-phone-add" id="dirPhoneAddBtn">${icon("plus", 12)} Añadir otro teléfono</button>
+                </div>
               </div>
 
               <!-- CAMPOS DE PROVEEDOR -->
@@ -13044,6 +13113,18 @@
       }
     });
 
+    // Teléfonos: «+» añade otra fila; la «×» la quita
+    const phoneInputsEl = document.getElementById("dirPhoneInputs");
+    document.getElementById("dirPhoneAddBtn")?.addEventListener("click", () => {
+      if (!phoneInputsEl) return;
+      phoneInputsEl.insertAdjacentHTML("beforeend", renderPhoneInputRow("", false));
+      phoneInputsEl.querySelector(".dir-phone-row:last-child input")?.focus();
+    });
+    phoneInputsEl?.addEventListener("click", e => {
+      const rm = e.target.closest("[data-remove-phone]");
+      if (rm) rm.closest(".dir-phone-row")?.remove();
+    });
+
     // Envío del formulario
     document.getElementById("modalAddEntityForm")?.addEventListener("submit", e => {
       e.preventDefault();
@@ -13053,7 +13134,8 @@
       const cif = (form.get("cif") || "").trim() || "B-00000000";
       const sede = (form.get("sede") || "").trim() || "España";
       const email = (form.get("email") || "").trim();
-      const telefono = (form.get("telefono") || "").trim();
+      const telefonos = form.getAll("telefono").map(t => String(t).trim()).filter(Boolean);
+      const telefono = telefonos[0] || "";
 
       if (tipo === "proveedor") {
         let suministros = Array.from(selectedSuministrosSet);
@@ -13083,6 +13165,7 @@
             prv.email = email;
             prv.contacto = email;
             prv.telefono = telefono;
+            prv.telefonos = telefonos;
             prv.suministros = suministros;
             prv.suministrosCondiciones = finalCondMap;
             prv.conformidades = conformidades;
@@ -13105,6 +13188,7 @@
             condicionesPago: generalCondPago,
             email,
             telefono,
+            telefonos,
             contacto: email
           };
           DIRECTORIO_PROVEEDORES.unshift(newPrv);
@@ -13125,6 +13209,7 @@
             cli.email = email;
             cli.contacto = email;
             cli.telefono = telefono;
+            cli.telefonos = telefonos;
             cli.representante = representante || cli.representante || "Dirección de Compras";
             cli.condicionesPago = condicionesPago;
             showToast(`✓ Cliente "${cli.nombre}" actualizado correctamente`);
@@ -13140,6 +13225,7 @@
             homologado: true,
             email,
             telefono,
+            telefonos,
             contacto: email,
             representante: representante || "Dirección de Compras",
             condicionesPago: condicionesPago

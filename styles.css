@@ -9859,3 +9859,75 @@ details.b2b-profile-card.is-collapsible[open] > summary.is-collapsible-summary .
 #dossierAnchorTabs {
   scroll-margin-top: 56px;
 }
+
+/* Mi cuenta (perfil de SOFEIN mientras el cuadro de mandos está oculto) */
+.admin-account {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 14px;
+  align-items: start;
+}
+.admin-account-card {
+  padding: 18px;
+  border: 1px solid var(--entity-line);
+  border-radius: 10px;
+  background: var(--entity-panel);
+  box-shadow: var(--entity-shadow);
+  min-width: 0;
+}
+.admin-account-card h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+.admin-account-list { margin: 0; display: grid; gap: 10px; }
+.admin-account-list > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--entity-line);
+  font-size: 0.86rem;
+}
+.admin-account-list > div:last-child { border-bottom: 0; padding-bottom: 0; }
+.admin-account-list dt { color: var(--entity-muted); }
+.admin-account-list dd { margin: 0; font-weight: 500; text-align: right; overflow-wrap: anywhere; }
+.admin-account-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.admin-account-actions button:disabled { opacity: 0.55; cursor: not-allowed; }
+.admin-account-note { margin: 10px 0 0; font-size: 0.78rem; color: var(--entity-muted); }
+
+/* Directorio: varios teléfonos por cliente/proveedor */
+.dir-phone-list { display: inline-flex; flex-direction: column; gap: 3px; }
+.dir-phone-inputs { display: grid; gap: 6px; }
+.dir-phone-row { display: flex; gap: 6px; align-items: center; }
+.dir-phone-remove {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--entity-line);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--entity-muted);
+  cursor: pointer;
+}
+.dir-phone-remove:hover { color: var(--entity-text); border-color: var(--entity-line-strong); }
+.dir-phone-add {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 0;
+  border: 0;
+  background: none;
+  color: var(--entity-accent);
+  font: inherit;
+  font-size: 0.74rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.dir-phone-add:hover { text-decoration: underline; }
