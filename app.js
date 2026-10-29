@@ -1498,6 +1498,7 @@
   let discardedNotices = completedNotices; // Alias retrocompatible
   let showCompletedAvisos = false;
   let showDiscardedAvisos = false; // Alias retrocompatible
+  let topbarNotifFilter = "pending"; // "pending" | "all" 
 
   /* ---------- Avisos: Tonalidades de Categorías y Ordenación ---------- */
   function getCategoryToneInfo(cat) {
@@ -2593,9 +2594,105 @@
     `;
   }
 
+  /* ---------- Componente: Popover Flotante de Notificaciones Bell ---------- */
+  function getNoticeEffectiveLink(n, role = activeRole) {
+    if (n.enlace) {
+      return n.enlace.replace(/^#(admin|cliente|proveedor|destinatario)\//, `#${role}/`);
+    }
+    if (n.expId) {
+      return `#${role}/expedientes/${n.expId}?tab=deliverables${n.sumId ? `&sumId=${n.sumId}` : ""}`;
+    }
+    return `#${role}/avisos`;
+  }
+
+  function renderTopbarNotifPopoverHTML() {
+    const roleNotices = NOTICES.filter(n => canRoleSeeNotice(n, activeRole));
+    const unreadNotices = roleNotices.filter(n => !completedNotices.has(n.id));
+    const displayNotices = topbarNotifFilter === "pending" ? unreadNotices : roleNotices;
+    const player = PLAYERS[activeRole] || { shortLabel: activeRole };
+
+    return `
+      <div class="notif-popover-head">
+        <div class="notif-popover-title">
+          <strong>Avisos & Notificaciones</strong>
+          ${unreadNotices.length > 0 ? `<span class="notif-unread-chip">${unreadNotices.length} pendientes</span>` : `<span class="notif-all-read-chip">${icon("check", 11)} Al día</span>`}
+        </div>
+        ${unreadNotices.length > 0 ? `
+          <button type="button" class="notif-mark-all-btn" id="notifMarkAllReadBtn" title="Marcar todos los avisos como completados">
+            ${icon("check", 12)} Marcar leídos
+          </button>
+        ` : ""}
+      </div>
+
+      <div class="notif-filter-tabs">
+        <button type="button" class="notif-tab-btn ${topbarNotifFilter === "pending" ? "is-active" : ""}" data-topbar-notif-filter="pending">
+          Pendientes (${unreadNotices.length})
+        </button>
+        <button type="button" class="notif-tab-btn ${topbarNotifFilter === "all" ? "is-active" : ""}" data-topbar-notif-filter="all">
+          Todos (${roleNotices.length})
+        </button>
+      </div>
+
+      <div class="notif-popover-list">
+        ${displayNotices.length === 0 ? `
+          <div class="notif-empty-state">
+            <span class="notif-empty-icon">${icon("check", 22)}</span>
+            <strong>Estás al día</strong>
+            <p>${topbarNotifFilter === "pending" ? `No tienes avisos pendientes de acción en ${player.shortLabel}.` : "No hay avisos registrados para este perfil."}</p>
+          </div>
+        ` : displayNotices.slice(0, 8).map(n => {
+          const isDone = completedNotices.has(n.id);
+          const tone = getCategoryToneInfo(n.categoria);
+          const link = getNoticeEffectiveLink(n, activeRole);
+          const sumLabel = n.sumId ? (n.suministro || n.sumId) : (n.suministro && n.suministro !== "General del Expediente" ? n.suministro : null);
+
+          return `
+            <article class="notif-popover-item ${isDone ? "is-completed" : "is-unread"}" data-notif-id="${n.id}">
+              <div class="notif-item-header">
+                <span class="notif-cat-tag" style="color:${tone.color};background:${tone.bg};border:1px solid ${tone.border}">
+                  ${icon(tone.iconName, 11)} ${escHTML(n.categoria || "Aviso")}
+                </span>
+                ${n.expId ? `
+                  <span class="notif-scope-tag" title="${escHTML(n.expId)}${sumLabel ? ` · ${escHTML(sumLabel)}` : ""}">
+                    ${n.expId}${n.sumId ? ` · ${n.sumId}` : ""}
+                  </span>
+                ` : ""}
+                <time class="notif-item-time">${n.fecha || "Reciente"}</time>
+              </div>
+
+              <div class="notif-item-content" data-go="${link}" data-mark-notif-on-click="${n.id}" style="cursor:pointer" title="Ir a ${escHTML(n.accion || 'este aviso')}">
+                <strong class="notif-item-title">${escHTML(n.titulo)}</strong>
+                ${n.descripcion ? `<p class="notif-item-desc">${escHTML(n.descripcion)}</p>` : ""}
+              </div>
+
+              <div class="notif-item-footer">
+                <button class="notif-action-link" type="button" data-go="${link}" data-mark-notif-on-click="${n.id}">
+                  ${escHTML(n.accion || "Ver detalle")} ${icon("arrow", 11)}
+                </button>
+                <button class="notif-toggle-btn ${isDone ? "is-done" : ""}" type="button" data-topbar-toggle-notice="${n.id}" title="${isDone ? "Reabrir aviso" : "Marcar como completado"}">
+                  ${icon(isDone ? "refresh" : "check", 12)}
+                  <span>${isDone ? "Reabrir" : "Completar"}</span>
+                </button>
+              </div>
+            </article>
+          `;
+        }).join("")}
+      </div>
+
+      <div class="notif-popover-foot">
+        <button type="button" class="notif-view-all-link" data-go="#${activeRole}/avisos">
+          <span>Ver bandeja central de avisos</span>
+          ${icon("arrow", 13)}
+        </button>
+      </div>
+    `;
+  }
+
   /* ---------- Componente: Topbar Interna con Switcher Sutil ---------- */
   function renderTopbar() {
     const player = PLAYERS[activeRole];
+    const roleNotices = NOTICES.filter(n => canRoleSeeNotice(n, activeRole));
+    const unreadCount = roleNotices.filter(n => !completedNotices.has(n.id)).length;
     const sectionName = activeSection === "perfil" ? "Perfil corporativo"
       : activeSection === "selector" ? (activeRole === "proveedor" ? "Cotización" : "Selector de Proveedores")
       : ((activeRole === "admin" && ADMIN_HUB_LABELS[activeSection]) || ((player.nav.find(n => n.id === activeSection) || {}).label || activeSection));
@@ -2665,10 +2762,16 @@
             ${icon(currentTheme === "dark" ? "sun" : "moon", 16)}
           </button>
 
-          <!-- Notificaciones Bell -->
-          <button class="topbar-icon-btn" type="button" data-toast="Tienes 1 notificación de actualización en SFN-2026-H6T4" aria-label="Notificaciones" title="Notificaciones de inbox">
-            ${icon("bell", 16)}<i class="bell-unread-dot"></i>
-          </button>
+          <!-- Notificaciones Bell Flotante -->
+          <div class="notif-dropdown-wrap" id="notifDropdownWrap">
+            <button class="topbar-icon-btn notif-bell-btn ${unreadCount > 0 ? "has-unread" : ""}" id="notifDropdownBtn" type="button" aria-expanded="false" aria-label="Notificaciones" title="${unreadCount > 0 ? `${unreadCount} ${unreadCount === 1 ? 'aviso pendiente' : 'avisos pendientes'}` : 'Sin avisos pendientes'}">
+              ${icon("bell", 16)}
+              ${unreadCount > 0 ? `<span class="bell-count-badge">${unreadCount > 9 ? "9+" : unreadCount}</span>` : ""}
+            </button>
+            <div class="notif-dropdown-popover" id="notifDropdownMenu" hidden>
+              ${renderTopbarNotifPopoverHTML()}
+            </div>
+          </div>
         </div>
       </header>
     `;
@@ -8577,6 +8680,10 @@
     const roleMenu = document.getElementById("roleDropdownMenu");
     roleBtn?.addEventListener("click", e => {
       e.stopPropagation();
+      // Cerrar menú de notificaciones si estuviera abierto
+      document.getElementById("notifDropdownMenu")?.setAttribute("hidden", "");
+      document.getElementById("notifDropdownBtn")?.setAttribute("aria-expanded", "false");
+
       const isHidden = roleMenu.hasAttribute("hidden");
       if (isHidden) {
         roleMenu.removeAttribute("hidden");
@@ -8587,10 +8694,121 @@
       }
     });
 
+    // Popover de Notificaciones / Avisos Bell
+    const notifBtn = document.getElementById("notifDropdownBtn");
+    const notifMenu = document.getElementById("notifDropdownMenu");
+
+    function updateTopbarNotifPopoverUI() {
+      const menu = document.getElementById("notifDropdownMenu");
+      const btn = document.getElementById("notifDropdownBtn");
+      if (!menu || !btn) return;
+      const rNotices = NOTICES.filter(n => canRoleSeeNotice(n, activeRole));
+      const uCount = rNotices.filter(n => !completedNotices.has(n.id)).length;
+      btn.className = `topbar-icon-btn notif-bell-btn ${uCount > 0 ? "has-unread" : ""}`;
+      btn.title = uCount > 0 ? `${uCount} ${uCount === 1 ? 'aviso pendiente' : 'avisos pendientes'}` : 'Sin avisos pendientes';
+      btn.innerHTML = `${icon("bell", 16)}${uCount > 0 ? `<span class="bell-count-badge">${uCount > 9 ? "9+" : uCount}</span>` : ""}`;
+      menu.innerHTML = renderTopbarNotifPopoverHTML();
+      const sideAvisos = document.querySelector('.admin-nav-link[data-go*="avisos"] b');
+      if (sideAvisos) sideAvisos.textContent = uCount;
+    }
+
+    notifBtn?.addEventListener("click", e => {
+      e.stopPropagation();
+      // Cerrar role switcher si estuviera abierto
+      document.getElementById("roleDropdownMenu")?.setAttribute("hidden", "");
+      document.getElementById("roleDropdownBtn")?.setAttribute("aria-expanded", "false");
+
+      const isHidden = notifMenu.hasAttribute("hidden");
+      if (isHidden) {
+        notifMenu.removeAttribute("hidden");
+        notifBtn.setAttribute("aria-expanded", "true");
+      } else {
+        notifMenu.setAttribute("hidden", "");
+        notifBtn.setAttribute("aria-expanded", "false");
+      }
+    });
+
+    if (notifMenu) {
+      notifMenu.addEventListener("click", e => {
+        // 1. Pestañas de filtro
+        const filterBtn = e.target.closest("[data-topbar-notif-filter]");
+        if (filterBtn) {
+          e.stopPropagation();
+          topbarNotifFilter = filterBtn.dataset.topbarNotifFilter;
+          updateTopbarNotifPopoverUI();
+          return;
+        }
+
+        // 2. Marcar todos como leídos
+        const markAllBtn = e.target.closest("#notifMarkAllReadBtn");
+        if (markAllBtn) {
+          e.stopPropagation();
+          const rNotices = NOTICES.filter(n => canRoleSeeNotice(n, activeRole));
+          rNotices.forEach(n => completedNotices.add(n.id));
+          showToast("Todos los avisos marcados como leídos");
+          updateTopbarNotifPopoverUI();
+          if (activeSection === "avisos") {
+            renderApp();
+          }
+          return;
+        }
+
+        // 3. Toggle de aviso individual
+        const toggleBtn = e.target.closest("[data-topbar-toggle-notice]");
+        if (toggleBtn) {
+          e.stopPropagation();
+          const id = toggleBtn.dataset.topbarToggleNotice;
+          if (completedNotices.has(id)) {
+            completedNotices.delete(id);
+            showToast(`Aviso ${id} reabierto`);
+          } else {
+            completedNotices.add(id);
+            showToast(`Aviso ${id} completado`);
+          }
+          updateTopbarNotifPopoverUI();
+          if (activeSection === "avisos") {
+            renderApp();
+          }
+          return;
+        }
+
+        // 4. Marcar al hacer clic en enlace/acción o tarjeta
+        const markOnClick = e.target.closest("[data-mark-notif-on-click]");
+        if (markOnClick) {
+          const id = markOnClick.dataset.markNotifOnClick;
+          completedNotices.add(id);
+          notifMenu.setAttribute("hidden", "");
+          notifBtn?.setAttribute("aria-expanded", "false");
+          return;
+        }
+
+        // 5. Ver todos los avisos
+        const viewAll = e.target.closest(".notif-view-all-link");
+        if (viewAll) {
+          notifMenu.setAttribute("hidden", "");
+          notifBtn?.setAttribute("aria-expanded", "false");
+          return;
+        }
+      });
+    }
+
     document.addEventListener("click", e => {
       if (!e.target.closest("#roleSwitcherWrap")) {
         document.getElementById("roleDropdownMenu")?.setAttribute("hidden", "");
         document.getElementById("roleDropdownBtn")?.setAttribute("aria-expanded", "false");
+      }
+      if (!e.target.closest("#notifDropdownWrap")) {
+        document.getElementById("notifDropdownMenu")?.setAttribute("hidden", "");
+        document.getElementById("notifDropdownBtn")?.setAttribute("aria-expanded", "false");
+      }
+    });
+
+    document.addEventListener("keydown", e => {
+      if (e.key === "Escape") {
+        document.getElementById("roleDropdownMenu")?.setAttribute("hidden", "");
+        document.getElementById("roleDropdownBtn")?.setAttribute("aria-expanded", "false");
+        document.getElementById("notifDropdownMenu")?.setAttribute("hidden", "");
+        document.getElementById("notifDropdownBtn")?.setAttribute("aria-expanded", "false");
       }
     });
 

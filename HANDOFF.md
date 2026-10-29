@@ -2,6 +2,23 @@
 
 Registro de relevo entre agentes. **Entradas nuevas arriba.** Reglas del proyecto en `AGENTS.md`.
 
+## 2026-10-29 · Antigravity · rama procurement · Popover interactivo de Avisos y Notificaciones en topbar (v56)
+
+**Hecho**
+- Renovación integral del botón superior derecho de la campana (#notifDropdownBtn):
+  - Popover flotante interactivo (#notifDropdownMenu) con diseño SaaS B2B moderno (Stripe/Linear), con cabecera, chip de recuento de pendientes, pestañas de filtro («Pendientes» y «Todos»), listado con scroll y pie de acceso directo a la bandeja central (#<rol>/avisos).
+  - Badge numérico en la campana con conteo de avisos pendientes de acción, adaptado a cada rol (canRoleSeeNotice).
+  - Avisos sincronizados con los datos del sistema (NOTICES): cada ítem muestra su categoría con color/icono temático (getCategoryToneInfo), código de expediente y suministro, título, descripción, marca de tiempo y botón de acción con enlace directo a la ficha/suministro/mediación.
+  - Interactividad en tiempo real:
+    - Botón «Marcar leídos» para completar todos los avisos del perfil de una vez.
+    - Botón individual en cada aviso para conmutar entre «Completar» y «Reabrir» sin cerrar el desplegable ni perder contexto.
+    - Clic en el contenido o acción del aviso marca el ítem como completado, cierra el menú y navega directamente al destino.
+    - Estado vacío ilustrado («Estás al día») cuando no quedan avisos pendientes.
+    - Cierre automático al hacer clic fuera o pulsar la tecla Escape, coordinado con el switcher de roles.
+  - Diseño responsive y adaptativo tanto para Modo Claro como Modo Oscuro, con comportamiento fijado en smartphone (< 640 px).
+- Actualizado el cachebuster en pp.html a ?v=procurement-v56.
+- Verificado en Chrome DevTools: 0 errores de consola, navegación fluida y funcionalidad reactiva en los 4 perfiles.
+
 ## 2026-10-29 · Antigravity · rama procurement · Revisión integral previa a reunión y corrección de navegación (v55)
 
 **Revisión y verificación**
