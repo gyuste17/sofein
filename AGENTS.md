@@ -34,7 +34,8 @@ Paso a base de datos (Supabase): `docs/BACKEND_SPEC.md` — modelo, estados, per
 
 - Repo: https://github.com/gyuste17/sofein · Vercel `sofein`: Project ID `prj_gGsEVjlIdAYYg8pDKTUcuJZI2XEC`.
 - Mantener `procurement` aislada de `main` salvo que Guillermo pida integrarlas.
-- No hacer push ni desplegar a producción sin que Guillermo lo pida.
+- `procurement`: cuando una tarea esté terminada y probada (ver «Cómo probar»), integrarla, hacer push y desplegar en `sofein-procurement` sin preguntar; avisar después con la URL y la versión. (Acordado con Guillermo el 2026-10-29.)
+- `main` (web corporativa, se despliega sola al hacer push): no hacer push sin que Guillermo lo pida.
 
 ## Cómo probar
 
