@@ -9440,3 +9440,391 @@ details.b2b-profile-card.is-collapsible[open] > summary.is-collapsible-summary .
 .tag-input-suggest[hidden] {
   display: none;
 }
+
+/* ============================================================
+   Gestión del expediente (v60)
+   ============================================================ */
+/* Fases completadas con documentos sin validar */
+.dossier-step-pending {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 6px;
+  border-radius: 99px;
+  background: var(--entity-warning-bg);
+  color: var(--entity-warning);
+  font-size: 0.66rem;
+  font-weight: 700;
+}
+.dossier-step.has-pending-docs .dossier-step-meta {
+  color: var(--entity-warning);
+}
+.advance-warn-list {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.advance-warn-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 10px;
+  border: 1px solid var(--entity-line);
+  border-radius: 6px;
+  font-size: 0.78rem;
+}
+.advance-warn-list li span {
+  color: var(--entity-warning);
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+/* Cabecera fija mínima al hacer scroll */
+.dossier-sticky-anchor {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  height: 0;
+}
+.dossier-sticky-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 8px 14px;
+  border: 1px solid var(--entity-line);
+  border-top: 0;
+  border-radius: 0 0 10px 10px;
+  background: color-mix(in srgb, var(--entity-bg) 92%, transparent);
+  backdrop-filter: blur(8px);
+  font-size: 0.76rem;
+  color: var(--entity-muted);
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateY(-110%);
+  pointer-events: none;
+  transition: opacity 0.16s ease, transform 0.16s ease;
+}
+.dossier-sticky-bar.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+.dossier-sticky-bar a {
+  color: var(--entity-muted);
+  text-decoration: none;
+}
+.dossier-sticky-bar a:hover {
+  color: var(--entity-accent);
+}
+.dossier-sticky-bar i {
+  font-style: normal;
+  color: var(--entity-faint);
+}
+.dossier-sticky-bar b {
+  color: var(--entity-text);
+  font-weight: 650;
+}
+.dossier-sticky-exp {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dossier-sticky-phase {
+  color: var(--entity-accent);
+  font-weight: 650;
+}
+@media (max-width: 640px) {
+  .dossier-sticky-exp {
+    display: none;
+  }
+}
+
+/* Resumen del expediente en el constructor */
+.create-exp-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+.create-exp-summary-grid > div {
+  display: grid;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: var(--entity-panel-2);
+  border: 1px solid var(--entity-line);
+}
+.create-exp-summary-grid span {
+  font-size: 0.68rem;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--entity-faint);
+}
+.create-exp-summary-grid strong {
+  font-size: 1.05rem;
+  color: var(--entity-text);
+}
+@media (max-width: 720px) {
+  .create-exp-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* ---------- Pasaporte Digital: pestaña propia, cabecera visual e impresión (v60) ---------- */
+.dossier-tab-btn.is-passport-tab {
+  color: var(--entity-accent);
+}
+.passport-hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas: "brand meta" "main main";
+  gap: 26px 20px;
+  margin: -32px -36px 26px;
+  padding: 26px 36px 30px;
+  color: #ffffff;
+  background:
+    linear-gradient(120deg, rgba(8, 38, 18, 0.94) 0%, rgba(16, 69, 29, 0.86) 48%, rgba(47, 158, 102, 0.55) 100%),
+    url("assets/premium-rail-bg.png") center / cover no-repeat;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+.passport-hero::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #7cdd65, #2f9e66 55%, #c89d54);
+}
+.passport-hero-brand {
+  grid-area: brand;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.passport-hero-brand img {
+  height: 22px;
+  filter: brightness(0) invert(1);
+}
+.passport-hero-brand span {
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+.passport-hero-main {
+  grid-area: main;
+}
+.passport-hero-kicker {
+  display: inline-block;
+  margin-bottom: 8px;
+  padding: 3px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 99px;
+  font-size: 0.7rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  background: rgba(255, 255, 255, 0.08);
+}
+.passport-hero-main h1 {
+  margin: 0;
+  font-size: clamp(1.8rem, 3.4vw, 2.6rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: #ffffff;
+}
+.passport-hero-main p {
+  margin: 6px 0 0;
+  max-width: 640px;
+  font-size: 0.92rem;
+  color: rgba(255, 255, 255, 0.85);
+}
+.passport-hero-meta {
+  grid-area: meta;
+  justify-self: end;
+  display: flex;
+  gap: 22px;
+  flex-wrap: wrap;
+  text-align: right;
+}
+.passport-hero-meta span {
+  display: block;
+  font-size: 0.62rem;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.65);
+}
+.passport-hero-meta strong {
+  font-size: 0.8rem;
+  font-weight: 650;
+  color: #ffffff;
+}
+.passport-card:has(.passport-hero)::before {
+  display: none;
+}
+@media (max-width: 760px) {
+  .passport-hero {
+    grid-template-columns: 1fr;
+    grid-template-areas: "brand" "main" "meta";
+    margin: -32px -20px 22px;
+    padding: 22px 20px 24px;
+  }
+  .passport-hero-meta {
+    justify-self: start;
+    text-align: left;
+  }
+}
+
+/* Botón «Conseguir Pasaporte Digital» (cliente y proveedor en la fase final) */
+.passport-cta-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin: 0 0 16px;
+  padding: 16px 20px;
+  border-radius: 12px;
+  color: #ffffff;
+  background:
+    linear-gradient(120deg, rgba(8, 38, 18, 0.95) 0%, rgba(16, 69, 29, 0.88) 60%, rgba(47, 158, 102, 0.6) 100%),
+    url("assets/premium-rail-bg.png") center / cover no-repeat;
+}
+.passport-cta-copy {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.passport-cta-icon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #c9f2b8;
+}
+.passport-cta-copy strong {
+  display: block;
+  font-size: 0.95rem;
+}
+.passport-cta-copy small {
+  font-size: 0.76rem;
+  color: rgba(255, 255, 255, 0.78);
+}
+.passport-cta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: 999px;
+  background: linear-gradient(90deg, #7cdd65, #2f9e66);
+  color: #06140a;
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(47, 158, 102, 0.35);
+}
+.passport-cta-btn:disabled {
+  cursor: not-allowed;
+  background: rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.85);
+  border-style: dashed;
+  box-shadow: none;
+}
+
+/* Imprimir solo el pasaporte */
+@media print {
+  body.printing-passport .admin-view * {
+    visibility: hidden;
+  }
+  body.printing-passport .passport-print-root,
+  body.printing-passport .passport-print-root * {
+    visibility: visible;
+  }
+  body.printing-passport .passport-print-root {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+  body.printing-passport .dossier-sticky-anchor {
+    display: none !important;
+  }
+  .passport-hero {
+    margin: 0 0 14px !important;
+    padding: 18px 22px !important;
+    border-radius: 0 !important;
+  }
+  .passport-hero,
+  .passport-hero * {
+    color: #ffffff !important;
+  }
+}
+
+/* Selector: requisitos desmarcados claramente en gris */
+.selector-conf-option input:not(:checked) + span {
+  background: transparent;
+  border-style: dashed;
+  border-color: var(--entity-line-strong, var(--entity-line));
+  color: var(--entity-faint);
+  opacity: 0.6;
+  filter: grayscale(1);
+}
+.selector-conf-option input:not(:checked) + span svg {
+  opacity: 0.5;
+}
+.selector-homologation-chip.is-muted {
+  border-style: dashed;
+  filter: grayscale(1);
+}
+/* Ficha del expediente: «clip» en vez de «hidden» para que la cabecera fija funcione sin scroll lateral */
+.admin-main:has(.dossier-builder),
+.admin-view:has(.dossier-builder) {
+  overflow-x: clip !important;
+  overflow-y: visible !important;
+}
+.passport-hero {
+  grid-template-columns: 1fr;
+  grid-template-areas: "brand" "main" "meta";
+  gap: 18px;
+  background:
+    linear-gradient(110deg, rgba(8, 38, 18, 0.95) 0%, rgba(16, 69, 29, 0.82) 45%, rgba(47, 158, 102, 0.35) 100%),
+    url("assets/premium-rail-bg.png") center 60% / cover no-repeat;
+}
+.passport-hero-meta {
+  justify-self: start;
+  text-align: left;
+  gap: 0;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.18);
+}
+.passport-hero-meta > div {
+  padding: 0 22px;
+  border-left: 1px solid rgba(255, 255, 255, 0.18);
+}
+.passport-hero-meta > div:first-child {
+  padding-left: 0;
+  border-left: 0;
+}
+@media (max-width: 760px) {
+  .passport-hero-meta {
+    gap: 10px;
+  }
+  .passport-hero-meta > div {
+    padding: 0;
+    border-left: 0;
+  }
+}

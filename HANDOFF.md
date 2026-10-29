@@ -2,6 +2,46 @@
 
 Registro de relevo entre agentes. **Entradas nuevas arriba.** Reglas del proyecto en `AGENTS.md`.
 
+## 2026-10-29 · Claude · rama `claude/gestion-expediente` · Gestión del expediente, pasaporte y selector (v60), publicado
+
+**Hecho**
+- Fases:
+  - «Completar fase» ya no da por validados los documentos.
+  - Si hay documentos sin validar, `openAdvancePhaseWarningModal` avisa y permite avanzar.
+  - En el stepper, las fases pasadas muestran «Completada · N sin validar» (`getPhaseIncompleteDocs`).
+- Registro de incidencias: adjuntos sin límite (`renderCreateAttachHTML(scope, admin, max)`; el registro usa `Infinity`). La creación de expediente sigue en 3.
+- Anotaciones internas: pestaña propia «Anotaciones» (solo SOFEIN) a la derecha de Avisos. Salen del bloque privado del Registro.
+- **Historial oculto** (`SHOW_HISTORY_TAB = false`): la funcionalidad sigue intacta y se sigue registrando todo. Pendiente de activar cuando se diseñe el backoffice (ver `docs/BACKEND_SPEC.md` 4.9).
+- Cabecera fija mínima (`.dossier-sticky-anchor` / `#dossierStickyBar`): aparece al pasar la tarjeta del expediente y muestra Expedientes / código y título / suministro / fase.
+  - Para que funcione, `.admin-main` y `.admin-view` usan `overflow-x: clip` en la ficha del expediente.
+- Crear expediente:
+  - destinatario final como texto libre con sugerencias (`getDestinatarioSuggestions`);
+  - fuera la fecha objetivo y el presupuesto del bloque General;
+  - nuevo «Resumen del expediente» en vivo: número de suministros, presupuesto total, primera y última entrega (`readCreateExpTotals`);
+  - el expediente toma presupuesto = suma y fecha = última entrega;
+  - sin «(Opcional)»; el código usa el año de alta.
+- Pasaporte Digital:
+  - sale de Documentación (estaba como desplegable de la fase 4 desde antes) y pasa a pestaña propia «Pasaporte Digital»: SOFEIN y destinatario siempre; cliente y proveedor cuando el expediente está cerrado;
+  - cabecera visual (`.passport-hero`) con imagen ferroviaria, degradado corporativo y datos clave;
+  - impresión solo del pasaporte (`body.printing-passport`).
+  - Cliente y proveedor, en la fase 4: barra con el botón «Conseguir Pasaporte Digital», desactivado hasta el cierre.
+- Selector:
+  - sin mínimo de 3 proveedores (ni aviso ni relleno de candidatos; fuera de Configuración y del perfil);
+  - pasos «1. Búsqueda - SOFEIN · 2. Preselección - Cliente · 3. Cotización - Proveedores · 4. Selección - Cliente»;
+  - los requisitos desmarcados se ven en gris y con borde discontinuo.
+- `docs/BACKEND_SPEC.md` actualizado con estas decisiones.
+- Verificado en Chrome:
+  - avanzar con un documento pendiente;
+  - cabecera fija con scroll real;
+  - pasaporte en la vista de SOFEIN y botón del cliente;
+  - 5 adjuntos en un registro;
+  - Anotaciones visible e Historial oculto;
+  - crear un expediente con 2 suministros (150.500 €, 15 dic → 20 ene) y requisitos en gris.
+  - 0 errores de consola y sin desbordamiento a 390 px.
+
+**Recordatorio para Guillermo**
+- La pestaña Historial está **oculta, pendiente de activar** con el backoffice.
+
 ## 2026-10-29 · Claude · rama claude/tabla-suministros · Suministros: nota dinámica por celda y sin tooltips nativos (v58–v59)
 
 **Hecho**

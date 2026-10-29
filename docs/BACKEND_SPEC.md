@@ -2,7 +2,7 @@
 
 Especificación para pasar la maqueta actual (front en `app.js` con datos de ejemplo en memoria y `localStorage`) a una aplicación real con **Supabase** (Postgres + Auth + RLS + Storage + Edge Functions). El front seguirá en Vercel (`sofein-procurement`).
 
-Este documento recoge **la lógica que hoy vive en el navegador** para que no se pierda al crear la base de datos. Estado de referencia: assets `?v=procurement-v54` (27/10/2026).
+Este documento recoge **la lógica que hoy vive en el navegador** para que no se pierda al crear la base de datos. Estado de referencia: assets `?v=procurement-v60` (29/10/2026).
 Las decisiones de producto vienen de `docs/PETICIONES_EXPEDIENTE.md` y de las entradas de `HANDOFF.md`.
 
 ---
@@ -143,7 +143,7 @@ Una conformidad sin documento se muestra con «Subir».
 | titulo | text | `tituloGenerico`. |
 | cliente_id | uuid → organizaciones | |
 | destinatario_id | uuid → organizaciones null | `destinatarioFinal`. |
-| destino_texto | text | Hoy es texto libre (lista fija en el constructor). |
+| destino_texto | text | Texto libre con sugerencias (destinatarios ya usados). |
 | fecha_objetivo | date | |
 | presupuesto_estimado | numeric null | |
 | notas | text | Visibles para SOFEIN y el cliente (cabecera de la ficha). |
@@ -215,8 +215,8 @@ Reglas:
 | adenda_documento_id | uuid null | |
 | cerrado_at | timestamptz null | Cerrado = las dos firmas. |
 
-**`registro_adjuntos`**: registro_id, documento_id (con su visibilidad); máximo 3.
-**`anotaciones_internas`**: solo SOFEIN; texto, suministro, fase y autor. En el front van en el historial con `soloAdmin`.
+**`registro_adjuntos`**: registro_id, documento_id (con su visibilidad). **Sin límite** de adjuntos (decisión del 29/10).
+**`anotaciones_internas`**: solo SOFEIN; texto, suministro, fase y autor. En el front tienen su propia pestaña «Anotaciones» (a la derecha de Avisos) y se guardan en el historial con `soloAdmin`.
 
 Reglas (en RPC, no en el front):
 - **Editar un registro borra las dos firmas** y vuelve a pedirlas.
@@ -241,7 +241,7 @@ Reglas (en RPC, no en el front):
 | validada_at | timestamptz null | SOFEIN «Validar adjudicación». |
 
 **`seleccion_candidatos`**: seleccion_id, proveedor_id, `incluido_busqueda bool` (SOFEIN, paso 1), `pedir_cotizacion bool` (cliente o SOFEIN, paso 2).
-Los candidatos iniciales son los proveedores con `proveedor_suministros.tipo = suministro.tipo` (mínimo 3; regla de concurrencia).
+Los candidatos iniciales son los proveedores con `proveedor_suministros.tipo = suministro.tipo`. **Sin mínimo de proveedores** (decisión del 29/10: no limitar a 3).
 
 **`cotizaciones`**: seleccion_id, proveedor_id, `precio_unitario numeric`, `precio_total numeric` (**calculado en servidor** = unitario × unidades), `fecha_entrega date`, `condiciones_pago text`, `validez_dias int check (validez_dias >= 45)`, `enviada_at`, `estado estado_cotizacion`.
 **`cotizacion_conformidades`**: cotizacion_id, conformidad_id (conformidades a las que se compromete).
@@ -273,6 +273,8 @@ Confidencialidad: un proveedor **solo** lee su propia cotización. El cliente no
 **`actividad`** (front: `exp.registroCambios` + `addExpedienteCambioLog`; pestaña «Historial», solo SOFEIN)
 expediente_id, suministro_id null, `fase`, tipo, titulo, detalle, autor_id, autor_rol, `interna bool` (anotación interna) y created_at. Solo inserción (sin update ni delete).
 
+> **Historial oculto en la plataforma (29/10).** La pestaña «Historial» está oculta (`SHOW_HISTORY_TAB = false` en `app.js`), pero el registro sigue activo. Se apuntarán **todos** los eventos y **quién** los hace para diseñar el **backoffice** de SOFEIN; no se mostrará nada de esto en la plataforma hasta entonces. Al diseñar el backoffice: `actividad` + `auth.users`, con filtros por expediente, suministro, fase, tipo, persona y fecha. Hay que evitar entregar de más: primero registrar bien y después decidir qué se muestra.
+
 ---
 
 ## 5. Estados y transiciones
@@ -285,6 +287,7 @@ expediente_id, suministro_id null, `fase`, tipo, titulo, detalle, autor_id, auto
 **Suministro (fase)**
 - `alcance → proveedores → pedido → cierre`.
 - «Completar fase» y «Reabrir fase» (al reabrir vuelve a esa fase) son solo de SOFEIN.
+- **Se puede avanzar con documentación incompleta** (decisión del 29/10). El servidor devuelve la lista de documentos sin validar, el front avisa antes y, una vez avanzado, la fase sigue mostrando «N sin validar». Los documentos **no** se dan por validados al avanzar.
 - Al validar la adjudicación pasa a `pedido`, con proveedor, precio y fecha de la oferta ganadora.
 - Cerrar o reabrir el suministro es de SOFEIN.
 
@@ -295,7 +298,7 @@ expediente_id, suministro_id null, `fase`, tipo, titulo, detalle, autor_id, auto
 abierto (sin firmas) → firma de una parte → firma de la otra → **cerrado** (adenda). Editar con firmas → vuelve a sin firmas.
 
 **Selector (por suministro)**
-1. `busqueda`: SOFEIN marca candidatos (mínimo 3) y pulsa «Validar».
+1. `busqueda`: SOFEIN marca candidatos (al menos uno) y pulsa «Validar».
 2. `preseleccion`: el cliente marca «Pedir cotización» y confirma (aviso a SOFEIN); SOFEIN confirma y pide las ofertas.
 3. `cotizacion`: cada proveedor envía o actualiza su oferta; SOFEIN pulsa «Validar cotizaciones».
 4. `seleccion`: el cliente elige proveedor y requisitos y confirma; SOFEIN pulsa «Validar adjudicación».
@@ -352,7 +355,7 @@ Cada acción: comprueba permisos y estado → hace el cambio en una transacción
 | `registrar(reg)` / `editar_registro(reg)` | admin | Al editar, borra las firmas. |
 | `eliminar_registro(reg)` | admin | Solo los abiertos. |
 | `firmar_registro(reg, nombre)` | cliente / proveedor (su parte) | Con las dos firmas: cierre, cambios en el suministro y adenda (Edge Function que genera el PDF y el hash). |
-| `selector_validar_busqueda(sum, candidatos[])` | admin | Mínimo 3. Paso → preselección. |
+| `selector_validar_busqueda(sum, candidatos[])` | admin | Al menos un candidato. Paso → preselección. |
 | `selector_enviar_preseleccion(sum, proveedores[])` | cliente | |
 | `selector_pedir_ofertas(sum, proveedores[])` | admin | Crea cotizaciones `pendiente`. Paso → cotización. |
 | `enviar_cotizacion(sum, precio_unitario, fecha, pago, validez, conformidades[])` | proveedor | Total calculado; validez ≥ 45. |
@@ -446,6 +449,7 @@ Script: `supabase/seed.sql`, generado desde los arrays (normalizando fechas, imp
 
 ## 12. Decisiones abiertas
 
+0. **Historial y backoffice.** Pendiente de activar: definir qué ve SOFEIN de la actividad y las personas (ver 4.9).
 1. **Pedidos y formalización por suministro.** Hoy siguen por expediente. Recomendado: por suministro (cada uno puede tener un proveedor distinto).
 2. **Firma electrónica.** Hoy es un clic con nombre y declaración. ¿Basta con eso (con registro de IP y fecha) o se integra un proveedor de firma (Signaturit, DocuSign…) para registros y hojas de pedido?
 3. **Usuarios por organización.** Varios usuarios por cliente o proveedor y, si hace falta, roles internos (quién puede firmar).

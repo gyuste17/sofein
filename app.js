@@ -857,7 +857,7 @@
       categoria: "Cotización",
       tagClass: "complete",
       titulo: "Preselección de 3 laminadores completada",
-      descripcion: "SOFEIN ha fijado los 3 proveedores de carril 54E1. El cliente debe seleccionar a quién solicitar oferta vinculante.",
+      descripcion: "SOFEIN ha fijado los proveedores de carril 54E1. El cliente debe seleccionar a quién solicitar oferta vinculante.",
       fecha: "Ayer, 16:40",
       roles: ["admin", "cliente"],
       accion: "Revisar Proveedores",
@@ -1396,6 +1396,8 @@
   let selectorSumParam = null;   // ?sum= del selector de proveedores
   let selectorViewStep = null;   // paso consultado en el selector (null = el paso en curso)
   let lastSelectorSumId = null;
+  // Historial de actividad: se sigue registrando todo, pero la pestaña está oculta hasta diseñar el backoffice (decisión 29/10)
+  const SHOW_HISTORY_TAB = false;
   let historyPhaseFilter = "all"; // "all" | "0".."3"
   let historySumFilter = "all";   // "all" | "General" | "SUM-xx"
   let historyIncludeNotes = true;
@@ -2517,7 +2519,10 @@
           avisos: "comms",
           history: "history",
           historial: "history",
-          passport: "deliverables"
+          passport: "passport",
+          pasaporte: "passport",
+          notes: "notes",
+          anotaciones: "notes"
         };
         activeDossierTab = tabAliases[tabParam] || "deliverables";
       } else if (!tabParam) {
@@ -2794,11 +2799,14 @@
   // Bloque de adjuntos del constructor (máx. 3): cada adjunto lleva su nombre y, si crea SOFEIN, quién lo ve
   const CREATE_ATTACH_MAX = 3;
 
-  function renderCreateAttachHTML(scope, isRoleAdmin) {
+  const getAttachMax = box => Number(box.dataset.attachMax) || Infinity;
+
+  function renderCreateAttachHTML(scope, isRoleAdmin, max = CREATE_ATTACH_MAX) {
+    const title = scope === "general" ? "Adjuntos adicionales" : scope === "registro" ? "Adjuntos" : "Adjuntos del suministro";
     return `
-      <div class="create-attach" data-attach-scope="${scope}" data-attach-vis="${isRoleAdmin ? "1" : "0"}">
+      <div class="create-attach" data-attach-scope="${scope}" data-attach-vis="${isRoleAdmin ? "1" : "0"}" data-attach-max="${Number.isFinite(max) ? max : 0}">
         <div class="create-attach-head">
-          <span class="create-attach-title">${scope === "general" ? "Adjuntos adicionales" : "Adjuntos del suministro"} <em>(opcional · máx. ${CREATE_ATTACH_MAX})</em></span>
+          <span class="create-attach-title">${title}${Number.isFinite(max) ? ` <em>(máx. ${max})</em>` : ""}</span>
           <input type="file" class="create-attach-input" style="display:none" accept=".pdf,.dwg,.xlsx,.docx,.jpg,.png" multiple />
           <button type="button" class="slot-upload-btn create-attach-add">${icon("upload", 13)} Añadir adjunto</button>
         </div>
@@ -2814,13 +2822,13 @@
   function updateCreateAttachAddState(box) {
     const count = box.querySelectorAll(".create-attach-row").length;
     const addBtn = box.querySelector(".create-attach-add");
-    if (addBtn) addBtn.style.display = count >= CREATE_ATTACH_MAX ? "none" : "";
+    if (addBtn) addBtn.style.display = count >= getAttachMax(box) ? "none" : "";
   }
 
   // file: File nuevo, o un adjunto ya guardado { name, file, fileUrl, visibleTo } al editar
   function addCreateAttachRow(box, file, existing = null) {
     const list = box.querySelector(".create-attach-list");
-    if (!list || list.children.length >= CREATE_ATTACH_MAX) return false;
+    if (!list || list.children.length >= getAttachMax(box)) return false;
     const withVis = box.dataset.attachVis === "1";
     const uid = `att${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
     const fileName = existing ? existing.file : file.name;
@@ -2860,7 +2868,7 @@
         const files = Array.from(e.target.files || []);
         let skipped = 0;
         files.forEach(f => { if (!addCreateAttachRow(box, f)) skipped++; });
-        if (skipped) showToast(`Máximo ${CREATE_ATTACH_MAX} adjuntos: se han descartado ${skipped}.`);
+        if (skipped) showToast(`Máximo ${getAttachMax(box)} adjuntos: se han descartado ${skipped}.`);
         input.value = "";
       });
     });
@@ -2902,14 +2910,14 @@
             <input name="suministro_unidades_${idx}" class="create-exp-input" required placeholder="Ej: 14.500 unidades" />
           </label>
           <label class="create-exp-label">
-            Presupuesto Estimado (Opcional)
+            Presupuesto estimado
             <input name="suministro_presupuesto_${idx}" class="create-exp-input" placeholder="Ej: 120.000 €" />
           </label>
         </div>
         <div class="create-exp-grid-3" style="margin-bottom:10px">
           <label class="create-exp-label">
-            Fecha Objetivo (Opcional)
-            <input type="date" name="suministro_fecha_${idx}" class="create-exp-input suministro-fecha-input" value="${defaultDate}" data-custom-date="0" style="color:#9ca3af" />
+            Fecha objetivo
+            <input type="date" name="suministro_fecha_${idx}" class="create-exp-input suministro-fecha-input" value="${defaultDate}" />
           </label>
         </div>
         <label class="create-exp-label" style="margin-bottom:10px">
@@ -2919,6 +2927,42 @@
         ${renderCreateAttachHTML("suministro", isRoleAdmin)}
       </div>
     `;
+  }
+
+  // Destinatarios conocidos (los de siempre + los ya usados en expedientes) para sugerir sin obligar
+  function getDestinatarioSuggestions() {
+    const base = [
+      "Adif Alta Velocidad (Línea Sur)",
+      "Adif Red Convencional",
+      "Metro de Bilbao (Línea 4)",
+      "Ferrocarrils de la Generalitat de Catalunya (FGC)",
+      "Línea de Acceso y Vías Factoría Volkswagen (Red Adif)",
+      "Consorcio Autonómico de Transportes"
+    ];
+    return [...new Set([...base, ...EXPEDIENTES.map(e => e.destinatarioFinal).filter(Boolean)])];
+  }
+
+  // Lee los suministros del formulario de creación: presupuesto total y primera/última fecha
+  function readCreateExpTotals() {
+    const rows = Array.from(document.querySelectorAll("#suministrosContainer .suministro-item"));
+    const budgets = rows.map(r => parseBudgetNumber(r.querySelector('[name^="suministro_presupuesto"]')?.value || "")).filter(n => n > 0);
+    const dates = rows.map(r => r.querySelector('[name^="suministro_fecha"]')?.value).filter(Boolean).sort();
+    return {
+      count: rows.length,
+      budget: budgets.length ? budgets.reduce((a, b) => a + b, 0) : 0,
+      first: dates[0] || "",
+      last: dates[dates.length - 1] || ""
+    };
+  }
+
+  function syncCreateExpSummary() {
+    const box = document.getElementById("createExpSummary");
+    if (!box) return;
+    const t = readCreateExpTotals();
+    box.querySelector('[data-summary="count"]').textContent = t.count;
+    box.querySelector('[data-summary="budget"]').textContent = t.budget ? formatEuro(t.budget) : "-";
+    box.querySelector('[data-summary="first"]').textContent = t.first ? formatIsoDateEs(t.first) : "-";
+    box.querySelector('[data-summary="last"]').textContent = t.last ? formatIsoDateEs(t.last) : "-";
   }
 
   function renderCreateExpedienteView(creatorRole) {
@@ -2974,27 +3018,11 @@
               </label>
 
               <label class="create-exp-label">
-                Destinatario Final / Administrador de la Infraestructura
-                <select name="destinatarioFinal" class="create-exp-select" required>
-                  <option value="Adif Alta Velocidad (Línea Sur)">Adif Alta Velocidad (Línea Sur)</option>
-                  <option value="Adif Red Convencional">Adif Red Convencional</option>
-                  <option value="Metro de Bilbao (Línea 4)">Metro de Bilbao (Línea 4)</option>
-                  <option value="Ferrocarrils de la Generalitat de Catalunya (FGC)">Ferrocarrils de la Generalitat de Catalunya (FGC)</option>
-                  <option value="Línea de Acceso y Vías Factoría Volkswagen (Red Adif)">Factoría Volkswagen (Red Ferroviaria Industrial)</option>
-                  <option value="Consorcio Autonómico de Transportes">Consorcio Autonómico de Transportes</option>
-                </select>
-              </label>
-            </div>
-
-            <div class="create-exp-grid-2">
-              <label class="create-exp-label">
-                Fecha Objetivo
-                <input type="date" name="fechaObjetivo" class="create-exp-input" required value="2026-11-30" />
-              </label>
-
-              <label class="create-exp-label">
-                Presupuesto Estimado (Opcional)
-                <input name="presupuestoTotal" class="create-exp-input" placeholder="Ej: 450.000 € (En licitación)" />
+                Destinatario final / Administrador de la infraestructura
+                <input name="destinatarioFinal" class="create-exp-input" list="destinatarioFinalList" required autocomplete="off" placeholder="Escribe o elige un destinatario" />
+                <datalist id="destinatarioFinalList">
+                  ${getDestinatarioSuggestions().map(d => `<option value="${escHTML(d)}"></option>`).join("")}
+                </datalist>
               </label>
             </div>
           </div>
@@ -3027,11 +3055,22 @@
 
           <div style="display:grid;gap:14px">
             <label class="create-exp-label">
-              Notas (Opcional)
+              Notas
               <textarea name="notasExpediente" class="create-exp-input create-exp-textarea" rows="3" placeholder="Añade notas o comentarios adicionales del expediente. Las verán SOFEIN y el cliente en la cabecera del expediente."></textarea>
             </label>
 
             ${renderCreateAttachHTML("general", isRoleAdmin)}
+          </div>
+        </section>
+
+        <!-- Resumen calculado a partir de los suministros -->
+        <section class="create-exp-card create-exp-summary" id="createExpSummary">
+          <div class="create-exp-card-head"><div><h3>${icon("activity", 18)} Resumen del expediente</h3></div></div>
+          <div class="create-exp-summary-grid">
+            <div><span>Suministros</span><strong data-summary="count">1</strong></div>
+            <div><span>Presupuesto total</span><strong data-summary="budget">-</strong></div>
+            <div><span>Primera entrega</span><strong data-summary="first">-</strong></div>
+            <div><span>Última entrega</span><strong data-summary="last">-</strong></div>
           </div>
         </section>
 
@@ -3060,10 +3099,10 @@
   const SELECTOR_MY_PROVIDER_ID = "PRV-01"; // proveedor de la demo (IberRail Components)
   const QUOTE_MIN_VALIDEZ_DIAS = 45;
   const SELECTOR_STEPS = [
-    { id: "preseleccion", num: 1, title: "1. Búsqueda" },
-    { id: "seleccion_cliente", num: 2, title: "2. Preselección" },
-    { id: "peticion_cotizaciones", num: 3, title: "3. Cotización" },
-    { id: "comparativa", num: 4, title: "4. Selección" }
+    { id: "preseleccion", num: 1, title: "1. Búsqueda - SOFEIN" },
+    { id: "seleccion_cliente", num: 2, title: "2. Preselección - Cliente" },
+    { id: "peticion_cotizaciones", num: 3, title: "3. Cotización - Proveedores" },
+    { id: "comparativa", num: 4, title: "4. Selección - Cliente" }
   ];
   const PAYMENT_OPTIONS = ["60 días fecha factura", "60 días confirming", "90 días confirming", "30 días transferencia"];
 
@@ -3081,14 +3120,11 @@
     };
   }
 
-  // Proveedores del directorio que suministran ese tipo (mínimo 3 para cumplir la concurrencia)
+  // Proveedores del directorio que suministran ese tipo (sin mínimo: si no hay ninguno, se muestran todos)
   function getSelectorCandidates(sum) {
     const key = sumTipoKey(sum);
-    let list = DIRECTORIO_PROVEEDORES.filter(p => (p.suministros || []).map(x => String(x).toLowerCase()).includes(key));
-    if (list.length < 3) {
-      list = [...list, ...DIRECTORIO_PROVEEDORES.filter(p => !list.includes(p))].slice(0, 3);
-    }
-    return list;
+    const list = DIRECTORIO_PROVEEDORES.filter(p => (p.suministros || []).map(x => String(x).toLowerCase()).includes(key));
+    return list.length ? list : [...DIRECTORIO_PROVEEDORES];
   }
 
   function buildDemoQuote(prv, sum, idx = 0) {
@@ -3126,7 +3162,7 @@
     const m = {
       faseSelector: done ? "adjudicado" : "preseleccion",
       proveedoresRecomendados: ids,
-      proveedoresPreseleccionadosPorAdmin: ids.slice(0, Math.max(3, Math.min(ids.length, 4))),
+      proveedoresPreseleccionadosPorAdmin: ids.slice(0, 4),
       proveedoresSeleccionadosPorCliente: [],
       cotizaciones: {},
       requisitosExigidosCliente: [],
@@ -4128,6 +4164,40 @@
     del.uploadedBy = activeRole === "admin" ? "SOFEIN" : activeRole === "cliente" ? "Cliente" : activeRole === "proveedor" ? "Proveedor" : "—";
   }
 
+  // Documentos de una fase que no están validados (pendientes, en revisión o con observaciones)
+  const getPhaseIncompleteDocs = (delivMap, idx) => (delivMap?.[idx] || []).filter(d => d.state !== "complete");
+
+  function openAdvancePhaseWarningModal(phaseIdx, incompletos, onConfirm) {
+    const modalWrap = document.getElementById("modalContainer");
+    if (!modalWrap) return;
+    const label = { pending: "Pendiente", review: "En revisión", rejected: "Con observaciones" };
+    modalWrap.innerHTML = `
+      <div class="procurement-modal-backdrop" id="advanceWarnBackdrop">
+        <div class="procurement-modal" style="width:min(520px,100%)">
+          <div class="procurement-modal-head">
+            <div><h3>Documentación incompleta en la fase ${phaseIdx + 1}</h3></div>
+            <button type="button" id="closeAdvanceWarnBtn" aria-label="Cerrar">×</button>
+          </div>
+          <div class="procurement-modal-body" style="gap:10px">
+            <p style="margin:0;font-size:0.82rem;color:var(--entity-text)">Hay ${incompletos.length} documento(s) sin validar. Puedes avanzar igualmente: seguirán marcados en esta fase para completarlos después.</p>
+            <ul class="advance-warn-list">
+              ${incompletos.map(d => `<li><strong>${escHTML(d.name)}</strong><span>${label[d.state] || "Pendiente"}</span></li>`).join("")}
+            </ul>
+          </div>
+          <div class="procurement-modal-footer">
+            <button class="admin-quiet-button" type="button" id="cancelAdvanceWarnBtn">Cancelar</button>
+            <button class="admin-primary-button" type="button" id="confirmAdvanceWarnBtn">${icon("check", 14)} Avanzar de fase</button>
+          </div>
+        </div>
+      </div>
+    `;
+    const close = () => { modalWrap.innerHTML = ""; };
+    document.getElementById("closeAdvanceWarnBtn")?.addEventListener("click", close);
+    document.getElementById("cancelAdvanceWarnBtn")?.addEventListener("click", close);
+    document.getElementById("advanceWarnBackdrop")?.addEventListener("click", e => { if (e.target.id === "advanceWarnBackdrop") close(); });
+    document.getElementById("confirmAdvanceWarnBtn")?.addEventListener("click", () => { close(); onConfirm(); });
+  }
+
   function getTableDocStatusBadge(state) {
     if (state === "complete") {
       return `<span class="entity-status complete"><i></i>Validado</span>`;
@@ -4328,10 +4398,6 @@
       activeDossierPhase = focusSum ? Math.min(focusSum.faseActual, PHASES.length - 1) : Math.min(exp.faseActual, PHASES.length - 1);
     }
 
-    if (activeDossierTab === "passport") {
-      activeDossierPhase = PHASES.length - 1;
-      activeDossierTab = "deliverables";
-    }
 
     const currentSum = getActiveExpSuministro(exp);
     const activeEntityPhaseActual = (currentSum && allExpSuministros.length > 1)
@@ -4479,17 +4545,20 @@
     const stepperHTML = PHASES.map((p, idx) => {
       const isCurrent = idx === activeDossierPhase;
       const isDone = idx < activeEntityPhaseActual || isCurrentContextClosed || (idx === PHASES.length - 1 && isCurrentContextFinished);
+      const pendientes = isDone ? getPhaseIncompleteDocs(delivMap, idx).filter(d => canRoleSeeDeliverable(d, activeRole)).length : 0;
       return `
-        <div class="dossier-step ${isCurrent ? "is-current" : isDone ? "is-done" : ""}" data-select-dossier-phase="${idx}">
+        <div class="dossier-step ${isCurrent ? "is-current" : isDone ? "is-done" : ""} ${pendientes ? "has-pending-docs" : ""}" data-select-dossier-phase="${idx}">
           <div class="dossier-step-top">
             <span class="dossier-step-icon-label">
               ${icon(p.icon, 15)}
               <span class="dossier-step-num">Fase ${p.num}</span>
             </span>
-            ${isDone ? `<span style="color:var(--entity-accent)">${icon("check", 14)}</span>` : ""}
+            ${isDone ? (pendientes
+              ? `<span class="dossier-step-pending" title="${pendientes} documento(s) sin validar en esta fase">${icon("alert", 13)} ${pendientes}</span>`
+              : `<span style="color:var(--entity-accent)">${icon("check", 14)}</span>`) : ""}
           </div>
           <div class="dossier-step-title">${p.name}</div>
-          <div class="dossier-step-meta">${isDone ? "Completada" : idx === activeEntityPhaseActual ? "En curso" : "Pendiente"}</div>
+          <div class="dossier-step-meta">${isDone ? (pendientes ? `Completada · ${pendientes} sin validar` : "Completada") : idx === activeEntityPhaseActual ? "En curso" : "Pendiente"}</div>
         </div>
       `;
     }).join("");
@@ -4573,7 +4642,8 @@
     ` : "";
 
     // 5. Contenido de la sección activa adaptado al perfil
-    if (activeDossierTab === "history" && !isRoleAdmin) activeDossierTab = "deliverables";
+    const canSeePassportTab = isRoleAdmin || isDestinatario || !!exp.cerrado;
+    if ((activeDossierTab === "history" && (!isRoleAdmin || !SHOW_HISTORY_TAB)) || (activeDossierTab === "notes" && !isRoleAdmin) || (activeDossierTab === "passport" && !canSeePassportTab)) activeDossierTab = "deliverables";
     let tabContent = "";
     if (activeDossierTab === "deliverables") {
       const allExpDocs = [];
@@ -4755,26 +4825,7 @@
         </section>
       `;
 
-      const passportInClosureHTML = activeDossierPhase === (PHASES.length - 1) ? `
-        <hr class="dossier-section-divider" />
-        <details class="dossier-collapsible-block" data-collapse-key="passportClosure" ${dossierCollapseState.passportClosure !== false ? "open" : ""}>
-          <summary class="dossier-collapsible-summary">
-            <div class="dossier-collapsible-summary-left">
-              <span class="dossier-section-kicker" style="color:var(--entity-accent)">
-                ${icon("award", 15)} Pasaporte Digital SOFEIN · Parte del Cierre (Fase 4)
-              </span>
-            </div>
-            <span class="dossier-collapsible-chevron" title="Colapsar / Expandir Pasaporte Digital">
-              ${icon("chevronDown", 15)}
-            </span>
-          </summary>
-          <div class="dossier-collapsible-body">
-            ${renderPassportSection(exp, isDestinatario)}
-          </div>
-        </details>
-      ` : "";
-
-      tabContent = `${docManagerBarHTML}${docTableHTML}${passportInClosureHTML}`;
+      tabContent = `${docManagerBarHTML}${docTableHTML}`;
     } else if (activeDossierTab === "incidents") {
       // Registro de incidencias y cambios: el Proveedor solo ve los de sus suministros
       const visibleSumIds = new Set(expSuministros.map(s => s.id));
@@ -4810,29 +4861,6 @@
         </details>
       `;
 
-      const privateNotes = isRoleAdmin ? cambiosLog.filter(c => c.soloAdmin) : [];
-      const privateLogHTML = isRoleAdmin ? `
-        <details class="dossier-collapsible-block reg-private" data-collapse-key="changesLog" ${dossierCollapseState.changesLog ? "open" : ""}>
-          <summary class="dossier-collapsible-summary">
-            <div class="dossier-collapsible-summary-left">
-              <span class="dossier-section-kicker">${icon("lock", 14)} Anotaciones internas · Solo SOFEIN (${privateNotes.length})</span>
-            </div>
-            <span class="dossier-collapsible-chevron">${icon("chevronDown", 15)}</span>
-          </summary>
-          <div class="dossier-collapsible-body">
-            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px">
-              <button class="admin-quiet-button" type="button" data-switch-dossier-tab="history">
-                ${icon("activity", 14)} Ver historial completo
-              </button>
-              <button class="admin-quiet-button" type="button" data-open-change-log-modal="${exp.id}">
-                ${icon("plus", 14)} Añadir anotación interna
-              </button>
-            </div>
-            ${privateNotes.length ? renderHistoryTableHTML(privateNotes) : `<p class="reg-empty">Todavía no hay anotaciones internas.</p>`}
-          </div>
-        </details>
-      ` : "";
-
       tabContent = `
         <div class="incident-container">
           <div class="incident-filter-bar">
@@ -4854,7 +4882,22 @@
           `}
 
           ${closedHistoryHTML}
-          ${privateLogHTML}
+        </div>
+      `;
+    } else if (activeDossierTab === "passport") {
+      tabContent = `<div class="passport-print-root">${renderPassportSection(exp, isDestinatario)}</div>`;
+    } else if (activeDossierTab === "notes") {
+      // Anotaciones internas (solo SOFEIN)
+      const notes = cambiosLog.filter(c => c.soloAdmin);
+      tabContent = `
+        <div class="history-container">
+          <div class="incident-filter-bar">
+            <span class="reg-summary-text"><b>${notes.length}</b> ${notes.length === 1 ? "anotación interna" : "anotaciones internas"} · Solo las ve SOFEIN</span>
+            <button class="admin-primary-button" type="button" data-open-change-log-modal="${exp.id}">
+              ${icon("plus", 14)} Añadir anotación interna
+            </button>
+          </div>
+          ${notes.length ? renderHistoryTableHTML(notes) : `<div class="reg-empty-card"><p>Todavía no hay anotaciones internas.</p></div>`}
         </div>
       `;
     } else if (activeDossierTab === "history") {
@@ -5079,8 +5122,23 @@
       </div>
     ` : "";
 
+    // Cabecera mínima que aparece al hacer scroll: expediente / suministro / fase
+    const stickyHTML = `
+      <div class="dossier-sticky-anchor" aria-hidden="true">
+        <div class="dossier-sticky-bar" id="dossierStickyBar">
+          <a href="#${activeRole}/expedientes">Expedientes</a>
+          <i>/</i>
+          <span class="dossier-sticky-exp"><b>${exp.id}</b> ${escHTML(v.tituloGenerico)}</span>
+          ${currentSum ? `<i>/</i><span><b>${currentSum.id}</b> ${escHTML(currentSum.tipo)}</span>` : ""}
+          <i>/</i>
+          <span class="dossier-sticky-phase">Fase ${PHASES[activeDossierPhase].num} · ${PHASES[activeDossierPhase].name}</span>
+        </div>
+      </div>
+    `;
+
     return `
       <div class="dossier-builder">
+        ${stickyHTML}
         <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:10px">
           <div class="dossier-breadcrumb" style="margin-bottom:0">
             <a href="#${activeRole}/expedientes">← Volver a expedientes</a> / <span>${exp.id}</span>
@@ -5218,6 +5276,21 @@
         <!-- 5. Selector y Matching ENCIMA del menú (sólo visible en Fase 2: Proveedores) -->
         ${selectorAboveMenuHTML}
 
+        ${(isRoleCliente || isRoleProveedor) && activeDossierPhase === PHASES.length - 1 ? `
+          <div class="passport-cta-bar ${exp.cerrado ? "is-ready" : ""}">
+            <div class="passport-cta-copy">
+              <span class="passport-cta-icon">${icon("award", 20)}</span>
+              <div>
+                <strong>Pasaporte Digital SOFEIN</strong>
+                <small>${exp.cerrado ? "Tu pasaporte con la trazabilidad completa del suministro ya está disponible." : "Se emitirá cuando SOFEIN cierre el expediente."}</small>
+              </div>
+            </div>
+            <button class="passport-cta-btn" type="button" ${exp.cerrado ? `data-switch-dossier-tab="passport"` : `disabled title="Disponible cuando SOFEIN cierre el expediente"`}>
+              ${icon(exp.cerrado ? "award" : "lock", 15)} Conseguir Pasaporte Digital
+            </button>
+          </div>
+        ` : ""}
+
         <hr class="dossier-section-divider" />
 
         <!-- 6. Menú de Secciones del Expediente -->
@@ -5233,7 +5306,17 @@
             ${icon("inbox", 16)} Avisos
             ${expNotices.length ? `<b class="badge">${expNotices.length}</b>` : ""}
           </button>
+          ${canSeePassportTab ? `
+            <button class="dossier-tab-btn is-passport-tab ${activeDossierTab === "passport" ? "is-active" : ""}" type="button" data-switch-dossier-tab="passport">
+              ${icon("award", 16)} Pasaporte Digital
+            </button>
+          ` : ""}
           ${isRoleAdmin ? `
+            <button class="dossier-tab-btn ${activeDossierTab === "notes" ? "is-active" : ""}" type="button" data-switch-dossier-tab="notes">
+              ${icon("lock", 16)} Anotaciones
+            </button>
+          ` : ""}
+          ${isRoleAdmin && SHOW_HISTORY_TAB ? `
             <button class="dossier-tab-btn ${activeDossierTab === "history" ? "is-active" : ""}" type="button" data-switch-dossier-tab="history">
               ${icon("activity", 16)} Historial
             </button>
@@ -6529,7 +6612,7 @@
         go: "#admin/configuracion",
         icon: "cog",
         title: "Configuración",
-        desc: "Apariencia, reglas de mediación y concurrencia mínima de proveedores.",
+        desc: "Apariencia y parámetros operativos de la plataforma.",
         meta: `<span>Parámetros operativos</span>`
       }
     ];
@@ -7418,15 +7501,6 @@
           </div>
         </div>
 
-        <div class="admin-config-panel">
-          <div>
-            <h2>Concurrencia mínima de proveedores</h2>
-            <p>Mínimo de 3 proveedores a preseleccionar en Fase 1 conforme a normativa y pliegos públicos.</p>
-          </div>
-          <div>
-            <span class="dossier-chip">Mínimo: <b>3 proveedores concurrentes</b></span>
-          </div>
-        </div>
       `;
     }
 
@@ -7854,7 +7928,6 @@
     cli.certificadosDetalle = cliCerts;
 
     const reglasCliente = cli.reglasContratacion || [
-      "Concurrencia mínima garantizada: 3 proveedores homologados por lote en Fase 2",
       "Exigencia obligatoria en pliego: Trazabilidad lote a lote y ensayos en laboratorio ENAC",
       "Registro de incidencias y cambios por SOFEIN con firma de cliente y proveedor",
       "Emisión de Pasaporte Digital criptográfico al cierre de recepción en obra"
@@ -8113,7 +8186,7 @@
         fecha: "16 jun 2026",
         actor: "SOFEIN Digital",
         estado: "Adjudicado a " + exp.proveedor,
-        desc: "Preselección de 3 homologados, matriz comparativa y adjudicación vinculante"
+        desc: "Búsqueda y preselección de proveedores, cotizaciones y adjudicación"
       },
       {
         phase: "Fase 3: Gestión del pedido",
@@ -8203,6 +8276,22 @@
 
     return `
       <section class="passport-card">
+        <header class="passport-hero">
+          <div class="passport-hero-brand">
+            <img src="assets/sofein-logo.svg" alt="SOFEIN" />
+            <span>Procurement</span>
+          </div>
+          <div class="passport-hero-main">
+            <span class="passport-hero-kicker">${isClosed ? "Documento oficial" : "Borrador"} · ${exp.id}</span>
+            <h1>Pasaporte Digital</h1>
+            <p>${escHTML(getExpVisualMeta(exp).tituloGenerico)}</p>
+          </div>
+          <div class="passport-hero-meta">
+            <div><span>Cliente</span><strong>${escHTML(exp.cliente)}</strong></div>
+            <div><span>Destino</span><strong>${escHTML(exp.destinatarioFinal)}</strong></div>
+            <div><span>Estado</span><strong>${isClosed ? `Sellado ${exp.fechaCierre ? `· ${exp.fechaCierre}` : ""}` : `Fase ${Math.min(exp.faseActual + 1, PHASES.length)} de ${PHASES.length}`}</strong></div>
+          </div>
+        </header>
         <!-- Cabecera Oficial y Sello Criptográfico -->
         <div class="passport-official-head">
           <div class="passport-official-title">
@@ -9231,6 +9320,12 @@
     }
     bindSuministroFileInputs();
     bindCreateAttachments();
+    const createSumsWrap = document.getElementById("suministrosContainer");
+    if (createSumsWrap) {
+      createSumsWrap.addEventListener("input", syncCreateExpSummary);
+      createSumsWrap.addEventListener("change", syncCreateExpSummary);
+      syncCreateExpSummary();
+    }
 
     if (mainFechaInput && !mainFechaInput.dataset.syncBound) {
       mainFechaInput.dataset.syncBound = "1";
@@ -9263,9 +9358,11 @@
         renumberSuministroRows();
         bindSuministroFileInputs(item);
         bindCreateAttachments(item);
+        syncCreateExpSummary();
         item.querySelector("[data-remove-suministro]")?.addEventListener("click", () => {
           item.remove();
           renumberSuministroRows();
+          syncCreateExpSummary();
         });
       });
     }
@@ -9279,8 +9376,9 @@
         const titulo = (form.get("titulo") || "").trim();
         const cliente = (form.get("cliente") || "Infraestructuras del Norte, S.A.").trim();
         const dest = (form.get("destinatarioFinal") || "").trim();
-        const fechaObj = form.get("fechaObjetivo");
-        const presupuesto = (form.get("presupuestoTotal") || "").trim() || "En licitación";
+        const totals = readCreateExpTotals();
+        const fechaObj = totals.last; // fecha objetivo del expediente = última entrega
+        const presupuesto = totals.budget ? formatEuro(totals.budget) : "En licitación";
 
         // Recopilar lotes de suministros (cada uno con sus adjuntos)
         const items = document.querySelectorAll("#suministrosContainer .suministro-item");
@@ -9306,7 +9404,7 @@
         const primaryMat = suministrosList[0] ? suministrosList[0].material : "Material Ferroviario";
         const unitsSummary = suministrosList.map(s => s.especificaciones ? `${s.unidades} (${s.especificaciones})` : s.unidades).join(" + ");
 
-        const newYear = fechaObj ? new Date(fechaObj).getFullYear() : 2026;
+        const newYear = new Date().getFullYear(); // año de alta del expediente
         const newId = generateExpedienteId(newYear);
 
         const isRoleAdmin = activeRole === "admin";
@@ -9341,7 +9439,7 @@
           id: newId,
           tituloGenerico: titulo || `Suministro ferroviario — ${dest.split("(")[0].trim()}`,
           numSuministros: suministrosList.length || 1,
-          proximaEntregaFecha: fechaObj ? new Date(fechaObj).toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" }) : "10 nov 2026",
+          proximaEntregaFecha: totals.first ? formatIsoDateEs(totals.first) : "Sin fecha",
           proximaEntregaDiff: "En plazo",
           proximaEntregaTone: "ontime",
           producto: primaryMat,
@@ -10253,8 +10351,8 @@
     document.getElementById("approvePreselectionBtn")?.addEventListener("click", e => {
       const c = selCtx(e.currentTarget);
       const m = c.matching;
-      if (m.proveedoresPreseleccionadosPorAdmin.length < 3) {
-        showToast("⚠️ Incluye al menos 3 proveedores para cumplir la concurrencia mínima");
+      if (!m.proveedoresPreseleccionadosPorAdmin.length) {
+        showToast("⚠️ Incluye al menos un proveedor");
         return;
       }
       m.faseSelector = "seleccion_cliente";
@@ -10615,12 +10713,14 @@
         }
         const delivMap = getActiveDeliverablesMap(exp);
 
-        // Marcar ranuras de la fase actual como completas
-        if (delivMap[currentIdx]) {
-          delivMap[currentIdx].forEach(d => {
-            if (!d.file) d.file = `${d.name.replace(/[^a-zA-Z0-9]/g, "-")}-${exp.id}.pdf`;
-            d.state = "complete";
+        // Se puede avanzar con documentación incompleta, pero se avisa antes (los pendientes quedan a la vista en la fase)
+        const incompletos = getPhaseIncompleteDocs(delivMap, currentIdx);
+        if (incompletos.length && btn.dataset.confirmed !== "1") {
+          openAdvancePhaseWarningModal(currentIdx, incompletos, () => {
+            btn.dataset.confirmed = "1";
+            btn.click();
           });
+          return;
         }
 
         if (currentIdx < PHASES.length - 1) {
@@ -12068,7 +12168,7 @@
                 ${changeRow("unidades", "Nueva cantidad de unidades", "text", prev0.unidades, reg?.nuevasUnidades, "Ej: 15.000")}
                 ${changeRow("presupuesto", "Nuevo presupuesto", "text", prev0.presupuesto, reg?.nuevoPresupuesto, "Ej: 295.000 €")}
               </div>
-              ${renderCreateAttachHTML("registro", true)}
+              ${renderCreateAttachHTML("registro", true, Infinity)}
             </div>
             <div class="procurement-modal-footer">
               <button class="admin-quiet-button" type="button" id="cancelRegModalBtn">Cancelar</button>
@@ -12081,7 +12181,6 @@
 
     const form = document.getElementById("modalRegForm");
     const attachBox = form.querySelector(".create-attach");
-    attachBox.querySelector(".create-attach-title").innerHTML = `Adjuntos <em>(opcional · máx. ${CREATE_ATTACH_MAX})</em>`;
     bindCreateAttachments(form);
     (reg?.adjuntos || []).forEach(a => addCreateAttachRow(attachBox, null, a));
 
@@ -13246,6 +13345,8 @@
     const printPassportBtn = e.target.closest("[data-print-passport]");
     if (printPassportBtn) {
       e.preventDefault();
+      document.body.classList.add("printing-passport");
+      window.addEventListener("afterprint", () => document.body.classList.remove("printing-passport"), { once: true });
       window.print();
       return;
     }
@@ -13350,6 +13451,16 @@
       renderApp();
     }
   });
+
+  // Cabecera fija de la ficha del expediente: visible cuando la tarjeta del expediente sale de pantalla
+  function syncDossierStickyBar() {
+    const bar = document.getElementById("dossierStickyBar");
+    const card = document.querySelector(".dossier-exp-summary-card");
+    if (!bar || !card) return;
+    bar.classList.toggle("is-visible", card.getBoundingClientRect().bottom < 0);
+  }
+  document.addEventListener("scroll", syncDossierStickyBar, { capture: true, passive: true });
+  window.addEventListener("resize", syncDossierStickyBar, { passive: true });
 
   // Campo de etiquetas: sugerencias, crear/añadir, quitar
   function tagInputAdd(box, value) {
