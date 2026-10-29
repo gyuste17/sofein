@@ -905,6 +905,10 @@ select:focus,
   flex-direction: column;
   animation: popoverFadeIn 0.15s ease-out;
 }
+/* display:flex anula el atributo hidden: sin esto el popover queda siempre abierto */
+.notif-dropdown-popover[hidden] {
+  display: none;
+}
 
 .notif-popover-head {
   display: flex;
@@ -2941,25 +2945,64 @@ select:focus,
   background-color: rgba(59, 130, 246, 0.08);
   font-weight: 600;
 }
-.suministros-tr {
+/* Filas de Suministros: divisoria suave y fila entera como enlace */
+.suministros-row {
   border-bottom: 1px solid var(--entity-line);
-  transition: background 0.12s;
+  cursor: pointer;
+  transition: background 0.14s ease;
 }
-.suministros-tr:last-child {
+.suministros-row:last-child {
   border-bottom: 0;
 }
-.suministros-tr:hover {
-  background: rgba(255, 255, 255, 0.025);
+.suministros-row:hover,
+.suministros-row:focus-visible {
+  background: var(--entity-accent-soft);
+  outline: none;
 }
-[data-theme="light"] .suministros-tr:hover {
-  background: rgba(0, 0, 0, 0.018);
+/* Chrome no pinta box-shadow en <tr>: la barra de acento va en la primera celda */
+.suministros-row:hover > td:first-child,
+.suministros-row:focus-visible > td:first-child {
+  box-shadow: inset 3px 0 0 var(--entity-accent);
 }
-.suministros-tr.status-finalizado {
-  opacity: 0.88;
+.suministros-row:hover .suministro-tipo-cell strong,
+.suministros-row:focus-visible .suministro-tipo-cell strong {
+  color: var(--entity-accent);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--entity-accent) 45%, transparent);
+  text-underline-offset: 3px;
 }
-.suministros-tr.status-cerrado {
-  opacity: 0.75;
-  background: rgba(0, 0, 0, 0.015);
+.suministros-row:hover .suministro-badge-num {
+  border-color: var(--entity-accent);
+  color: var(--entity-accent);
+}
+
+/* Nota flotante «Ver suministro» (sigue al cursor, aparece al instante) */
+.suministros-row-hint {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9000;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: var(--entity-accent);
+  color: var(--entity-accent-ink);
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  box-shadow: 0 6px 18px rgba(8, 32, 16, 0.22);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.08s ease;
+}
+.suministros-row-hint.is-visible {
+  opacity: 1;
+}
+@media (hover: none) {
+  .suministros-row-hint { display: none; }
 }
 .suministros-table td {
   padding: 10px 8px;

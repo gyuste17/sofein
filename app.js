@@ -5647,102 +5647,104 @@
   }
 
   // Opciones dinámicas para el filtro embebido en cabecera TH
-  function getColFilterOptions(colId, roleAll, role) {
+  // Opciones facetadas: solo valores presentes en la tabla activa con el buscador y el resto de filtros aplicados.
+  // Se ignora el filtro de la propia columna (para poder cambiarlo) y se conserva siempre el valor seleccionado.
+  function getColFilterOptions(colId, rows, role, q) {
+    const selected = suministrosFilters[colId];
+    const optionRows = rows.filter(s => matchesSuministroFilter(s, q, role, { [colId]: "all" }));
+    if (selected && selected !== "all") {
+      const onlyThisCol = Object.fromEntries(Object.keys(suministrosFilters).map(k => [k, k === colId ? selected : "all"]));
+      optionRows.push(...rows.filter(s => matchesSuministroFilter(s, "", role, onlyThisCol)));
+    }
+    const fixedOptions = opts => opts
+      .filter(([v]) => v === selected || rows.some(s => matchesSuministroFilter(s, q, role, { [colId]: v })))
+      .map(([v, label]) => `<option value="${v}" ${selected === v ? "selected" : ""}>${label}</option>`)
+      .join("");
     switch (colId) {
       case "suministro": {
-        const nums = Array.from(new Set(roleAll.map(s => s.num))).sort();
+        const nums = Array.from(new Set(optionRows.map(s => s.num))).sort();
         return nums.map(n => `<option value="${n}" ${suministrosFilters.suministro === n ? "selected" : ""}>Suministro ${n}</option>`).join("");
       }
       case "tipo": {
-        const tipos = Array.from(new Set(roleAll.map(s => s.tipo))).sort();
+        const tipos = Array.from(new Set(optionRows.map(s => s.tipo))).sort();
         return tipos.map(t => `<option value="${t}" ${suministrosFilters.tipo === t ? "selected" : ""}>${t}</option>`).join("");
       }
       case "descripcion": {
-        const descs = Array.from(new Set(roleAll.map(s => s.descripcion).filter(Boolean))).sort();
+        const descs = Array.from(new Set(optionRows.map(s => s.descripcion).filter(Boolean))).sort();
         return descs.map(d => `<option value="${d}" ${suministrosFilters.descripcion === d ? "selected" : ""}>${d.length > 28 ? d.slice(0, 26) + "…" : d}</option>`).join("");
       }
       case "unidades": {
-        return `
-          <option value="gt10k" ${suministrosFilters.unidades === "gt10k" ? "selected" : ""}>&gt; 10.000</option>
-          <option value="1k-10k" ${suministrosFilters.unidades === "1k-10k" ? "selected" : ""}>1.000 – 10.000</option>
-          <option value="lt1k" ${suministrosFilters.unidades === "lt1k" ? "selected" : ""}>&lt; 1.000</option>
-        `;
+        return fixedOptions([["gt10k", "&gt; 10.000"], ["1k-10k", "1.000 – 10.000"], ["lt1k", "&lt; 1.000"]]);
       }
       case "expediente": {
-        const exps = Array.from(new Set(roleAll.map(s => s.expId))).sort();
+        const exps = Array.from(new Set(optionRows.map(s => s.expId))).sort();
         return exps.map(e => `<option value="${e}" ${suministrosFilters.expediente === e ? "selected" : ""}>${e}</option>`).join("");
       }
       case "proveedor": {
-        const provs = Array.from(new Set(roleAll.map(s => s.proveedor))).sort();
+        const provs = Array.from(new Set(optionRows.map(s => s.proveedor))).sort();
         return provs.map(p => `<option value="${p}" ${suministrosFilters.proveedor === p ? "selected" : ""}>${p.length > 22 ? p.slice(0, 20) + "…" : p}</option>`).join("");
       }
       case "cliente": {
-        const clis = Array.from(new Set(roleAll.map(s => s.cliente))).sort();
+        const clis = Array.from(new Set(optionRows.map(s => s.cliente))).sort();
         return clis.map(c => `<option value="${c}" ${suministrosFilters.cliente === c ? "selected" : ""}>${c.length > 22 ? c.slice(0, 20) + "…" : c}</option>`).join("");
       }
       case "destino": {
-        const dests = Array.from(new Set(roleAll.map(s => s.destino))).sort();
+        const dests = Array.from(new Set(optionRows.map(s => s.destino))).sort();
         return dests.map(d => `<option value="${d}" ${suministrosFilters.destino === d ? "selected" : ""}>${d.length > 24 ? d.slice(0, 22) + "…" : d}</option>`).join("");
       }
       case "ano": {
-        const anos = Array.from(new Set(roleAll.map(s => s.ano))).sort((a, b) => b - a);
+        const anos = Array.from(new Set(optionRows.map(s => s.ano))).sort((a, b) => b - a);
         return anos.map(a => `<option value="${a}" ${suministrosFilters.ano === String(a) ? "selected" : ""}>Año ${a}</option>`).join("");
       }
       case "fase": {
-        const fIndices = Array.from(new Set(roleAll.map(s => s.faseActual))).sort((a, b) => a - b);
+        const fIndices = Array.from(new Set(optionRows.map(s => s.faseActual))).sort((a, b) => a - b);
         return fIndices.map(fIdx => {
           const name = SHORT_PHASE_NAMES[fIdx] || `Fase ${fIdx + 1}`;
           return `<option value="${fIdx}" ${suministrosFilters.fase === String(fIdx) ? "selected" : ""}>Fase ${fIdx + 1}: ${name}</option>`;
         }).join("");
       }
       case "acciones": {
-        return `
-          <option value="has_pending" ${suministrosFilters.acciones === "has_pending" ? "selected" : ""}>Con pendientes</option>
-          <option value="none" ${suministrosFilters.acciones === "none" ? "selected" : ""}>Al día (0)</option>
-        `;
+        return fixedOptions([["has_pending", "Con pendientes"], ["none", "Al día (0)"]]);
       }
       case "fechaEntrega": {
-        return `
-          <option value="upcoming" ${suministrosFilters.fechaEntrega === "upcoming" ? "selected" : ""}>Próximas (+d)</option>
-          <option value="delayed" ${suministrosFilters.fechaEntrega === "delayed" ? "selected" : ""}>Retrasadas (-d)</option>
-          <option value="today" ${suministrosFilters.fechaEntrega === "today" ? "selected" : ""}>Hoy</option>
-        `;
+        return fixedOptions([["upcoming", "Próximas (+d)"], ["delayed", "Retrasadas (-d)"], ["today", "Hoy"]]);
       }
       default:
         return "";
     }
   }
 
-  function matchesSuministroFilter(s, q, role) {
+  function matchesSuministroFilter(s, q, role, overrides) {
+    const f = overrides ? { ...suministrosFilters, ...overrides } : suministrosFilters;
     if (q) {
       const haystack = `${s.num} ${s.tipo} ${s.descripcion || ""} ${s.unidades} ${s.expId} ${s.proveedor} ${s.cliente} ${s.destino} ${s.ano} ${s.faseNombre} ${s.fechaEntrega}`.toLowerCase();
       if (!haystack.includes(q)) return false;
     }
-    if (suministrosFilters.suministro !== "all" && s.num !== suministrosFilters.suministro) return false;
-    if (suministrosFilters.tipo !== "all" && s.tipo !== suministrosFilters.tipo) return false;
-    if (suministrosFilters.descripcion !== "all" && s.descripcion !== suministrosFilters.descripcion) return false;
-    if (suministrosFilters.unidades !== "all") {
+    if (f.suministro !== "all" && s.num !== f.suministro) return false;
+    if (f.tipo !== "all" && s.tipo !== f.tipo) return false;
+    if (f.descripcion !== "all" && s.descripcion !== f.descripcion) return false;
+    if (f.unidades !== "all") {
       const num = s.unidadesNum || parseInt(String(s.unidades).replace(/\./g, ""), 10) || 0;
-      if (suministrosFilters.unidades === "gt10k" && num <= 10000) return false;
-      if (suministrosFilters.unidades === "1k-10k" && (num < 1000 || num > 10000)) return false;
-      if (suministrosFilters.unidades === "lt1k" && num >= 1000) return false;
+      if (f.unidades === "gt10k" && num <= 10000) return false;
+      if (f.unidades === "1k-10k" && (num < 1000 || num > 10000)) return false;
+      if (f.unidades === "lt1k" && num >= 1000) return false;
     }
-    if (suministrosFilters.expediente !== "all" && s.expId !== suministrosFilters.expediente) return false;
-    if (suministrosFilters.proveedor !== "all" && s.proveedor !== suministrosFilters.proveedor) return false;
-    if (suministrosFilters.cliente !== "all" && s.cliente !== suministrosFilters.cliente) return false;
-    if (suministrosFilters.destino !== "all" && s.destino !== suministrosFilters.destino) return false;
-    if (suministrosFilters.ano !== "all" && String(s.ano) !== suministrosFilters.ano) return false;
-    if (suministrosFilters.fase !== "all" && String(s.faseActual) !== suministrosFilters.fase) return false;
-    if (suministrosFilters.acciones !== "all") {
+    if (f.expediente !== "all" && s.expId !== f.expediente) return false;
+    if (f.proveedor !== "all" && s.proveedor !== f.proveedor) return false;
+    if (f.cliente !== "all" && s.cliente !== f.cliente) return false;
+    if (f.destino !== "all" && s.destino !== f.destino) return false;
+    if (f.ano !== "all" && String(s.ano) !== f.ano) return false;
+    if (f.fase !== "all" && String(s.faseActual) !== f.fase) return false;
+    if (f.acciones !== "all") {
       const accionesRol = getSuministroAccionesPendientes(s, role);
-      if (suministrosFilters.acciones === "has_pending" && accionesRol === 0) return false;
-      if (suministrosFilters.acciones === "none" && accionesRol > 0) return false;
+      if (f.acciones === "has_pending" && accionesRol === 0) return false;
+      if (f.acciones === "none" && accionesRol > 0) return false;
     }
-    if (suministrosFilters.fechaEntrega !== "all") {
+    if (f.fechaEntrega !== "all") {
       const kpi = getDeliveryKpi(s);
-      if (suministrosFilters.fechaEntrega === "upcoming" && (!kpi || kpi.days <= 0)) return false;
-      if (suministrosFilters.fechaEntrega === "delayed" && (!kpi || kpi.days >= 0)) return false;
-      if (suministrosFilters.fechaEntrega === "today" && (!kpi || kpi.days !== 0)) return false;
+      if (f.fechaEntrega === "upcoming" && (!kpi || kpi.days <= 0)) return false;
+      if (f.fechaEntrega === "delayed" && (!kpi || kpi.days >= 0)) return false;
+      if (f.fechaEntrega === "today" && (!kpi || kpi.days !== 0)) return false;
     }
     return true;
   }
@@ -5834,7 +5836,7 @@
               ? `<span class="suministros-sort-icon is-active">${suministrosSortDir === "asc" ? "↑" : "↓"}</span>`
               : '<span class="suministros-sort-icon">↕</span>';
             const isColFiltered = suministrosFilters[colId] && suministrosFilters[colId] !== "all";
-            const filterOptions = includeFilters ? getColFilterOptions(colId, roleAll, role) : "";
+            const filterOptions = includeFilters ? getColFilterOptions(colId, activeRoleList, role, q) : "";
             return `
               <th class="suministros-th ${isSorted ? 'is-sorted' : ''}"
                   data-col-id="${colId}"
@@ -5978,7 +5980,7 @@
     const renderRowHTML = s => {
       const expHash = getSuministroDossierHash(s, role);
       return `
-        <tr class="suministros-row" data-go="${expHash}" title="Ver suministro ${s.num} en expediente ${s.expId}">
+        <tr class="suministros-row" data-go="${expHash}" data-row-hint="Ver suministro ${s.num} · ${s.expId}" tabindex="0" role="link" aria-label="Ver suministro ${s.num} en expediente ${s.expId}">
           ${visibleCols.map(colId => renderCellHTML(s, colId)).join("")}
         </tr>
       `;
@@ -13138,7 +13140,7 @@
 
     const go = e.target.closest("[data-go]");
     // En filas de Suministros, los enlaces internos (p. ej. el del expediente) siguen su propio href
-    if (go && go.classList.contains("suministros-tr") && e.target.closest("a[href]")) {
+    if (go && go.classList.contains("suministros-row") && e.target.closest("a[href]")) {
       return;
     }
     if (go) {
@@ -13280,6 +13282,37 @@
     if (e.key !== "Escape") return;
     const modalWrap = document.getElementById("modalContainer");
     if (modalWrap && modalWrap.firstElementChild) modalWrap.innerHTML = "";
+  });
+
+  // Filas de Suministros como enlace: nota flotante inmediata que sigue al cursor y Enter para abrir
+  const rowHint = document.createElement("div");
+  rowHint.className = "suministros-row-hint";
+  rowHint.setAttribute("aria-hidden", "true");
+  document.body.appendChild(rowHint);
+  const hideRowHint = () => rowHint.classList.remove("is-visible");
+  document.addEventListener("mousemove", e => {
+    const row = e.target.closest?.(".suministros-row[data-row-hint]");
+    // Sobre enlaces o controles internos manda su propio comportamiento
+    if (!row || e.target.closest("a[href], button, select, input")) {
+      hideRowHint();
+      return;
+    }
+    if (rowHint.dataset.text !== row.dataset.rowHint) {
+      rowHint.dataset.text = row.dataset.rowHint;
+      rowHint.innerHTML = `<span>${escHTML(row.dataset.rowHint)}</span>${icon("arrow", 12)}`;
+    }
+    const pad = 14;
+    const w = rowHint.offsetWidth;
+    const x = Math.min(e.clientX + pad, window.innerWidth - w - 8);
+    rowHint.style.transform = `translate(${Math.max(8, x)}px, ${e.clientY + pad}px)`;
+    rowHint.classList.add("is-visible");
+  });
+  document.addEventListener("scroll", hideRowHint, true);
+  window.addEventListener("hashchange", hideRowHint);
+  document.addEventListener("keydown", e => {
+    if (e.key !== "Enter") return;
+    const row = e.target.closest?.(".suministros-row[data-go]");
+    if (row && e.target === row) row.click();
   });
 
   // Catálogos: Enter guarda y Escape cancela la fila en edición

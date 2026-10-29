@@ -2,6 +2,20 @@
 
 Registro de relevo entre agentes. **Entradas nuevas arriba.** Reglas del proyecto en `AGENTS.md`.
 
+## 2026-10-29 · Claude · rama claude/tabla-suministros · Tabla de Suministros: filas como enlace y filtros facetados (v57)
+
+**Hecho**
+- Filas de la tabla de Suministros: divisoria suave entre filas, cursor de enlace, tinte verde corporativo en toda la fila al pasar el ratón (o con foco de teclado), barra de acento a la izquierda y nº/tipo resaltados.
+- Nota flotante «Ver suministro NN · expediente →» con estética SOFEIN (píldora verde) que aparece al instante y sigue al cursor; sustituye al `title` nativo (que tardaba). Oculta en pantallas táctiles y sobre enlaces/controles internos.
+- Accesibilidad: filas con `role="link"`, `tabindex` y Enter para abrir.
+- Filtros por columna facetados: cada desplegable solo ofrece valores presentes en la tabla activa con el buscador y el resto de filtros aplicados (se ignora el filtro de la propia columna y se conserva el valor elegido). `matchesSuministroFilter` admite ahora `overrides`.
+- Corregido: los estilos y el manejador del clic usaban `.suministros-tr`, pero las filas tienen `.suministros-row` (por eso no había divisoria/hover y el enlace del expediente dentro de la fila navegaba a la ficha del suministro).
+- Corregido (v56): `.notif-dropdown-popover` con `display:flex` anulaba el atributo `hidden` y el popover de avisos quedaba siempre abierto tapando la página. Añadido `[hidden]{display:none}`.
+- Cachebuster a `?v=procurement-v57`.
+
+**Pendiente**
+- Integrar en `procurement` cuando Guillermo lo valide (no se ha hecho push ni despliegue).
+
 ## 2026-10-29 · Antigravity · rama procurement · Popover interactivo de Avisos y Notificaciones en topbar (v56)
 
 **Hecho**
