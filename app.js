@@ -1990,6 +1990,7 @@
   let lastAppliedSumIdHash = null;
   let lastAppliedTabHash = null;
   let lastAppliedPhaseHash = null;
+  let lastAppliedDirHash = null;
 
   const SHORT_PHASE_NAMES = [
     "Alcance",
@@ -2529,6 +2530,16 @@
         activeDossierPhase = parseInt(phaseParam, 10) || 0;
       } else if (!phaseParam) {
         lastAppliedPhaseHash = null;
+      }
+
+      // Directorio filtrado desde un enlace (p. ej. celda Proveedor/Cliente de Suministros): ?dirType=proveedores&q=Nombre
+      const dirQueryParam = qParams.get("q");
+      if (dirQueryParam !== null && location.hash !== lastAppliedDirHash) {
+        lastAppliedDirHash = location.hash;
+        directorioSearchQuery = dirQueryParam;
+        directorioTypeFilter = qParams.get("dirType") || "all";
+      } else if (dirQueryParam === null) {
+        lastAppliedDirHash = null;
       }
 
       if (qParams.get("openMediation")) {
@@ -5871,24 +5882,34 @@
       </thead>
     `;
 
+    // Celdas Proveedor/Cliente: en admin enlazan al Directorio filtrado por esa entidad
+    const dirEntityLinkAttrs = (name, kind) => {
+      if (role !== "admin" || !name) return "";
+      const list = kind === "proveedor" ? DIRECTORIO_PROVEEDORES : DIRECTORIO_CLIENTES;
+      if (!list.some(e => e.nombre === name)) return "";
+      const dirType = kind === "proveedor" ? "proveedores" : "clientes";
+      const label = kind === "proveedor" ? "Ver proveedor" : "Ver cliente";
+      return ` class="suministro-entity-link" data-go="#admin/directorio?dirType=${dirType}&q=${encodeURIComponent(name)}" data-row-hint="${escHTML(label + " " + name)}"`;
+    };
+
     const renderCellHTML = (s, colId) => {
       switch (colId) {
         case "suministro":
           return `
             <td class="suministro-num-cell">
-              <span class="suministro-badge-num" title="Suministro ${s.num} del expediente ${s.expId}">${s.num}</span>
+              <span class="suministro-badge-num">${s.num}</span>
             </td>
           `;
         case "tipo":
           return `
             <td class="suministro-tipo-cell">
-              <strong title="${s.tipo}">${s.tipo}</strong>
+              <strong>${s.tipo}</strong>
             </td>
           `;
         case "descripcion":
           return `
             <td class="suministro-desc-cell">
-              <span title="${s.descripcion || ''}">${s.descripcion || '—'}</span>
+              <span>${s.descripcion || '—'}</span>
             </td>
           `;
         case "unidades":
@@ -5900,7 +5921,7 @@
         case "expediente":
           return `
             <td>
-              <a href="#${role}/expedientes/${s.expId}" class="suministro-exp-link" title="Abrir expediente ${s.expId}">
+              <a href="#${role}/expedientes/${s.expId}" class="suministro-exp-link" data-row-hint="Abrir expediente ${s.expId}">
                 ${s.expId}
               </a>
             </td>
@@ -5908,19 +5929,19 @@
         case "proveedor":
           return `
             <td class="suministro-prov-cell">
-              <span title="${s.proveedor}">${s.proveedor}</span>
+              <span${dirEntityLinkAttrs(s.proveedor, "proveedor")}>${s.proveedor}</span>
             </td>
           `;
         case "cliente":
           return `
             <td class="suministro-cli-cell">
-              <span title="${s.cliente}">${s.cliente}</span>
+              <span${dirEntityLinkAttrs(s.cliente, "cliente")}>${s.cliente}</span>
             </td>
           `;
         case "destino":
           return `
             <td class="suministro-dest-cell">
-              <span title="${s.destino}">${s.destino}</span>
+              <span>${s.destino}</span>
             </td>
           `;
         case "ano":
@@ -5934,7 +5955,7 @@
           const fName = SHORT_PHASE_NAMES[s.faseActual] || fInfo.name || `Fase ${s.faseActual + 1}`;
           return `
             <td>
-              <span class="dossier-phase-pill is-active" title="Fase ${s.faseActual + 1}: ${fInfo.name || ''}">
+              <span class="dossier-phase-pill is-active">
                 Fase ${s.faseActual + 1}: ${fName}
               </span>
             </td>
@@ -5946,7 +5967,7 @@
           if (accionesRol > 0) {
             return `
               <td>
-                <a href="${expHash}" class="suministro-acciones-link has-actions" title="Ver ${accionesRol} acciones pendientes en ${s.expId}">
+                <a href="${expHash}" class="suministro-acciones-link has-actions" data-row-hint="Ver ${accionesRol} acción${accionesRol > 1 ? "es" : ""} pendiente${accionesRol > 1 ? "s" : ""}">
                   ${icon("alert", 12)}
                   <span>${accionesRol} pendiente${accionesRol > 1 ? "s" : ""}</span>
                 </a>
@@ -5955,7 +5976,7 @@
           }
           return `
             <td>
-              <span class="suministro-acciones-none" title="Sin acciones pendientes">
+              <span class="suministro-acciones-none">
                 ${icon("check", 12)} 0
               </span>
             </td>
@@ -5967,7 +5988,7 @@
             <td class="suministro-date-cell">
               <div class="suministro-date-wrap">
                 <span>${s.fechaEntrega}</span>
-                ${kpi ? `<span class="suministro-kpi-pill ${kpi.class}" title="${kpi.label}">${kpi.text}</span>` : ""}
+                ${kpi ? `<span class="suministro-kpi-pill ${kpi.class}">${kpi.text}</span>` : ""}
               </div>
             </td>
           `;
@@ -13291,15 +13312,17 @@
   document.body.appendChild(rowHint);
   const hideRowHint = () => rowHint.classList.remove("is-visible");
   document.addEventListener("mousemove", e => {
-    const row = e.target.closest?.(".suministros-row[data-row-hint]");
-    // Sobre enlaces o controles internos manda su propio comportamiento
-    if (!row || e.target.closest("a[href], button, select, input")) {
+    const row = e.target.closest?.(".suministros-row");
+    // Texto dinámico: el de la celda/enlace bajo el cursor (proveedor, expediente…) o, si no, el de la fila
+    const hintEl = row && e.target.closest("[data-row-hint]");
+    if (!hintEl || e.target.closest("button, select, input")) {
       hideRowHint();
       return;
     }
-    if (rowHint.dataset.text !== row.dataset.rowHint) {
-      rowHint.dataset.text = row.dataset.rowHint;
-      rowHint.innerHTML = `<span>${escHTML(row.dataset.rowHint)}</span>${icon("arrow", 12)}`;
+    const hintText = hintEl.dataset.rowHint;
+    if (rowHint.dataset.text !== hintText) {
+      rowHint.dataset.text = hintText;
+      rowHint.innerHTML = `<span>${escHTML(hintText)}</span>${icon("arrow", 12)}`;
     }
     const pad = 14;
     const w = rowHint.offsetWidth;

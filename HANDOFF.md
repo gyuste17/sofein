@@ -2,6 +2,18 @@
 
 Registro de relevo entre agentes. **Entradas nuevas arriba.** Reglas del proyecto en `AGENTS.md`.
 
+## 2026-10-29 · Claude · rama claude/tabla-suministros · Suministros: nota dinámica por celda y sin tooltips nativos (v58–v59)
+
+**Hecho**
+- v58: la nota flotante «Ver suministro…» pasa a verde suave (fondo pálido, texto `--screen-title-color`).
+- v59: quitados todos los `title` nativos de las filas (evita el doble tooltip negro + verde).
+- v59: la nota es dinámica según la celda (`data-row-hint` en el elemento más cercano): «Ver proveedor X», «Ver cliente X», «Abrir expediente X», «Ver N acciones pendientes»; el resto de la fila, «Ver suministro…».
+- v59: en admin, las celdas Proveedor/Cliente (si la entidad existe en el directorio) llevan al Directorio filtrado: `#admin/directorio?dirType=proveedores|clientes&q=<nombre>` (nuevo parámetro `q`/`dirType` en `parseHash`). En cliente/proveedor no hay Directorio y siguen abriendo el suministro.
+- `AGENTS.md`: `procurement` se integra, sube y despliega sin preguntar tras probar; `main` sigue requiriendo permiso.
+
+**Pendiente / decisiones**
+- No existe ficha individual de proveedor/cliente; si se crea, cambiar `dirEntityLinkAttrs` para enlazar a ella.
+
 ## 2026-10-29 · Claude · rama claude/tabla-suministros · Tabla de Suministros: filas como enlace y filtros facetados (v57)
 
 **Hecho**

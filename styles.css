@@ -2971,6 +2971,16 @@ select:focus,
   text-decoration-color: color-mix(in srgb, var(--entity-accent) 45%, transparent);
   text-underline-offset: 3px;
 }
+.suministro-entity-link:hover {
+  color: var(--entity-accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+/* Sobre un enlace interno (proveedor, expediente, acciones) solo se resalta ese destino, no el tipo */
+.suministros-row:has(.suministro-entity-link:hover, .suministro-exp-link:hover, .suministro-acciones-link:hover) .suministro-tipo-cell strong {
+  color: var(--entity-text);
+  text-decoration: none;
+}
 .suministros-row:hover .suministro-badge-num {
   border-color: var(--entity-accent);
   color: var(--entity-accent);
