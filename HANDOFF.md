@@ -2,6 +2,20 @@
 
 Registro de relevo entre agentes. **Entradas nuevas arriba.** Reglas del proyecto en `AGENTS.md`.
 
+## 2026-10-29 · Claude · rama `claude/perfil-admin` · Mi cuenta de SOFEIN y varios teléfonos (v62), publicado
+
+**Hecho**
+- Perfil de SOFEIN (chip de la barra lateral): abre «Mi cuenta» (usuario + contraseña y acceso, botones desactivados hasta tener backend).
+  - Cuadro de mandos oculto con `SHOW_ADMIN_HUB = false`: Resumen, Visión global y Configuración no se muestran; `#admin/administracion|overview|configuracion` pintan Mi cuenta. El código sigue intacto para recuperarlo.
+  - Productos y Conformidades siguen en el menú lateral.
+- Clientes y Proveedores: varios teléfonos. Campo `telefonos` (lista); `telefono` se mantiene como el primero por compatibilidad (`getTelefonos`). En el formulario, «+ Añadir otro teléfono» y «×» para quitar. La tabla, el perfil, la búsqueda y el CSV los muestran todos (apilados en la celda).
+- Selector: los cambios pedidos (sin mínimo de 3, nombres de pasos, requisitos en gris) ya estaban en v60; quitado el «3» de los nombres de documentos de ejemplo de la preselección/comparativa.
+
+**Pendiente**
+- Contraseña y 2FA reales cuando se conecte Supabase Auth (ver `docs/BACKEND_SPEC.md`).
+
+**Nota de coordinación**: el worktree `.claude/worktrees/claude` lo usan dos sesiones de Claude a la vez; al terminar se devuelve a la rama `claude/sticky-pasaporte`.
+
 ## 2026-10-29 · Claude · rama `claude/sticky-pasaporte` · Pasaporte al final y cabecera fija enlazable (v61), publicado
 
 - Pestañas de la ficha: Documentación · Registro · Avisos · Anotaciones · **Pasaporte Digital** (última).

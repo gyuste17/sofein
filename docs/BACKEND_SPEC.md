@@ -121,7 +121,7 @@ Correspondencia con el front:
 
 ### 4.3 Directorio
 
-**`organizaciones`**: codigo (`CLI-xx` / `PRV-xx`), tipo, nombre / razón social, cif (unique), sede, email, telefono, representante, actividad y condiciones de pago generales.
+**`organizaciones`**: codigo (`CLI-xx` / `PRV-xx`), tipo, nombre / razón social, cif (unique), sede, email, telefonos (`text[]`, el primero es el principal), representante, actividad y condiciones de pago generales.
 
 **`proveedor_suministros`** (front: `prv.suministros` y `prv.suministrosCondiciones[tipo]`)
 `proveedor_id → organizaciones`, `tipo` (de `tipos_suministro`), `plazo_medio_dias int`, `condiciones_pago text`. Clave primaria `(proveedor_id, tipo)`.
