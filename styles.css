@@ -9828,3 +9828,34 @@ details.b2b-profile-card.is-collapsible[open] > summary.is-collapsible-summary .
     border-left: 0;
   }
 }
+
+/* Cabecera fija enlazable (v61) */
+.dossier-sticky-link {
+  min-width: 0;
+  padding: 2px 6px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--entity-muted);
+  font: inherit;
+  font-size: inherit;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+.dossier-sticky-link:hover,
+.dossier-sticky-link:focus-visible {
+  background: var(--entity-accent-soft);
+  color: var(--entity-accent);
+}
+.dossier-sticky-link.dossier-sticky-phase {
+  color: var(--entity-accent);
+  font-weight: 650;
+}
+#dossierAnchorExp,
+#dossierAnchorSums,
+#dossierAnchorPhases,
+#dossierAnchorTabs {
+  scroll-margin-top: 56px;
+}

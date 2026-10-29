@@ -4444,7 +4444,7 @@
 
     const suministrosCardsHTML = expSuministros.length >= 1 ? `
       <hr class="dossier-section-divider" />
-      <details class="dossier-collapsible-block" data-collapse-key="suministros" ${dossierCollapseState.suministros !== false ? "open" : ""}>
+      <details class="dossier-collapsible-block" id="dossierAnchorSums" data-collapse-key="suministros" ${dossierCollapseState.suministros !== false ? "open" : ""}>
         <summary class="dossier-collapsible-summary">
           <div class="dossier-collapsible-summary-left">
             <span class="dossier-section-kicker">${suministrosSectionTitle}</span>
@@ -5124,14 +5124,16 @@
 
     // Cabecera mínima que aparece al hacer scroll: expediente / suministro / fase
     const stickyHTML = `
-      <div class="dossier-sticky-anchor" aria-hidden="true">
+      <div class="dossier-sticky-anchor">
         <div class="dossier-sticky-bar" id="dossierStickyBar">
           <a href="#${activeRole}/expedientes">Expedientes</a>
           <i>/</i>
-          <span class="dossier-sticky-exp"><b>${exp.id}</b> ${escHTML(v.tituloGenerico)}</span>
-          ${currentSum ? `<i>/</i><span><b>${currentSum.id}</b> ${escHTML(currentSum.tipo)}</span>` : ""}
+          <button type="button" class="dossier-sticky-link dossier-sticky-exp" data-sticky-jump="dossierAnchorExp" title="Ir a la ficha del expediente"><b>${exp.id}</b> ${escHTML(v.tituloGenerico)}</button>
+          ${currentSum ? `<i>/</i><button type="button" class="dossier-sticky-link" data-sticky-jump="dossierAnchorSums" title="Ir a los suministros"><b>${currentSum.id}</b> ${escHTML(currentSum.tipo)}</button>` : ""}
           <i>/</i>
-          <span class="dossier-sticky-phase">Fase ${PHASES[activeDossierPhase].num} · ${PHASES[activeDossierPhase].name}</span>
+          <button type="button" class="dossier-sticky-link dossier-sticky-phase" data-sticky-jump="dossierAnchorPhases" title="Ir al selector de fases">Fase ${PHASES[activeDossierPhase].num} · ${PHASES[activeDossierPhase].name}</button>
+          <i>/</i>
+          <button type="button" class="dossier-sticky-link" data-sticky-jump="dossierAnchorTabs" title="Ir a las pestañas">${escHTML(({ deliverables: "Documentación", incidents: "Registro", comms: "Avisos", notes: "Anotaciones", passport: "Pasaporte Digital", history: "Historial" })[activeDossierTab] || "Documentación")}</button>
         </div>
       </div>
     `;
@@ -5185,7 +5187,7 @@
         ` : ""}
 
         <!-- 1. Tarjeta de Expediente (Adaptada según el perfil activo) -->
-        <section class="dossier-exp-summary-card">
+        <section class="dossier-exp-summary-card" id="dossierAnchorExp">
           <div class="dossier-exp-summary-top">
             <div class="dossier-exp-summary-left">
               <span class="dossier-exp-state-pill">
@@ -5255,7 +5257,7 @@
         <hr class="dossier-section-divider" />
 
         <!-- 3. Stepper de las 4 Fases (con título más grande y más oscuro) -->
-        <div class="dossier-phases-block">
+        <div class="dossier-phases-block" id="dossierAnchorPhases">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
             <span class="dossier-phases-heading-with-icon">
               <span class="sum-type-icon-badge is-small">${icon(currentSumIconName, 14)}</span>
@@ -5294,7 +5296,7 @@
         <hr class="dossier-section-divider" />
 
         <!-- 6. Menú de Secciones del Expediente -->
-        <div class="dossier-tabs">
+        <div class="dossier-tabs" id="dossierAnchorTabs">
           <button class="dossier-tab-btn ${activeDossierTab === "deliverables" ? "is-active" : ""}" type="button" data-switch-dossier-tab="deliverables">
             ${icon("file", 16)} Documentación
           </button>
@@ -5306,11 +5308,6 @@
             ${icon("inbox", 16)} Avisos
             ${expNotices.length ? `<b class="badge">${expNotices.length}</b>` : ""}
           </button>
-          ${canSeePassportTab ? `
-            <button class="dossier-tab-btn is-passport-tab ${activeDossierTab === "passport" ? "is-active" : ""}" type="button" data-switch-dossier-tab="passport">
-              ${icon("award", 16)} Pasaporte Digital
-            </button>
-          ` : ""}
           ${isRoleAdmin ? `
             <button class="dossier-tab-btn ${activeDossierTab === "notes" ? "is-active" : ""}" type="button" data-switch-dossier-tab="notes">
               ${icon("lock", 16)} Anotaciones
@@ -5319,6 +5316,11 @@
           ${isRoleAdmin && SHOW_HISTORY_TAB ? `
             <button class="dossier-tab-btn ${activeDossierTab === "history" ? "is-active" : ""}" type="button" data-switch-dossier-tab="history">
               ${icon("activity", 16)} Historial
+            </button>
+          ` : ""}
+          ${canSeePassportTab ? `
+            <button class="dossier-tab-btn is-passport-tab ${activeDossierTab === "passport" ? "is-active" : ""}" type="button" data-switch-dossier-tab="passport">
+              ${icon("award", 16)} Pasaporte Digital
             </button>
           ` : ""}
         </div>
@@ -13460,6 +13462,14 @@
     bar.classList.toggle("is-visible", card.getBoundingClientRect().bottom < 0);
   }
   document.addEventListener("scroll", syncDossierStickyBar, { capture: true, passive: true });
+  document.addEventListener("click", e => {
+    const jump = e.target.closest?.("[data-sticky-jump]");
+    if (!jump) return;
+    const target = document.getElementById(jump.dataset.stickyJump);
+    if (!target) return;
+    if (target.tagName === "DETAILS") target.open = true;
+    target.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
   window.addEventListener("resize", syncDossierStickyBar, { passive: true });
 
   // Campo de etiquetas: sugerencias, crear/añadir, quitar

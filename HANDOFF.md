@@ -2,6 +2,17 @@
 
 Registro de relevo entre agentes. **Entradas nuevas arriba.** Reglas del proyecto en `AGENTS.md`.
 
+## 2026-10-29 · Claude · rama `claude/sticky-pasaporte` · Pasaporte al final y cabecera fija enlazable (v61), publicado
+
+- Pestañas de la ficha: Documentación · Registro · Avisos · Anotaciones · **Pasaporte Digital** (última).
+- Cabecera fija: cada tramo es un enlace que baja con scroll suave a su bloque.
+  - Código y título → ficha del expediente (`#dossierAnchorExp`).
+  - Suministro → bloque de suministros (`#dossierAnchorSums`, se abre si estaba plegado).
+  - Fase → selector de fases (`#dossierAnchorPhases`).
+  - Pestaña activa → menú de pestañas (`#dossierAnchorTabs`).
+  - `scroll-margin-top` para que la cabecera no tape el destino.
+- Verificado en Chrome (clic real desde la cabecera; destino a 56 px). 0 errores de consola.
+
 ## 2026-10-29 · Claude · rama `claude/gestion-expediente` · Gestión del expediente, pasaporte y selector (v60), publicado
 
 **Hecho**
