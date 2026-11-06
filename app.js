@@ -2983,6 +2983,78 @@
     `;
   }
 
+  /* ---------- Barra de ubicación (reunión con Flor): precisa en todas las pantallas y fija al hacer scroll ----------
+     Cada tramo es un enlace: «go» navega a otra ruta y «jump» baja al bloque de la propia pantalla. */
+  function getCrumbTrail(player, sectionName) {
+    const trail = [{ label: player.label }];
+    const sectionHref = `#${activeRole}/${activeSection}`;
+    if (activeRole === "admin" && SHOW_ADMIN_HUB && ADMIN_HUB_SECTIONS.includes(activeSection) && activeSection !== "administracion") {
+      trail.push({ label: "Administración", go: "#admin/administracion" });
+    }
+
+    // Ficha del expediente: expediente / suministro / fase / pestaña
+    if (activeSection === "expedientes" && activeParam) {
+      const exp = getActiveExpediente(activeParam);
+      trail.push({ label: sectionName, go: sectionHref });
+      if (!exp) { trail.push({ label: activeParam }); return trail; }
+      trail.push({ label: exp.id, title: getExpVisualMeta(exp).tituloGenerico, jump: "dossierAnchorExp", code: true });
+      const sum = activeDossierSuministroId ? SUMINISTROS.find(x => x.id === activeDossierSuministroId && x.expId === exp.id) : null;
+      if (sum) trail.push({ label: `${sum.id} · ${sum.tipo}`, jump: "dossierAnchorSums" });
+      const phase = PHASES[activeDossierPhase];
+      if (phase) trail.push({ label: `${phase.num}. ${phase.name}`, jump: "dossierAnchorPhases" });
+      const tabLabel = ({ deliverables: "Documentación", incidents: "Registro de incidencias y cambios", comms: "Avisos", notes: "Anotaciones", passport: "Certificado SOFEIN", history: "Historial" })[activeDossierTab];
+      if (tabLabel) trail.push({ label: tabLabel, jump: "dossierAnchorTabs" });
+      return trail;
+    }
+
+    // Selector / cotización: expedientes / expediente / selector / suministro / paso
+    if (activeSection === "selector") {
+      const exp = getActiveExpediente(activeParam || "SFN-2026-K9M2");
+      trail.push({ label: (player.nav.find(n => n.id === "expedientes") || {}).label || "Expedientes", go: `#${activeRole}/expedientes` });
+      if (exp) {
+        trail.push({ label: exp.id, title: getExpVisualMeta(exp).tituloGenerico, go: `#${activeRole}/expedientes/${exp.id}`, code: true });
+        trail.push({ label: sectionName });
+        const sum = getSelectorSuministro(exp);
+        if (sum) trail.push({ label: `${sum.id} · ${sum.tipo}` });
+        if (activeRole !== "proveedor") {
+          const m = ensureSuministroMatching(exp, sum);
+          const stepId = selectorViewStep || (m.faseSelector === "adjudicado" ? null : m.faseSelector);
+          const step = SELECTOR_STEPS.find(s => s.id === stepId);
+          trail.push({ label: step ? step.title : "Selección completada" });
+        }
+      }
+      return trail;
+    }
+
+    // Directorio filtrado por tipo y búsqueda
+    if (activeSection === "directorio") {
+      const sub = { proveedores: "Proveedores", clientes: "Clientes" }[directorioTypeFilter];
+      trail.push({ label: sectionName, go: sub || directorioSearchQuery ? sectionHref : null });
+      if (sub) trail.push({ label: sub });
+      if (directorioSearchQuery) trail.push({ label: `«${directorioSearchQuery}»` });
+      return trail;
+    }
+
+    trail.push({ label: sectionName, go: activeParam ? sectionHref : null });
+    if (activeParam) trail.push({ label: activeParam, code: true });
+    return trail;
+  }
+
+  function renderCrumbsHTML(player, sectionName) {
+    const trail = getCrumbTrail(player, sectionName);
+    return trail.map((c, idx) => {
+      const last = idx === trail.length - 1;
+      const cls = `admin-crumb${last ? " is-current" : ""}${idx === 0 ? " is-root" : ""}${c.code ? " is-code" : ""}`;
+      const title = c.title ? ` title="${escHTML(c.title)}"` : "";
+      const label = escHTML(c.label);
+      const body = c.jump && !last ? `<button type="button" class="${cls}" data-sticky-jump="${c.jump}"${title}>${label}</button>`
+        : c.jump ? `<button type="button" class="${cls}" data-sticky-jump="${c.jump}" aria-current="location"${title}>${label}</button>`
+        : c.go && !last ? `<a class="${cls}" href="${c.go}" data-go="${c.go}"${title}>${label}</a>`
+        : `<span class="${cls}"${last ? ' aria-current="location"' : ""}${title}>${label}</span>`;
+      return (idx ? `<i aria-hidden="true">/</i>` : "") + body;
+    }).join("");
+  }
+
   /* ---------- Componente: Topbar Interna con Switcher Sutil ---------- */
   function renderTopbar() {
     const player = PLAYERS[activeRole];
@@ -2998,13 +3070,9 @@
     return `
       <header class="admin-topbar">
         <button class="admin-menu" id="menuToggleBtn" type="button" aria-label="Abrir menú">${icon("menu", 20)}</button>
-        <div class="admin-crumbs">
-          <span>${player.label}</span>
-          <i>/</i>
-          ${activeRole === "admin" && SHOW_ADMIN_HUB && ADMIN_HUB_SECTIONS.includes(activeSection) && activeSection !== "administracion" ? `<a href="#admin/administracion" data-go="#admin/administracion" style="color:inherit;text-decoration:none">Administración</a><i>/</i>` : ""}
-          <b>${sectionName}</b>
-          ${activeParam ? `<i>/</i><b style="color:var(--entity-accent)">${activeParam}</b>` : ""}
-        </div>
+        <nav class="admin-crumbs" id="adminCrumbs" aria-label="Ubicación">
+          ${renderCrumbsHTML(player, sectionName)}
+        </nav>
 
         <div class="admin-topbar-actions">
           <!-- Switcher Sutil de Rol (Discreto) -->
@@ -9021,6 +9089,8 @@
     try {
     bindSugerenciasEvents();
     bindEncuestaEvents();
+    const crumbsEl = document.getElementById("adminCrumbs");
+    if (crumbsEl) crumbsEl.scrollLeft = crumbsEl.scrollWidth;
     // Popover del Selector de Rol Sutil
     const roleBtn = document.getElementById("roleDropdownBtn");
     const roleMenu = document.getElementById("roleDropdownMenu");
