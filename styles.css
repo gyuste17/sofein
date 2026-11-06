@@ -9931,3 +9931,136 @@ details.b2b-profile-card.is-collapsible[open] > summary.is-collapsible-summary .
   cursor: pointer;
 }
 .dir-phone-add:hover { text-decoration: underline; }
+
+/* ---------- Certificado SOFEIN (antes Pasaporte Digital) · v63 ---------- */
+.cert-status-row { display: flex; justify-content: flex-end; margin: 14px 0 4px; }
+.cert-status-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 12px; border-radius: 999px;
+  font-size: 0.74rem; font-weight: 600;
+  color: #1d4ed8; background: rgba(37, 99, 235, 0.1); border: 1px solid rgba(37, 99, 235, 0.3);
+}
+.cert-status-pill.is-final { color: #1e40af; background: rgba(37, 99, 235, 0.16); }
+.cert-summary-table td { font-size: 0.76rem; vertical-align: top; }
+.cert-doc-group { display: grid; gap: 8px; margin: 12px 0 4px; }
+.cert-doc-group-title { font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--entity-faint); }
+.cert-doc-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 12px; border-radius: 8px;
+  background: var(--entity-panel-2); border: 1px solid var(--entity-line);
+}
+.cert-doc-icon { color: var(--entity-accent); display: grid; place-items: center; flex-shrink: 0; }
+.cert-doc-main { min-width: 0; flex: 1; display: grid; gap: 2px; }
+.cert-doc-main strong { font-size: 0.8rem; color: var(--entity-text); }
+.cert-doc-main small { font-size: 0.7rem; color: var(--entity-muted); overflow-wrap: anywhere; }
+.cert-doc-empty { padding: 12px 14px; border-radius: 8px; border: 1px dashed var(--entity-line-strong, var(--entity-line)); font-size: 0.78rem; color: var(--entity-muted); }
+.profile-kpi-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 720px) { .profile-kpi-grid { grid-template-columns: 1fr; } }
+
+/* ---------- Sugerencias · v63 ---------- */
+.admin-sidebar-foot .admin-nav-suggest { margin-bottom: 8px; }
+.sug-form { max-width: 760px; }
+.sug-sender { border: 1px solid var(--entity-line); border-radius: 8px; padding: 10px 14px; margin: 0; display: grid; gap: 8px; }
+.sug-sender legend { padding: 0 6px; font-size: 0.72rem; font-weight: 600; color: var(--entity-muted); }
+.sug-sender label { display: flex; align-items: center; gap: 8px; font-size: 0.82rem; color: var(--entity-text); cursor: pointer; flex-wrap: wrap; }
+.sug-sender small { color: var(--entity-faint); }
+.sug-form-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.sug-form-foot small { font-size: 0.75rem; color: var(--entity-muted); }
+.sug-form-foot a { color: var(--entity-accent); }
+.sug-sent-icon { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; margin: 0 auto; color: #fff; background: var(--entity-accent); }
+.sug-toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+.sug-search { position: relative; flex: 1; min-width: 200px; display: flex; align-items: center; }
+.sug-search svg { position: absolute; left: 10px; color: var(--entity-faint); pointer-events: none; }
+.sug-search input { width: 100%; height: 34px; padding: 0 10px 0 32px; border-radius: 6px; border: 1px solid var(--entity-line); background: var(--entity-bg); color: var(--entity-text); font: inherit; font-size: 0.8rem; }
+.sug-toolbar .create-exp-select { width: auto; min-width: 160px; height: 34px; }
+.sug-count { font-size: 0.75rem; color: var(--entity-muted); }
+.sug-sort { all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; font: inherit; color: inherit; white-space: nowrap; }
+.sug-sort.is-active { color: var(--entity-accent); }
+.sug-table td { vertical-align: top; font-size: 0.78rem; }
+.sug-trunc { position: relative; cursor: help; border-bottom: 1px dotted var(--entity-faint); outline: none; }
+.sug-trunc-full {
+  display: none; position: absolute; left: 0; top: calc(100% + 6px); z-index: 30;
+  width: max-content; max-width: min(360px, 80vw); white-space: normal;
+  padding: 10px 12px; border-radius: 8px; font-size: 0.78rem; font-weight: 400; line-height: 1.45;
+  color: var(--screen-title-color, var(--entity-text)); background: var(--entity-panel, #fff);
+  border: 1px solid var(--entity-line); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14);
+}
+.sug-trunc:hover .sug-trunc-full, .sug-trunc:focus .sug-trunc-full { display: block; }
+.sug-attach { all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; margin: 0 6px 4px 0; padding: 2px 8px; border-radius: 999px; font-size: 0.7rem; color: var(--entity-text); background: var(--entity-panel-2); border: 1px solid var(--entity-line); }
+@media (min-width: 900px) { .sug-table-wrap { overflow: visible; } }
+
+/* ---------- Encuesta de satisfacción en el cierre · v63 ---------- */
+.survey-strip {
+  display: grid; gap: 10px; margin: 14px 0 4px; padding: 14px 16px; border-radius: 10px;
+  background: #fff; border: 1px solid var(--entity-line); box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  color: #1f2937;
+}
+.survey-strip.is-done { display: flex; align-items: center; gap: 10px; padding: 10px 14px; }
+.survey-strip.is-done small { color: #475569; font-size: 0.78rem; }
+.survey-strip-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.survey-strip-icon { width: 32px; height: 32px; border-radius: 8px; display: grid; place-items: center; flex-shrink: 0; color: var(--entity-accent); background: rgba(0, 135, 81, 0.1); }
+.survey-strip-copy { min-width: 0; flex: 1; display: grid; gap: 2px; }
+.survey-strip-copy strong { font-size: 0.86rem; color: #0f172a; }
+.survey-strip-copy small, .survey-meta { font-size: 0.74rem; color: #64748b; }
+.survey-strip-body { display: flex; align-items: flex-end; gap: 10px; flex-wrap: wrap; justify-content: space-between; }
+.survey-strip textarea.create-exp-input { background: #f8fafc; color: #0f172a; border-color: #e2e8f0; }
+.survey-answer { margin: 0; flex: 1; min-width: 220px; padding: 10px 12px; border-left: 3px solid var(--entity-accent); background: #f8fafc; border-radius: 6px; font-size: 0.82rem; color: #0f172a; }
+
+/* ---------- Selector: notas de texto libre · v63 ---------- */
+.selector-note-box { display: grid; gap: 6px; margin: 14px 0; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--entity-line); background: var(--entity-panel-2); }
+.selector-note-box.is-readonly { background: transparent; border-style: dashed; }
+.selector-note-label { display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; font-weight: 600; color: var(--entity-text); }
+.selector-note-hint { font-size: 0.72rem; color: var(--entity-muted); font-weight: 400; }
+.selector-note-text { margin: 0; font-size: 0.8rem; line-height: 1.45; color: var(--entity-text); white-space: pre-line; }
+.selector-note-empty { font-size: 0.76rem; color: var(--entity-faint); }
+.selector-note-empty { font-style: normal; text-transform: none; letter-spacing: normal; }
+
+/* ---------- Próxima entrega: ⓘ con todas las entregas · v63 ---------- */
+.delivery-info { position: relative; display: inline-grid; place-items: center; vertical-align: -2px; margin-left: 3px; color: var(--entity-faint); cursor: help; outline: none; text-transform: none; letter-spacing: normal; }
+.delivery-info:hover, .delivery-info:focus { color: var(--entity-accent); }
+.delivery-info-pop {
+  display: none; position: absolute; left: 50%; bottom: calc(100% + 8px); transform: translateX(-50%); z-index: 40;
+  width: max-content; min-width: 200px; max-width: min(300px, 80vw); padding: 10px 12px; border-radius: 8px;
+  background: var(--entity-panel, #fff); border: 1px solid var(--entity-line); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
+  font-size: 0.74rem; font-weight: 400; color: var(--entity-text); text-align: left; line-height: 1.4;
+}
+.delivery-info:hover .delivery-info-pop, .delivery-info:focus .delivery-info-pop { display: grid; gap: 5px; }
+.delivery-info-pop strong { font-size: 0.72rem; color: var(--entity-muted); margin-bottom: 2px; }
+.delivery-info-row { display: flex; gap: 6px; align-items: baseline; }
+.delivery-info-row b { font-weight: 600; color: var(--entity-text); }
+.delivery-info-row em { margin-left: auto; padding-left: 10px; font-style: normal; white-space: nowrap; color: var(--entity-accent); }
+.delivery-info-row.is-done { opacity: 0.6; }
+
+/* ---------- Anotaciones con adjuntos · v63 ---------- */
+.note-attach-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.note-attach { all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; padding: 2px 9px; border-radius: 999px; font-size: 0.7rem; color: var(--entity-accent); background: rgba(0, 135, 81, 0.08); border: 1px solid rgba(0, 135, 81, 0.25); }
+.note-attach:hover { background: rgba(0, 135, 81, 0.14); }
+
+/* ---------- Barra de ubicación fija y precisa · v63 ---------- */
+.app, .admin-main, .admin-view { overflow-x: clip !important; }
+.admin-topbar {
+  position: sticky; top: 0; z-index: 55;
+  background: var(--entity-bg);
+  gap: 12px;
+}
+.admin-crumbs {
+  flex: 1 1 auto; min-width: 0; overflow-x: auto; white-space: nowrap;
+  scrollbar-width: none; -ms-overflow-style: none;
+}
+.admin-crumbs::-webkit-scrollbar { display: none; }
+.admin-crumb { all: unset; flex-shrink: 0; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--entity-muted); font-size: inherit; }
+a.admin-crumb, button.admin-crumb { cursor: pointer; border-radius: 4px; }
+a.admin-crumb:hover, button.admin-crumb:hover { color: var(--entity-text); text-decoration: underline; text-underline-offset: 3px; }
+a.admin-crumb:focus-visible, button.admin-crumb:focus-visible { outline: 2px solid var(--entity-accent); outline-offset: 2px; }
+.admin-crumb.is-code { font-variant-numeric: tabular-nums; font-weight: 600; color: var(--entity-accent); }
+.admin-crumb.is-current { color: var(--entity-text); font-weight: 600; }
+.admin-crumbs i { flex-shrink: 0; }
+/* La ruta completa ya va en la barra superior fija: se oculta la cabecera fija propia de la ficha */
+.dossier-sticky-anchor { display: none !important; }
+[id^="dossierAnchor"] { scroll-margin-top: 76px; }
+@media (max-width: 760px) {
+  .admin-crumbs { max-width: none !important; overflow-x: auto !important; text-overflow: clip !important; }
+  .admin-crumbs > .admin-crumb.is-root, .admin-crumbs > .admin-crumb.is-root + i { display: none !important; }
+  .admin-crumb { max-width: 170px; }
+  [id^="dossierAnchor"] { scroll-margin-top: 64px; }
+}

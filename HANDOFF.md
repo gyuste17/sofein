@@ -2,6 +2,53 @@
 
 Registro de relevo entre agentes. **Entradas nuevas arriba.** Reglas del proyecto en `AGENTS.md`.
 
+## 2026-11-06 · Claude · rama `claude/quick-wins-reunion` · Quick wins de la reunión con Flor (v63), publicado
+
+Lista completa, plan y dudas: `docs/PLAN_CAMBIOS_REUNION_FLOR.md`. Modelo de datos nuevo: `docs/BACKEND_SPEC.md` 4.7, 4.8, 4.10 y 4.11.
+
+**Hecho**
+- Textos:
+  - «Conformidades» pasa a «Cumplimientos» (solo textos visibles; ids, claves de catálogo y `#admin/conformidades` no cambian).
+  - «Mis suministros» en el menú de cliente y proveedor.
+  - Destinatario final fuera de las casillas de visibilidad al subir documentos.
+- Miles: nuevo `fmtNumEs(n, minFD, maxFD)`. `formatEuro` y `formatEuroUnit` lo usan (antes `toLocaleString("es-ES")` no agrupaba 4 cifras).
+- Perfiles:
+  - Fuera los botones redundantes, la tira de KPIs en texto y los bloques «Mis suministros adjudicados» y «Mis expedientes…».
+  - 3 cajas con `renderProfileKpis`.
+  - Nuevo bloque `renderGeneralDocsCard` («Documentación y acuerdos generales», datos de ejemplo en `entity.documentacionGeneral`).
+  - «Cumplimientos» del cliente, aparte.
+- Certificado SOFEIN: `renderPassportSection` reescrito según la lista de Ángel. Clases `.cert-*` en `styles.css`. Renombrado en todos los textos.
+  - Ya no se usan (siguen en el código, sin enlace): `openPassportCryptoModal` y las firmas tripartitas.
+  - Entrega acordada = `previo.fechaEntrega` del primer registro de cambios de ese suministro.
+- Sugerencias:
+  - `renderSugerenciasView` / `bindSugerenciasEvents`, ruta `#<rol>/sugerencias` y entrada en `.admin-sidebar-foot`.
+  - Guardadas en `localStorage` (`sofein_sugerencias_v1`; los adjuntos guardan solo el nombre).
+  - Exportación CSV con `;` y BOM (se abre en Excel).
+- Encuesta de cierre:
+  - `renderEncuestaStrip`, una por suministro, guardadas en `localStorage` (`sofein_encuestas_v1`).
+  - 15 días desde que se ve por primera vez en Cierre; después pasa a cerrada sola.
+- Selector:
+  - `renderSelNoteBox` con `data-sel-note`: se guarda en `matching` al escribir (`notasAdminProveedores`, `comentariosClientePreseleccion`, `comentariosClienteSeleccion`).
+  - `cotizacion.anotaciones` (textarea `#quoteNotes`), visible en la fase 3 de SOFEIN y en una fila de la comparativa.
+- `renderEntregasInfo(exp)`: ⓘ junto a «Próxima entrega» (tarjetas y ficha).
+- Anotaciones internas con adjuntos: `addExpedienteCambioLog` acepta `adjuntos`; el modal reutiliza `renderCreateAttachHTML("anotacion")`.
+- Barra de ubicación:
+  - `getCrumbTrail` / `renderCrumbsHTML`; `.admin-topbar` es `position: sticky`.
+  - Para que funcione: `.app`, `.admin-main` y `.admin-view` pasan a `overflow-x: clip` (antes `hidden` en móvil, lo que rompía el sticky).
+  - La cabecera fija propia de la ficha (`.dossier-sticky-anchor`) queda oculta por CSS: sus saltos (`data-sticky-jump`) ahora están en la barra superior.
+- Verificado en Chrome (servidor local) a 1280 y 375 px:
+  - 26 rutas de los 4 perfiles y pestañas del expediente: 0 errores de consola, sin `undefined`/`NaN`, sin desbordamiento.
+  - Flujo de sugerencia → bandeja; encuesta cliente → SOFEIN; notas del selector en los 3 perfiles; anotación con adjunto; barra fija con scroll real.
+
+**Pendiente** (ver el plan en el documento)
+- Estudio/expediente, fase de contrato con firma, mejora de oferta, requisitos adicionales estructurados, contactos y admin de cuenta, roles, acuerdos firmables, descargas reales, integración con Claude y licitaciones.
+- Sugerencias y encuestas viven en el navegador de cada usuario hasta que haya backend.
+
+**Decisiones**
+- «Mis suministros» también para el cliente (el título de su pantalla ya lo decía).
+- Encuesta por suministro: la pregunta de Flor nombra un suministro concreto.
+- Sugerencias anónimas: en el backend no se guardará la organización (anonimato real).
+
 ## 2026-10-29 · Claude · rama `claude/perfil-admin` · Mi cuenta de SOFEIN y varios teléfonos (v62), publicado
 
 **Hecho**

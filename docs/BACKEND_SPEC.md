@@ -239,11 +239,14 @@ Reglas (en RPC, no en el front):
 | adjudicacion_confirmada_cliente | bool | El cliente pulsó «Confirmar adjudicación». |
 | proveedor_elegido_id | uuid null | |
 | validada_at | timestamptz null | SOFEIN «Validar adjudicación». |
+| notas_sofein_proveedores | text null | (v63) Indicaciones de SOFEIN para los proveedores; se envían con la petición de cotización y el proveedor las ve en su pantalla de Cotización. Front: `matching.notasAdminProveedores`. |
+| comentario_cliente_preseleccion | text null | (v63) «¿Algún otro requisito que considere imprescindible…?» en 2. Preselección. Front: `matching.comentariosClientePreseleccion`. |
+| comentario_cliente_seleccion | text null | (v63) Lo mismo en 4. Selección. Front: `matching.comentariosClienteSeleccion`. |
 
 **`seleccion_candidatos`**: seleccion_id, proveedor_id, `incluido_busqueda bool` (SOFEIN, paso 1), `pedir_cotizacion bool` (cliente o SOFEIN, paso 2).
 Los candidatos iniciales son los proveedores con `proveedor_suministros.tipo = suministro.tipo`. **Sin mínimo de proveedores** (decisión del 29/10: no limitar a 3).
 
-**`cotizaciones`**: seleccion_id, proveedor_id, `precio_unitario numeric`, `precio_total numeric` (**calculado en servidor** = unitario × unidades), `fecha_entrega date`, `condiciones_pago text`, `validez_dias int check (validez_dias >= 45)`, `enviada_at`, `estado estado_cotizacion`.
+**`cotizaciones`**: seleccion_id, proveedor_id, `precio_unitario numeric`, `precio_total numeric` (**calculado en servidor** = unitario × unidades), `fecha_entrega date`, `condiciones_pago text`, `validez_dias int check (validez_dias >= 45)`, `anotaciones text null` (v63: «Anotaciones / Condicionantes» del proveedor; se ven en la fase 3 de SOFEIN y en una fila de la comparativa), `enviada_at`, `estado estado_cotizacion`.
 **`cotizacion_conformidades`**: cotizacion_id, conformidad_id (conformidades a las que se compromete).
 **`seleccion_requisitos`**: seleccion_id, conformidad_id; las que el cliente exige de entre las que ofrece el proveedor elegido.
 
@@ -252,7 +255,8 @@ Confidencialidad: un proveedor **solo** lee su propia cotización. El cliente no
 ### 4.8 Formalización y pasaporte
 
 - **`pedidos`** (front: `ensureExpedienteFormalizacion`; hoy es por expediente y conviene pasarlo **por suministro**): suministro_id, codigo (`PED-SOF-…`), proveedor_id, importe, fecha_entrega, condiciones_pago, firmas de cliente y proveedor (at y por) y validado_sofein_at. La hoja de pedido es un documento con `origen = 'hoja_pedido'`.
-- **Pasaporte**: se genera al cerrar el expediente. Consolida hitos por fase, ensayos y certificados validados y adendas, con un hash SHA-256 por bloque. Se guarda como documento `origen = 'pasaporte'`, visible para todos (destinatario incluido).
+- **Certificado SOFEIN** (antes «Pasaporte Digital», renombrado en v63). Contenido acordado: cabecera con título, código, cliente y destino; etiqueta «Borrador: suministro en curso» / «Certificado final»; 1. Resumen por suministro (tipo, especificaciones, código, proveedor, unidades finales, presupuesto final, entrega acordada = fecha antes del primer cambio registrado, entrega final) + contrato firmado + adjuntos de alcance; 2. Registro de incidencias y cambios (una fila por registro); 3. Documentación adicional relevante (automática); Delimitación Legal. **Sin sello ni hashes visibles** (riesgo legal). Descargas: PDF del certificado y ZIP del expediente completo.
+- **Pasaporte (modelo heredado)**: se genera al cerrar el expediente. Consolida hitos por fase, ensayos y certificados validados y adendas, con un hash SHA-256 por bloque. Se guarda como documento `origen = 'pasaporte'`, visible para todos (destinatario incluido).
 
 ### 4.9 Avisos e historial
 
@@ -272,6 +276,28 @@ Confidencialidad: un proveedor **solo** lee su propia cotización. El cliente no
 
 **`actividad`** (front: `exp.registroCambios` + `addExpedienteCambioLog`; pestaña «Historial», solo SOFEIN)
 expediente_id, suministro_id null, `fase`, tipo, titulo, detalle, autor_id, autor_rol, `interna bool` (anotación interna) y created_at. Solo inserción (sin update ni delete).
+Adjuntos de anotaciones (v63): documentos con `origen = 'anotacion'` y `actividad_id`, visibles solo para SOFEIN (front: `registroCambios[].adjuntos`).
+
+### 4.10 Sugerencias (v63)
+
+**`sugerencias`** (front: `SUGERENCIAS`, hoy en `localStorage` `sofein_sugerencias_v1`)
+| Campo | Tipo | Notas |
+| :--- | :--- | :--- |
+| id | uuid | |
+| created_at | timestamptz | Fecha de envío. |
+| anonima | bool | Si es true, **no se guarda** `organizacion_id` ni `autor_id` (anonimato real, no solo oculto en pantalla). |
+| organizacion_id, autor_id | uuid null | Solo si no es anónima. |
+| tipo_usuario | text | `cliente` / `proveedor` / `anonimo`. |
+| titulo, descripcion | text | |
+| leida_at | timestamptz null | Para el contador de la barra lateral de SOFEIN. |
+
+Adjuntos en Storage `sugerencias/{id}/…`. RLS: cliente y proveedor solo `insert` (no ven el historial); SOFEIN `select`. Exportación a Excel desde la bandeja de SOFEIN.
+
+### 4.11 Encuesta de satisfacción en el cierre (v63)
+
+**`encuestas_cierre`** (front: `ENCUESTAS`, hoy en `localStorage` `sofein_encuestas_v1`), una por suministro
+suministro_id unique, `inicio_at` (entrada en 4. Cierre), `estado` (`pendiente` / `recibida` / `cerrada`), `respuesta text`, `respondida_at`, `respondida_por`, `cerrada_por` (null = cierre automático).
+El cliente la ve durante **15 días** desde `inicio_at`; pasado ese plazo sin respuesta pasa a `cerrada` (tarea programada). SOFEIN puede cerrarla a mano. Aviso al cliente al abrirse.
 
 > **Historial oculto en la plataforma (29/10).** La pestaña «Historial» está oculta (`SHOW_HISTORY_TAB = false` en `app.js`), pero el registro sigue activo. Se apuntarán **todos** los eventos y **quién** los hace para diseñar el **backoffice** de SOFEIN; no se mostrará nada de esto en la plataforma hasta entonces. Al diseñar el backoffice: `actividad` + `auth.users`, con filtros por expediente, suministro, fase, tipo, persona y fecha. Hay que evitar entregar de más: primero registrar bien y después decidir qué se muestra.
 
