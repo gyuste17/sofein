@@ -53,7 +53,8 @@
     phone: '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>',
     arrowUp: '<line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>',
     arrowDown: '<line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/>',
-    arrowsSort: '<path d="m7 15 5 5 5-5M7 9l5-5 5 5"/>'
+    arrowsSort: '<path d="m7 15 5 5 5-5M7 9l5-5 5 5"/>',
+    bulb: '<path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.1V17h6v-.2c0-.8.4-1.6 1-2.1A7 7 0 0 0 12 2z"/>'
   };
 
   /* Números en formato español con separador de miles siempre (toLocaleString("es-ES") no agrupa las cifras de 4 dígitos). */
@@ -2289,7 +2290,7 @@
             <strong class="exp-v2-val">${v.presupuesto}</strong>
           </div>
           <div class="exp-v2-data-row is-delivery">
-            <span class="exp-v2-label">Próxima entrega</span>
+            <span class="exp-v2-label">Próxima entrega ${renderEntregasInfo(exp)}</span>
             <div class="exp-v2-delivery-wrap">
               <strong class="exp-v2-delivery-date">${v.proximaEntregaFecha}</strong>
               <span class="exp-v2-delivery-diff is-${v.proximaEntregaTone}">${v.proximaEntregaDiff}</span>
@@ -2298,6 +2299,17 @@
         </div>
       </article>
     `;
+  }
+
+  // Icono ⓘ junto a «Próxima entrega»: al pasar el ratón muestra todas las entregas del expediente con su fecha
+  function renderEntregasInfo(exp) {
+    const sums = SUMINISTROS.filter(x => x.expId === exp.id && (activeRole === "admin" || activeRole !== "proveedor" || isSuministroOfActiveProveedor(x)))
+      .sort((a, b) => String(a.fechaEntregaIso || "").localeCompare(String(b.fechaEntregaIso || "")));
+    if (!sums.length) return "";
+    return `<span class="delivery-info" tabindex="0" aria-label="Ver todas las entregas">${icon("info", 12)}<span class="delivery-info-pop" role="tooltip">
+        <strong>Entregas del expediente</strong>
+        ${sums.map(x => `<span class="delivery-info-row${x.estado === "cerrado" ? " is-done" : ""}"><b>${escHTML(x.id)}</b> ${escHTML(x.tipo || "")}<em>${escHTML(x.fechaEntrega || "Sin fecha")}</em></span>`).join("")}
+      </span></span>`;
   }
 
   function renderExpedientesBandejaVisual(role, roleExpedientes) {
@@ -2601,6 +2613,243 @@
     }
   }
 
+  /* ============================================================
+     SUGERENCIAS (reunión con Flor): formulario para cliente/proveedor
+     y bandeja histórica para SOFEIN. Persistencia en localStorage.
+     ============================================================ */
+  const SUGERENCIAS_KEY = "sofein_sugerencias_v1";
+  const DEFAULT_SUGERENCIAS = [
+    { id: "SUG-002", fechaIso: "2026-10-27T10:12:00", anonimo: false, rol: "proveedor", origen: "IberRail Components, S.L.", titulo: "Recordatorio de vencimiento de certificados", descripcion: "Sería útil recibir un aviso un mes antes de que caduque cualquiera de los certificados o del seguro de responsabilidad civil que tenemos subidos en el perfil, para renovarlos a tiempo y no bloquear ninguna cotización.", adjuntos: [], leida: true },
+    { id: "SUG-001", fechaIso: "2026-10-21T17:40:00", anonimo: true, rol: "anonimo", origen: "Anónimo", titulo: "Comparativa descargable", descripcion: "Poder descargar la tabla comparativa de proveedores en Excel para compartirla internamente con dirección de obra antes de elegir.", adjuntos: [{ fileName: "ejemplo-comparativa.xlsx" }], leida: true }
+  ];
+  let SUGERENCIAS = (() => {
+    try {
+      const raw = localStorage.getItem(SUGERENCIAS_KEY);
+      const parsed = raw ? JSON.parse(raw) : null;
+      return Array.isArray(parsed) ? parsed : DEFAULT_SUGERENCIAS.map(x => ({ ...x }));
+    } catch (e) { return DEFAULT_SUGERENCIAS.map(x => ({ ...x })); }
+  })();
+  const saveSugerencias = () => {
+    try { localStorage.setItem(SUGERENCIAS_KEY, JSON.stringify(SUGERENCIAS.map(x => ({ ...x, adjuntos: (x.adjuntos || []).map(a => ({ fileName: a.fileName })) })))); } catch (e) { /* sin almacenamiento */ }
+  };
+  const sugTableState = { sortCol: "fecha", sortDir: "desc", q: "", tipo: "" };
+  const SUG_TIPO_LABEL = { cliente: "Cliente", proveedor: "Proveedor", anonimo: "Anónimo" };
+  const getUnreadSugerencias = () => SUGERENCIAS.filter(x => !x.leida).length;
+  const formatSugDate = iso => {
+    const d = new Date(iso);
+    if (isNaN(d)) return "—";
+    return d.toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" }) + ", " + d.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
+  };
+  // Texto recortado a las primeras palabras; el texto completo aparece en una nota al pasar el ratón
+  const renderTruncHover = (text, words = 8) => {
+    const all = String(text || "").trim();
+    const parts = all.split(/\s+/);
+    if (parts.length <= words) return escHTML(all) || "—";
+    return `<span class="sug-trunc" tabindex="0">${escHTML(parts.slice(0, words).join(" "))}…<span class="sug-trunc-full" role="tooltip">${escHTML(all)}</span></span>`;
+  };
+
+  function getSugerenciasRows() {
+    const q = sugTableState.q.trim().toLowerCase();
+    const rows = SUGERENCIAS.filter(x =>
+      (!sugTableState.tipo || x.rol === sugTableState.tipo) &&
+      (!q || [x.origen, x.titulo, x.descripcion].some(v => String(v || "").toLowerCase().includes(q)))
+    );
+    const key = {
+      fecha: x => x.fechaIso || "",
+      origen: x => x.origen || "",
+      tipo: x => SUG_TIPO_LABEL[x.rol] || "",
+      titulo: x => x.titulo || "",
+      descripcion: x => x.descripcion || "",
+      adjuntos: x => String((x.adjuntos || []).length).padStart(3, "0")
+    }[sugTableState.sortCol] || (x => x.fechaIso || "");
+    rows.sort((a, b) => key(a).localeCompare(key(b), "es") * (sugTableState.sortDir === "asc" ? 1 : -1));
+    return rows;
+  }
+
+  function renderSugerenciasView(role) {
+    if (role !== "admin") {
+      const player = PLAYERS[role];
+      return `
+        <div class="admin-view-head">
+          <div>
+            <h1>Sugerencias</h1>
+            <p>Cuéntanos qué mejorarías de la plataforma. Puedes enviarla con tu perfil o de forma anónima.</p>
+          </div>
+        </div>
+        <form class="b2b-profile-card sug-form" id="sugerenciaForm" novalidate>
+          <div class="b2b-profile-card-body" style="display:grid;gap:14px">
+            <label class="create-exp-label">
+              Título de la sugerencia
+              <input class="create-exp-input" name="titulo" maxlength="140" required placeholder="Ej: Aviso antes de que caduque un certificado" />
+            </label>
+            <label class="create-exp-label">
+              Descripción
+              <textarea class="create-exp-input" name="descripcion" rows="5" required placeholder="Describe la mejora que propones y por qué te ayudaría" style="height:auto;padding:10px 12px;resize:vertical"></textarea>
+            </label>
+            ${renderCreateAttachHTML("sugerencia", false, 5)}
+            <fieldset class="sug-sender">
+              <legend>Enviar como</legend>
+              <label><input type="radio" name="envio" value="perfil" checked /> ${escHTML(player.entity)} <small>(mi perfil)</small></label>
+              <label><input type="radio" name="envio" value="anonimo" /> Anónimo <small>(SOFEIN no verá quién la envía)</small></label>
+            </fieldset>
+            <div class="sug-form-foot">
+              <small>¿Prefieres hablarlo directamente? Escríbenos a <a href="mailto:info@sofein.digital">info@sofein.digital</a>.</small>
+              <button class="admin-primary-button" type="submit">${icon("mail", 14)} Enviar sugerencia</button>
+            </div>
+          </div>
+        </form>
+      `;
+    }
+
+    // SOFEIN: bandeja con todas las sugerencias recibidas
+    SUGERENCIAS.forEach(x => { x.leida = true; });
+    saveSugerencias();
+    const rows = getSugerenciasRows();
+    const th = (col, label) => {
+      const active = sugTableState.sortCol === col;
+      return `<th><button type="button" class="sug-sort${active ? " is-active" : ""}" data-sug-sort="${col}">${label} ${icon(active ? (sugTableState.sortDir === "asc" ? "arrowUp" : "arrowDown") : "arrowsSort", 11)}</button></th>`;
+    };
+    return `
+      <div class="admin-view-head">
+        <div>
+          <h1>Sugerencias</h1>
+          <p>Sugerencias recibidas de clientes y proveedores.</p>
+        </div>
+        <button class="admin-quiet-button" type="button" id="sugExportBtn">${icon("download", 14)} Exportar a Excel</button>
+      </div>
+      <div class="sug-toolbar">
+        <div class="sug-search">
+          ${icon("search", 14)}
+          <input type="search" id="sugSearch" placeholder="Buscar por origen, título o descripción…" value="${escHTML(sugTableState.q)}" autocomplete="off" />
+        </div>
+        <select id="sugTipoFilter" class="create-exp-select" aria-label="Filtrar por tipo de usuario">
+          <option value="">Todos los tipos</option>
+          ${Object.entries(SUG_TIPO_LABEL).map(([k, v]) => `<option value="${k}" ${sugTableState.tipo === k ? "selected" : ""}>${v}</option>`).join("")}
+        </select>
+        <span class="sug-count">${rows.length} de ${SUGERENCIAS.length}</span>
+      </div>
+      <div class="b2b-dir-table-wrap sug-table-wrap">
+        <table class="b2b-dir-table sug-table">
+          <thead>
+            <tr>
+              ${th("fecha", "Fecha de envío")}
+              ${th("origen", "Origen")}
+              ${th("tipo", "Tipo de usuario")}
+              ${th("titulo", "Título")}
+              ${th("descripcion", "Descripción")}
+              ${th("adjuntos", "Adjuntos")}
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.length ? rows.map(x => `
+              <tr>
+                <td style="white-space:nowrap">${formatSugDate(x.fechaIso)}</td>
+                <td>${escHTML(x.origen)}</td>
+                <td><span class="dossier-chip" style="font-size:0.7rem">${SUG_TIPO_LABEL[x.rol] || "—"}</span></td>
+                <td><strong style="color:var(--entity-text)">${renderTruncHover(x.titulo, 6)}</strong></td>
+                <td>${renderTruncHover(x.descripcion, 10)}</td>
+                <td>${(x.adjuntos || []).length ? (x.adjuntos || []).map(a => `<button type="button" class="sug-attach" data-sug-file="${escHTML(a.fileName)}"${a.fileUrl ? ` data-sug-url="${escHTML(a.fileUrl)}"` : ""}>${icon("file", 11)} ${escHTML(a.fileName)}</button>`).join("") : "—"}</td>
+              </tr>`).join("") : `
+              <tr><td colspan="6" style="padding:24px;text-align:center;color:var(--entity-muted)">${SUGERENCIAS.length ? "Ninguna sugerencia coincide con la búsqueda." : "Todavía no se ha recibido ninguna sugerencia."}</td></tr>`}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  function openSugerenciaSentModal() {
+    const modalWrap = document.getElementById("modalContainer");
+    if (!modalWrap) return;
+    modalWrap.innerHTML = `
+      <div class="procurement-modal-backdrop" id="sugSentBackdrop">
+        <div class="procurement-modal" style="width:min(420px,100%)" role="dialog" aria-modal="true" aria-labelledby="sugSentTitle">
+          <div class="procurement-modal-body" style="text-align:center;gap:12px;padding:28px 24px 8px">
+            <span class="sug-sent-icon">${icon("check", 22)}</span>
+            <h3 id="sugSentTitle" style="margin:0">Sugerencia enviada</h3>
+            <p style="margin:0;color:var(--entity-muted);font-size:0.86rem">Su sugerencia ha sido enviada correctamente, gracias.</p>
+          </div>
+          <div class="procurement-modal-footer" style="justify-content:center">
+            <button class="admin-primary-button" type="button" id="sugSentClose">Aceptar</button>
+          </div>
+        </div>
+      </div>
+    `;
+    const close = () => { modalWrap.innerHTML = ""; };
+    document.getElementById("sugSentClose")?.addEventListener("click", close);
+    document.getElementById("sugSentBackdrop")?.addEventListener("click", e => { if (e.target.id === "sugSentBackdrop") close(); });
+  }
+
+  function exportSugerenciasCsv() {
+    const rows = getSugerenciasRows();
+    if (!rows.length) { showToast("No hay sugerencias visibles para exportar"); return; }
+    const esc = v => `"${String(v ?? "").replace(/"/g, '""')}"`;
+    const lines = [["Fecha de envío", "Origen", "Tipo de usuario", "Título", "Descripción", "Adjuntos"].map(esc).join(";")];
+    rows.forEach(x => lines.push([formatSugDate(x.fechaIso), x.origen, SUG_TIPO_LABEL[x.rol] || "", x.titulo, x.descripcion, (x.adjuntos || []).map(a => a.fileName).join(", ")].map(esc).join(";")));
+    const blob = new Blob(["﻿" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "sugerencias-sofein.csv";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  function bindSugerenciasEvents() {
+    const form = document.getElementById("sugerenciaForm");
+    form?.addEventListener("submit", e => {
+      e.preventDefault();
+      const titulo = form.elements.titulo.value.trim();
+      const descripcion = form.elements.descripcion.value.trim();
+      if (!titulo || !descripcion) {
+        showToast("Indica el título y la descripción de la sugerencia");
+        (titulo ? form.elements.descripcion : form.elements.titulo).focus();
+        return;
+      }
+      const anonimo = form.elements.envio.value === "anonimo";
+      const adjuntos = readCreateAttachments(form.querySelector(".create-attach")).map(a => ({ fileName: a.fileName, fileUrl: a.fileUrl }));
+      const nextNum = SUGERENCIAS.reduce((m, x) => Math.max(m, parseInt(String(x.id).replace(/\D/g, ""), 10) || 0), 0) + 1;
+      SUGERENCIAS.unshift({
+        id: `SUG-${String(nextNum).padStart(3, "0")}`,
+        fechaIso: new Date().toISOString(),
+        anonimo,
+        rol: anonimo ? "anonimo" : activeRole,
+        origen: anonimo ? "Anónimo" : PLAYERS[activeRole].entity,
+        titulo,
+        descripcion,
+        adjuntos,
+        leida: false
+      });
+      saveSugerencias();
+      form.reset();
+      form.querySelectorAll(".create-attach-row").forEach(r => r.remove());
+      form.querySelectorAll(".create-attach").forEach(updateCreateAttachAddState);
+      openSugerenciaSentModal();
+    });
+
+    document.querySelectorAll("[data-sug-sort]").forEach(btn => btn.addEventListener("click", () => {
+      const col = btn.dataset.sugSort;
+      if (sugTableState.sortCol === col) sugTableState.sortDir = sugTableState.sortDir === "asc" ? "desc" : "asc";
+      else { sugTableState.sortCol = col; sugTableState.sortDir = col === "fecha" ? "desc" : "asc"; }
+      renderApp();
+    }));
+    const search = document.getElementById("sugSearch");
+    search?.addEventListener("input", () => {
+      sugTableState.q = search.value;
+      const pos = search.selectionStart;
+      renderApp();
+      const again = document.getElementById("sugSearch");
+      if (again) { again.focus(); try { again.setSelectionRange(pos, pos); } catch (err) { /* type=search */ } }
+    });
+    document.getElementById("sugTipoFilter")?.addEventListener("change", e => { sugTableState.tipo = e.target.value; renderApp(); });
+    document.getElementById("sugExportBtn")?.addEventListener("click", exportSugerenciasCsv);
+    document.querySelectorAll("[data-sug-file]").forEach(btn => btn.addEventListener("click", () => {
+      if (btn.dataset.sugUrl) window.open(btn.dataset.sugUrl, "_blank", "noopener");
+      else showToast(`Adjunto de ejemplo: ${btn.dataset.sugFile}`);
+    }));
+  }
+
   /* ---------- Componente: Barra Lateral (Sidebar) ---------- */
   function renderSidebar() {
     const player = PLAYERS[activeRole];
@@ -2620,6 +2869,13 @@
         </a>
         <nav>${navItems}</nav>
         <div class="admin-sidebar-foot">
+          ${activeRole !== "destinatario" ? `
+            <a class="admin-nav-link admin-nav-suggest ${activeSection === "sugerencias" ? "is-active" : ""}" data-go="#${activeRole}/sugerencias">
+              ${icon("bulb", 18)}
+              <span>Sugerencias</span>
+              ${activeRole === "admin" && getUnreadSugerencias() ? `<b>${getUnreadSugerencias()}</b>` : ""}
+            </a>
+          ` : ""}
           <div class="admin-admin-user has-profile-link${((activeRole === "admin" && ADMIN_HUB_SECTIONS.includes(activeSection)) || ((activeRole === "cliente" || activeRole === "proveedor") && activeSection === "perfil")) ? " is-active" : ""}" data-go="#${activeRole === "admin" ? "admin/administracion" : activeRole + "/perfil"}" style="cursor:pointer" title="${activeRole === "admin" ? (SHOW_ADMIN_HUB ? "Administración de la plataforma" : "Mi cuenta") : "Ver perfil corporativo"}">
             <span>${player.avatar}</span>
             <div style="min-width:0;flex:1">
@@ -2733,6 +2989,7 @@
     const roleNotices = NOTICES.filter(n => canRoleSeeNotice(n, activeRole));
     const unreadCount = roleNotices.filter(n => !completedNotices.has(n.id)).length;
     const sectionName = activeSection === "perfil" ? "Perfil corporativo"
+      : activeSection === "sugerencias" ? "Sugerencias"
       : activeSection === "selector" ? (activeRole === "proveedor" ? "Cotización" : "Selector de Proveedores")
       : (activeRole === "admin" && !SHOW_ADMIN_HUB && ADMIN_HUB_SECTIONS.includes(activeSection)) ? "Mi cuenta"
       : ((activeRole === "admin" && ADMIN_HUB_LABELS[activeSection]) || ((player.nav.find(n => n.id === activeSection) || {}).label || activeSection));
@@ -2826,7 +3083,7 @@
   const getAttachMax = box => Number(box.dataset.attachMax) || Infinity;
 
   function renderCreateAttachHTML(scope, isRoleAdmin, max = CREATE_ATTACH_MAX) {
-    const title = scope === "general" ? "Adjuntos adicionales" : scope === "registro" ? "Adjuntos" : "Adjuntos del suministro";
+    const title = scope === "general" ? "Adjuntos adicionales" : (scope === "registro" || scope === "sugerencia" || scope === "anotacion") ? "Adjuntos" : "Adjuntos del suministro";
     return `
       <div class="create-attach" data-attach-scope="${scope}" data-attach-vis="${isRoleAdmin ? "1" : "0"}" data-attach-max="${Number.isFinite(max) ? max : 0}">
         <div class="create-attach-head">
@@ -2835,7 +3092,7 @@
           <button type="button" class="slot-upload-btn create-attach-add">${icon("upload", 13)} Añadir adjunto</button>
         </div>
         <div class="create-attach-list"></div>
-        ${!isRoleAdmin ? `<p class="create-attach-hint">SOFEIN decidirá quién puede ver cada adjunto al validar la solicitud.</p>` : ""}
+        ${!isRoleAdmin && scope !== "sugerencia" && scope !== "anotacion" ? `<p class="create-attach-hint">SOFEIN decidirá quién puede ver cada adjunto al validar la solicitud.</p>` : ""}
       </div>
     `;
   }
@@ -3343,6 +3600,24 @@
     </div>
   `;
 
+  // Caja de texto libre del selector (indicaciones de SOFEIN, requisitos del cliente). Se guarda al escribir.
+  function renderSelNoteBox({ field, ref, editable, hidden = false, label, hint = "", placeholder = "", value = "" }) {
+    if (hidden) return "";
+    if (!editable) {
+      return `
+        <section class="selector-note-box is-readonly">
+          <span class="selector-note-label">${escHTML(label)}</span>
+          ${value ? `<p class="selector-note-text">${escHTML(value)}</p>` : `<span class="selector-note-empty">Sin comentarios</span>`}
+        </section>`;
+    }
+    return `
+      <label class="selector-note-box">
+        <span class="selector-note-label">${escHTML(label)}</span>
+        ${hint ? `<small class="selector-note-hint">${escHTML(hint)}</small>` : ""}
+        <textarea class="create-exp-input" rows="2" maxlength="1500" data-sel-note="${field}" ${ref} placeholder="${escHTML(placeholder)}" style="height:auto;padding:9px 12px;resize:vertical">${escHTML(value || "")}</textarea>
+      </label>`;
+  }
+
   function renderSelectorProveedoresView(expId = "SFN-2026-K9M2") {
     const exp = getActiveExpediente(expId);
     const sum = getSelectorSuministro(exp);
@@ -3390,6 +3665,11 @@
           ${!estado ? `
             <div class="reg-empty-card"><p>SOFEIN no te ha pedido cotización para este suministro.</p></div>
           ` : `
+            ${matching.notasAdminProveedores ? `
+              <section class="selector-note-box is-readonly" style="margin-bottom:14px">
+                <span class="selector-note-label">${icon("info", 13)} Indicaciones de SOFEIN para esta cotización</span>
+                <p class="selector-note-text">${escHTML(matching.notasAdminProveedores)}</p>
+              </section>` : ""}
             <section class="selector-quote-status">
               <div class="selector-quote-status-head">
                 <span class="reg-section-label">Estado de la oferta</span>
@@ -3403,6 +3683,7 @@
                   <div class="selector-info-item"><span>Condiciones de pago</span><strong>${escHTML(q.condicionesPago)}</strong></div>
                   <div class="selector-info-item"><span>Validez de la oferta</span><strong>${q.validezDias} días naturales</strong></div>
                   <div class="selector-info-item is-wide"><span>Cumplimientos comprometidos</span>${renderConformidadTags(q.conformidades)}</div>
+                  ${q.anotaciones ? `<div class="selector-info-item is-wide"><span>Anotaciones / Condicionantes</span><p class="selector-note-text">${escHTML(q.anotaciones)}</p></div>` : ""}
                 </div>
               ` : `<p class="reg-empty">Todavía no has enviado tu oferta.</p>`}
             </section>
@@ -3446,6 +3727,11 @@
                   `).join("")}
                 </div>
               </div>
+              <label class="create-exp-label" style="margin-bottom:16px">
+                <span>Anotaciones / Condicionantes</span>
+                <small class="selector-note-hint">¿Algún comentario, condicionante o compromiso adicional que quieras indicar en tu oferta?</small>
+                <textarea class="create-exp-input" id="quoteNotes" rows="3" maxlength="1500" ${isClosed ? "disabled" : ""} placeholder="Ej: precio sujeto a pedido mínimo de 5.000 uds; transporte incluido hasta 300 km" style="height:auto;padding:9px 12px;resize:vertical">${escHTML(q?.anotaciones || "")}</textarea>
+              </label>
               <div class="selector-quote-form-foot">
                 <span>${hasOffer ? `Última cotización remitida: ${q.fechaEnvio}` : "Todavía no has remitido ninguna cotización"}</span>
                 ${isClosed ? `<span class="dossier-chip">${estado === "adjudicada" ? "Oferta adjudicada" : "Oferta no adjudicada"}</span>` : `
@@ -3524,6 +3810,14 @@
               </label>
             `)).join("")}
           </div>
+          ${renderSelNoteBox({ field: "comentariosClientePreseleccion", ref, editable: clienteEditable,
+              hidden: isRoleAdmin && !matching.comentariosClientePreseleccion,
+              label: isRoleCliente ? "¿Algún otro requisito que considere imprescindible a la hora de elegir proveedor?" : "Requisitos adicionales indicados por el cliente",
+              placeholder: "Ej: experiencia previa en obras de Adif; entrega en dos tramos" , value: matching.comentariosClientePreseleccion })}
+          ${isRoleAdmin ? renderSelNoteBox({ field: "notasAdminProveedores", ref, editable: open,
+              label: "Indicaciones de SOFEIN para los proveedores",
+              hint: "Se incluirán en la petición de cotización que reciba cada proveedor.",
+              placeholder: "Ej: indicar el plazo por tramos; incluir transporte y descarga a pie de vía", value: matching.notasAdminProveedores }) : ""}
           ${selectorActionBar(
             "Confirmación de preselección y petición de ofertas",
             isRoleCliente ? "Se avisará a SOFEIN para que valide la preselección y pida las cotizaciones" : "Se emitirá la solicitud formal a los proveedores para que coticen el suministro",
@@ -3562,6 +3856,11 @@
               <button class="admin-quiet-button" type="button" id="simulateAllQuotesBtn" ${ref}>${icon("check", 13)} Simular recepción de las ofertas pendientes</button>
             </div>
           ` : ""}
+          ${matching.notasAdminProveedores ? `
+            <section class="selector-note-box is-readonly" style="margin-bottom:12px">
+              <span class="selector-note-label">${icon("info", 13)} Indicaciones enviadas a los proveedores</span>
+              <p class="selector-note-text">${escHTML(matching.notasAdminProveedores)}</p>
+            </section>` : ""}
           <div class="selector-quote-list">
             ${pedidos.map(prv => {
               const q = matching.cotizaciones[prv.id];
@@ -3581,6 +3880,7 @@
                       <div class="selector-info-item"><span>Condiciones de pago</span><strong>${escHTML(q.condicionesPago)}</strong></div>
                       <div class="selector-info-item"><span>Validez de la oferta</span><strong class="${q.validezDias < QUOTE_MIN_VALIDEZ_DIAS ? "is-warning-text" : ""}">${q.validezDias} días naturales</strong></div>
                       <div class="selector-info-item is-wide"><span>Cumplimientos a los que se compromete</span>${renderConformidadTags(q.conformidades)}</div>
+                      <div class="selector-info-item is-wide"><span>Anotaciones / Condicionantes</span>${q.anotaciones ? `<p class="selector-note-text">${escHTML(q.anotaciones)}</p>` : `<em class="selector-note-empty">Sin anotaciones</em>`}</div>
                     </div>
                   ` : ""}
                 </article>
@@ -3633,6 +3933,7 @@
               ${row("Condiciones de pago", q => escHTML(q.condicionesPago))}
               ${row("Validez de la oferta", q => `<span class="${q.validezDias < QUOTE_MIN_VALIDEZ_DIAS ? "is-warning-text" : ""}">${q.validezDias} días naturales</span>`)}
               ${row("Cumplimientos", q => renderConformidadTags(q.conformidades))}
+              ${row("Anotaciones / Condicionantes", q => q.anotaciones ? `<span class="selector-note-text">${escHTML(q.anotaciones)}</span>` : `<span class="selector-note-empty">—</span>`)}
               ${isRoleCliente ? row("", q => `
                 <button class="admin-primary-button selector-choose-btn ${q.nombre === matching.proveedorAdjudicado ? "is-chosen" : ""}" type="button" data-select-winning-prv="${escHTML(q.nombre)}" ${ref} ${clienteEditable ? "" : "disabled"}>
                   ${q.nombre === matching.proveedorAdjudicado ? `${icon("check", 14)} Elegido` : "Elegir este proveedor"}
@@ -3641,6 +3942,11 @@
             </tbody>
           </table>
         </div>
+
+        ${renderSelNoteBox({ field: "comentariosClienteSeleccion", ref, editable: clienteEditable,
+            hidden: !isRoleCliente && !matching.comentariosClienteSeleccion,
+            label: isRoleCliente ? "¿Algún otro requisito que considere imprescindible a la hora de elegir este proveedor?" : "Requisitos adicionales indicados por el cliente",
+            placeholder: "Ej: confirmar disponibilidad de camión grúa en obra", value: matching.comentariosClienteSeleccion })}
 
         <section class="selector-reqs-box">
           <strong>Requisitos contractuales exigibles al proveedor</strong>
@@ -3858,7 +4164,7 @@
   const isGeneralSuministroRef = ref => !ref || /^(General|Todos|Expediente)$/i.test(ref);
 
   // fase: índice 0-3; si no se indica, la fase en curso del suministro afectado (o del expediente)
-  function addExpedienteCambioLog(exp, { tipo = "Cambio operativo", suministro = "General", titulo, detalle = "", soloAdmin = false, fase = null }) {
+  function addExpedienteCambioLog(exp, { tipo = "Cambio operativo", suministro = "General", titulo, detalle = "", soloAdmin = false, fase = null, adjuntos = [] }) {
     if (!exp) return;
     const list = ensureExpedienteRegistroCambios(exp);
     const now = new Date();
@@ -3876,7 +4182,8 @@
       fase: faseIdx,
       titulo,
       detalle,
-      soloAdmin: !!soloAdmin
+      soloAdmin: !!soloAdmin,
+      adjuntos: Array.isArray(adjuntos) ? adjuntos : []
     });
   }
 
@@ -4267,6 +4574,9 @@
                     <div class="doc-tbl-name-wrap">
                       <strong class="doc-tbl-name">${escHTML(c.titulo)}</strong>
                       ${c.detalle ? `<span style="font-size:0.72rem;color:var(--entity-muted)">${escHTML(c.detalle)}</span>` : ""}
+                      ${(c.adjuntos || []).length ? `<span class="note-attach-list">${c.adjuntos.map(a => a.fileUrl
+                        ? `<a class="note-attach" href="${escHTML(a.fileUrl)}" target="_blank" rel="noopener">${icon("file", 11)} ${escHTML(a.name || a.file)}</a>`
+                        : `<button type="button" class="note-attach" data-download="${escHTML(a.file)}">${icon("file", 11)} ${escHTML(a.name || a.file)}</button>`).join("")}</span>` : ""}
                     </div>
                   </td>
                   <td><span class="doc-tbl-origin">${c.autor}</span></td>
@@ -5260,7 +5570,7 @@
               <strong class="exp-v2-val" title="${exp.cliente}">${exp.cliente}</strong>
             </div>
             <div class="dossier-exp-summary-item">
-              <span class="exp-v2-label">Próxima entrega</span>
+              <span class="exp-v2-label">Próxima entrega ${renderEntregasInfo(exp)}</span>
               <div class="exp-v2-delivery-wrap" style="justify-content:flex-start">
                 <strong class="exp-v2-delivery-date">${summaryNextDeliveryDate}</strong>
                 <span class="exp-v2-delivery-diff is-${v.proximaEntregaTone}">${v.proximaEntregaDiff}</span>
@@ -5317,6 +5627,9 @@
           </div>
         ` : ""}
 
+        ${(isRoleCliente || isRoleAdmin) && activeDossierPhase === PHASES.length - 1 && (isCurrentContextClosed || activeEntityPhaseActual === PHASES.length - 1)
+          ? renderEncuestaStrip(exp, currentSum, isRoleAdmin) : ""}
+
         <hr class="dossier-section-divider" />
 
         <!-- 6. Menú de Secciones del Expediente -->
@@ -5353,6 +5666,114 @@
         ${tabContent}
       </div>
     `;
+  }
+
+  /* ============================================================
+     ENCUESTA DE SATISFACCIÓN EN EL CIERRE (reunión con Flor)
+     El cliente la ve durante 15 días desde que el suministro entra en Cierre;
+     SOFEIN ve su estado (pendiente / recibida / cerrada) y la respuesta.
+     ============================================================ */
+  const ENCUESTAS_KEY = "sofein_encuestas_v1";
+  const ENCUESTA_DIAS = 15;
+  const ENCUESTAS = (() => {
+    try { return JSON.parse(localStorage.getItem(ENCUESTAS_KEY) || "{}") || {}; } catch (e) { return {}; }
+  })();
+  const saveEncuestas = () => { try { localStorage.setItem(ENCUESTAS_KEY, JSON.stringify(ENCUESTAS)); } catch (e) { /* sin almacenamiento */ } };
+  const encuestaKey = (exp, sum) => `${exp.id}|${sum ? sum.id : "general"}`;
+
+  function getEncuesta(exp, sum) {
+    const key = encuestaKey(exp, sum);
+    if (!ENCUESTAS[key]) {
+      ENCUESTAS[key] = { estado: "pendiente", inicioIso: new Date().toISOString(), respuesta: "", fechaRespuesta: null };
+      saveEncuestas();
+    }
+    const enc = ENCUESTAS[key];
+    const dias = Math.floor((Date.now() - new Date(enc.inicioIso).getTime()) / 86400000);
+    enc.diasRestantes = Math.max(0, ENCUESTA_DIAS - dias);
+    if (enc.estado === "pendiente" && enc.diasRestantes === 0) { enc.estado = "cerrada"; enc.cierreAuto = true; saveEncuestas(); }
+    return enc;
+  }
+
+  function getEncuestaPregunta(exp, sum) {
+    if (sum) {
+      const tipo = String(sum.tipo || "material").toLowerCase();
+      return `¿Todo está bien con el suministro de ${sum.unidades ? `${sum.unidades} ` : ""}${tipo}?`;
+    }
+    return `¿Todo está bien con los suministros del expediente ${exp.id}?`;
+  }
+
+  function renderEncuestaStrip(exp, sum, isAdminView) {
+    const enc = getEncuesta(exp, sum);
+    const key = encuestaKey(exp, sum);
+    const pregunta = getEncuestaPregunta(exp, sum);
+    const estadoLabel = { pendiente: "Pendiente", recibida: "Recibida", cerrada: "Cerrada" }[enc.estado];
+    const estadoClass = { pendiente: "pending", recibida: "complete", cerrada: "not-required" }[enc.estado];
+
+    if (isAdminView) {
+      return `
+        <div class="survey-strip">
+          <div class="survey-strip-head">
+            <span class="survey-strip-icon">${icon("mail", 16)}</span>
+            <div class="survey-strip-copy">
+              <strong>Encuesta de satisfacción al cliente</strong>
+              <small>${escHTML(pregunta)}</small>
+            </div>
+            <span class="entity-status ${estadoClass}"><i></i>${estadoLabel}</span>
+          </div>
+          <div class="survey-strip-body">
+            ${enc.estado === "recibida" || (enc.estado === "cerrada" && enc.respuesta) ? `
+              <blockquote class="survey-answer">${escHTML(enc.respuesta)}</blockquote>
+              <small class="survey-meta">Respondida el ${escHTML(formatSugDate(enc.fechaRespuesta))}</small>
+            ` : `
+              <small class="survey-meta">${enc.estado === "pendiente" ? `Sin respuesta todavía · el cliente la verá ${enc.diasRestantes === 1 ? "1 día más" : `${enc.diasRestantes} días más`}.` : enc.cierreAuto ? `Cerrada sin respuesta al pasar ${ENCUESTA_DIAS} días.` : "Cerrada por SOFEIN sin respuesta."}</small>
+            `}
+            ${enc.estado !== "cerrada" ? `<button class="admin-quiet-button" type="button" data-survey-close="${escHTML(key)}" style="padding:4px 10px;font-size:0.74rem">${icon("check", 12)} Cerrar encuesta</button>` : ""}
+          </div>
+        </div>`;
+    }
+
+    // Cliente: solo mientras esté pendiente; después, un agradecimiento discreto
+    if (enc.estado === "recibida") {
+      return `<div class="survey-strip is-done"><span class="survey-strip-icon">${icon("check", 15)}</span><small>Gracias por responder a la encuesta de satisfacción de este suministro.</small></div>`;
+    }
+    if (enc.estado !== "pendiente") return "";
+    return `
+      <form class="survey-strip" data-survey-form="${escHTML(key)}">
+        <div class="survey-strip-head">
+          <span class="survey-strip-icon">${icon("mail", 16)}</span>
+          <div class="survey-strip-copy">
+            <strong>${escHTML(pregunta)}</strong>
+            <small>Encuesta de satisfacción · disponible ${enc.diasRestantes === 1 ? "1 día más" : `${enc.diasRestantes} días más`}</small>
+          </div>
+        </div>
+        <div class="survey-strip-body">
+          <textarea class="create-exp-input" name="respuesta" rows="2" required placeholder="Cuéntanos cómo ha ido el suministro: calidad, plazos, documentación, trato…" style="height:auto;padding:9px 12px;resize:vertical;flex:1;min-width:220px"></textarea>
+          <button class="admin-primary-button" type="submit">${icon("mail", 13)} Enviar respuesta</button>
+        </div>
+      </form>`;
+  }
+
+  function bindEncuestaEvents() {
+    document.querySelectorAll("[data-survey-form]").forEach(form => form.addEventListener("submit", e => {
+      e.preventDefault();
+      const respuesta = form.elements.respuesta.value.trim();
+      if (!respuesta) { showToast("Escribe tu respuesta antes de enviarla"); form.elements.respuesta.focus(); return; }
+      const enc = ENCUESTAS[form.dataset.surveyForm];
+      if (!enc) return;
+      Object.assign(enc, { estado: "recibida", respuesta, fechaRespuesta: new Date().toISOString() });
+      saveEncuestas();
+      showToast("✓ Gracias, hemos recibido tu respuesta");
+      renderApp();
+    }));
+    document.querySelectorAll("[data-survey-close]").forEach(btn => btn.addEventListener("click", () => {
+      const enc = ENCUESTAS[btn.dataset.surveyClose];
+      if (!enc) return;
+      enc.estado = "cerrada";
+      enc.cierreAuto = false;
+      saveEncuestas();
+      showToast("Encuesta cerrada");
+      renderApp();
+    }));
   }
 
   /* ============================================================
@@ -6920,6 +7341,7 @@
   }
 
   function renderAdminView(section, param) {
+    if (section === "sugerencias") return renderSugerenciasView("admin");
     if (!SHOW_ADMIN_HUB && ADMIN_HUB_SECTIONS.includes(section)) {
       return renderAdminCuentaView();
     }
@@ -7580,6 +8002,7 @@
      VISTAS: CLIENTE (CONSTRUCTOR DE VÍA)
      ============================================================ */
   function renderClienteView(section, param) {
+    if (section === "sugerencias") return renderSugerenciasView("cliente");
     if (section === "selector") {
       return renderSelectorProveedoresView(param || "SFN-2026-K9M2");
     }
@@ -7612,6 +8035,7 @@
      VISTAS: PROVEEDOR HOMOLOGADO
      ============================================================ */
   function renderProveedorView(section, param) {
+    if (section === "sugerencias") return renderSugerenciasView("proveedor");
     if (section === "selector") {
       return renderSelectorProveedoresView(param || "SFN-2026-K9M2");
     }
@@ -8595,6 +9019,8 @@
   /* ---------- Asignación de Eventos Interactivos ---------- */
   function bindEvents() {
     try {
+    bindSugerenciasEvents();
+    bindEncuestaEvents();
     // Popover del Selector de Rol Sutil
     const roleBtn = document.getElementById("roleDropdownBtn");
     const roleMenu = document.getElementById("roleDropdownMenu");
@@ -10209,6 +10635,11 @@
     });
 
     // SOFEIN confirma la preselección y pide las ofertas
+    document.querySelectorAll("[data-sel-note]").forEach(area => area.addEventListener("input", () => {
+      const c = selCtx(area);
+      if (c && c.matching) c.matching[area.dataset.selNote] = area.value.trim();
+    }));
+
     document.getElementById("emitRfqOrdersBtn")?.addEventListener("click", e => {
       const c = selCtx(e.currentTarget);
       const m = c.matching;
@@ -10300,6 +10731,7 @@
         condicionesPago: document.getElementById("quotePaymentCond")?.value || prv.condicionesPago,
         validezDias: validez,
         conformidades: Array.from(form.querySelectorAll('input[name="quoteConf"]:checked')).map(i => i.value),
+        anotaciones: (document.getElementById("quoteNotes")?.value || "").trim(),
         estado: "enviada",
         fechaEnvio: `${now.toLocaleDateString("es-ES", { day: "2-digit", month: "short" }).replace(/\./g, "")}, ${now.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })}`
       };
@@ -11709,6 +12141,7 @@
                 Detalle
                 <textarea name="detalle" rows="3" placeholder="Notas internas de seguimiento…" style="padding:9px 11px;border-radius:6px;border:1px solid var(--entity-line);background:var(--entity-bg);color:var(--entity-text);font:inherit;font-size:0.82rem;line-height:1.45"></textarea>
               </label>
+              ${renderCreateAttachHTML("anotacion", false, Infinity)}
             </div>
             <div class="procurement-modal-footer">
               <button class="admin-quiet-button" type="button" id="cancelAddCambioLogBtn">Cancelar</button>
@@ -11725,6 +12158,7 @@
     document.getElementById("addCambioLogBackdrop")?.addEventListener("click", e => {
       if (e.target.id === "addCambioLogBackdrop") close();
     });
+    bindCreateAttachments(document.getElementById("modalAddCambioLogForm") || document);
 
     document.getElementById("modalAddCambioLogForm")?.addEventListener("submit", e => {
       e.preventDefault();
@@ -11734,7 +12168,8 @@
         suministro: form.get("suministro") || "General",
         titulo: (form.get("titulo") || "").trim(),
         detalle: (form.get("detalle") || "").trim(),
-        soloAdmin: true
+        soloAdmin: true,
+        adjuntos: readCreateAttachments(e.currentTarget.querySelector(".create-attach")).map(a => ({ name: a.nombre, file: a.fileName, fileUrl: a.fileUrl }))
       });
       close();
       showToast(`✓ Anotación interna añadida a ${exp.id}`);
