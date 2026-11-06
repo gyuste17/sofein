@@ -56,6 +56,16 @@
     arrowsSort: '<path d="m7 15 5 5 5-5M7 9l5-5 5 5"/>'
   };
 
+  /* Números en formato español con separador de miles siempre (toLocaleString("es-ES") no agrupa las cifras de 4 dígitos). */
+  const fmtNumEs = (n, minFD = 0, maxFD = 2) => {
+    const num = Number(n) || 0;
+    let [int, dec = ""] = Math.abs(num).toFixed(maxFD).split(".");
+    dec = dec.replace(/0+$/, "");
+    while (dec.length < minFD) dec += "0";
+    int = int.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    return (num < 0 ? "-" : "") + int + (dec ? "," + dec : "");
+  };
+
   const icon = (name, size = 18) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${I[name] || ""}</svg>`;
 
   /* ---------- Definición de Roles Oficiales (Apuntes 06 — Tabla 1) ---------- */
@@ -73,7 +83,7 @@
         { id: "suministros", label: "Suministros", icon: "box", count: 8 },
         { id: "directorio", label: "Clientes y Proveedores", icon: "users" },
         { id: "productos", label: "Productos", icon: "box" },
-        { id: "conformidades", label: "Conformidades", icon: "shield" },
+        { id: "conformidades", label: "Cumplimientos", icon: "shield" },
         { id: "avisos", label: "Avisos", icon: "inbox", count: 2 }
       ]
     },
@@ -87,7 +97,7 @@
       defaultNav: "expedientes",
       nav: [
         { id: "expedientes", label: "Mis expedientes", icon: "folder", count: 3 },
-        { id: "suministros", label: "Suministros", icon: "box", count: 3 },
+        { id: "suministros", label: "Mis suministros", icon: "box", count: 3 },
         { id: "avisos", label: "Avisos", icon: "inbox", count: 1 }
       ]
     },
@@ -101,7 +111,7 @@
       defaultNav: "expedientes",
       nav: [
         { id: "expedientes", label: "Mis expedientes", icon: "folder", count: 2 },
-        { id: "suministros", label: "Suministros", icon: "box", count: 3 },
+        { id: "suministros", label: "Mis suministros", icon: "box", count: 3 },
         { id: "cotizaciones", label: "Cotizaciones", icon: "file", count: 1 },
         { id: "avisos", label: "Avisos", icon: "inbox", count: 1 }
       ]
@@ -125,7 +135,7 @@
     { num: 1, id: "alcance", name: "Alcance", icon: "file", desc: "Planos de vía, memorias técnicas y condicionantes de suministro." },
     { num: 2, id: "proveedores", name: "Proveedores", icon: "users", desc: "Preselección de homologados, cotizaciones vinculantes y elección." },
     { num: 3, id: "pedido", name: "Gestión del pedido", icon: "truck", desc: "Formalización de pedido, fabricación, calidad y logística." },
-    { num: 4, id: "cierre", name: "Cierre", icon: "award", desc: "Recepción en destino, liquidación y Pasaporte Digital SOFEIN." }
+    { num: 4, id: "cierre", name: "Cierre", icon: "award", desc: "Recepción en destino, liquidación y Certificado SOFEIN." }
   ];
 
   // Generador de identificadores oficiales de expediente (Formato: SFN-YYYY-XXXX alfanumérico)
@@ -222,7 +232,7 @@
         ],
         3: [ // 4. Cierre
           { name: "Acta de Recepción a Pie de Vía", reqDate: "28 jun 2026", owner: "Cliente", state: "pending", format: "PDF", file: null, date: "Al recibir lote", visibleTo: ["admin", "cliente", "proveedor", "destinatario"], notes: "Se habilita en descarga" },
-          { name: "Pasaporte Digital SOFEIN", reqDate: "30 jun 2026", owner: "SOFEIN", state: "pending", format: "Certificado", file: null, date: "Al cierre", visibleTo: ["admin", "cliente", "proveedor", "destinatario"], notes: "Sello criptográfico final" }
+          { name: "Certificado SOFEIN", reqDate: "30 jun 2026", owner: "SOFEIN", state: "pending", format: "Certificado", file: null, date: "Al cierre", visibleTo: ["admin", "cliente", "proveedor", "destinatario"], notes: "Sello criptográfico final" }
         ]
       },
       matching: {
@@ -479,7 +489,7 @@
         ],
         3: [
           { name: "Acta de Descarga a Pie de Vía", reqDate: "25 abr 2026", owner: "SOFEIN", state: "complete", format: "PDF", file: "Acta-Descarga-TF24.pdf", date: "27 abr 2026", visibleTo: ["admin", "cliente", "proveedor", "destinatario"], notes: "Recepción conforme en Miranda" },
-          { name: "Pasaporte Digital SOFEIN (Trazabilidad Consolidada)", reqDate: "29 abr 2026", owner: "SOFEIN", state: "complete", format: "Certificado", file: "Pasaporte-SOF-2026-003.pdf", date: "29 abr 2026", visibleTo: ["admin", "cliente", "proveedor", "destinatario"], notes: "Expediente cerrado y sellado" }
+          { name: "Certificado SOFEIN (Trazabilidad Consolidada)", reqDate: "29 abr 2026", owner: "SOFEIN", state: "complete", format: "Certificado", file: "Pasaporte-SOF-2026-003.pdf", date: "29 abr 2026", visibleTo: ["admin", "cliente", "proveedor", "destinatario"], notes: "Expediente cerrado y sellado" }
         ]
       }
     }
@@ -1616,7 +1626,7 @@
     sede: { id: "sede", label: "Sede", minWidth: "95px" },
     suministros: { id: "suministros", label: "Suministros", minWidth: "125px" },
     activos: { id: "activos", label: "Activos", minWidth: "85px" },
-    conformidades: { id: "conformidades", label: "Conformidades", minWidth: "140px" },
+    conformidades: { id: "conformidades", label: "Cumplimientos", minWidth: "140px" },
     contacto: { id: "contacto", label: "Contacto", minWidth: "155px" }
   };
   const DEFAULT_DIR_PRV_COL_ORDER = ["nombre", "cif", "sede", "suministros", "activos", "conformidades", "contacto"];
@@ -3120,8 +3130,8 @@
   ];
   const PAYMENT_OPTIONS = ["60 días fecha factura", "60 días confirming", "90 días confirming", "30 días transferencia"];
 
-  const formatEuro = n => (Number(n) || 0).toLocaleString("es-ES", { style: "currency", currency: "EUR", minimumFractionDigits: 0, maximumFractionDigits: 2 });
-  const formatEuroUnit = n => (Number(n) || 0).toLocaleString("es-ES", { style: "currency", currency: "EUR", minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const formatEuro = n => fmtNumEs(n, 0, 2) + " €";
+  const formatEuroUnit = n => fmtNumEs(n, 2, 2) + " €";
   const sumTipoKey = sum => String(sum?.tipo || "otros").toLowerCase();
   const getSumUnidadesNum = sum => sum?.unidadesNum || parseInt(String(sum?.unidades || "").replace(/\D/g, ""), 10) || 1;
   const getProveedorConformidades = prv => (prv?.conformidades && prv.conformidades.length ? prv.conformidades : (prv?.homologaciones || []));
@@ -3392,7 +3402,7 @@
                   <div class="selector-info-item"><span>Plazo de entrega</span><strong>${formatIsoDateEs(q.fechaEntregaIso)}${diff ? ` <span class="dossier-chip ${diff.cls}" style="font-size:0.66rem">${diff.text}</span>` : ""}</strong></div>
                   <div class="selector-info-item"><span>Condiciones de pago</span><strong>${escHTML(q.condicionesPago)}</strong></div>
                   <div class="selector-info-item"><span>Validez de la oferta</span><strong>${q.validezDias} días naturales</strong></div>
-                  <div class="selector-info-item is-wide"><span>Conformidades comprometidas</span>${renderConformidadTags(q.conformidades)}</div>
+                  <div class="selector-info-item is-wide"><span>Cumplimientos comprometidos</span>${renderConformidadTags(q.conformidades)}</div>
                 </div>
               ` : `<p class="reg-empty">Todavía no has enviado tu oferta.</p>`}
             </section>
@@ -3426,7 +3436,7 @@
                 </label>
               </div>
               <div style="margin-bottom:16px">
-                <span class="create-exp-label" style="margin-bottom:8px">Conformidades a las que te comprometes</span>
+                <span class="create-exp-label" style="margin-bottom:8px">Cumplimientos a los que te comprometes</span>
                 <div class="selector-conf-picker">
                   ${allConf.map(c => `
                     <label class="selector-conf-option">
@@ -3570,7 +3580,7 @@
                       <div class="selector-info-item"><span>Plazo de entrega</span><strong>${formatIsoDateEs(q.fechaEntregaIso)}${diff ? ` <span class="dossier-chip ${diff.cls}" style="font-size:0.66rem">${diff.text}</span>` : ""}</strong></div>
                       <div class="selector-info-item"><span>Condiciones de pago</span><strong>${escHTML(q.condicionesPago)}</strong></div>
                       <div class="selector-info-item"><span>Validez de la oferta</span><strong class="${q.validezDias < QUOTE_MIN_VALIDEZ_DIAS ? "is-warning-text" : ""}">${q.validezDias} días naturales</strong></div>
-                      <div class="selector-info-item is-wide"><span>Conformidades a las que se compromete</span>${renderConformidadTags(q.conformidades)}</div>
+                      <div class="selector-info-item is-wide"><span>Cumplimientos a los que se compromete</span>${renderConformidadTags(q.conformidades)}</div>
                     </div>
                   ` : ""}
                 </article>
@@ -3622,7 +3632,7 @@
               ${row("Plazo de entrega", q => { const d = getQuoteDeliveryDiff(q, sum); return `${formatIsoDateEs(q.fechaEntregaIso)}${d ? `<br><span class="dossier-chip ${d.cls}" style="font-size:0.66rem">${d.text}</span>` : ""}`; })}
               ${row("Condiciones de pago", q => escHTML(q.condicionesPago))}
               ${row("Validez de la oferta", q => `<span class="${q.validezDias < QUOTE_MIN_VALIDEZ_DIAS ? "is-warning-text" : ""}">${q.validezDias} días naturales</span>`)}
-              ${row("Conformidades", q => renderConformidadTags(q.conformidades))}
+              ${row("Cumplimientos", q => renderConformidadTags(q.conformidades))}
               ${isRoleCliente ? row("", q => `
                 <button class="admin-primary-button selector-choose-btn ${q.nombre === matching.proveedorAdjudicado ? "is-chosen" : ""}" type="button" data-select-winning-prv="${escHTML(q.nombre)}" ${ref} ${clienteEditable ? "" : "disabled"}>
                   ${q.nombre === matching.proveedorAdjudicado ? `${icon("check", 14)} Elegido` : "Elegir este proveedor"}
@@ -3634,7 +3644,7 @@
 
         <section class="selector-reqs-box">
           <strong>Requisitos contractuales exigibles al proveedor</strong>
-          <small>${isRoleCliente ? "Elige cuáles de las conformidades que ofrece el proveedor elegido deben cumplirse en el pedido." : "Elegidos por el cliente entre las conformidades que ofrece el proveedor."}</small>
+          <small>${isRoleCliente ? "Elige cuáles de los cumplimientos que ofrece el proveedor elegido deben exigirse en el pedido." : "Elegidos por el cliente entre los cumplimientos que ofrece el proveedor."}</small>
           ${winnerQ ? `
             <div class="selector-conf-picker">
               ${(winnerQ.conformidades || []).map(c => clienteEditable ? `
@@ -3791,7 +3801,7 @@
     if (!suministrosList || !suministrosList.length) return fallbackText;
     const total = suministrosList.reduce((acc, s) => acc + parseBudgetNumber(s.presupuesto || "0"), 0);
     if (!total) return fallbackText;
-    return total.toLocaleString("es-ES") + " €";
+    return fmtNumEs(total) + " €";
   }
 
   function getNoticePhaseIdx(n) {
@@ -3941,7 +3951,7 @@
     let coste = "Sin cambios";
     if (r.nuevoPresupuesto && r.nuevoPresupuesto !== p.presupuesto) {
       const delta = parseBudgetNumber(r.nuevoPresupuesto) - parseBudgetNumber(p.presupuesto);
-      coste = `${p.presupuesto || "—"} → ${r.nuevoPresupuesto}${p.presupuesto ? ` (${delta >= 0 ? "+" : "−"}${Math.abs(delta).toLocaleString("es-ES")} €)` : ""}`;
+      coste = `${p.presupuesto || "—"} → ${r.nuevoPresupuesto}${p.presupuesto ? ` (${delta >= 0 ? "+" : "−"}${fmtNumEs(Math.abs(delta))} €)` : ""}`;
     }
     return { plazo, unidades, coste };
   }
@@ -5147,7 +5157,7 @@
           <i>/</i>
           <button type="button" class="dossier-sticky-link dossier-sticky-phase" data-sticky-jump="dossierAnchorPhases" title="Ir al selector de fases">Fase ${PHASES[activeDossierPhase].num} · ${PHASES[activeDossierPhase].name}</button>
           <i>/</i>
-          <button type="button" class="dossier-sticky-link" data-sticky-jump="dossierAnchorTabs" title="Ir a las pestañas">${escHTML(({ deliverables: "Documentación", incidents: "Registro", comms: "Avisos", notes: "Anotaciones", passport: "Pasaporte Digital", history: "Historial" })[activeDossierTab] || "Documentación")}</button>
+          <button type="button" class="dossier-sticky-link" data-sticky-jump="dossierAnchorTabs" title="Ir a las pestañas">${escHTML(({ deliverables: "Documentación", incidents: "Registro", comms: "Avisos", notes: "Anotaciones", passport: "Certificado SOFEIN", history: "Historial" })[activeDossierTab] || "Documentación")}</button>
         </div>
       </div>
     `;
@@ -5297,12 +5307,12 @@
             <div class="passport-cta-copy">
               <span class="passport-cta-icon">${icon("award", 20)}</span>
               <div>
-                <strong>Pasaporte Digital SOFEIN</strong>
+                <strong>Certificado SOFEIN</strong>
                 <small>${exp.cerrado ? "Tu pasaporte con la trazabilidad completa del suministro ya está disponible." : "Se emitirá cuando SOFEIN cierre el expediente."}</small>
               </div>
             </div>
             <button class="passport-cta-btn" type="button" ${exp.cerrado ? `data-switch-dossier-tab="passport"` : `disabled title="Disponible cuando SOFEIN cierre el expediente"`}>
-              ${icon(exp.cerrado ? "award" : "lock", 15)} Conseguir Pasaporte Digital
+              ${icon(exp.cerrado ? "award" : "lock", 15)} Conseguir Certificado SOFEIN
             </button>
           </div>
         ` : ""}
@@ -5334,7 +5344,7 @@
           ` : ""}
           ${canSeePassportTab ? `
             <button class="dossier-tab-btn is-passport-tab ${activeDossierTab === "passport" ? "is-active" : ""}" type="button" data-switch-dossier-tab="passport">
-              ${icon("award", 16)} Pasaporte Digital
+              ${icon("award", 16)} Certificado SOFEIN
             </button>
           ` : ""}
         </div>
@@ -6394,7 +6404,7 @@
         <div class="admin-section-head">
           <div>
             <h2>Ranuras de Fases Futuras (12)</h2>
-            <p>Requisitos de recepción en obra, liquidación y emisión de Pasaporte Digital SOFEIN.</p>
+            <p>Requisitos de recepción en obra, liquidación y emisión del Certificado SOFEIN.</p>
           </div>
         </div>
         <div class="admin-alert-list">
@@ -6407,7 +6417,7 @@
           </div>
           <div class="admin-alert-row">
             <span class="admin-deadline">Fase 7: Cierre</span>
-            <strong>Pasaporte Digital SOFEIN (Factoría Volkswagen)</strong>
+            <strong>Certificado SOFEIN (Factoría Volkswagen)</strong>
             <span>SFN-2026-H6T4</span>
             <span>Generación final</span>
             <button class="admin-quiet-button" type="button" data-go="#admin/expedientes/SFN-2026-H6T4">Ver</button>
@@ -6536,7 +6546,7 @@
     administracion: "Administración",
     overview: "Visión global",
     productos: "Productos",
-    conformidades: "Conformidades",
+    conformidades: "Cumplimientos",
     configuracion: "Configuración"
   };
 
@@ -6566,12 +6576,12 @@
       }
     },
     conformidades: {
-      title: "Conformidades",
-      singular: "conformidad",
+      title: "Cumplimientos",
+      singular: "cumplimiento",
       idPrefix: "CNF",
-      intro: "Certificaciones, normas y homologaciones reconocidas por SOFEIN. Alimentan la selección de conformidades en la ficha de cada proveedor y el registro de certificados.",
+      intro: "Certificaciones, normas y homologaciones reconocidas por SOFEIN. Alimentan la selección de cumplimientos en la ficha de cada proveedor y el registro de certificados.",
       fields: [
-        { key: "nombre", label: "Conformidad", placeholder: "Ej: ISO 50001", required: true, minWidth: "190px" },
+        { key: "nombre", label: "Cumplimiento", placeholder: "Ej: ISO 50001", required: true, minWidth: "190px" },
         { key: "tipo", label: "Tipo", type: "tags", single: true, createLabel: "Crear", placeholder: "Elige o crea un tipo", minWidth: "170px", tag: true,
           suggest: () => uniqueCatalogValues("conformidades", "tipo", CONFORMIDAD_TIPOS) },
         { key: "emisor", label: "Entidad emisora", type: "tags", createLabel: "Añadir", placeholder: "Añadir entidad", minWidth: "180px", tag: true,
@@ -6623,7 +6633,7 @@
       {
         go: "#admin/conformidades",
         icon: "shield",
-        title: "Conformidades",
+        title: "Cumplimientos",
         desc: "Normas, certificaciones y homologaciones seleccionables en la ficha de proveedor.",
         meta: `<span><b>${confActivas}</b> activas</span><span><b>${CATALOGOS.conformidades.length - confActivas}</b> inactivas</span>`
       },
@@ -7281,10 +7291,10 @@
                               <span class="dir-th-drag-grip" title="Arrastrar para mover">⠿</span>
                               <span>${colDef.label}</span>
                               ${isConf ? `
-                                <span class="dir-conf-legend-trigger" title="Ver leyenda de colores de conformidades">
+                                <span class="dir-conf-legend-trigger" title="Ver leyenda de colores de cumplimientos">
                                   ${icon("info", 12)}
                                   <span class="dir-conf-legend-popover">
-                                    <strong style="display:block;margin-bottom:6px;font-size:0.75rem;color:var(--entity-text)">Leyenda de Conformidades</strong>
+                                    <strong style="display:block;margin-bottom:6px;font-size:0.75rem;color:var(--entity-text)">Leyenda de Cumplimientos</strong>
                                     <span class="dir-conf-legend-row">
                                       <span class="dir-tag dir-tag-iso" style="font-size:0.68rem;padding:2px 6px">Verde</span>
                                       <span style="font-size:0.72rem;color:var(--entity-muted)">Normas y homologaciones oficiales (ISO, CE, AENOR, Adif, UNE-EN)</span>
@@ -7423,7 +7433,7 @@
                 <dd>${renderProveedorActivosCell(p, idx, prvActiveList.length)}</dd>
               </div>
               <div>
-                <dt>Conformidades</dt>
+                <dt>Cumplimientos</dt>
                 <dd>${renderConformidadesTags(p.conformidades || p.homologaciones)}</dd>
               </div>
             </dl>
@@ -7634,6 +7644,96 @@
   /* ============================================================
      VISTA DE PERFIL B2B: CLIENTE Y PROVEEDOR HOMOLOGADO (v28)
      ============================================================ */
+  /* Perfil: KPIs en cajas «X en curso de Y» y bloque «Documentación y acuerdos generales» (reunión con Flor). */
+  const isExpClosedForKpi = e => !!(e.cerrado || e.cerradoManual || e.estado === "cerrado");
+  const isSumClosedForKpi = x => x.estado === "cerrado";
+  const sumVolume = list => list.reduce((acc, x) => acc + parseBudgetNumber(x.presupuesto || "0"), 0);
+
+  function renderProfileKpis(cards) {
+    return `
+      <div class="exp-kpi-filter-grid profile-kpi-grid" style="margin-bottom:18px">
+        ${cards.map(c => {
+          const fmt = v => c.money ? fmtNumEs(v) + " €" : fmtNumEs(v);
+          return `
+            <div class="exp-kpi-filter-card" style="cursor:default">
+              <div class="exp-kpi-filter-top">
+                <span class="exp-kpi-label">${c.label}</span>
+                <span class="exp-kpi-dot ${c.dot || ""}" ${c.color ? `style="background:${c.color}"` : ""}></span>
+              </div>
+              <strong class="exp-kpi-value">${fmt(c.now)}</strong>
+              <small class="exp-kpi-sub">${c.sub.replace("{t}", fmt(c.total))}</small>
+            </div>`;
+        }).join("")}
+      </div>`;
+  }
+
+  function getGeneralDocs(role, entity) {
+    if (!entity.documentacionGeneral) {
+      const slug = (entity.nombre || "Entidad").split(/[ ,]/)[0];
+      const marco = role === "proveedor"
+        ? (entity.acuerdoMarco || {})
+        : ((entity.certificadosDetalle || []).find(c => /acuerdo marco/i.test(c.nombre)) || {});
+      entity.documentacionGeneral = [
+        { nombre: role === "proveedor" ? "Acuerdo marco entre proveedor y SOFEIN" : "Acuerdo marco entre cliente y SOFEIN", norma: "Condiciones generales de colaboración en la plataforma", entidad: "SOFEIN Procurement", vigencia: marco.vigencia || "Renovación anual automática", estado: marco.estado || "Firmado", archivo: marco.archivo || `Acuerdo-Marco-${slug}-SOFEIN-2026.pdf`, hash: marco.hash || "" },
+        { nombre: "Declaraciones responsables", norma: "Capacidad para contratar y obligaciones tributarias y con la Seguridad Social", entidad: entity.nombre || "", vigencia: "31 dic 2026", estado: "Vigente", archivo: `Declaraciones-Responsables-${slug}.pdf`, hash: "" },
+        { nombre: "Seguro de Responsabilidad Civil", norma: "Póliza de RC general y profesional", entidad: "Aseguradora", vigencia: "30 jun 2027", estado: "Vigente", archivo: `Poliza-RC-${slug}.pdf`, hash: "" }
+      ];
+    }
+    return entity.documentacionGeneral;
+  }
+
+  function renderProfileDocRow(c) {
+    return `
+      <div class="b2b-profile-cert-row">
+        <div style="min-width:0;flex:1">
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+            <strong style="font-size:0.8rem;color:var(--entity-text)">${escHTML(c.nombre)}</strong>
+            <span class="b2b-cert-badge is-valid">${escHTML(c.estado)}</span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--entity-muted);margin-top:2px">
+            ${escHTML(c.norma || "")}${c.entidad ? ` · <span style="color:var(--entity-faint)">${escHTML(c.entidad)}</span>` : ""}
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
+          <div style="text-align:right">
+            <span style="display:block;font-size:0.66rem;color:var(--entity-faint);text-transform:uppercase">Vigencia</span>
+            <strong style="font-size:0.73rem;color:var(--entity-text)">${escHTML(c.vigencia || "-")}</strong>
+          </div>
+          <button class="admin-quiet-button" type="button"
+            data-inspect-cert="${escHTML(c.hash || "")}"
+            data-cert-name="${escHTML(c.nombre)}"
+            data-cert-file="${escHTML(c.archivo || "")}"
+            data-cert-lab="${escHTML(c.entidad || "")}"
+            data-cert-norm="${escHTML(c.norma || "")}"
+            data-cert-res="${escHTML(c.estado)} (${escHTML(c.vigencia || "")})"
+            style="padding:4px 9px;font-size:0.72rem">
+            ${icon("file", 12)} Ver
+          </button>
+        </div>
+      </div>`;
+  }
+
+  function renderGeneralDocsCard(role, entity, key) {
+    const docs = getGeneralDocs(role, entity);
+    return `
+      <details class="b2b-profile-card is-collapsible" style="margin-top:18px;margin-bottom:18px" data-profile-collapse="${key}" ${profileCollapseState[key] !== false ? "open" : ""}>
+        <summary class="b2b-profile-section-head is-collapsible-summary">
+          <div>
+            <h3>${icon("file", 15)} Documentación y acuerdos generales</h3>
+            <p>Acuerdo marco con SOFEIN, declaraciones responsables y seguro de responsabilidad civil.</p>
+          </div>
+          <div class="b2b-profile-summary-actions">
+            <span class="b2b-profile-chevron" title="Mostrar / ocultar sección">${icon("chevronDown", 16)}</span>
+          </div>
+        </summary>
+        <div class="b2b-profile-card-body">
+          <div class="b2b-profile-cert-list">
+            ${docs.map(renderProfileDocRow).join("")}
+          </div>
+        </div>
+      </details>`;
+  }
+
   function renderProfileView(role) {
     if (role === "proveedor") {
       const prv = DIRECTORIO_PROVEEDORES.find(p => p.id === "PRV-01") || DIRECTORIO_PROVEEDORES[0];
@@ -7679,46 +7779,13 @@
           <div>
             <h1 style="margin:0;font-size:1.65rem;font-weight:600;letter-spacing:-0.03em">Perfil de proveedor</h1>
           </div>
-          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-            <button class="admin-quiet-button" type="button" data-open-upload-profile-cert="proveedor">
-              ${icon("upload", 13)} Subir certificado
-            </button>
-            <button class="admin-primary-button" type="button" data-edit-dir="proveedor" data-id="${prv.id}">
-              ${icon("edit", 13)} Editar datos del perfil
-            </button>
-          </div>
         </div>
 
-        <!-- Mini resumen en línea -->
-        <div class="exp-bandeja-summary-strip" style="margin-bottom:14px">
-          <span><strong>${prvSums.length}</strong> suministros asignados</span>
-          <span class="exp-strip-dot">·</span>
-          <span><strong>${activeSums.length}</strong> en ejecución activa</span>
-          <span class="exp-strip-dot">·</span>
-          <span><strong>${completedSums.length}</strong> completados</span>
-          <span class="exp-strip-dot">·</span>
-          <span><strong>${confRows.length}</strong> conformidades</span>
-        </div>
-
-        <!-- Parte superior: tarjetas KPI -->
-        <div class="exp-kpi-filter-grid" style="margin-bottom:18px;grid-template-columns:repeat(2,minmax(0,1fr))">
-          <div class="exp-kpi-filter-card" style="cursor:default">
-            <div class="exp-kpi-filter-top">
-              <span class="exp-kpi-label">Suministros activos</span>
-              <span class="exp-kpi-dot is-active"></span>
-            </div>
-            <strong class="exp-kpi-value">${activeSums.length}</strong>
-            <small class="exp-kpi-sub">De ${prvSums.length} suministros adjudicados</small>
-          </div>
-          <div class="exp-kpi-filter-card" style="cursor:default">
-            <div class="exp-kpi-filter-top">
-              <span class="exp-kpi-label">Expedientes vinculados</span>
-              <span class="exp-kpi-dot" style="background:#60a5fa"></span>
-            </div>
-            <strong class="exp-kpi-value">${prvExps.length}</strong>
-            <small class="exp-kpi-sub">En ejecución o fase de oferta</small>
-          </div>
-        </div>
+        ${renderProfileKpis([
+          { label: "Expedientes adjudicados", dot: "is-active", now: prvExps.filter(e => !isExpClosedForKpi(e)).length, total: prvExps.length, sub: "en curso de {t} adjudicados" },
+          { label: "Suministros adjudicados", color: "#60a5fa", now: prvSums.filter(x => !isSumClosedForKpi(x)).length, total: prvSums.length, sub: "en curso de {t} adjudicados" },
+          { label: "Volumen adjudicado", color: "#a78bfa", now: sumVolume(prvSums.filter(x => !isSumClosedForKpi(x))), total: sumVolume(prvSums), money: true, sub: "en curso de {t} adjudicados" }
+        ])}
 
         <!-- Bloque Flotante 1: Ficha Corporativa e Industrial (Colapsable) -->
         <details class="b2b-profile-card is-collapsible" data-profile-collapse="prvFicha" ${profileCollapseState.prvFicha ? "open" : ""}>
@@ -7769,27 +7836,10 @@
                 <strong class="b2b-profile-meta-val">${prv.condicionesPago || "60 días confirmada"}</strong>
               </div>
             </div>
-            <div class="b2b-profile-cert-row" style="margin-top:14px">
-              <div style="min-width:0;flex:1">
-                <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-                  <strong style="font-size:0.8rem;color:var(--entity-text)">${icon("file", 13)} Acuerdo marco con SOFEIN</strong>
-                  <span class="b2b-cert-badge is-valid">${acuerdoMarco.estado}</span>
-                </div>
-                <div style="font-size:0.72rem;color:var(--entity-muted);margin-top:2px">${acuerdoMarco.archivo} · ${acuerdoMarco.vigencia}</div>
-              </div>
-              <button class="admin-quiet-button" type="button"
-                data-inspect-cert="${acuerdoMarco.hash}"
-                data-cert-name="Acuerdo marco de proveedor SOFEIN"
-                data-cert-file="${acuerdoMarco.archivo}"
-                data-cert-lab="SOFEIN Procurement"
-                data-cert-norm="Acuerdo marco proveedor - SOFEIN"
-                data-cert-res="${acuerdoMarco.estado} (${acuerdoMarco.vigencia})"
-                style="padding:4px 9px;font-size:0.72rem">
-                ${icon("file", 12)} Ver
-              </button>
-            </div>
           </div>
         </details>
+
+        ${renderGeneralDocsCard("proveedor", prv, "prvDocs")}
 
         <!-- Bloque Flotante 2: Dos columnas asimétricas independientes (1fr | 1.15fr), cada una colapsable -->
         <div class="b2b-profile-two-col">
@@ -7819,7 +7869,7 @@
           <details class="b2b-profile-card is-collapsible" style="margin-bottom:0" data-profile-collapse="prvCerts" ${profileCollapseState.prvCerts ? "open" : ""}>
             <summary class="b2b-profile-section-head is-collapsible-summary">
               <div>
-                <h3>${icon("shield", 15)} Conformidades</h3>
+                <h3>${icon("shield", 15)} Cumplimientos</h3>
               </div>
               <div class="b2b-profile-summary-actions">
                 <button class="admin-quiet-button" type="button" data-open-upload-profile-cert="proveedor">
@@ -7863,61 +7913,6 @@
           </details>
         </div>
 
-        <!-- Bloque Flotante 3: Mis Suministros Vinculados (Colapsable) -->
-        <details class="b2b-profile-card is-collapsible" style="margin-top:18px;margin-bottom:0" data-profile-collapse="prvSums" ${profileCollapseState.prvSums ? "open" : ""}>
-          <summary class="b2b-profile-section-head is-collapsible-summary">
-            <div>
-              <h3>${icon("layers", 15)} Mis suministros adjudicados en plataforma (${prvSums.length})</h3>
-              <p>Trazabilidad directa de los lotes contratados con ${prv.nombre}.</p>
-            </div>
-            <div class="b2b-profile-summary-actions">
-              <button class="admin-quiet-button" type="button" data-go="#proveedor/suministros">
-                Ver bandeja de suministros ${icon("arrow", 12)}
-              </button>
-              <span class="b2b-profile-chevron" title="Mostrar / ocultar sección">${icon("chevronDown", 16)}</span>
-            </div>
-          </summary>
-
-          <div class="b2b-profile-card-body">
-            <div class="b2b-dir-table-wrap">
-              <table class="b2b-dir-table">
-                <thead>
-                  <tr>
-                    <th>Código</th>
-                    <th>Suministro y Volumen</th>
-                    <th>Expediente</th>
-                    <th>Destino de Obra</th>
-                    <th>Fase Actual</th>
-                    <th>Entrega Prevista</th>
-                    <th>Presupuesto</th>
-                    <th style="text-align:right">Acción</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${prvSums.map(s => `
-                    <tr>
-                      <td><span class="entity-code" style="font-size:0.74rem">${s.id}</span></td>
-                      <td>
-                        <strong style="display:block;font-size:0.78rem;color:var(--entity-text)">${s.tipo}</strong>
-                        <span style="font-size:0.71rem;color:var(--entity-muted)">${s.unidades}</span>
-                      </td>
-                      <td><span class="entity-code" style="font-size:0.73rem">${s.expId}</span></td>
-                      <td><span style="font-size:0.75rem;color:var(--entity-muted)">${s.destino}</span></td>
-                      <td><span class="dossier-chip" style="font-size:0.7rem">${SHORT_PHASE_NAMES[s.faseActual] || s.faseNombre}</span></td>
-                      <td><strong style="font-size:0.75rem;color:var(--entity-text)">${s.fechaEntrega}</strong></td>
-                      <td><strong style="font-size:0.76rem;color:var(--entity-text)">${s.presupuesto || "—"}</strong></td>
-                      <td style="text-align:right">
-                        <button class="admin-quiet-button" type="button" data-go="#proveedor/expedientes/${s.expId}" style="padding:4px 9px;font-size:0.72rem">
-                          Abrir expediente ${icon("arrow", 11)}
-                        </button>
-                      </td>
-                    </tr>
-                  `).join("")}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </details>
       `;
     }
 
@@ -7942,13 +7937,13 @@
       return acc + (isNaN(n) ? 0 : n);
     }, 0);
     const formattedBudget = totalBudgetNum > 0
-      ? totalBudgetNum.toLocaleString("es-ES") + " €"
+      ? fmtNumEs(totalBudgetNum) + " €"
       : "853.150 €";
 
     const cliCerts = cli.certificadosDetalle || [
       {
         nombre: "Acuerdo Marco de Gestión de Compras y Suministros SOFEIN",
-        norma: "Mandato de homologación, mediación técnica y Pasaporte Digital",
+        norma: "Mandato de homologación, mediación técnica y Certificado SOFEIN",
         entidad: "SOFEIN Procurement B2B",
         vigencia: "Vigente 2026–2028",
         estado: "Firmado",
@@ -7988,7 +7983,7 @@
     const reglasCliente = cli.reglasContratacion || [
       "Exigencia obligatoria en pliego: Trazabilidad lote a lote y ensayos en laboratorio ENAC",
       "Registro de incidencias y cambios por SOFEIN con firma de cliente y proveedor",
-      "Emisión de Pasaporte Digital criptográfico al cierre de recepción en obra"
+      "Emisión del Certificado SOFEIN al cierre de recepción en obra"
     ];
 
     const cliInitials = (cli.nombre || "IN").slice(0, 2).toUpperCase();
@@ -7998,59 +7993,13 @@
         <div>
           <h1 style="margin:0;font-size:1.65rem;font-weight:600;letter-spacing:-0.03em">Perfil de cliente</h1>
         </div>
-        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-          <button class="admin-primary-button" type="button" data-edit-dir="cliente" data-id="${cli.id}">
-            ${icon("edit", 13)} Editar datos corporativos
-          </button>
-        </div>
       </div>
 
-      <!-- Mini resumen en línea -->
-      <div class="exp-bandeja-summary-strip" style="margin-bottom:14px">
-        <span><strong>${cliExps.length}</strong> expedientes registrados</span>
-        <span class="exp-strip-dot">·</span>
-        <span><strong>${activeCliExps.length}</strong> en curso</span>
-        <span class="exp-strip-dot">·</span>
-        <span><strong>${cliSums.length}</strong> suministros gestionados</span>
-        <span class="exp-strip-dot">·</span>
-        <span><strong>${formattedBudget}</strong> volumen en plataforma</span>
-      </div>
-
-      <!-- Parte superior: 4 Tarjetas KPI en 4 columnas -->
-      <div class="exp-kpi-filter-grid" style="margin-bottom:18px">
-        <div class="exp-kpi-filter-card" style="cursor:default">
-          <div class="exp-kpi-filter-top">
-            <span class="exp-kpi-label">Expedientes en curso</span>
-            <span class="exp-kpi-dot is-active"></span>
-          </div>
-          <strong class="exp-kpi-value">${activeCliExps.length}</strong>
-          <small class="exp-kpi-sub">De ${cliExps.length} expedientes totales en plataforma</small>
-        </div>
-        <div class="exp-kpi-filter-card" style="cursor:default">
-          <div class="exp-kpi-filter-top">
-            <span class="exp-kpi-label">Suministros contratados</span>
-            <span class="exp-kpi-dot" style="background:#60a5fa"></span>
-          </div>
-          <strong class="exp-kpi-value">${cliSums.length}</strong>
-          <small class="exp-kpi-sub">Lotes supervisados por SOFEIN</small>
-        </div>
-        <div class="exp-kpi-filter-card" style="cursor:default">
-          <div class="exp-kpi-filter-top">
-            <span class="exp-kpi-label">Volumen presupuestario</span>
-            <span class="exp-kpi-dot" style="background:#a78bfa"></span>
-          </div>
-          <strong class="exp-kpi-value">${formattedBudget}</strong>
-          <small class="exp-kpi-sub">Presupuesto estimado acumulado</small>
-        </div>
-        <div class="exp-kpi-filter-card" style="cursor:default">
-          <div class="exp-kpi-filter-top">
-            <span class="exp-kpi-label">Estado de entidad</span>
-            <span class="exp-kpi-dot is-complete"></span>
-          </div>
-          <strong class="exp-kpi-value" style="color:var(--entity-accent)">Verificado</strong>
-          <small class="exp-kpi-sub">Acuerdo Marco SOFEIN activo</small>
-        </div>
-      </div>
+      ${renderProfileKpis([
+        { label: "Expedientes", dot: "is-active", now: cliExps.filter(e => !isExpClosedForKpi(e)).length, total: cliExps.length, sub: "en curso de {t} en total" },
+        { label: "Suministros", color: "#60a5fa", now: cliSums.filter(x => !isSumClosedForKpi(x)).length, total: cliSums.length, sub: "en curso de {t} en total" },
+        { label: "Volumen", color: "#a78bfa", now: sumVolume(cliSums.filter(x => !isSumClosedForKpi(x))), total: sumVolume(cliSums), money: true, sub: "en curso de {t} en total" }
+      ])}
 
       <!-- Bloque Flotante 1: Ficha Corporativa y de Contratación (Colapsable) -->
       <details class="b2b-profile-card is-collapsible" data-profile-collapse="cliFicha" ${profileCollapseState.cliFicha ? "open" : ""}>
@@ -8108,112 +8057,24 @@
         </div>
       </details>
 
-      <!-- Bloque Flotante 2: Acuerdo marco y acreditaciones -->
-      <div>
-        <!-- Columna Derecha: Acreditaciones Corporativas y Acuerdo Marco -->
-        <details class="b2b-profile-card is-collapsible" style="margin-bottom:0" data-profile-collapse="cliCerts" ${profileCollapseState.cliCerts ? "open" : ""}>
-          <summary class="b2b-profile-section-head is-collapsible-summary">
-            <div>
-              <h3>${icon("shield", 15)} Acuerdo marco y acreditaciones registradas</h3>
-              <p>Documentación legal y certificaciones de contratista verificadas en plataforma.</p>
-            </div>
-            <div class="b2b-profile-summary-actions">
-              <button class="admin-quiet-button" type="button" data-open-upload-profile-cert="cliente">
-                ${icon("upload", 12)} Añadir
-              </button>
-              <span class="b2b-profile-chevron" title="Mostrar / ocultar sección">${icon("chevronDown", 16)}</span>
-            </div>
-          </summary>
+      ${renderGeneralDocsCard("cliente", cli, "cliDocs")}
 
-          <div class="b2b-profile-card-body">
-            <div class="b2b-profile-cert-list">
-              ${cliCerts.map(c => `
-                <div class="b2b-profile-cert-row">
-                  <div style="min-width:0;flex:1">
-                    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-                      <strong style="font-size:0.8rem;color:var(--entity-text)">${c.nombre}</strong>
-                      <span class="b2b-cert-badge is-valid">${c.estado}</span>
-                    </div>
-                    <div style="font-size:0.72rem;color:var(--entity-muted);margin-top:2px">
-                      ${c.norma} · <span style="color:var(--entity-faint)">${c.entidad}</span>
-                    </div>
-                  </div>
-                  <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
-                    <div style="text-align:right">
-                      <span style="display:block;font-size:0.66rem;color:var(--entity-faint);text-transform:uppercase">Estado</span>
-                      <strong style="font-size:0.73rem;color:var(--entity-text)">${c.vigencia}</strong>
-                    </div>
-                    <button class="admin-quiet-button" type="button"
-                      data-inspect-cert="${c.hash}"
-                      data-cert-name="${c.nombre}"
-                      data-cert-file="${c.archivo}"
-                      data-cert-lab="${c.entidad}"
-                      data-cert-norm="${c.norma}"
-                      data-cert-res="DOCUMENTO VERIFICADO (${c.vigencia})"
-                      style="padding:4px 9px;font-size:0.72rem">
-                        ${icon("file", 12)} Ver
-                    </button>
-                  </div>
-                </div>
-              `).join("")}
-            </div>
-          </div>
-        </details>
-      </div>
-
-      <!-- Bloque Flotante 3: Mis Expedientes de Suministro (Colapsable) -->
-      <details class="b2b-profile-card is-collapsible" style="margin-top:18px;margin-bottom:0" data-profile-collapse="cliExps" ${profileCollapseState.cliExps ? "open" : ""}>
+      <details class="b2b-profile-card is-collapsible" style="margin-bottom:0" data-profile-collapse="cliCerts" ${profileCollapseState.cliCerts ? "open" : ""}>
         <summary class="b2b-profile-section-head is-collapsible-summary">
           <div>
-            <h3>${icon("folder", 15)} Mis expedientes de suministro en curso e histórico (${cliExps.length})</h3>
-            <p>Resumen ejecutivo de los expedientes contratados por ${cli.nombre}.</p>
+            <h3>${icon("shield", 15)} Cumplimientos</h3>
+            <p>Clasificaciones, certificaciones y normas acreditadas en plataforma.</p>
           </div>
           <div class="b2b-profile-summary-actions">
-            <button class="admin-quiet-button" type="button" data-go="#cliente/expedientes">
-              Ver todos mis expedientes ${icon("arrow", 12)}
+            <button class="admin-quiet-button" type="button" data-open-upload-profile-cert="cliente">
+              ${icon("upload", 12)} Añadir
             </button>
             <span class="b2b-profile-chevron" title="Mostrar / ocultar sección">${icon("chevronDown", 16)}</span>
           </div>
         </summary>
-
         <div class="b2b-profile-card-body">
-          <div class="b2b-dir-table-wrap">
-            <table class="b2b-dir-table">
-              <thead>
-                <tr>
-                  <th>Código</th>
-                  <th>Título del Expediente</th>
-                  <th>Destino de Obra</th>
-                  <th>Suministros</th>
-                  <th>Fase Actual</th>
-                  <th>Presupuesto Total</th>
-                  <th style="text-align:right">Acción</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${cliExps.map(exp => {
-                  const meta = getExpVisualMeta(exp);
-                  return `
-                    <tr>
-                      <td><span class="entity-code" style="font-size:0.74rem">${exp.id}</span></td>
-                      <td>
-                        <strong style="display:block;font-size:0.78rem;color:var(--entity-text)">${meta.tituloGenerico}</strong>
-                        <span style="font-size:0.71rem;color:var(--entity-muted)">${exp.unidades || exp.subtipo}</span>
-                      </td>
-                      <td><span style="font-size:0.75rem;color:var(--entity-muted)">${exp.destinatarioFinal}</span></td>
-                      <td><span class="dossier-chip" style="font-size:0.7rem">${meta.numSuministros} ${meta.numSuministros === 1 ? 'suministro' : 'suministros'}</span></td>
-                      <td><span class="dossier-chip" style="font-size:0.7rem">${meta.shortPhase}</span></td>
-                      <td><strong style="font-size:0.76rem;color:var(--entity-text)">${exp.presupuestoTotal || "—"}</strong></td>
-                      <td style="text-align:right">
-                        <button class="admin-quiet-button" type="button" data-go="#cliente/expedientes/${exp.id}" style="padding:4px 9px;font-size:0.72rem">
-                          Abrir expediente ${icon("arrow", 11)}
-                        </button>
-                      </td>
-                    </tr>
-                  `;
-                }).join("")}
-              </tbody>
-            </table>
+          <div class="b2b-profile-cert-list">
+            ${cliCerts.filter(c => !/acuerdo marco/i.test(c.nombre)).map(c => renderProfileDocRow(c)).join("")}
           </div>
         </div>
       </details>
@@ -8257,8 +8118,8 @@
         phase: "Fase 4: Cierre",
         fecha: "16 jul 2026",
         actor: exp.destinatarioFinal,
-        estado: "Recepción Técnica y Pasaporte",
-        desc: "Acta de descarga a pie de vía y sellado final de Pasaporte Digital SOFEIN"
+        estado: "Recepción técnica y certificado",
+        desc: "Acta de descarga a pie de vía y emisión del Certificado SOFEIN"
       }
     ];
     // Ensayos y auditoría de documentos
@@ -8332,6 +8193,32 @@
     }[materialKey];
     if (materialDescs) { certifiedMilestones[2].desc = materialDescs[0] + " · " + materialDescs[1]; certifiedMilestones[2].estado = "Conforme " + materialNorm; }
 
+    // Certificado SOFEIN (antes Pasaporte Digital): contenido acordado con Ángel/Flor.
+    const certSums = SUMINISTROS.filter(x => x.expId === exp.id);
+    const sumAgreedDate = x => {
+      const firstChange = (exp.incidencias || []).filter(i => i.sumId === x.id && i.previo?.fechaEntrega)
+        .sort((p, q) => String(p.previo.fechaEntregaIso || "").localeCompare(String(q.previo.fechaEntregaIso || "")))[0];
+      return firstChange ? firstChange.previo.fechaEntrega : (x.fechaEntrega || "—");
+    };
+    const canSeeDoc = d => !isDestinatario || (d.visibleTo || []).includes("destinatario");
+    const allDocs = Object.keys(exp.deliverables || {}).flatMap(k => (exp.deliverables[k] || []).map(d => ({ ...d, phaseIdx: Number(k) })));
+    const isCertItself = d => /pasaporte|certificado sofein/i.test(d.name || "");
+    const contractDoc = allDocs.find(d => /hoja de pedido|contrato/i.test(d.name || "") && d.file);
+    const sumDocs = allDocs.filter(d => d.phaseIdx === 0 && d.file && canSeeDoc(d));
+    const extraDocs = allDocs.filter(d => d.phaseIdx > 0 && d.file && d.state === "complete" && d !== contractDoc && !isCertItself(d) && canSeeDoc(d)
+      && !(contractDoc && d.file === contractDoc.file));
+    const regRows = (exp.incidencias || []);
+    const regState = inc => inc.adendaId ? "Firmado por cliente y proveedor" : (inc.firmaProveedor || inc.firmaCliente) ? "Pendiente de una firma" : (inc.estado || "Pendiente de firma");
+    const docRow = (name, file, meta = "") => `
+      <div class="cert-doc-row">
+        <span class="cert-doc-icon">${icon("file", 14)}</span>
+        <div class="cert-doc-main">
+          <strong>${escHTML(name)}</strong>
+          <small>${escHTML(file)}${meta ? ` · ${escHTML(meta)}` : ""}</small>
+        </div>
+        <button class="admin-quiet-button" type="button" data-download="${escHTML(file)}" style="padding:4px 9px;font-size:0.72rem">${icon("download", 12)} Ver</button>
+      </div>`;
+
     return `
       <section class="passport-card">
         <header class="passport-hero">
@@ -8340,256 +8227,119 @@
             <span>Procurement</span>
           </div>
           <div class="passport-hero-main">
-            <span class="passport-hero-kicker">${isClosed ? "Documento oficial" : "Borrador"} · ${exp.id}</span>
-            <h1>Pasaporte Digital</h1>
+            <h1>Certificado SOFEIN</h1>
             <p>${escHTML(getExpVisualMeta(exp).tituloGenerico)}</p>
           </div>
           <div class="passport-hero-meta">
+            <div><span>Expediente</span><strong>${escHTML(exp.id)}</strong></div>
             <div><span>Cliente</span><strong>${escHTML(exp.cliente)}</strong></div>
             <div><span>Destino</span><strong>${escHTML(exp.destinatarioFinal)}</strong></div>
-            <div><span>Estado</span><strong>${isClosed ? `Sellado ${exp.fechaCierre ? `· ${exp.fechaCierre}` : ""}` : `Fase ${Math.min(exp.faseActual + 1, PHASES.length)} de ${PHASES.length}`}</strong></div>
           </div>
         </header>
-        <!-- Cabecera Oficial y Sello Criptográfico -->
-        <div class="passport-official-head">
-          <div class="passport-official-title">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-              ${isClosed
-                ? `<span class="entity-status complete"><i></i>Documento Oficial Auditado</span>`
-                : `<span class="entity-status review"><i></i>Borrador en curso · Fase ${exp.faseActual + 1} de ${PHASES.length}</span>`}
-              <span class="dossier-chip">${materialNorm}</span>
-            </div>
-            <h2>Pasaporte Digital de Suministro Ferroviario</h2>
-            <p>
-              ${isClosed ? "Registro inmutable de trazabilidad, ensayos y conformidad del suministro" : "Registro provisional: se sella y emite al cerrar el expediente. Suministro"} <b>${exp.id}</b>.
-            </p>
-          </div>
 
-          <div class="passport-stamp">
-            <span class="stamp-label">${icon("shield", 12)} ${isClosed ? "Sello de Conformidad" : "Sello pendiente"}</span>
-            <span class="stamp-id">${passportId}</span>
-            ${isClosed ? `<span class="stamp-hash">${globalHash}</span>
-            <div style="margin-top:6px;font-size:0.68rem;color:var(--entity-accent);font-weight:600">✓ Cadena de Custodia Certificada</div>`
-            : `<span class="stamp-hash">Se emitirá al completar la Fase 4</span>`}
-          </div>
+        <div class="cert-status-row">
+          <span class="cert-status-pill${isClosed ? " is-final" : ""}">${isClosed ? "Certificado final" : "Borrador: suministro en curso"}</span>
         </div>
 
-        <!-- 1. Especificaciones del Suministro -->
+        <!-- 1. Resumen del suministro -->
         <div class="passport-section-title">
           <h3>${icon("file", 16)} 1. Resumen del suministro</h3>
         </div>
-
-        <div class="passport-spec-grid">
-          <div class="passport-spec-box">
-            <span class="label">Material Homologado</span>
-            <strong class="val">${exp.producto}</strong>
-            <span class="sub">${exp.tipoMaterial || "Superestructura"} · ${exp.subtipo}</span>
-          </div>
-          <div class="passport-spec-box">
-            <span class="label">Volumen Total</span>
-            <strong class="val">${exp.unidades}</strong>
-            <span class="sub">Tolerancia dimensional ±1mm</span>
-          </div>
-          <div class="passport-spec-box">
-            <span class="label">Contratista Adjudicatario</span>
-            <strong class="val">${exp.cliente}</strong>
-            <span class="sub">Constructor y ejecutor de vía</span>
-          </div>
-          <div class="passport-spec-box">
-            <span class="label">Taller / Fabricante</span>
-            <strong class="val">${!isDestinatario ? exp.proveedor : exp.proveedor.split(",")[0]}</strong>
-            <span class="sub">Planta homologada Adif</span>
-          </div>
-          <div class="passport-spec-box">
-            <span class="label">Destinatario Final de la Vía</span>
-            <strong class="val">${exp.destinatarioFinal}</strong>
-            <span class="sub">Titular de la infraestructura</span>
-          </div>
-          <div class="passport-spec-box">
-            <span class="label">Presupuesto Formalizado</span>
-            <strong class="val" style="color:var(--entity-accent)">${!isDestinatario ? exp.presupuestoTotal : "[Dato Comercial Reservado por Contratista]"}</strong>
-            <span class="sub">${!isDestinatario ? "Hoja de Pedido Vinculante" : "Confidencial Comercial"}</span>
-          </div>
-        </div>
-
-        <!-- 2. Cronología Certificada de las 7 Fases -->
-        <div class="passport-section-title">
-          <h3>${icon("calendar", 16)} 2. Trazabilidad (4 fases)</h3>
-          <span style="font-size:0.75rem;color:var(--entity-accent);font-weight:600">${doneCount} de ${PHASES.length} fases verificadas</span>
-        </div>
-
-        <div class="passport-timeline">
-          ${certifiedMilestones.map((m, i) => i >= doneCount ? `
-            <div class="passport-timeline-item" style="opacity:.55">
-              <div class="passport-timeline-dot" style="background:var(--entity-line);color:var(--entity-faint)"></div>
-              <div><strong style="color:var(--entity-text);display:block;font-size:0.78rem">${m.phase}</strong><span style="font-size:0.7rem;color:var(--entity-muted)">${i === exp.faseActual ? "En curso" : "—"}</span></div>
-              <div><span style="color:var(--entity-muted);display:block">Pendiente de certificar</span></div>
-              <div style="text-align:right"><span class="entity-status ${i === exp.faseActual ? "review" : "not-required"}" style="font-size:0.68rem"><i></i>${i === exp.faseActual ? "En curso" : "Pendiente"}</span></div>
-            </div>` : `
-            <div class="passport-timeline-item">
-              <div class="passport-timeline-dot">
-                ${icon("check", 14)}
-              </div>
-              <div>
-                <strong style="color:var(--entity-text);display:block;font-size:0.78rem">${m.phase}</strong>
-                <span style="font-size:0.7rem;color:var(--entity-muted)">${m.fecha}</span>
-              </div>
-              <div>
-                <span style="color:var(--entity-text);display:block">${m.desc}</span>
-                <span style="font-size:0.7rem;color:var(--entity-faint)">Responsable: <b>${m.actor}</b></span>
-              </div>
-              <div style="text-align:right">
-                <span class="entity-status complete" style="font-size:0.68rem"><i></i>${m.estado}</span>
-              </div>
-            </div>
-          `).join("")}
-        </div>
-
-        <!-- 3. Auditoría de Calidad y Ensayos de Laboratorio -->
-        <div class="passport-section-title">
-          <h3>${icon("award", 16)} 3. Ensayos y certificaciones</h3>
-        </div>
-
         <div class="passport-certs-wrap">
-          <table class="passport-certs-table">
+          <table class="passport-certs-table cert-summary-table">
             <thead>
               <tr>
-                <th>Ensayo / Certificación</th>
-                <th>Laboratorio</th>
-                <th>Resultado</th>
-                <th>Hash SHA-256</th>
-                <th style="text-align:right"></th>
+                <th>Tipo</th>
+                <th>Especificaciones</th>
+                <th>Código</th>
+                <th>Proveedor adjudicado</th>
+                <th>Unidades finales</th>
+                <th>Presupuesto final</th>
+                <th>Entrega acordada</th>
+                <th>Entrega final</th>
               </tr>
             </thead>
             <tbody>
-              ${visibleCertificates.map(c => `
+              ${certSums.length ? certSums.map(x => `
                 <tr>
-                  <td>
-                    <strong class="cert-title">${c.titulo}</strong>
-                    <small class="cert-sub">${c.norma} · ${c.archivo}</small>
-                  </td>
-                  <td><span class="cert-lab">${c.laboratorio}</span></td>
-                  <td><span class="entity-status complete"><i></i>${c.resultado}</span></td>
-                  <td><span class="passport-hash-pill" title="${c.hash}">${c.hash.slice(0, 8)}…${c.hash.slice(-6)}</span></td>
-                  <td style="text-align:right">
-                    <button class="admin-quiet-button" type="button" data-inspect-cert="${c.hash}" data-cert-name="${c.titulo}" data-cert-file="${c.archivo}" data-cert-lab="${c.laboratorio}" data-cert-norm="${c.norma}" data-cert-res="${c.resultado}" style="padding:4px 8px;font-size:0.72rem;white-space:nowrap">
-                      ${icon("shield", 12)} Verificar
-                    </button>
-                  </td>
-                </tr>
-              `).join("")}
+                  <td><strong class="cert-title">${escHTML(x.tipo || "—")}</strong></td>
+                  <td><span class="cert-lab">${escHTML(x.descripcion || "—")}</span></td>
+                  <td><span class="entity-code" style="font-size:0.72rem">${escHTML(x.id)}</span></td>
+                  <td>${escHTML(x.proveedor || "Pendiente de adjudicar")}</td>
+                  <td>${escHTML(x.unidades || "—")}</td>
+                  <td>${isDestinatario ? "Reservado" : escHTML(x.presupuesto || "—")}</td>
+                  <td>${escHTML(sumAgreedDate(x))}</td>
+                  <td>${x.estado === "cerrado" || isClosed ? escHTML(x.fechaEntrega || "—") : '<span style="color:var(--entity-muted)">Pendiente</span>'}</td>
+                </tr>`).join("") : `
+                <tr>
+                  <td><strong class="cert-title">${escHTML(exp.tipoMaterial || "—")}</strong></td>
+                  <td><span class="cert-lab">${escHTML(exp.subtipo || exp.producto || "—")}</span></td>
+                  <td><span class="entity-code" style="font-size:0.72rem">${escHTML(exp.id)}</span></td>
+                  <td>${escHTML(exp.proveedor || "—")}</td>
+                  <td>${escHTML(exp.unidades || "—")}</td>
+                  <td>${isDestinatario ? "Reservado" : escHTML(exp.presupuestoTotal || "—")}</td>
+                  <td>—</td>
+                  <td>${isClosed ? escHTML(exp.fechaCierre || "—") : '<span style="color:var(--entity-muted)">Pendiente</span>'}</td>
+                </tr>`}
             </tbody>
           </table>
-          ${visibleCertificates.length ? "" : `<div style="padding:16px 20px;font-size:0.8rem;color:var(--entity-muted)">Los ensayos y certificados aparecerán al completar la Fase 3 (Gestión del pedido).</div>`}
+        </div>
+        <div class="cert-doc-group">
+          <span class="cert-doc-group-title">Contrato de suministro firmado en la plataforma</span>
+          ${contractDoc ? docRow(contractDoc.name, contractDoc.file, contractDoc.date || "") : `<div class="cert-doc-empty">Pendiente de firma por cliente y proveedor.</div>`}
+        </div>
+        <div class="cert-doc-group">
+          <span class="cert-doc-group-title">Documentos adjuntos del suministro</span>
+          ${sumDocs.length ? sumDocs.map(d => docRow(d.name, d.file, d.date || "")).join("") : `<div class="cert-doc-empty">Sin documentos adjuntos.</div>`}
         </div>
 
-        <!-- 4. Histórico de Modificaciones y Adendas Consolidadas -->
+        <!-- 2. Registro de incidencias y cambios -->
         <div class="passport-section-title">
-          <h3>${icon("alert", 16)} 4. Incidencias y adendas</h3>
+          <h3>${icon("alert", 16)} 2. Registro de incidencias y cambios en la gestión del pedido</h3>
+        </div>
+        <div class="passport-certs-wrap">
+          ${regRows.length ? `
+            <table class="passport-certs-table">
+              <thead>
+                <tr><th>Registro</th><th>Fecha</th><th>Suministro</th><th>Descripción</th><th>Estado</th></tr>
+              </thead>
+              <tbody>
+                ${regRows.map(inc => `
+                  <tr>
+                    <td><span class="entity-code" style="font-size:0.72rem">${escHTML(inc.id)}</span></td>
+                    <td>${escHTML(inc.fechaRegistro || "—")}</td>
+                    <td>${escHTML(inc.sumId || "General")}</td>
+                    <td><strong class="cert-title">${escHTML(inc.titulo || inc.tipo || "—")}</strong></td>
+                    <td><span class="entity-status ${inc.adendaId ? "complete" : "pending"}"><i></i>${escHTML(regState(inc))}</span></td>
+                  </tr>`).join("")}
+              </tbody>
+            </table>` : `<div style="padding:16px 20px;font-size:0.8rem;color:var(--entity-muted)">Sin incidencias ni cambios registrados.</div>`}
         </div>
 
-        ${pendingIncidents.length ? `
-          <div style="display:grid;gap:10px;margin-bottom:12px">
-            ${pendingIncidents.map(inc => `
-              <div style="padding:12px 16px;border-radius:8px;background:var(--entity-panel-2);border:1px solid var(--entity-line);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
-                <div>
-                  <strong style="color:var(--entity-text);font-size:0.84rem;display:block">${inc.id}: ${inc.tipo}</strong>
-                  <span style="font-size:0.74rem;color:var(--entity-muted)">Pendiente de firma de las partes · se consolidará como adenda al aprobarse</span>
-                </div>
-                <span class="entity-status pending"><i></i>${inc.estado}</span>
-              </div>`).join("")}
-          </div>` : ""}
-        ${consolidatedIncidents.length ? `
-          <div style="display:grid;gap:12px">
-            ${consolidatedIncidents.map(inc => `
-              <div style="padding:14px 18px;border-radius:8px;background:var(--entity-panel-2);border:1px solid var(--entity-line);display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
-                <div style="display:flex;align-items:center;gap:12px">
-                  <span style="display:grid;place-items:center;width:34px;height:34px;border-radius:6px;background:rgba(0,135,81,0.12);color:var(--entity-accent)">
-                    ${icon("award", 18)}
-                  </span>
-                  <div>
-                    <strong style="color:var(--entity-text);font-size:0.86rem;display:block">
-                      ${inc.adendaId}: Modificación y Mediación por ${inc.titulo}
-                    </strong>
-                    <span style="font-size:0.74rem;color:var(--entity-muted);display:block;margin-top:2px">
-                      Consolidada el ${inc.adendaFecha}${isDestinatario ? "" : ` · Desvío: <b>${inc.nuevoCosteAcordado || inc.impactoCoste || "0 €"}</b>`} · Firmada por cliente y proveedor.
-                    </span>
-                    <span class="passport-hash-pill" style="margin-top:4px;display:inline-block">Hash: ${inc.adendaHash || "SHA256: 9e8a71c0b...44"}</span>
-                  </div>
-                </div>
-                <button class="admin-quiet-button" type="button" data-view-addendum="${exp.id}" data-incident-id="${inc.id}" style="font-size:0.75rem">
-                  ${icon("file", 14)} Consultar Adenda Oficial
-                </button>
-              </div>
-            `).join("")}
-          </div>
-        ` : pendingIncidents.length ? "" : `
-          <div style="padding:16px 20px;border-radius:8px;background:var(--entity-panel-2);border:1px solid var(--entity-line);font-size:0.8rem;color:var(--entity-muted)">
-            ${isClosed ? "✓ Suministro ejecutado con pleno cumplimiento de pliegos, sin incidencias contractuales ni alteraciones de alcance." : "✓ Sin incidencias consolidadas hasta la fecha."}
-          </div>
-        `}
+        <!-- 3. Certificados y documentación adicional -->
+        <div class="passport-section-title">
+          <h3>${icon("award", 16)} 3. Certificados y documentación adicional</h3>
+        </div>
+        <div class="cert-doc-group">
+          ${(extraDocs.length || visibleCertificates.length)
+            ? [...extraDocs.map(d => docRow(d.name, d.file, d.date || "")),
+               ...visibleCertificates.filter(c => !extraDocs.some(d => d.file === c.archivo)).map(c => docRow(c.titulo, c.archivo, c.norma || ""))].join("")
+            : `<div class="cert-doc-empty">Los documentos relevantes del proceso aparecerán aquí automáticamente a medida que se validen.</div>`}
+        </div>
 
-        <!-- 5. Cláusula de Delimitación de Responsabilidad Legal -->
+        <!-- Delimitación Legal -->
         <div class="passport-legal-clause">
-          <strong>${icon("shield", 14)} Delimitación Legal de Responsabilidad y Declaración de Garante de Proceso</strong>
-          SOFEIN Digital interviene exclusivamente como plataforma tecnológica y garante fehaciente de trazabilidad documental, cronológica y procedimental. La garantía de los materiales, propiedades físicas, resistencia mecánica y ensayos de laboratorio corresponde de forma exclusiva y directa al Fabricante Homologado (<b>${exp.proveedor}</b>) conforme a la legislación aplicable y normativa ferroviaria. La correcta colocación, montaje y supervisión en obra corresponde al Contratista Adjudicatario (<b>${exp.cliente}</b>).
+          <strong>${icon("shield", 14)} Delimitación Legal</strong>
+          SOFEIN Digital interviene exclusivamente como plataforma tecnológica y garante de trazabilidad documental, cronológica y procedimental. La garantía de los materiales, propiedades físicas, resistencia mecánica y ensayos de laboratorio corresponde de forma exclusiva y directa al fabricante (<b>${escHTML(exp.proveedor || "")}</b>) conforme a la legislación aplicable y la normativa ferroviaria. La correcta colocación, montaje y supervisión en obra corresponde al contratista (<b>${escHTML(exp.cliente || "")}</b>).
         </div>
 
-        ${isClosed ? `
-        <!-- 6. Firmas Digitales Tripartitas -->
-        <div class="passport-signatures-row">
-          <div class="passport-signature-card">
-            <div>
-              <span class="role-label">Garante de Proceso & Trazabilidad</span>
-              <strong class="signer-name">Ángel Plaza</strong>
-              <span class="signer-meta">Director de Operaciones, SOFEIN Digital</span>
-            </div>
-            <div class="passport-signature-seal">
-              <span>${icon("check", 12)} Sello eIDAS / FNMT</span>
-              <span>${exp.fechaCierre || "16 jun 2026"}</span>
-            </div>
-          </div>
-          <div class="passport-signature-card">
-            <div>
-              <span class="role-label">Fabricante Homologado</span>
-              <strong class="signer-name">Carlos Mendía</strong>
-              <span class="signer-meta">Director Industrial, ${exp.proveedor.split(",")[0]}</span>
-            </div>
-            <div class="passport-signature-seal">
-              <span>${icon("check", 12)} Firma Cualificada</span>
-              <span>${exp.fechaCierre || "16 jun 2026"}</span>
-            </div>
-          </div>
-          <div class="passport-signature-card">
-            <div>
-              <span class="role-label">Contratista Adjudicatario</span>
-              <strong class="signer-name">Javier Ruiz</strong>
-              <span class="signer-meta">Jefe de Obra Vía, ${exp.cliente}</span>
-            </div>
-            <div class="passport-signature-seal">
-              <span>${icon("check", 12)} Conformidad de Recepción</span>
-              <span>${exp.fechaCierre || "16 jun 2026"}</span>
-            </div>
-          </div>
-        </div>
-
-        ` : `<div style="margin-top:18px;padding:14px 18px;border-radius:8px;border:1px dashed var(--entity-line-strong);font-size:0.78rem;color:var(--entity-muted)">Las firmas de garante, fabricante y contratista se recogerán al cierre del expediente (Fase 7).</div>`}
-
-        <!-- 7. Barra de Acciones y Descarga de Certificado -->
         <div class="passport-actions-bar">
-          <div style="display:flex;align-items:center;gap:10px">
-            <button class="admin-primary-button" type="button" data-print-passport ${isClosed ? "" : 'disabled title="Disponible al cerrar el expediente"'}>
-              ${icon("award", 16)} Descargar / Imprimir Pasaporte Digital (PDF)
-            </button>
-            <button class="admin-quiet-button" type="button" data-inspect-passport-crypto="${exp.id}" ${isClosed ? "" : "disabled"}>
-              ${icon("shield", 16)} Inspeccionar Sellado Criptográfico SHA-256
-            </button>
-          </div>
-          <div style="display:flex;align-items:center;gap:10px">
-            <button class="admin-quiet-button" type="button" data-toast="Generando paquete ZIP consolidado con todos los certificados y albaranes...">
-              ${icon("download", 14)} Descargar Expediente Completo (ZIP)
-            </button>
-          </div>
+          <button class="admin-primary-button" type="button" data-print-passport ${isClosed ? "" : 'disabled title="Disponible al cerrar el expediente"'}>
+            ${icon("award", 16)} Descargar Certificado SOFEIN (PDF)
+          </button>
+          <button class="admin-quiet-button" type="button" data-toast="Generando paquete ZIP con toda la documentación del expediente...">
+            ${icon("download", 14)} Descargar Expediente Completo (ZIP)
+          </button>
         </div>
       </section>
     `;
@@ -8672,7 +8422,7 @@
           <div class="procurement-modal-body" style="gap:14px;max-height:calc(85vh - 140px);overflow-y:auto;padding-right:12px">
             
             <div style="padding:14px;background:rgba(0,135,81,0.06);border:1px solid rgba(0,135,81,0.25);border-radius:8px">
-              <span style="font-size:0.68rem;text-transform:uppercase;color:var(--entity-accent);font-weight:700">Hash Raíz del Pasaporte Digital</span>
+              <span style="font-size:0.68rem;text-transform:uppercase;color:var(--entity-accent);font-weight:700">Hash Raíz del Certificado SOFEIN</span>
               <strong style="display:block;font-family:monospace;font-size:0.82rem;margin-top:4px;word-break:break-all;color:var(--entity-text)">
                 SHA-256: 7f8a91c0e392da54bf618b049d21e8ac8564177d6438902b4d9981ef0351f2bc
               </strong>
@@ -8758,7 +8508,7 @@
             <span class="dossier-chip" style="background:rgba(0,135,81,0.15);color:var(--entity-accent)">Vista Espectador / Auditoría</span>
             <span style="font-size:0.75rem;color:var(--entity-muted)">Propietario de la Infraestructura</span>
           </div>
-          <h1>Pasaporte Digital del Tramo Ferroviario</h1>
+          <h1>Certificado SOFEIN del Tramo Ferroviario</h1>
           <p>${exp.destinatarioFinal} · Acceso técnico oficial con confidencialidad de datos financieros de contratista</p>
         </div>
         <div style="display:flex;align-items:center;gap:10px">
@@ -10802,7 +10552,7 @@
               ],
               3: [
                 { name: "Acta de Recepción en Destino", reqDate: "Hoy", owner: "Cliente", state: "pending", format: "PDF", file: null, date: "Pendiente", visibleTo: ["admin", "cliente", "proveedor", "destinatario"], notes: "Descarga a pie de vía" },
-                { name: "Pasaporte Digital SOFEIN", reqDate: "Hoy", owner: "SOFEIN", state: "pending", format: "Certificado", file: null, date: "Al cierre", visibleTo: ["admin", "cliente", "proveedor", "destinatario"], notes: "Trazabilidad consolidada" }
+                { name: "Certificado SOFEIN", reqDate: "Hoy", owner: "SOFEIN", state: "pending", format: "Certificado", file: null, date: "Al cierre", visibleTo: ["admin", "cliente", "proveedor", "destinatario"], notes: "Trazabilidad consolidada" }
               ]
             };
             delivMap[nextIdx] = defaultByPhase[nextIdx] || [];
@@ -10876,7 +10626,7 @@
       });
     });
 
-    // 3b. Cierre del expediente (Fase 7): emite y sella el Pasaporte Digital
+    // 3b. Cierre del expediente (Fase 7): emite y sella el Certificado SOFEIN
     document.querySelectorAll("[data-close-dossier]").forEach(btn => {
       btn.addEventListener("click", () => {
         const exp = getActiveExpediente(btn.dataset.closeDossier);
@@ -10897,7 +10647,7 @@
         (exp.deliverables[PHASES.length - 1] || []).forEach(d => {
           d.state = "complete";
           d.date = "Hoy";
-          if (!d.file) d.file = `Pasaporte-Digital-${exp.id}.pdf`;
+          if (!d.file) d.file = `Certificado-SOFEIN-${exp.id}.pdf`;
         });
         exp.cerrado = true;
         exp.estado = "complete";
@@ -10908,16 +10658,16 @@
           expId: exp.id,
           categoria: "Avance de Fase",
           tagClass: "complete",
-          titulo: `Expediente ${exp.id} cerrado · Pasaporte Digital emitido`,
-          descripcion: "SOFEIN ha cerrado el expediente y emitido el Pasaporte Digital con la trazabilidad consolidada.",
+          titulo: `Expediente ${exp.id} cerrado · Certificado SOFEIN emitido`,
+          descripcion: "SOFEIN ha cerrado el expediente y emitido el Certificado SOFEIN con la trazabilidad consolidada.",
           fecha: "Hoy, ahora",
           roles: ["admin", "cliente", "proveedor"],
-          accion: "Ver Pasaporte",
+          accion: "Ver Certificado SOFEIN",
           enlace: `#admin/expedientes/${exp.id}?tab=passport`
         });
 
-        addExpedienteCambioLog(exp, { tipo: "Cierre", suministro: "General", fase: PHASES.length - 1, titulo: "Expediente cerrado y pasaporte digital emitido" });
-        showToast(`✓ Expediente ${exp.id} cerrado. Pasaporte Digital emitido.`);
+        addExpedienteCambioLog(exp, { tipo: "Cierre", suministro: "General", fase: PHASES.length - 1, titulo: "Expediente cerrado y Certificado SOFEIN emitido" });
+        showToast(`✓ Expediente ${exp.id} cerrado. Certificado SOFEIN emitido.`);
         renderApp();
       });
     });
@@ -11039,7 +10789,6 @@
           <span class="doc-vis-check-item is-fixed" title="SOFEIN siempre puede ver los documentos">${icon("check", 13)} SOFEIN</span>
           ${opt("cliente", "Cliente")}
           ${opt("proveedor", "Proveedor")}
-          ${opt("destinatario", "Destinatario final")}
         </div>
       </div>
     `;
@@ -12105,7 +11854,7 @@
             </div>
 
             <div style="padding:12px 14px;border-radius:8px;border:1px solid var(--entity-line);background:var(--entity-bg)">
-              <span style="font-size:0.68rem;text-transform:uppercase;color:var(--entity-faint);font-weight:600">Huella Digital de Trazabilidad (Pasaporte Digital SOFEIN)</span>
+              <span style="font-size:0.68rem;text-transform:uppercase;color:var(--entity-faint);font-weight:600">Huella Digital de Trazabilidad (Certificado SOFEIN)</span>
               <code style="display:block;margin-top:4px;font-size:0.73rem;color:var(--entity-accent);word-break:break-all">SHA256: 8f94e2c1a04d73b912e85b02c48f19a7d6c31f09e2a4b78c9d01f3a6e4c1928d</code>
             </div>
 
@@ -12546,7 +12295,7 @@
               <!-- Huella Criptográfica SHA-256 -->
               <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:10px;border-top:1px solid var(--entity-line);font-size:0.72rem;color:var(--entity-muted)">
                 <span>Huella Digital Inmutable: <code style="font-family:monospace;background:var(--entity-panel-2);padding:2px 6px;border-radius:4px">${inc.adendaHash || "sha256-e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}</code></span>
-                <span style="font-weight:600;color:#10B981">✓ Incorporado al Pasaporte Digital</span>
+                <span style="font-weight:600;color:#10B981">✓ Incorporado al Certificado SOFEIN</span>
               </div>
             </div>
 
@@ -12857,7 +12606,7 @@
 
                 <!-- Dropdown de Conformidades -->
                 <div style="display:grid;gap:6px">
-                  <label style="font-size:0.75rem;font-weight:600;color:var(--entity-muted)">Conformidades</label>
+                  <label style="font-size:0.75rem;font-weight:600;color:var(--entity-muted)">Cumplimientos</label>
                   <div class="dir-multiselect-wrap" id="wrapDropConformidades">
                     <div class="dir-multiselect-box" id="btnDropConformidades" tabindex="0">
                       <div class="dir-multiselect-tags" id="tagsSelectedConformidades"></div>
@@ -13012,7 +12761,7 @@
     const renderConformidadesTagsUI = () => {
       if (!tagsConformidadesEl) return;
       if (selectedConformidadesSet.size === 0) {
-        tagsConformidadesEl.innerHTML = `<span class="dir-multiselect-placeholder">Seleccionar conformidades...</span>`;
+        tagsConformidadesEl.innerHTML = `<span class="dir-multiselect-placeholder">Seleccionar cumplimientos...</span>`;
       } else {
         tagsConformidadesEl.innerHTML = Array.from(selectedConformidadesSet).map(c => {
           const cl = c.toLowerCase();

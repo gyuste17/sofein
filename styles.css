@@ -9931,3 +9931,28 @@ details.b2b-profile-card.is-collapsible[open] > summary.is-collapsible-summary .
   cursor: pointer;
 }
 .dir-phone-add:hover { text-decoration: underline; }
+
+/* ---------- Certificado SOFEIN (antes Pasaporte Digital) · v63 ---------- */
+.cert-status-row { display: flex; justify-content: flex-end; margin: 14px 0 4px; }
+.cert-status-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 12px; border-radius: 999px;
+  font-size: 0.74rem; font-weight: 600;
+  color: #1d4ed8; background: rgba(37, 99, 235, 0.1); border: 1px solid rgba(37, 99, 235, 0.3);
+}
+.cert-status-pill.is-final { color: #1e40af; background: rgba(37, 99, 235, 0.16); }
+.cert-summary-table td { font-size: 0.76rem; vertical-align: top; }
+.cert-doc-group { display: grid; gap: 8px; margin: 12px 0 4px; }
+.cert-doc-group-title { font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--entity-faint); }
+.cert-doc-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 12px; border-radius: 8px;
+  background: var(--entity-panel-2); border: 1px solid var(--entity-line);
+}
+.cert-doc-icon { color: var(--entity-accent); display: grid; place-items: center; flex-shrink: 0; }
+.cert-doc-main { min-width: 0; flex: 1; display: grid; gap: 2px; }
+.cert-doc-main strong { font-size: 0.8rem; color: var(--entity-text); }
+.cert-doc-main small { font-size: 0.7rem; color: var(--entity-muted); overflow-wrap: anywhere; }
+.cert-doc-empty { padding: 12px 14px; border-radius: 8px; border: 1px dashed var(--entity-line-strong, var(--entity-line)); font-size: 0.78rem; color: var(--entity-muted); }
+.profile-kpi-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 720px) { .profile-kpi-grid { grid-template-columns: 1fr; } }
