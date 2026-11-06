@@ -2,6 +2,25 @@
 
 Registro de relevo entre agentes. **Entradas nuevas arriba.** Reglas del proyecto en `AGENTS.md`.
 
+## 2026-11-06 · Antigravity · rama `procurement` · Diagrama interactivo de procesos E2E (`proceso.html`) para uso interno
+
+Herramienta visual interactiva para comprender, explicar y auditar todo el proceso operativo de SOFEIN Procurement (ciclo de vida del expediente, los 4 actores, el Selector en 5 pasos, mediación de incidencias y el nuevo Certificado SOFEIN).
+
+**Hecho**
+- Nueva página `proceso.html` (SPA interactiva, responsive, selector de temas oscuro/claro, filtro por actor, búsqueda y exportación):
+  - **Vista 1: Pipeline E2E**: Las 4 Fases oficiales con tarjetas de pasos, roles intervinientes y rutas directas a la app.
+  - **Vista 2: Carriles por Actor (RACI)**: Swimlanes para SOFEIN (Admin), Cliente (Constructor), Proveedor (Fabricante) y Destinatario Final (Auditor), con sus respectivos cortafuegos de visibilidad.
+  - **Vista 3: El Selector (Matching 5 Pasos)**: Detalle del RFQ, preselección, cotizaciones con condicionantes, comparativa matricial y formalización con fecha acordada anclada.
+  - **Vista 4: Incidencias & Mediación**: Protocolo de excepción, arbitraje técnico de SOFEIN y registro inmutable en el historial.
+  - **Vista 5: Certificado SOFEIN**: Anatomía del nuevo entregable tras la reunión con Flor, trazabilidad de fechas acordada vs real y cláusula de delimitación legal de responsabilidad.
+  - **Vista 6: Código Mermaid exportable**: Con botón de copiado al portapapeles para documentación interna o Notion.
+  - **Cajón lateral de detalle (Drawer)**: Al pulsar en cualquier hito, muestra la descripción operativa, entregables/ranuras, salvaguardas legales y botón «Abrir Pantalla».
+- Enlace directo en `pizarra.html` en la cabecera superior.
+
+**Decisiones**
+- `proceso.html` es una página estática autónoma (cero dependencias de compilación), lo que permite abrirla con doble clic en local o consultarla desplegada en producción.
+- No se ha tocado `app.js` para mantener intacta la v63 y evitar cualquier colisión con el worktree de Claude.
+
 ## 2026-11-06 · Claude · rama `claude/quick-wins-reunion` · Quick wins de la reunión con Flor (v63), publicado
 
 Lista completa, plan y dudas: `docs/PLAN_CAMBIOS_REUNION_FLOR.md`. Modelo de datos nuevo: `docs/BACKEND_SPEC.md` 4.7, 4.8, 4.10 y 4.11.

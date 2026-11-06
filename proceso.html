@@ -1,0 +1,1907 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SOFEIN Procurement | Diagrama de Procesos & Flujo Operativo E2E</title>
+  <meta name="description" content="Visualizador interactivo del proceso operativo, ciclo de vida del expediente, actores y cortafuegos de SOFEIN Procurement." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+  <style>
+    :root {
+      --bg: #0b1120;
+      --bg-surface: #131d31;
+      --bg-card: #18233a;
+      --bg-card-hover: #1e2c47;
+      --border: #24324f;
+      --border-strong: #33446b;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-faint: #64748b;
+      
+      --brand-green: #10b981;
+      --brand-green-bg: rgba(16, 185, 129, 0.12);
+      --brand-green-border: rgba(16, 185, 129, 0.3);
+      
+      --role-sofein: #38bdf8;
+      --role-sofein-bg: rgba(56, 189, 248, 0.12);
+      --role-sofein-border: rgba(56, 189, 248, 0.3);
+      
+      --role-cliente: #60a5fa;
+      --role-cliente-bg: rgba(96, 165, 250, 0.12);
+      --role-cliente-border: rgba(96, 165, 250, 0.3);
+      
+      --role-proveedor: #34d399;
+      --role-proveedor-bg: rgba(52, 211, 153, 0.12);
+      --role-proveedor-border: rgba(52, 211, 153, 0.3);
+      
+      --role-destinatario: #c084fc;
+      --role-destinatario-bg: rgba(192, 132, 252, 0.12);
+      --role-destinatario-border: rgba(192, 132, 252, 0.3);
+
+      --accent-warn: #fbbf24;
+      --accent-danger: #f87171;
+      
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+      --shadow-md: 0 4px 12px -1px rgba(0, 0, 0, 0.4), 0 2px 6px -2px rgba(0, 0, 0, 0.3);
+      --shadow-lg: 0 12px 24px -4px rgba(0, 0, 0, 0.5);
+      
+      --transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    [data-theme="light"] {
+      --bg: #f8fafc;
+      --bg-surface: #ffffff;
+      --bg-card: #f1f5f9;
+      --bg-card-hover: #e2e8f0;
+      --border: #e2e8f0;
+      --border-strong: #cbd5e1;
+      --text: #0f172a;
+      --text-muted: #475569;
+      --text-faint: #94a3b8;
+      
+      --brand-green: #059669;
+      --brand-green-bg: #ecfdf5;
+      --brand-green-border: #a7f3d0;
+      
+      --role-sofein: #0284c7;
+      --role-sofein-bg: #f0f9ff;
+      --role-sofein-border: #bae6fd;
+      
+      --role-cliente: #2563eb;
+      --role-cliente-bg: #eff6ff;
+      --role-cliente-border: #bfdbfe;
+      
+      --role-proveedor: #059669;
+      --role-proveedor-bg: #ecfdf5;
+      --role-proveedor-border: #a7f3d0;
+      
+      --role-destinatario: #7c3aed;
+      --role-destinatario-bg: #f5f3ff;
+      --role-destinatario-border: #ddd6fe;
+
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 12px 24px rgba(0, 0, 0, 0.08);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      transition: background 0.2s ease, color 0.2s ease;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Container */
+    .container {
+      width: 100%;
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* Top Navigation Bar */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(19, 29, 49, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 0;
+    }
+    [data-theme="light"] .topbar {
+      background: rgba(255, 255, 255, 0.9);
+    }
+    .topbar-content {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: inherit;
+    }
+    .brand-logo {
+      height: 28px;
+      width: auto;
+    }
+    .brand-badge {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: var(--brand-green-bg);
+      color: var(--brand-green);
+      border: 1px solid var(--brand-green-border);
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+    .topbar-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      padding: 7px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--bg-surface);
+      color: var(--text);
+      cursor: pointer;
+      text-decoration: none;
+      transition: var(--transition);
+      white-space: nowrap;
+    }
+    .btn:hover {
+      background: var(--bg-card);
+      border-color: var(--border-strong);
+      transform: translateY(-1px);
+    }
+    .btn-primary {
+      background: var(--brand-green);
+      color: #ffffff;
+      border-color: var(--brand-green);
+    }
+    .btn-primary:hover {
+      filter: brightness(1.1);
+      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.35);
+    }
+    .btn-icon {
+      padding: 7px 10px;
+    }
+
+    /* Hero / Header Section */
+    .hero-section {
+      padding: 36px 0 24px;
+      border-bottom: 1px solid var(--border);
+    }
+    .hero-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+    .hero-title {
+      font-size: 2.1rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.15;
+      margin-bottom: 12px;
+      background: linear-gradient(135deg, var(--text) 40%, var(--brand-green) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .hero-subtitle {
+      font-size: 1.05rem;
+      color: var(--text-muted);
+      max-width: 860px;
+      line-height: 1.55;
+    }
+
+    /* Control Toolbar */
+    .controls-panel {
+      padding: 20px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .filters-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .tab-pills {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--bg-surface);
+      padding: 4px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      overflow-x: auto;
+      max-width: 100%;
+    }
+    .tab-pill {
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: var(--transition);
+      white-space: nowrap;
+    }
+    .tab-pill:hover {
+      color: var(--text);
+    }
+    .tab-pill.is-active {
+      background: var(--brand-green);
+      color: #ffffff;
+      box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);
+    }
+    
+    .search-box {
+      position: relative;
+      min-width: 260px;
+    }
+    .search-input {
+      width: 100%;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 12px 8px 36px;
+      font-size: 0.82rem;
+      color: var(--text);
+      font-family: inherit;
+      outline: none;
+      transition: var(--transition);
+    }
+    .search-input:focus {
+      border-color: var(--brand-green);
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+    }
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-faint);
+      pointer-events: none;
+    }
+
+    /* Role Legend Pills */
+    .role-pills {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .role-pill-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: 999px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: var(--transition);
+      background: var(--bg-surface);
+      color: var(--text);
+    }
+    .role-pill-btn.all.active {
+      background: var(--bg-card);
+      border-color: var(--border-strong);
+    }
+    .role-pill-btn.sofein { border-color: var(--role-sofein-border); color: var(--role-sofein); }
+    .role-pill-btn.sofein.active { background: var(--role-sofein-bg); }
+    .role-pill-btn.cliente { border-color: var(--role-cliente-border); color: var(--role-cliente); }
+    .role-pill-btn.cliente.active { background: var(--role-cliente-bg); }
+    .role-pill-btn.proveedor { border-color: var(--role-proveedor-border); color: var(--role-proveedor); }
+    .role-pill-btn.proveedor.active { background: var(--role-proveedor-bg); }
+    .role-pill-btn.destinatario { border-color: var(--role-destinatario-border); color: var(--role-destinatario); }
+    .role-pill-btn.destinatario.active { background: var(--role-destinatario-bg); }
+
+    /* Interactive Pipeline Container */
+    .pipeline-container {
+      padding: 36px 0 60px;
+      flex: 1;
+    }
+
+    /* Views */
+    .view-content {
+      display: none;
+    }
+    .view-content.is-active {
+      display: block;
+      animation: fadeIn 0.25s ease-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Macro Pipeline Grid */
+    .phases-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      position: relative;
+    }
+    @media (max-width: 1100px) {
+      .phases-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 680px) {
+      .phases-grid { grid-template-columns: 1fr; }
+    }
+
+    /* Phase Column */
+    .phase-column {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      position: relative;
+      box-shadow: var(--shadow-sm);
+      transition: var(--transition);
+    }
+    .phase-column:hover {
+      border-color: var(--border-strong);
+      box-shadow: var(--shadow-md);
+    }
+    .phase-header {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 14px;
+    }
+    .phase-num {
+      font-size: 0.72rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      color: var(--brand-green);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 4px;
+    }
+    .phase-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.3;
+      margin-bottom: 6px;
+    }
+    .phase-desc {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      line-height: 1.45;
+    }
+
+    /* Step Cards inside Phase */
+    .step-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      cursor: pointer;
+      transition: var(--transition);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .step-card:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--border-strong);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+    .step-card.is-selected {
+      border-color: var(--brand-green);
+      box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3);
+    }
+    .step-card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .step-code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--text-faint);
+    }
+    .step-roles {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .role-badge {
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .role-badge.sofein { background: var(--role-sofein-bg); color: var(--role-sofein); border: 1px solid var(--role-sofein-border); }
+    .role-badge.cliente { background: var(--role-cliente-bg); color: var(--role-cliente); border: 1px solid var(--role-cliente-border); }
+    .role-badge.proveedor { background: var(--role-proveedor-bg); color: var(--role-proveedor); border: 1px solid var(--role-proveedor-border); }
+    .role-badge.destinatario { background: var(--role-destinatario-bg); color: var(--role-destinatario); border: 1px solid var(--role-destinatario-border); }
+
+    .step-name {
+      font-size: 0.92rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      line-height: 1.35;
+      color: var(--text);
+    }
+    .step-summary {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+    .step-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 4px;
+      font-size: 0.72rem;
+      color: var(--text-faint);
+      border-top: 1px dashed var(--border);
+      padding-top: 8px;
+    }
+    .step-route-link {
+      color: var(--brand-green);
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Swimlanes View */
+    .swimlanes-table-wrap {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+    }
+    .swimlane-row {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      border-bottom: 1px solid var(--border);
+      min-height: 140px;
+    }
+    .swimlane-row:last-child {
+      border-bottom: none;
+    }
+    .swimlane-actor-col {
+      padding: 24px 20px;
+      border-right: 1px solid var(--border);
+      background: rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    [data-theme="light"] .swimlane-actor-col {
+      background: #f8fafc;
+    }
+    .actor-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .actor-desc {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+    .actor-safeguard {
+      font-size: 0.72rem;
+      padding: 6px 8px;
+      border-radius: 6px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      margin-top: auto;
+      color: var(--accent-warn);
+    }
+    .swimlane-steps-col {
+      padding: 20px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+    @media (max-width: 1024px) {
+      .swimlane-row { grid-template-columns: 1fr; }
+      .swimlane-actor-col { border-right: none; border-bottom: 1px solid var(--border); }
+      .swimlane-steps-col { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 640px) {
+      .swimlane-steps-col { grid-template-columns: 1fr; }
+    }
+
+    /* Modal / Drawer for Step Details */
+    .drawer-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+    .drawer-overlay.is-open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .drawer-panel {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 100%;
+      max-width: 520px;
+      background: var(--bg-surface);
+      border-left: 1px solid var(--border);
+      box-shadow: var(--shadow-lg);
+      z-index: 101;
+      transform: translateX(100%);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .drawer-overlay.is-open .drawer-panel {
+      transform: translateX(0);
+    }
+    .drawer-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .drawer-body {
+      padding: 24px;
+      overflow-y: auto;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .drawer-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      background: var(--bg-card);
+    }
+    .detail-section {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .detail-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--text-faint);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .detail-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-size: 0.82rem;
+      line-height: 1.5;
+    }
+    .detail-list {
+      list-style: none;
+      display: grid;
+      gap: 6px;
+    }
+    .detail-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 0.82rem;
+    }
+    .detail-list li::before {
+      content: "•";
+      color: var(--brand-green);
+      font-weight: bold;
+    }
+
+    /* Mermaid Export Box */
+    .code-box-container {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .code-box-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    pre.mermaid-pre {
+      background: #090d16;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      line-height: 1.5;
+      color: #7dd3fc;
+      overflow-x: auto;
+    }
+    [data-theme="light"] pre.mermaid-pre {
+      background: #1e293b;
+      color: #93c5fd;
+    }
+
+    /* Print layout */
+    @media print {
+      body {
+        background: #fff !important;
+        color: #000 !important;
+      }
+      .topbar, .controls-panel, .drawer-overlay, .btn {
+        display: none !important;
+      }
+      .view-content {
+        display: block !important;
+      }
+      .phases-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        page-break-inside: avoid;
+      }
+      .phase-column {
+        border: 1px solid #ccc !important;
+        background: #fff !important;
+        box-shadow: none !important;
+      }
+      .step-card {
+        border: 1px solid #ddd !important;
+        background: #fafafa !important;
+        page-break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+<body data-theme="dark">
+
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <div class="container topbar-content">
+      <div style="display:flex;align-items:center;gap:16px;">
+        <a class="brand-wrap" href="app.html#admin">
+          <img src="assets/sofein-logo.svg" alt="SOFEIN Logo" class="brand-logo" onerror="this.style.display='none'" />
+          <span class="topbar-title">SOFEIN Procurement</span>
+          <span class="brand-badge">Motor Operativo v63</span>
+        </a>
+      </div>
+
+      <div class="topbar-actions">
+        <a href="app.html#admin" class="btn btn-primary" target="_blank" title="Abrir la plataforma de Procurement">
+          <span>Abrir App Local</span>
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/></svg>
+        </a>
+        <a href="https://sofein-procurement.vercel.app/app.html#admin" class="btn" target="_blank" title="Ver subdominio público Vercel">
+          <span>Vercel Prod</span>
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/></svg>
+        </a>
+        <button class="btn btn-icon" id="themeToggleBtn" title="Cambiar tema claro/oscuro">
+          <span id="themeIcon">☀️</span>
+        </button>
+        <button class="btn btn-icon" onclick="window.print()" title="Imprimir / Exportar a PDF">
+          🖨️
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- HERO SECTION -->
+  <section class="hero-section">
+    <div class="container">
+      <div class="hero-meta">
+        <span>Uso Interno & Alineación Estratégica</span>
+        <span>•</span>
+        <span>Revisión Flor & Ángel Plaza (Nov 2026)</span>
+        <span>•</span>
+        <span style="color:var(--brand-green);font-weight:600;">Estado v63 Operativo</span>
+      </div>
+      <h1 class="hero-title">Diagrama del Proceso & Flujo Operativo E2E</h1>
+      <p class="hero-subtitle">
+        Mapa visual exhaustivo de la plataforma <strong>SOFEIN Procurement</strong>: el viaje completo del expediente estanco desde el alta técnica del suministro hasta el Certificado SOFEIN final, las interacciones entre los 4 actores y los cortafuegos jurídicos de responsabilidad.
+      </p>
+    </div>
+  </section>
+
+  <!-- CONTROL TOOLBAR -->
+  <section class="controls-panel">
+    <div class="container" style="display:flex;flex-direction:column;gap:14px;">
+      
+      <!-- Views Switcher & Search -->
+      <div class="filters-row">
+        <div class="tab-pills" id="viewTabs">
+          <button class="tab-pill is-active" data-view="pipeline">Pipeline E2E (4 Fases)</button>
+          <button class="tab-pill" data-view="swimlanes">Carriles por Actor (RACI)</button>
+          <button class="tab-pill" data-view="selector">El Selector (Matching 5 Pasos)</button>
+          <button class="tab-pill" data-view="incidencias">Incidencias & Mediación</button>
+          <button class="tab-pill" data-view="certificado">Certificado SOFEIN</button>
+          <button class="tab-pill" data-view="mermaid">Código Mermaid (Notion)</button>
+        </div>
+
+        <div class="search-box">
+          <svg class="search-icon" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" id="searchInput" class="search-input" placeholder="Buscar por fase, documento, actor o regla..." />
+        </div>
+      </div>
+
+      <!-- Actor Filters -->
+      <div class="role-pills" id="roleFilters">
+        <span style="font-size:0.75rem;font-weight:700;color:var(--text-faint);text-transform:uppercase;letter-spacing:0.04em;">Filtrar actor:</span>
+        <button class="role-pill-btn all active" data-role="all">Todos (4 Actores)</button>
+        <button class="role-pill-btn sofein" data-role="sofein">Admin (SOFEIN)</button>
+        <button class="role-pill-btn cliente" data-role="cliente">Cliente (Constructor)</button>
+        <button class="role-pill-btn proveedor" data-role="proveedor">Proveedor (Fabricante)</button>
+        <button class="role-pill-btn destinatario" data-role="destinatario">Destinatario Final (Adif / VW)</button>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- MAIN PIPELINE CONTAINER -->
+  <main class="pipeline-container">
+    <div class="container">
+
+      <!-- ========================================== -->
+      <!-- VIEW 1: MACRO PIPELINE E2E -->
+      <!-- ========================================== -->
+      <div class="view-content is-active" id="view-pipeline">
+        <div class="phases-grid">
+
+          <!-- FASE 1 -->
+          <div class="phase-column" data-phase="1">
+            <div class="phase-header">
+              <div class="phase-num">Fase 1</div>
+              <h2 class="phase-title">Alcance & Requisitos</h2>
+              <p class="phase-desc">Definición de necesidades, pliegos técnicos, destino de vía y creación del expediente estanco.</p>
+            </div>
+
+            <!-- Card 1.1 -->
+            <div class="step-card" data-step="step-1-1" data-roles="cliente,sofein">
+              <div class="step-card-top">
+                <span class="step-code">PASO 1.1</span>
+                <div class="step-roles">
+                  <span class="role-badge cliente">Cliente</span>
+                  <span class="role-badge sofein">SOFEIN</span>
+                </div>
+              </div>
+              <h3 class="step-name">Definición Técnica del Pedido</h3>
+              <p class="step-summary">El cliente especifica tipo de material (ej. traviesas monobloque AI-04), cantidad, destino (Adif AV, metro) y plazos requeridos.</p>
+              <div class="step-footer">
+                <span>Ruta: <code>#admin/nuevo-expediente</code></span>
+                <span class="step-route-link">Ver detalle →</span>
+              </div>
+            </div>
+
+            <!-- Card 1.2 -->
+            <div class="step-card" data-step="step-1-2" data-roles="sofein">
+              <div class="step-card-top">
+                <span class="step-code">PASO 1.2</span>
+                <div class="step-roles">
+                  <span class="role-badge sofein">SOFEIN</span>
+                </div>
+              </div>
+              <h3 class="step-name">Apertura del Expediente Estanco</h3>
+              <p class="step-summary">SOFEIN valida el alcance, asigna código oficial (<code>EXP-2026-00X</code>), genera los contenedores de suministros y establece las ranuras documentales iniciales.</p>
+              <div class="step-footer">
+                <span>Ruta: <code>#admin/expedientes/:id</code></span>
+                <span class="step-route-link">Ver detalle →</span>
+              </div>
+            </div>
+
+            <!-- Card 1.3 -->
+            <div class="step-card" data-step="step-1-3" data-roles="cliente,sofein,destinatario">
+              <div class="step-card-top">
+                <span class="step-code">PASO 1.3</span>
+                <div class="step-roles">
+                  <span class="role-badge sofein">SOFEIN</span>
+                  <span class="role-badge destinatario">Destinatario</span>
+                </div>
+              </div>
+              <h3 class="step-name">Asignación de Destinatario Final</h3>
+              <p class="step-summary">Identificación del propietario de la vía (Adif, FGC, VW Sagunto). Se habilita el acceso auditor restringido (sin precios ni márgenes).</p>
+              <div class="step-footer">
+                <span>Ruta: <code>#destinatario/expedientes</code></span>
+                <span class="step-route-link">Ver detalle →</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- FASE 2 -->
+          <div class="phase-column" data-phase="2">
+            <div class="phase-header">
+              <div class="phase-num">Fase 2</div>
+              <h2 class="phase-title">Cotización & Matching</h2>
+              <p class="phase-desc">El motor del Selector: licitación privada en 5 pasos, comparativa técnica y adjudicación en firme.</p>
+            </div>
+
+            <!-- Card 2.1 -->
+            <div class="step-card" data-step="step-2-1" data-roles="sofein">
+              <div class="step-card-top">
+                <span class="step-code">PASO 2.1</span>
+                <div class="step-roles">
+                  <span class="role-badge sofein">SOFEIN</span>
+                </div>
+              </div>
+              <h3 class="step-name">Lanzamiento RFQ a Proveedores</h3>
+              <p class="step-summary">SOFEIN filtra el catálogo de talleres homologados, añade indicaciones específicas y lanza la solicitud de cotización.</p>
+              <div class="step-footer">
+                <span>Ruta: <code>#admin/selector/:id/:sumId/1</code></span>
+                <span class="step-route-link">Ver detalle →</span>
+              </div>
+            </div>
+
+            <!-- Card 2.2 -->
+            <div class="step-card" data-step="step-2-2" data-roles="cliente">
+              <div class="step-card-top">
+                <span class="step-code">PASO 2.2</span>
+                <div class="step-roles">
+                  <span class="role-badge cliente">Cliente</span>
+                </div>
+              </div>
+              <h3 class="step-name">Preselección & Requisitos Cliente</h3>
+              <p class="step-summary">El constructor revisa los proveedores propuestos, descarta o prioriza talleres, y redacta requisitos adicionales específicos de su obra.</p>
+              <div class="step-footer">
+                <span>Ruta: <code>#cliente/selector/:id/:sumId/2</code></span>
+                <span class="step-route-link">Ver detalle →</span>
+              </div>
+            </div>
+
+            <!-- Card 2.3 -->
+            <div class="step-card" data-step="step-2-3" data-roles="proveedor">
+              <div class="step-card-top">
+                <span class="step-code">PASO 2.3</span>
+                <div class="step-roles">
+                  <span class="role-badge proveedor">Proveedor</span>
+                </div>
+              </div>
+              <h3 class="step-name">Recepción de Ofertas & Condicionantes</h3>
+              <p class="step-summary">Los talleres completan precio unitario, plazo estimado de fabricación y notas técnicas/condicionantes vinculantes.</p>
+              <div class="step-footer">
+                <span>Ruta: <code>#proveedor/cotizaciones</code></span>
+                <span class="step-route-link">Ver detalle →</span>
+              </div>
+            </div>
+
+            <!-- Card 2.4 -->
+            <div class="step-card" data-step="step-2-4" data-roles="cliente,sofein">
+              <div class="step-card-top">
+                <span class="step-code">PASO 2.4</span>
+                <div class="step-roles">
+                  <span class="role-badge cliente">Cliente</span>
+                  <span class="role-badge sofein">SOFEIN</span>
+                </div>
+              </div>
+              <h3 class="step-name">Comparativa & Adjudicación</h3>
+              <p class="step-summary">Cuadro de mando en vivo comparando precios, plazos y cumplimientos técnicos. El cliente elige el proveedor ganador.</p>
+              <div class="step-footer">
+                <span>Ruta: <code>#cliente/selector/:id/:sumId/4</code></span>
+                <span class="step-route-link">Ver detalle →</span>
+              </div>
+            </div>
+
+            <!-- Card 2.5 -->
+            <div class="step-card" data-step="step-2-5" data-roles="cliente,proveedor,sofein">
+              <div class="step-card-top">
+                <span class="step-code">PASO 2.5</span>
+                <div class="step-roles">
+                  <span class="role-badge sofein">SOFEIN</span>
+                </div>
+              </div>
+              <h3 class="step-name">Formalización & Fijación de Fechas</h3>
+              <p class="step-summary">SOFEIN valida el acuerdo, se registra la <strong>Fecha de Entrega Acordada Inicial</strong> (base del cálculo de demoras) y se pasa el pedido a firme.</p>
+              <div class="step-footer">
+                <span>Ruta: <code>#admin/selector/:id/:sumId/5</code></span>
+                <span class="step-route-link">Ver detalle →</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- FASE 3 -->
+          <div class="phase-column" data-phase="3">
+            <div class="phase-header">
+              <div class="phase-num">Fase 3</div>
+              <h2 class="phase-title">Fabricación & Calidad</h2>
+              <p class="phase-desc">Seguimiento fabril, control de calidad documental y resolución de incidencias en tiempo real.</p>
+            </div>
+
+            <!-- Card 3.1 -->
+            <div class="step-card" data-step="step-3-1" data-roles="proveedor">
+              <div class="step-card-top">
+                <span class="step-code">PASO 3.1</span>
+                <div class="step-roles">
+                  <span class="role-badge proveedor">Proveedor</span>
+                </div>
+              </div>
+              <h3 class="step-name">Carga Documental de Ensayos</h3>
+              <p class="step-summary">Subida mediante Drag & Drop de certificados de hormigón/acero, ensayos mecánicos EN 13230 y certificados de lote.</p>
+              <div class="step-footer">
+                <span>Ruta: <code>#proveedor/mis-suministros</code></span>
+                <span class="step-route-link">Ver detalle →</span>
+              </div>
+            </div>
+
+            <!-- Card 3.2 -->
+            <div class="step-card" data-step="step-3-2" data-roles="sofein">
+              <div class="step-card-top">
+                <span class="step-code">PASO 3.2</span>
+                <div class="step-roles">
+                  <span class="role-badge sofein">SOFEIN</span>
+                </div>
+              </div>
+              <h3 class="step-name">Auditoría & Validación SOFEIN</h3>
+              <p class="step-summary">SOFEIN examina cada ranura documental: dictamina 🟢 Validado o 🔴 Rechazado con observaciones (alerta automática al taller).</p>
+              <div class="step-footer">
+                <span>Ruta: <code>#admin/expedientes/:id?tab=deliverables</code></span>
+                <span class="step-route-link">Ver detalle →</span>
+              </div>
+            </div>
+
+            <!-- Card 3.3 -->
+            <div class="step-card" data-step="step-3-3" data-roles="proveedor,sofein,cliente">
+              <div class="step-card-top">
+                <span class="step-code">PASO 3.3</span>
+                <div class="step-roles">
+                  <span class="role-badge proveedor">Proveedor</span>
+                  <span class="role-badge sofein">SOFEIN</span>
+                  <span class="role-badge cliente">Cliente</span>
+                </div>
+              </div>
+              <h3 class="step-name">Muro de Incidencias & Mediación</h3>
+              <p class="step-summary">Si surgen demoras de laminación o no conformidades: notificación formal, mediación de SOFEIN y anexo inmutable de acuerdo.</p>
+              <div class="step-footer">
+                <span>Ruta: <code>#admin/expedientes/:id?tab=changes</code></span>
+                <span class="step-route-link">Ver detalle →</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- FASE 4 -->
+          <div class="phase-column" data-phase="4">
+            <div class="phase-header">
+              <div class="phase-num">Fase 4</div>
+              <h2 class="phase-title">Recepción & Certificado</h2>
+              <p class="phase-desc">Despacho, albaranes, encuesta de satisfacción del cliente y emisión del Certificado SOFEIN.</p>
+            </div>
+
+            <!-- Card 4.1 -->
+            <div class="step-card" data-step="step-4-1" data-roles="proveedor,cliente">
+              <div class="step-card-top">
+                <span class="step-code">PASO 4.1</span>
+                <div class="step-roles">
+                  <span class="role-badge proveedor">Proveedor</span>
+                  <span class="role-badge cliente">Cliente</span>
+                </div>
+              </div>
+              <h3 class="step-name">Logística & Albaranes de Entrega</h3>
+              <p class="step-summary">Carga de albaranes de salida de fábrica y recepción conforme en tajo o base de acopio por parte del jefe de obra.</p>
+              <div class="step-footer">
+                <span>Ruta: <code>#cliente/mis-suministros</code></span>
+                <span class="step-route-link">Ver detalle →</span>
+              </div>
+            </div>
+
+            <!-- Card 4.2 -->
+            <div class="step-card" data-step="step-4-2" data-roles="cliente,sofein">
+              <div class="step-card-top">
+                <span class="step-code">PASO 4.2</span>
+                <div class="step-roles">
+                  <span class="role-badge cliente">Cliente</span>
+                  <span class="role-badge sofein">SOFEIN</span>
+                </div>
+              </div>
+              <h3 class="step-name">Encuesta de Cierre (15 Días)</h3>
+              <p class="step-summary">Franja de satisfacción en el cliente («¿Todo está bien con el suministro de X?»). Feedback directo al buzón de SOFEIN.</p>
+              <div class="step-footer">
+                <span>Ruta: <code>#cliente/expedientes/:id</code></span>
+                <span class="step-route-link">Ver detalle →</span>
+              </div>
+            </div>
+
+            <!-- Card 4.3 -->
+            <div class="step-card" data-step="step-4-3" data-roles="sofein,cliente,proveedor,destinatario">
+              <div class="step-card-top">
+                <span class="step-code">PASO 4.3</span>
+                <div class="step-roles">
+                  <span class="role-badge sofein">SOFEIN</span>
+                  <span class="role-badge cliente">Cliente</span>
+                  <span class="role-badge destinatario">Destinatario</span>
+                </div>
+              </div>
+              <h3 class="step-name">Certificado SOFEIN Consolidado</h3>
+              <p class="step-summary">Emisión oficial con delimitación legal, trazabilidad de fechas (prevista vs real), registro inmutable y descarga PDF/ZIP.</p>
+              <div class="step-footer">
+                <span>Ruta: <code>#admin/expedientes/:id?tab=passport</code></span>
+                <span class="step-route-link">Ver detalle →</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- VIEW 2: SWIMLANES BY ACTOR (RACI) -->
+      <!-- ========================================== -->
+      <div class="view-content" id="view-swimlanes">
+        <div class="swimlanes-table-wrap">
+
+          <!-- SWIMLANE SOFEIN -->
+          <div class="swimlane-row" data-swimlane="sofein">
+            <div class="swimlane-actor-col">
+              <div class="actor-title" style="color:var(--role-sofein);">
+                <span>🛡️</span>
+                <span>SOFEIN (Admin)</span>
+              </div>
+              <p class="actor-desc">Orquestador neutral del proceso, mediador de incidencias, auditor documental y garante de proceso.</p>
+              <div class="actor-safeguard">
+                <strong>Rol Clave:</strong> No asume garantía de material; certifica la trazabilidad y la conformidad del proceso.
+              </div>
+            </div>
+            <div class="swimlane-steps-col">
+              <div class="step-card" data-step="step-1-2">
+                <span class="step-code">FASE 1</span>
+                <h4 class="step-name">Alta & Código</h4>
+                <p class="step-summary">Crea el expediente y parametriza ranuras documentales por tipo de material.</p>
+              </div>
+              <div class="step-card" data-step="step-2-1">
+                <span class="step-code">FASE 2</span>
+                <h4 class="step-name">Lanzamiento RFQ</h4>
+                <p class="step-summary">Emite peticiones con notas internas a talleres homologados del directorio.</p>
+              </div>
+              <div class="step-card" data-step="step-3-2">
+                <span class="step-code">FASE 3</span>
+                <h4 class="step-name">Auditoría Calidad</h4>
+                <p class="step-summary">Valida o rechaza certificados y gestiona mediaciones en incidencias.</p>
+              </div>
+              <div class="step-card" data-step="step-4-3">
+                <span class="step-code">FASE 4</span>
+                <h4 class="step-name">Emisión Certificado</h4>
+                <p class="step-summary">Consolida el Certificado SOFEIN oficial y revisa encuesta de satisfacción.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- SWIMLANE CLIENTE -->
+          <div class="swimlane-row" data-swimlane="cliente">
+            <div class="swimlane-actor-col">
+              <div class="actor-title" style="color:var(--role-cliente);">
+                <span>🏗️</span>
+                <span>Cliente (Constructor)</span>
+              </div>
+              <p class="actor-desc">Contratista adjudicatario de obra ferroviaria. Define necesidades y selecciona al fabricante óptimo.</p>
+              <div class="actor-safeguard">
+                <strong>Visibilidad:</strong> Ve ofertas de sus preseleccionados, trazabilidad y estado de sus pedidos.
+              </div>
+            </div>
+            <div class="swimlane-steps-col">
+              <div class="step-card" data-step="step-1-1">
+                <span class="step-code">FASE 1</span>
+                <h4 class="step-name">Definir Requisitos</h4>
+                <p class="step-summary">Indica unidades, especificaciones de trazado y fechas objetivo de vía.</p>
+              </div>
+              <div class="step-card" data-step="step-2-4">
+                <span class="step-code">FASE 2</span>
+                <h4 class="step-name">Comparativa & Selección</h4>
+                <p class="step-summary">Filtra preselección, añade requisitos y elige la oferta ganadora.</p>
+              </div>
+              <div class="step-card" data-step="step-3-3">
+                <span class="step-code">FASE 3</span>
+                <h4 class="step-name">Aprobación Cambios</h4>
+                <p class="step-summary">Acepta o renegocia modificaciones de plazo propuestas en mediación.</p>
+              </div>
+              <div class="step-card" data-step="step-4-2">
+                <span class="step-code">FASE 4</span>
+                <h4 class="step-name">Recepción & Encuesta</h4>
+                <p class="step-summary">Verifica albarán en tajo, responde encuesta (15d) y descarga Certificado.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- SWIMLANE PROVEEDOR -->
+          <div class="swimlane-row" data-swimlane="proveedor">
+            <div class="swimlane-actor-col">
+              <div class="actor-title" style="color:var(--role-proveedor);">
+                <span>🏭</span>
+                <span>Proveedor (Fabricante)</span>
+              </div>
+              <p class="actor-desc">Talleres de prefabricados, laminación de carril, desvíos y sujeciones ferroviarias.</p>
+              <div class="actor-safeguard" style="color:var(--accent-danger);">
+                <strong>Cortafuegos:</strong> Nunca ve los precios de la competencia ni datos comerciales confidenciales del cliente.
+              </div>
+            </div>
+            <div class="swimlane-steps-col">
+              <div class="step-card" data-step="step-1-2">
+                <span class="step-code">FASE 1</span>
+                <h4 class="step-name">En Espera RFQ</h4>
+                <p class="step-summary">Perfil homologado en el directorio con acuerdos marco y seguro de RC.</p>
+              </div>
+              <div class="step-card" data-step="step-2-3">
+                <span class="step-code">FASE 2</span>
+                <h4 class="step-name">Oferta & Condicionantes</h4>
+                <p class="step-summary">Introduce precio/unidad, semanas de fabricación y anotaciones técnicas.</p>
+              </div>
+              <div class="step-card" data-step="step-3-1">
+                <span class="step-code">FASE 3</span>
+                <h4 class="step-name">Ensayos & Lotes</h4>
+                <p class="step-summary">Sube certificados de laboratorio y reporta incidencias de producción.</p>
+              </div>
+              <div class="step-card" data-step="step-4-1">
+                <span class="step-code">FASE 4</span>
+                <h4 class="step-name">Despacho & Albarán</h4>
+                <p class="step-summary">Emite albarán de salida y confirma fecha real de salida de taller.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- SWIMLANE DESTINATARIO -->
+          <div class="swimlane-row" data-swimlane="destinatario">
+            <div class="swimlane-actor-col">
+              <div class="actor-title" style="color:var(--role-destinatario);">
+                <span>🏛️</span>
+                <span>Destinatario Final (Auditor)</span>
+              </div>
+              <p class="actor-desc">Gestor de la infraestructura pública o privada (Adif, Adif AV, Metro, Factoría VW Sagunto).</p>
+              <div class="actor-safeguard">
+                <strong>Modo Espectador:</strong> Solo ve conformidad normativa, trazabilidad y Certificado; sin precios ni márgenes.
+              </div>
+            </div>
+            <div class="swimlane-steps-col">
+              <div class="step-card" data-step="step-1-3">
+                <span class="step-code">FASE 1</span>
+                <h4 class="step-name">Alta de Trazado</h4>
+                <p class="step-summary">El expediente queda vinculado a su infraestructura o tramo de línea.</p>
+              </div>
+              <div class="step-card" data-step="step-2-4">
+                <span class="step-code">FASE 2</span>
+                <h4 class="step-name">Sin Acceso RFQ</h4>
+                <p class="step-summary">Blindaje comercial estanco: no participa en la negociación económica.</p>
+              </div>
+              <div class="step-card" data-step="step-3-2">
+                <span class="step-code">FASE 3</span>
+                <h4 class="step-name">Auditoría Normativa</h4>
+                <p class="step-summary">Visualiza que los materiales en curso cumplen las especificaciones ET Adif.</p>
+              </div>
+              <div class="step-card" data-step="step-4-3">
+                <span class="step-code">FASE 4</span>
+                <h4 class="step-name">Certificado Final</h4>
+                <p class="step-summary">Descarga el expediente técnico consolidado para recepción patrimonial de la vía.</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- VIEW 3: EL SELECTOR (MATCHING 5 PASOS) -->
+      <!-- ========================================== -->
+      <div class="view-content" id="view-selector">
+        <div style="background:var(--bg-surface);border:1px solid var(--border);border-radius:14px;padding:28px;display:flex;flex-direction:column;gap:24px;">
+          <div>
+            <span class="brand-badge" style="margin-bottom:8px;display:inline-block;">El Motor del Matching</span>
+            <h2 style="font-size:1.6rem;letter-spacing:-0.02em;">Flujo Detallado del Selector de Proveedores (5 Pasos)</h2>
+            <p style="color:var(--text-muted);font-size:0.88rem;max-width:800px;margin-top:6px;">
+              Diseñado para resolver el reto del contratista: cómo comparar talleres con total neutralidad técnica, recoger ofertas con notas técnicas vinculantes y formalizar pedidos con trazabilidad de fechas inmutable.
+            </p>
+          </div>
+
+          <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:16px;">
+            
+            <div class="step-card" style="border-top:4px solid var(--role-sofein);">
+              <span class="step-code">PASO 1 · SOFEIN</span>
+              <h3 class="step-name">1. Petición (RFQ)</h3>
+              <p class="step-summary">SOFEIN selecciona talleres homologados del directorio (mínimo 3 sugeridos) e introduce <code>notasAdminProveedores</code> con indicaciones técnicas clave.</p>
+              <div style="font-size:0.72rem;color:var(--text-faint);margin-top:6px;">Ruta: <code>#admin/selector/.../1</code></div>
+            </div>
+
+            <div class="step-card" style="border-top:4px solid var(--role-cliente);">
+              <span class="step-code">PASO 2 · CLIENTE</span>
+              <h3 class="step-name">2. Preselección</h3>
+              <p class="step-summary">El cliente revisa los talleres propuestos, descarta proveedores con los que no desee cotizar y añade «Requisitos imprescindibles adicionales» en texto libre.</p>
+              <div style="font-size:0.72rem;color:var(--text-faint);margin-top:6px;">Ruta: <code>#cliente/selector/.../2</code></div>
+            </div>
+
+            <div class="step-card" style="border-top:4px solid var(--role-proveedor);">
+              <span class="step-code">PASO 3 · PROVEEDOR</span>
+              <h3 class="step-name">3. Cotización</h3>
+              <p class="step-summary">Cada taller completa: precio/ud (€), plazo de entrega (semanas) y <code>anotaciones</code> con condicionantes fabriles (ej. flete no incluido, pedido mínimo).</p>
+              <div style="font-size:0.72rem;color:var(--text-faint);margin-top:6px;">Ruta: <code>#proveedor/cotizaciones</code></div>
+            </div>
+
+            <div class="step-card" style="border-top:4px solid var(--role-cliente);">
+              <span class="step-code">PASO 4 · CLIENTE</span>
+              <h3 class="step-name">4. Comparativa</h3>
+              <p class="step-summary">Tabla matricial en vivo: precio total, precio unitario con formato miles (<code>fmtNumEs</code>), plazos, condicionantes y selección del adjudicatario.</p>
+              <div style="font-size:0.72rem;color:var(--text-faint);margin-top:6px;">Ruta: <code>#cliente/selector/.../4</code></div>
+            </div>
+
+            <div class="step-card" style="border-top:4px solid var(--brand-green);">
+              <span class="step-code">PASO 5 · FORMALIZACIÓN</span>
+              <h3 class="step-name">5. Pedido en Firme</h3>
+              <p class="step-summary">SOFEIN valida la adjudicación. Se congela la <strong>Fecha de Entrega Acordada Inicial</strong> (anclada para auditoría de demoras) y el suministro avanza a Fabricación.</p>
+              <div style="font-size:0.72rem;color:var(--text-faint);margin-top:6px;">Ruta: <code>#admin/selector/.../5</code></div>
+            </div>
+
+          </div>
+
+          <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:16px 20px;">
+            <div style="display:flex;align-items:center;gap:8px;font-weight:700;font-size:0.85rem;color:var(--accent-warn);margin-bottom:6px;">
+              <span>⚠️</span> Regla de Oro del Selector: Cortafuegos de Precios
+            </div>
+            <p style="font-size:0.8rem;color:var(--text-muted);line-height:1.5;">
+              Ningún proveedor puede ver jamás los precios ni la identidad de los otros talleres participantes en la licitación. El cliente solo ve los proveedores aprobados por SOFEIN y las ofertas formalizadas. El Destinatario Final (Adif / auditor) no tiene acceso al Selector para proteger la confidencialidad de compra del constructor.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- VIEW 4: INCIDENCIAS & MEDIACIÓN -->
+      <!-- ========================================== -->
+      <div class="view-content" id="view-incidencias">
+        <div style="background:var(--bg-surface);border:1px solid var(--border);border-radius:14px;padding:28px;display:flex;flex-direction:column;gap:24px;">
+          <div>
+            <span class="brand-badge" style="margin-bottom:8px;display:inline-block;">Cortafuegos Jurídico</span>
+            <h2 style="font-size:1.6rem;letter-spacing:-0.02em;">Protocolo de Mediación de Incidencias & Registro Inmutable</h2>
+            <p style="color:var(--text-muted);font-size:0.88rem;max-width:800px;margin-top:6px;">
+              En obras ferroviarias las demoras y cambios son habituales. SOFEIN actúa como árbitro técnico y cortafuegos, documentando cada desvío para evitar litigios y delimitando responsabilidades.
+            </p>
+          </div>
+
+          <!-- Sequence Steps Grid -->
+          <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));gap:16px;">
+            
+            <div class="step-card">
+              <div style="font-size:1.4rem;margin-bottom:4px;">1️⃣</div>
+              <h3 class="step-name">Notificación de Desviación</h3>
+              <p class="step-summary">El taller o el cliente reportan una alteración: rotura de stock de acero, fallo en ensayo de flexión de traviesa, o modificación de fecha por lluvias en obra.</p>
+              <div class="actor-safeguard">Origen: Proveedor o Cliente</div>
+            </div>
+
+            <div class="step-card">
+              <div style="font-size:1.4rem;margin-bottom:4px;">2️⃣</div>
+              <h3 class="step-name">Evaluación Técnica SOFEIN</h3>
+              <p class="step-summary">SOFEIN audita el impacto, analiza si procede activar taller suplente o si la demora es asumible, y formula una propuesta de acuerdo formal.</p>
+              <div class="actor-safeguard">Interviene: SOFEIN Admin</div>
+            </div>
+
+            <div class="step-card">
+              <div style="font-size:1.4rem;margin-bottom:4px;">3️⃣</div>
+              <h3 class="step-name">Resolución & Aprobación</h3>
+              <p class="step-summary">La parte receptora (Cliente o Proveedor) acepta formalmente la nueva fecha o compensación pactada en la plataforma.</p>
+              <div class="actor-safeguard">Valida: Cliente / Proveedor</div>
+            </div>
+
+            <div class="step-card">
+              <div style="font-size:1.4rem;margin-bottom:4px;">4️⃣</div>
+              <h3 class="step-name">Registro Inmutable</h3>
+              <p class="step-summary">El cambio se sella en el <code>expedienteCambioLog</code> con adjuntos y justificación. Se traslada automáticamente al Certificado SOFEIN final.</p>
+              <div class="actor-safeguard" style="color:var(--brand-green);">Trazabilidad blindada</div>
+            </div>
+
+          </div>
+
+          <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:16px 20px;">
+            <strong style="color:var(--text);font-size:0.86rem;display:block;margin-bottom:6px;">Anotaciones Internas vs Registro de Incidencias:</strong>
+            <p style="font-size:0.8rem;color:var(--text-muted);line-height:1.5;">
+              <strong>Registro de Incidencias:</strong> Es público para las partes involucradas y pasa al Certificado final.<br/>
+              <strong>Anotaciones Internas (v63):</strong> Pestaña exclusiva de SOFEIN para notas confidenciales, minutas de reuniones y llamadas telefónicas con adjuntos, 100% invisible para el cliente y proveedor.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- VIEW 5: CERTIFICADO SOFEIN -->
+      <!-- ========================================== -->
+      <div class="view-content" id="view-certificado">
+        <div style="background:var(--bg-surface);border:1px solid var(--border);border-radius:14px;padding:28px;display:flex;flex-direction:column;gap:24px;">
+          <div>
+            <span class="brand-badge" style="margin-bottom:8px;display:inline-block;">Entregable Maestro</span>
+            <h2 style="font-size:1.6rem;letter-spacing:-0.02em;">Anatomía del Certificado SOFEIN (Evolución v63)</h2>
+            <p style="color:var(--text-muted);font-size:0.88rem;max-width:800px;margin-top:6px;">
+              Tras la reunión con Flor y Ángel Plaza, el antiguo "Pasaporte Digital" se rediseña como <strong>Certificado SOFEIN</strong>: un dossier oficial orientado a auditoría y recepción de obra, sin sellos criptográficos artificiosos y con estricta delimitación legal de responsabilidad.
+            </p>
+          </div>
+
+          <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:20px;">
+            
+            <div class="step-card">
+              <span class="step-code">SECCIÓN 1</span>
+              <h3 class="step-name">Cabecera de Identidad & Estado</h3>
+              <ul class="detail-list" style="margin-top:8px;">
+                <li>Código oficial de expediente y código de suministro.</li>
+                <li>Constructor (Cliente) y Destinatario Final (Adif / Metro).</li>
+                <li>Etiqueta dinámica: <code>Borrador: suministro en curso</code> (azul) mientras se fabrica vs <code>Certificado final</code> al cierre.</li>
+              </ul>
+            </div>
+
+            <div class="step-card">
+              <span class="step-code">SECCIÓN 2</span>
+              <h3 class="step-name">Resumen Técnico & Auditoría Temporal</h3>
+              <ul class="detail-list" style="margin-top:8px;">
+                <li>Material, volumen/unidades y especificación de ensayo (EN / ET).</li>
+                <li>Proveedor adjudicado y datos de homologación.</li>
+                <li><strong>Fecha de entrega acordada inicial</strong> vs <strong>Fecha de entrega real en vía</strong> (cálculo de cumplimiento SLA).</li>
+              </ul>
+            </div>
+
+            <div class="step-card">
+              <span class="step-code">SECCIÓN 3</span>
+              <h3 class="step-name">Registro de Incidencias & Cambios</h3>
+              <ul class="detail-list" style="margin-top:8px;">
+                <li>Historial cronológico completo de cualquier alteración de plazo o técnica pactada durante la fabricación.</li>
+                <li>Motivo justificado y fecha de resolución formal por SOFEIN.</li>
+              </ul>
+            </div>
+
+            <div class="step-card">
+              <span class="step-code">SECCIÓN 4</span>
+              <h3 class="step-name">Dossier Documental Consolidado</h3>
+              <ul class="detail-list" style="margin-top:8px;">
+                <li>Todos los certificados de lote, marcado CE y ensayos validados por SOFEIN.</li>
+                <li>Albaranes de entrega firmados en obra.</li>
+                <li>Descarga en formato PDF oficial y paquete completo en archivo ZIP.</li>
+              </ul>
+            </div>
+
+            <div class="step-card" style="grid-column:1 / -1;border-color:var(--brand-green);">
+              <span class="step-code" style="color:var(--brand-green);">SECCIÓN 5 · CLÁUSULA CRÍTICA</span>
+              <h3 class="step-name">Delimitación Legal de Responsabilidad</h3>
+              <p class="step-summary" style="margin-top:6px;">
+                El certificado incluye expresamente la cláusula jurídica dictada por Ángel Plaza: <strong>SOFEIN certifica la conformidad del proceso de gestión, trazabilidad y verificación documental según los pliegos acordados</strong>. La responsabilidad sobre la idoneidad intrínseca, propiedades físico-mecánicas y comportamiento del material corresponde exclusivamente al fabricante adjudicatario.
+              </p>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- VIEW 6: MERMAID CODE (NOTION EXPORT) -->
+      <!-- ========================================== -->
+      <div class="view-content" id="view-mermaid">
+        <div class="code-box-container">
+          <div class="code-box-header">
+            <div>
+              <h3 style="font-size:1.1rem;font-weight:700;">Diagrama Mermaid Oficial de SOFEIN Procurement</h3>
+              <p style="font-size:0.8rem;color:var(--text-muted);margin-top:4px;">Listo para copiar y pegar directamente en Notion, Obsidian, GitHub o minutas de reunión.</p>
+            </div>
+            <button class="btn btn-primary" id="copyMermaidBtn">
+              <span>Copiar al Portapapeles</span>
+              📋
+            </button>
+          </div>
+
+          <pre class="mermaid-pre" id="mermaidCodeBlock">
+flowchart TD
+    %% Roles y Colores
+    classDef sofein fill:#0f2942,stroke:#38bdf8,stroke-width:2px,color:#f8fafc;
+    classDef cliente fill:#1e3a5f,stroke:#60a5fa,stroke-width:2px,color:#f8fafc;
+    classDef prov fill:#064e3b,stroke:#34d399,stroke-width:2px,color:#f8fafc;
+    classDef dest fill:#3b0764,stroke:#c084fc,stroke-width:2px,color:#f8fafc;
+    classDef doc fill:#1e293b,stroke:#94a3b8,stroke-width:1px,color:#f8fafc;
+
+    subgraph F1["1. ALCANCE & REQUISITOS"]
+        A1["Cliente: Define Material, Cantidad & Destino"]:::cliente
+        A2["SOFEIN: Alta de Expediente Estanco (EXP-2026)"]:::sofein
+        A3["Destinatario: Asignación Auditor (Adif / VW)"]:::dest
+        A1 --> A2 --> A3
+    end
+
+    subgraph F2["2. COTIZACIÓN & EL SELECTOR (5 PASOS)"]
+        B1["Paso 1: SOFEIN emite RFQ con Indicaciones"]:::sofein
+        B2["Paso 2: Cliente Preselecciona & Añade Requisitos"]:::cliente
+        B3["Paso 3: Talleres envían Oferta (€ + Plazo + Notas)"]:::prov
+        B4["Paso 4: Comparativa en Vivo & Adjudicación"]:::cliente
+        B5["Paso 5: Formalización & Fijación Fecha Entrega Acordada"]:::sofein
+        B1 --> B2 --> B3 --> B4 --> B5
+    end
+
+    subgraph F3["3. FABRICACIÓN & CONTROL DE CALIDAD"]
+        C1["Proveedor: Hitos Fabriles & Carga Drag & Drop (Certificados Lote)"]:::prov
+        C2{"SOFEIN: Auditoría de Ranuras"}:::sofein
+        C3["Validado y Conforme (Verde)"]:::sofein
+        C4["Rechazado con Observaciones (Rojo)"]:::sofein
+        C5["Incidencia Técnica / Demora de Plazo"]:::prov
+        C6["Mediación SOFEIN & Registro Inmutable"]:::sofein
+        
+        C1 --> C2
+        C2 -->|OK| C3
+        C2 -->|Rechazo| C4 --> C1
+        C1 -.-> C5 --> C6 --> C3
+    end
+
+    subgraph F4["4. RECEPCIÓN & CERTIFICADO SOFEIN"]
+        D1["Proveedor: Despacho & Albarán de Salida"]:::prov
+        D2["Cliente: Recepción en Tajo & Encuesta Cierre (15d)"]:::cliente
+        D3["SOFEIN: Emisión Certificado Oficial (PDF / ZIP)"]:::sofein
+        D4["Destinatario Final: Auditoría Conforme sin Precios"]:::dest
+        
+        D1 --> D2 --> D3 --> D4
+    end
+
+    F1 --> F2 --> F3 --> F4
+          </pre>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- DRAWER / SLIDE-OVER MODAL FOR DETAILED INSPECTION -->
+  <div class="drawer-overlay" id="drawerOverlay">
+    <div class="drawer-panel" id="drawerPanel">
+      
+      <div class="drawer-header">
+        <div>
+          <span class="step-code" id="drawerStepCode">PASO X.X</span>
+          <h2 id="drawerStepTitle" style="font-size:1.25rem;font-weight:700;letter-spacing:-0.02em;margin-top:2px;">Título del Paso</h2>
+        </div>
+        <button class="btn btn-icon" id="drawerCloseBtn" style="border:none;background:transparent;font-size:1.2rem;color:var(--text-faint);">✕</button>
+      </div>
+
+      <div class="drawer-body">
+        
+        <!-- Actores -->
+        <div class="detail-section">
+          <div class="detail-label">Actores con Intervención Directa</div>
+          <div id="drawerRolesList" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+        </div>
+
+        <!-- Descripción Funcional -->
+        <div class="detail-section">
+          <div class="detail-label">Descripción Operativa & Lógica de Negocio</div>
+          <div class="detail-box" id="drawerDesc">Descripción detallada...</div>
+        </div>
+
+        <!-- Entregables / Datos Clave -->
+        <div class="detail-section">
+          <div class="detail-label">Entregables, Ranuras Documentales o Parámetros</div>
+          <div class="detail-box">
+            <ul class="detail-list" id="drawerDeliverables">
+              <li>Cargando...</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Cortafuegos Legal / Seguridad -->
+        <div class="detail-section">
+          <div class="detail-label">Cortafuegos Jurídico & Reglas de Acceso</div>
+          <div class="detail-box" style="border-left:3px solid var(--accent-warn);color:var(--text-muted);" id="drawerSafeguards">
+            Reglas de protección...
+          </div>
+        </div>
+
+      </div>
+
+      <div class="drawer-footer">
+        <span style="font-size:0.75rem;color:var(--text-faint);">Ver en la SPA local:</span>
+        <a href="app.html#admin" id="drawerAppLink" class="btn btn-primary" target="_blank">
+          <span>Abrir Pantalla</span>
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/></svg>
+        </a>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    // Detailed Step Metadata Database
+    const STEP_DETAILS = {
+      "step-1-1": {
+        code: "PASO 1.1",
+        title: "Definición Técnica del Pedido",
+        roles: ["cliente", "sofein"],
+        desc: "El constructor o el equipo de SOFEIN definen el alcance del suministro. Se seleccionan materiales ferroviarios de superestructura (ej. traviesas de hormigón pretensado monobloque AI-04, traviesas de madera creosotada, fijaciones elásticas Pandrol, carril UIC 54/60) junto con volumen, planos de despiece y fecha límite de obra.",
+        deliverables: [
+          "Pliego técnico de prescripciones particulares (PTPP)",
+          "Planos de replanteo y montaje",
+          "Tipo de vía: Línea Convencional, Alta Velocidad o Metro",
+          "Fecha objetivo requerida en tajo"
+        ],
+        safeguards: "En esta fase no se asigna proveedor. La definición es neutral y basada estrictamente en pliegos Adif / UNE / EN.",
+        link: "app.html#admin/nuevo-expediente"
+      },
+      "step-1-2": {
+        code: "PASO 1.2",
+        title: "Apertura del Expediente Estanco",
+        roles: ["sofein"],
+        desc: "SOFEIN formaliza el expediente en la plataforma con código único auditado (ej. EXP-2026-001). Se crea el contenedor hermético donde se aislarán todas las comunicaciones, documentos y cotizaciones para evitar fugas de información hacia terceros.",
+        deliverables: [
+          "Código maestro de expediente",
+          "Creación de contenedores de Suministros (1 a N por expediente)",
+          "Parametrización de ranuras documentales requeridas por material",
+          "Anotaciones internas iniciales de SOFEIN"
+        ],
+        safeguards: "El expediente es hermético. Ningún usuario ajeno a la organización del cliente asignado puede ver ni acceder al expediente.",
+        link: "app.html#admin/expedientes"
+      },
+      "step-1-3": {
+        code: "PASO 1.3",
+        title: "Asignación de Destinatario Final",
+        roles: ["sofein", "destinatario"],
+        desc: "Se identifica la entidad propietaria o auditora de la infraestructura (Adif, Adif AV, Metro de Madrid, FGC, factoría privada VW). Se crea un perfil auditor exclusivo para dicha entidad.",
+        deliverables: [
+          "Vinculación de entidad destinataria",
+          "Filtro de visibilidad automática de documentos",
+          "Habilitación del modo auditor sin precios"
+        ],
+        safeguards: "El Destinatario Final NUNCA tiene acceso a precios unitarios, márgenes de intermediación, ofertas descartadas ni disputas comerciales constructor-proveedor.",
+        link: "app.html#destinatario/expedientes"
+      },
+      "step-2-1": {
+        code: "PASO 2.1",
+        title: "Lanzamiento RFQ a Proveedores",
+        roles: ["sofein"],
+        desc: "SOFEIN abre el Selector de Proveedores. Selecciona de su directorio de talleres homologados a aquellos que cumplen los requisitos de calidad y capacidad fabril. Introduce indicaciones específicas de licitación en notasAdminProveedores.",
+        deliverables: [
+          "Mínimo 3 talleres sugeridos por catálogo",
+          "Indicaciones específicas de transporte y tolerancias",
+          "Emisión de avisos en bandeja a proveedores"
+        ],
+        safeguards: "Blindaje de competencia: los talleres invitados no saben qué otros proveedores están participando.",
+        link: "app.html#admin/selector/RFQ-2026-001/SUM-001/1"
+      },
+      "step-2-2": {
+        code: "PASO 2.2",
+        title: "Preselección & Requisitos Cliente",
+        roles: ["cliente"],
+        desc: "El constructor accede a la fase 2 del Selector. Revisa la lista propuesta por SOFEIN, puede desmarcar talleres con los que no desee trabajar y añade condiciones específicas en el campo 'Requisitos imprescindibles adicionales' (ej. entrega en turnos nocturnos, acopio en dos fases).",
+        deliverables: [
+          "Lista depurada de proveedores a cotizar",
+          "ComentariosClientePreseleccion guardados en matching",
+          "Requisitos adicionales en texto libre"
+        ],
+        safeguards: "El cliente no ve los márgenes de SOFEIN; evalúa solvencia técnica y capacidades de los talleres propuestos.",
+        link: "app.html#cliente/selector/RFQ-2026-001/SUM-001/2"
+      },
+      "step-2-3": {
+        code: "PASO 2.3",
+        title: "Recepción de Ofertas & Condicionantes",
+        roles: ["proveedor"],
+        desc: "Los proveedores invitados acceden a su sección 'Cotizaciones'. Introducen su precio unitario (€/ud), plazo de entrega (semanas) y anotaciones/condicionantes de su oferta (ej. 'Precio FOB taller', 'Válido durante 30 días naturales').",
+        deliverables: [
+          "Precio unitario y total ofertado",
+          "Semanas de entrega estimadas",
+          "Anotaciones / Condicionantes vinculantes del taller",
+          "Ficha técnica o catálogo adjunto"
+        ],
+        safeguards: "Los proveedores cotizan a ciegas respecto al resto de licitadores. No pueden modificar la oferta una vez enviada sin mediación.",
+        link: "app.html#proveedor/cotizaciones"
+      },
+      "step-2-4": {
+        code: "PASO 2.4",
+        title: "Comparativa & Adjudicación",
+        roles: ["cliente", "sofein"],
+        desc: "El cliente visualiza la tabla comparativa matricial con importes formateados con separador de miles (fmtNumEs), plazos, cumplimiento de requisitos y notas de los proveedores. El cliente marca la opción seleccionada y redacta sus motivos.",
+        deliverables: [
+          "Cuadro comparativo en vivo de ofertas",
+          "Comparativa de plazo vs precio",
+          "Selección formal del adjudicatario por el constructor"
+        ],
+        safeguards: "La adjudicación queda registrada en el expediente con marca de tiempo y autor.",
+        link: "app.html#cliente/selector/RFQ-2026-001/SUM-001/4"
+      },
+      "step-2-5": {
+        code: "PASO 2.5",
+        title: "Formalización & Fijación de Fechas",
+        roles: ["sofein", "cliente", "proveedor"],
+        desc: "SOFEIN revisa y ratifica la adjudicación. En este hito se congela en la base de datos la 'Fecha de Entrega Acordada Inicial', anclada en el primer registro de cambios para que cualquier retraso posterior compute objetivamente en el Certificado final.",
+        deliverables: [
+          "Acuerdo comercial validado",
+          "Fecha acordada anclada en BD",
+          "Pase automático del suministro a Fase 3 (Fabricación)"
+        ],
+        safeguards: "La fecha acordada inicial es inmutable; servirá de base legal para calcular demoras reales vs teóricas.",
+        link: "app.html#admin/selector/RFQ-2026-001/SUM-001/5"
+      },
+      "step-3-1": {
+        code: "PASO 3.1",
+        title: "Carga Documental de Ensayos Fabriles",
+        roles: ["proveedor"],
+        desc: "Durante la producción en taller, el proveedor sube a las ranuras documentales de la Fase 3 todos los entregables exigidos: certificados de colada de acero, ensayos de compresión de hormigón, certificados de laboratorio homologado y dosieres de trazabilidad.",
+        deliverables: [
+          "Certificados de ensayo según norma EN 13230",
+          "Marcado CE y Declaraciones de Prestaciones (DoP)",
+          "Fichas de lote con número de serie de fabricación",
+          "Interacción por Drag & Drop"
+        ],
+        safeguards: "Los documentos subidos pasan de forma inmediata al estado 'En revisión por SOFEIN' y no son definitivos hasta su validación.",
+        link: "app.html#proveedor/mis-suministros"
+      },
+      "step-3-2": {
+        code: "PASO 3.2",
+        title: "Auditoría & Validación SOFEIN",
+        roles: ["sofein"],
+        desc: "Los técnicos de SOFEIN inspeccionan cada documento subido. Si es correcto, lo marcan como 'Validado y conforme' (verde). Si presenta defectos o falta información, se rechaza con observaciones detalladas, disparando una notificación directa al taller para subsanación.",
+        deliverables: [
+          "Dictamen: 🟢 Validado / 🔴 Rechazado con observaciones",
+          "Registro del técnico validador y fecha",
+          "Avisos automáticos de subsanación"
+        ],
+        safeguards: "El expediente avisa con alerta visual y modal de confirmación si se intenta avanzar de fase con documentos pendientes o sin validar.",
+        link: "app.html#admin/expedientes/RFQ-2026-001?tab=deliverables"
+      },
+      "step-3-3": {
+        code: "PASO 3.3",
+        title: "Muro de Incidencias & Mediación",
+        roles: ["sofein", "cliente", "proveedor"],
+        desc: "Si surge cualquier contingencia (demora en taller, alteración de metraje o sustitución de materia prima), se registra formalmente. SOFEIN media entre constructor y taller para pactar nueva fecha o condiciones alternativas, generando un anexo inmutable.",
+        deliverables: [
+          "Registro formal de incidencia con tipología e impacto",
+          "Anotaciones internas de mediación SOFEIN",
+          "Aprobación formal de nueva fecha acordada",
+          "Incorporación automática al Certificado SOFEIN"
+        ],
+        safeguards: "Cortafuegos legal: delimita si la demora es imputable a causas de fuerza mayor, retraso fabril o cambio de obra del cliente.",
+        link: "app.html#admin/expedientes/RFQ-2026-001?tab=changes"
+      },
+      "step-4-1": {
+        code: "PASO 4.1",
+        title: "Logística & Albaranes de Entrega",
+        roles: ["proveedor", "cliente"],
+        desc: "Salida del material desde taller hacia la traza ferroviaria. El proveedor sube el albarán oficial de transporte con matrícula y precintos. El jefe de obra del cliente confirma la recepción física y el estado del lote.",
+        deliverables: [
+          "Albarán de despacho de fábrica",
+          "Firma de recepción conforme en obra",
+          "Registro de fecha real de entrega en vía"
+        ],
+        safeguards: "La fecha real de recepción se compara automáticamente con la fecha acordada para calcular el lead time real.",
+        link: "app.html#cliente/mis-suministros"
+      },
+      "step-4-2": {
+        code: "PASO 4.2",
+        title: "Encuesta de Cierre (15 Días)",
+        roles: ["cliente", "sofein"],
+        desc: "Al entrar en fase de cierre, el cliente visualiza durante 15 días una franja blanca prominente con la encuesta de satisfacción por suministro ('¿Todo está bien con el suministro de X traviesas?'). La respuesta viaja directamente al panel de SOFEIN.",
+        deliverables: [
+          "Respuesta de satisfacción del cliente",
+          "Bandeja de control de encuestas de SOFEIN",
+          "Cierre automático tras 15 días si no hay observaciones"
+        ],
+        safeguards: "Garantiza que el cliente no tenga reclamaciones latentes antes de dar el expediente por cerrado administrativamente.",
+        link: "app.html#cliente/expedientes/RFQ-2026-001"
+      },
+      "step-4-3": {
+        code: "PASO 4.3",
+        title: "Certificado SOFEIN Consolidado",
+        roles: ["sofein", "cliente", "destinatario"],
+        desc: "Compilación oficial del dossier del suministro: resumen técnico, auditoría de fechas (prevista vs real), registro inmutable de incidencias, compendio de certificados validados, cláusula legal de delimitación de responsabilidad y exportación en PDF y ZIP.",
+        deliverables: [
+          "Certificado SOFEIN con identificador único",
+          "Cláusula expresa de delimitación de responsabilidad legal",
+          "Dossier PDF imprimible de alta fidelidad",
+          "Descarga de paquete ZIP con todos los certificados originales"
+        ],
+        safeguards: "SOFEIN actúa como garante del proceso y auditoría documental. La idoneidad intrínseca y comportamiento del producto corresponde al fabricante.",
+        link: "app.html#admin/expedientes/RFQ-2026-001?tab=passport"
+      }
+    };
+
+    // DOM Elements
+    const viewTabs = document.querySelectorAll("#viewTabs .tab-pill");
+    const viewContents = document.querySelectorAll(".view-content");
+    const rolePills = document.querySelectorAll("#roleFilters .role-pill-btn");
+    const searchInput = document.getElementById("searchInput");
+    const themeToggleBtn = document.getElementById("themeToggleBtn");
+    const themeIcon = document.getElementById("themeIcon");
+    const copyMermaidBtn = document.getElementById("copyMermaidBtn");
+
+    // Drawer Elements
+    const drawerOverlay = document.getElementById("drawerOverlay");
+    const drawerPanel = document.getElementById("drawerPanel");
+    const drawerCloseBtn = document.getElementById("drawerCloseBtn");
+    const drawerStepCode = document.getElementById("drawerStepCode");
+    const drawerStepTitle = document.getElementById("drawerStepTitle");
+    const drawerRolesList = document.getElementById("drawerRolesList");
+    const drawerDesc = document.getElementById("drawerDesc");
+    const drawerDeliverables = document.getElementById("drawerDeliverables");
+    const drawerSafeguards = document.getElementById("drawerSafeguards");
+    const drawerAppLink = document.getElementById("drawerAppLink");
+
+    // Tab Navigation
+    viewTabs.forEach(tab => {
+      tab.addEventListener("click", () => {
+        viewTabs.forEach(t => t.classList.remove("is-active"));
+        tab.classList.add("is-active");
+
+        const targetViewId = "view-" + tab.dataset.view;
+        viewContents.forEach(view => {
+          if (view.id === targetViewId) {
+            view.classList.add("is-active");
+          } else {
+            view.classList.remove("is-active");
+          }
+        });
+      });
+    });
+
+    // Role Filtering
+    rolePills.forEach(pill => {
+      pill.addEventListener("click", () => {
+        rolePills.forEach(p => p.classList.remove("active"));
+        pill.classList.add("active");
+
+        const selectedRole = pill.dataset.role;
+        const allCards = document.querySelectorAll(".step-card");
+
+        allCards.forEach(card => {
+          if (selectedRole === "all") {
+            card.style.opacity = "1";
+            card.style.filter = "none";
+          } else {
+            const cardRoles = card.dataset.roles ? card.dataset.roles.split(",") : [];
+            if (cardRoles.includes(selectedRole)) {
+              card.style.opacity = "1";
+              card.style.filter = "none";
+            } else {
+              card.style.opacity = "0.22";
+              card.style.filter = "grayscale(80%)";
+            }
+          }
+        });
+
+        // Filter swimlanes rows if in swimlane view
+        const swimlaneRows = document.querySelectorAll(".swimlane-row");
+        swimlaneRows.forEach(row => {
+          if (selectedRole === "all" || row.dataset.swimlane === selectedRole) {
+            row.style.display = "grid";
+          } else {
+            row.style.display = "none";
+          }
+        });
+      });
+    });
+
+    // Search Filtering
+    searchInput.addEventListener("input", (e) => {
+      const q = e.target.value.toLowerCase().trim();
+      const allCards = document.querySelectorAll(".step-card");
+
+      allCards.forEach(card => {
+        const text = card.textContent.toLowerCase();
+        if (!q || text.includes(q)) {
+          card.style.display = "flex";
+        } else {
+          card.style.display = "none";
+        }
+      });
+    });
+
+    // Theme Toggle
+    themeToggleBtn.addEventListener("click", () => {
+      const currentTheme = document.body.getAttribute("data-theme");
+      const nextTheme = currentTheme === "dark" ? "light" : "dark";
+      document.body.setAttribute("data-theme", nextTheme);
+      themeIcon.textContent = nextTheme === "dark" ? "☀️" : "🌙";
+    });
+
+    // Drawer Interaction
+    function openStepDrawer(stepId) {
+      const step = STEP_DETAILS[stepId];
+      if (!step) return;
+
+      drawerStepCode.textContent = step.code;
+      drawerStepTitle.textContent = step.title;
+      drawerDesc.textContent = step.desc;
+      drawerSafeguards.textContent = step.safeguards;
+      drawerAppLink.href = step.link;
+
+      // Roles Badges
+      drawerRolesList.innerHTML = step.roles.map(r => {
+        const labelMap = { sofein: "SOFEIN Admin", cliente: "Cliente Constructor", proveedor: "Proveedor Fabricante", destinatario: "Destinatario Final" };
+        return `<span class="role-badge ${r}">${labelMap[r] || r}</span>`;
+      }).join("");
+
+      // Deliverables List
+      drawerDeliverables.innerHTML = step.deliverables.map(d => `<li>${d}</li>`).join("");
+
+      drawerOverlay.classList.add("is-open");
+    }
+
+    function closeStepDrawer() {
+      drawerOverlay.classList.remove("is-open");
+    }
+
+    drawerCloseBtn.addEventListener("click", closeStepDrawer);
+    drawerOverlay.addEventListener("click", (e) => {
+      if (e.target === drawerOverlay) closeStepDrawer();
+    });
+
+    // Bind Cards Click
+    document.addEventListener("click", (e) => {
+      const card = e.target.closest(".step-card");
+      if (card && card.dataset.step) {
+        openStepDrawer(card.dataset.step);
+      }
+    });
+
+    // Copy Mermaid to Clipboard
+    copyMermaidBtn.addEventListener("click", () => {
+      const code = document.getElementById("mermaidCodeBlock").innerText;
+      navigator.clipboard.writeText(code).then(() => {
+        const originalText = copyMermaidBtn.innerHTML;
+        copyMermaidBtn.innerHTML = "<span>¡Copiado! ✓</span>";
+        setTimeout(() => {
+          copyMermaidBtn.innerHTML = originalText;
+        }, 2000);
+      });
+    });
+
+    // Keyboard support: Escape closes drawer
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && drawerOverlay.classList.contains("is-open")) {
+        closeStepDrawer();
+      }
+    });
+  </script>
+</body>
+</html>
