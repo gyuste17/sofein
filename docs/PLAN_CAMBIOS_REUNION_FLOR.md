@@ -1,6 +1,6 @@
 # Cambios tras la reunión con Flor (SOFEIN)
 
-Notas de Ángel Plaza y Guillermo, unificadas y sin duplicados. Estado a 6 nov 2026.
+Notas de Ángel Plaza y Guillermo, unificadas y sin duplicados. Estado a 11 nov 2026 (incluye las respuestas de Ángel del 11 nov).
 Detalle técnico de cada cambio: `HANDOFF.md` (entrada v63). Modelo de datos: `docs/BACKEND_SPEC.md`.
 
 ## ✅ Quick wins hechos (v63)
@@ -38,19 +38,24 @@ Por orden de dependencia aproximado. Casi todo necesita el backend (Supabase), v
 | Prioridad | Tema | Qué implica | Depende de |
 | :- | :--- | :--- | :--- |
 | 1 | **Estudio/Proyecto frente a Expediente** | Para Flor solo es «expediente» cuando hay cotización y adjudicación; antes sería «estudio» o «proyecto». Cambia el nombre y el ciclo de vida, y aparecerá «En fase de estudio / En fase de gestión del pedido / Solicitar estudio». | Preguntar a Flor cómo lo gestiona hoy. |
-| 2 | **Fase de contrato con firma de cliente y proveedor** | Nueva fase («5. Contrato» del selector según Ángel; «Fase 2.1» en las notas de Guillermo) con características del suministro, datos del acuerdo, adjuntos y cumplimientos elegidos, y firma de las dos partes. El pedido no avanza sin ella. Debe tener más empaque (formato tipo «Registro de incidencias»). La firma real necesita un proveedor de firma electrónica. | Aclarar la posición de la fase; backend y firma electrónica. |
-| 3 | **Solicitar mejora de oferta** | Fila nueva en la comparativa de la fase 4 con un botón por proveedor: el cliente describe la mejora, SOFEIN la valida o la rechaza y el proveedor actualiza su oferta. Nuevos estados y avisos. | — (se puede hacer en el front ya). |
-| 4 | **Requisitos adicionales estructurados del cliente** | En 2. Preselección, una lista de requisitos (título + descripción); el proveedor indica en su cotización si cumple cada uno, y el resultado aparece en una fila de la comparativa. De momento existe la pregunta abierta. | Cambia el modelo de cotización. |
-| 5 | **Varias personas por cliente/proveedor + admin de la cuenta** | Contactos con nombre, apellidos, cargo/departamento, email y teléfono (sustituye a los «varios teléfonos» de v62). Admin de la cuenta: uno de los contactos o un perfil genérico con otro email. Se muestran en filas en los perfiles. | Supabase Auth (el admin es quien inicia sesión). |
+| 2 | **Certificado SOFEIN por suministro** | (Ángel, 11 nov) Un certificado para cada suministro, no uno por expediente, porque cada suministro puede tener un proveedor distinto. Hoy (v63) hay uno por expediente con una fila por suministro. Implica: pestaña del certificado ligada al suministro seleccionado, etiqueta «Certificado final» al cerrar **ese** suministro, y descargas por suministro. | Confirmar con Flor si además quiere uno global del expediente. Se puede hacer en el front. |
+| 3 | **Fase «5. Contrato» del selector, con firma de cliente y proveedor** | Decidido con Ángel (11 nov): va como **5. Contrato**, después de que el cliente elija proveedor y SOFEIN lo valide. Incluye características del suministro, datos del acuerdo, adjuntos y cumplimientos elegidos, y firma de las dos partes, con un formato parecido al «Registro de incidencias». El pedido no avanza sin ella (sustituye a la «Fase 2.1» de las notas de Guillermo). La firma real necesita un proveedor de firma electrónica. | Backend y firma electrónica (la maqueta se puede hacer ya). |
+| 4 | **Solicitar mejora de oferta** | Fila nueva en la comparativa de la fase 4 con un botón por proveedor: el cliente describe la mejora, SOFEIN la valida o la rechaza y el proveedor actualiza su oferta. Nuevos estados y avisos. | — (se puede hacer en el front ya). |
+| 5 | **Varias personas por cliente/proveedor + admin de la cuenta** | Contactos con nombre, apellidos, cargo/departamento, email y teléfono (sustituye a los «varios teléfonos» de v62). Propuesta de Ángel: indicar un admin por cliente y proveedor, que puede ser **uno de los contactos o un perfil genérico con otro email**, dando las dos opciones en la plataforma. Se muestran en filas en los perfiles. | Preguntar a Flor si quiere las dos opciones o solo una; Supabase Auth (el admin es quien inicia sesión). |
 | 6 | **Roles dentro de cada cuenta** (compras, jefe de obra, calidad…) | Accesos distintos por rol. Es una fase posterior y hay que valorarlo. | Punto 5. |
 | 7 | **Más acuerdos y compromisos firmables en el perfil del proveedor** | Seguro de RC como requisito obligatorio con caducidad y aviso; acuerdos que el proveedor debe firmar. Referencia: Nalanda Global (gestión documental de proveedores). | Firma electrónica; almacenamiento. |
-| 8 | **Descargas reales del Certificado (PDF) y del expediente (ZIP)** | Ahora la descarga del PDF usa la impresión del navegador y el ZIP es una maqueta. | Storage y Edge Function. |
+| 8 | **Descargas reales del Certificado (PDF) y del expediente (ZIP)** | Ahora la descarga del PDF usa la impresión del navegador y el ZIP es una maqueta. Con el punto 2, las descargas serán por suministro. | Storage y Edge Function. |
 | 9 | **Integrar Claude** | Chatbot dentro de la app y/o acceso de Claude a la base de datos. Siempre a través de una función de backend que guarde la clave (nunca desde el navegador). | Backend. |
 | 10 | **Licitaciones** | Es complejo y hoy no se resuelve bien; la propia cliente lo deja para una segunda fase. | — |
 
-## ❓ Dudas para Flor o Ángel
-- Fase de contrato: ¿«5. Contrato» del selector o «Fase 2.1»? ¿Va antes o después de que SOFEIN valide la adjudicación?
-- Requisitos adicionales: ¿lista estructurada con respuesta sí/no por proveedor o basta con la pregunta abierta que ya está?
-- Encuesta: ¿una por suministro (como está ahora) o una por expediente? ¿Se cierra sola a los 15 días sin respuesta (como está ahora)?
-- Admin genérico con otro email: ¿es un usuario que inicia sesión o solo un contacto?
-- Las notas de Ángel tienen fecha «10/04/2026»; ¿es una errata?
+## ✔️ Decidido con Ángel (11 nov 2026)
+- **Contrato:** va como «5. Contrato» del selector (punto 3 del plan).
+- **Requisitos adicionales del cliente:** se deja como **pregunta abierta**, que ya está hecha en v63 («¿Algún otro requisito imprescindible…?» en las fases 2 y 4). Sale del plan la lista estructurada (título, descripción y respuesta sí/no del proveedor).
+- **Certificado SOFEIN:** uno por suministro (punto 2 del plan).
+
+## ❓ Para preguntar a Flor en las próximas reuniones
+1. **Estudio/expediente:** ¿cómo lo gestiona hoy? ¿En qué momento pasa a llamarse expediente y qué ve el cliente antes?
+2. **Encuesta de satisfacción:** hoy (v63) hay una por suministro. Ángel lo ve lógico, porque son materiales y proveedores distintos y se pueden cerrar en fechas distintas, pero puede que Flor prefiera **una encuesta global** para cerrar todo el expediente de una vez. ¿Cuál prefiere? ¿Se cierra sola a los 15 días sin respuesta (como está ahora)?
+3. **Certificado SOFEIN:** además del certificado por suministro, ¿quiere también uno global del expediente?
+4. **Admin de la cuenta:** ¿damos las dos opciones (uno de los contactos o un perfil genérico con otro email) o prefiere solo una?
+5. Fecha de las notas de Ángel («10/04/2026»): ¿errata?

@@ -255,7 +255,7 @@ Confidencialidad: un proveedor **solo** lee su propia cotización. El cliente no
 ### 4.8 Formalización y pasaporte
 
 - **`pedidos`** (front: `ensureExpedienteFormalizacion`; hoy es por expediente y conviene pasarlo **por suministro**): suministro_id, codigo (`PED-SOF-…`), proveedor_id, importe, fecha_entrega, condiciones_pago, firmas de cliente y proveedor (at y por) y validado_sofein_at. La hoja de pedido es un documento con `origen = 'hoja_pedido'`.
-- **Certificado SOFEIN** (antes «Pasaporte Digital», renombrado en v63). Contenido acordado: cabecera con título, código, cliente y destino; etiqueta «Borrador: suministro en curso» / «Certificado final»; 1. Resumen por suministro (tipo, especificaciones, código, proveedor, unidades finales, presupuesto final, entrega acordada = fecha antes del primer cambio registrado, entrega final) + contrato firmado + adjuntos de alcance; 2. Registro de incidencias y cambios (una fila por registro); 3. Documentación adicional relevante (automática); Delimitación Legal. **Sin sello ni hashes visibles** (riesgo legal). Descargas: PDF del certificado y ZIP del expediente completo.
+- **Certificado SOFEIN** (antes «Pasaporte Digital», renombrado en v63). **Decisión del 11 nov (Ángel): uno por suministro**, no por expediente, porque cada suministro puede tener un proveedor distinto; hoy el front muestra uno por expediente con una fila por suministro. Contenido acordado: cabecera con título, código, cliente y destino; etiqueta «Borrador: suministro en curso» / «Certificado final»; 1. Resumen por suministro (tipo, especificaciones, código, proveedor, unidades finales, presupuesto final, entrega acordada = fecha antes del primer cambio registrado, entrega final) + contrato firmado + adjuntos de alcance; 2. Registro de incidencias y cambios (una fila por registro); 3. Documentación adicional relevante (automática); Delimitación Legal. **Sin sello ni hashes visibles** (riesgo legal). Descargas: PDF del certificado y ZIP del expediente completo.
 - **Pasaporte (modelo heredado)**: se genera al cerrar el expediente. Consolida hitos por fase, ensayos y certificados validados y adendas, con un hash SHA-256 por bloque. Se guarda como documento `origen = 'pasaporte'`, visible para todos (destinatario incluido).
 
 ### 4.9 Avisos e historial
@@ -476,13 +476,15 @@ Script: `supabase/seed.sql`, generado desde los arrays (normalizando fechas, imp
 ## 12. Decisiones abiertas
 
 0. **Historial y backoffice.** Pendiente de activar: definir qué ve SOFEIN de la actividad y las personas (ver 4.9).
-1. **Pedidos y formalización por suministro.** Hoy siguen por expediente. Recomendado: por suministro (cada uno puede tener un proveedor distinto).
+1. **Pedidos y formalización por suministro.** Hoy siguen por expediente. Recomendado: por suministro (cada uno puede tener un proveedor distinto). (11 nov) Ángel confirma que el **contrato** irá como «5. Contrato» del selector, por suministro, y que el **Certificado SOFEIN** también será **por suministro**.
 2. **Firma electrónica.** Hoy es un clic con nombre y declaración. ¿Basta con eso (con registro de IP y fecha) o se integra un proveedor de firma (Signaturit, DocuSign…) para registros y hojas de pedido?
 3. **Usuarios por organización.** Varios usuarios por cliente o proveedor y, si hace falta, roles internos (quién puede firmar).
 4. **Emails de aviso.** Si se envían, con qué proveedor y para qué eventos.
 5. **Versionado de documentos.** Confirmar que se conservan las versiones anteriores al subsanar.
 6. **Destino del suministro.** Pasar de texto a una entidad (el destinatario y su ubicación).
 7. **Unidades.** Confirmado que siempre son unidades contables (sin volumen ni longitud). Si en el futuro hiciera falta, añadir `unidad_medida` al producto.
+8. **Encuesta de cierre: por suministro o global.** Hoy una por suministro (`encuestas_cierre.suministro_id`). Pendiente de Flor: si quiere una global por expediente, añadir `expediente_id` y hacer `suministro_id` opcional.
+9. **Admin de la cuenta.** Propuesta de Ángel: un contacto de la organización o un perfil genérico con otro email (las dos opciones). Pendiente de que Flor confirme. Modelo: `organizaciones.admin_contacto_id` o `admin_email`, y ese usuario es el que inicia sesión.
 
 ---
 

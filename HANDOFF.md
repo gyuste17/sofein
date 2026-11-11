@@ -2,6 +2,16 @@
 
 Registro de relevo entre agentes. **Entradas nuevas arriba.** Reglas del proyecto en `AGENTS.md`.
 
+## 2026-11-11 · Claude · rama `claude/plan-respuestas-angel` · Respuestas de Ángel a los cambios v63 (solo documentación)
+
+Sin cambios de código: por ahora no hay que hacer nada; se pregunta a Flor en las próximas reuniones.
+- Decidido con Ángel:
+  - El contrato va como «5. Contrato» del selector.
+  - Los requisitos adicionales del cliente se quedan como pregunta abierta (ya hecho en v63; sale del plan la lista estructurada).
+  - **Certificado SOFEIN por suministro** (nuevo punto 2 del plan; hoy hay uno por expediente con una fila por suministro).
+- Para Flor: estudio/expediente, encuesta por suministro o global, si quiere también un certificado global y si el admin de la cuenta tiene las dos opciones (contacto o perfil genérico).
+- Actualizados `docs/PLAN_CAMBIOS_REUNION_FLOR.md` (plan, decisiones y preguntas) y `docs/BACKEND_SPEC.md` (4.8 y decisiones abiertas 1, 8 y 9).
+
 ## 2026-11-06 · Antigravity · rama `procurement` · Diagrama interactivo de procesos E2E (`proceso.html`) para uso interno
 
 Herramienta visual interactiva para comprender, explicar y auditar todo el proceso operativo de SOFEIN Procurement (ciclo de vida del expediente, los 4 actores, el Selector en 5 pasos, mediación de incidencias y el nuevo Certificado SOFEIN).
