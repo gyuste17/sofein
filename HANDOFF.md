@@ -2,6 +2,11 @@
 
 Registro de relevo entre agentes. **Entradas nuevas arriba.** Reglas del proyecto en `AGENTS.md`.
 
+## 2026-11-19 · Antigravity · rama `procurement` · Regla compacta de enrutamiento de modelos (solo documentación)
+
+Sin cambios de código.
+- Añadido `.agents/rules/model-routing.md` (versión compacta con enrutamiento de subagentes y estándar `Orchestrator (Neon)`).
+
 ## 2026-11-11 · Claude · rama `claude/plan-respuestas-angel` · Respuestas de Ángel a los cambios v63 (solo documentación)
 
 Sin cambios de código: por ahora no hay que hacer nada; se pregunta a Flor en las próximas reuniones.
