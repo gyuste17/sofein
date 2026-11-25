@@ -1,9 +1,18 @@
 # Archivos que no se publican en Vercel (solo se sirve la web y la app)
-.claude/
-.agents/
+.claude
+.claude/**
+.codex
+.codex/**
+.agents
+.agents/**
 .cursorrules
 .env*
-docs/
-meetings/
+docs
+docs/**
+meetings
+meetings/**
+*.mov
+*.mp4
+*.mp3
 *.md
 *.docx
